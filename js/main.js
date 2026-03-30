@@ -337,178 +337,238 @@ function renderLogin() {
 /**
  * 🏗️ STRUCTURE PRINCIPALE
  */
+/**
+ * 🏗️ STRUCTURE PRINCIPALE RESPONSIVE (Elite Layout)
+ */
 function renderLayout() {
   const userRole = localStorage.getItem("user_role");
   const userName = localStorage.getItem("user_name");
 
   document.getElementById("app").innerHTML = `
-        <div class="flex flex-col h-screen overflow-hidden bg-slate-50">
-            <header class="bg-white px-6 py-4 border-b border-slate-100 flex justify-between items-center shrink-0 z-10">
+    <div class="flex h-screen bg-slate-50 overflow-hidden font-sans">
+        
+        <!-- SIDEBAR DESKTOP (Visible uniquement sur grands écrans) -->
+        <aside class="hidden lg:flex flex-col w-72 bg-[#0F172A] text-white p-6 shadow-2xl z-30">
+            <div class="flex items-center gap-4 mb-12 px-2">
+                <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                    <i class="fa-solid fa-heart-pulse text-white text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-black text-lg tracking-tighter uppercase leading-none">Santé Plus</h2>
+                    <span class="text-[8px] text-green-400 font-bold tracking-[0.3em] uppercase">Services Élite</span>
+                </div>
+            </div>
+
+            <nav class="flex-1 space-y-2" id="nav-desktop">
+                ${getNavLinks(userRole, 'desktop')}
+            </nav>
+
+            <!-- Profil Bas Sidebar -->
+            <div class="mt-auto p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fa-solid fa-heart-pulse"></i>
+                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center font-black text-xs">
+                        ${userName.charAt(0)}
                     </div>
-                    <div>
-                        <h2 class="font-black text-slate-800 leading-none text-sm uppercase">SANTÉ PLUS</h2>
-                        <span class="text-[9px] font-bold text-green-600 uppercase tracking-widest">${userRole} : ${userName}</span>
+                    <div class="overflow-hidden">
+                        <p class="text-xs font-bold truncate">${userName}</p>
+                        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest">${userRole}</p>
                     </div>
                 </div>
-                <button onclick="window.logout()" class="text-slate-300 hover:text-red-500 transition-colors"><i class="fa-solid fa-power-off text-xl"></i></button>
+                <button onclick="window.logout()" class="mt-4 w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all">
+                    <i class="fa-solid fa-power-off"></i> Déconnexion
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENU PRINCIPAL -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+            
+            <!-- HEADER PRO (Sticky & Blur) -->
+            <header class="h-20 glass-header border-b border-slate-200/60 flex items-center justify-between px-6 lg:px-10 shrink-0 z-20">
+                <div class="lg:hidden flex items-center gap-3">
+                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                </div>
+                
+                <h2 id="view-title" class="text-xl font-black text-slate-800 lg:text-2xl tracking-tight">Tableau de bord</h2>
+
+                <div class="flex items-center gap-4">
+                    <button class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-green-600 transition-all shadow-sm">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                    </button>
+                    <div class="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
+                    <div class="hidden md:flex items-center gap-3 pl-2">
+                         <p class="text-sm font-bold text-slate-700">${userName}</p>
+                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                            <i class="fa-solid fa-user-gear"></i>
+                         </div>
+                    </div>
+                </div>
             </header>
 
-            <main id="main-content" class="flex-1 overflow-y-auto p-5 custom-scroll pb-24">
-                <div id="view-container" class="max-w-md mx-auto"></div>
+            <!-- ZONE DE CONTENU DYNAMIQUE -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scroll pb-28 lg:pb-10 bg-[#F1F5F9]/50">
+                <div id="view-container" class="max-w-7xl mx-auto"></div>
             </main>
 
-            <footer class="bg-white border-t border-slate-100 px-4 py-3 flex justify-between items-center fixed bottom-0 left-0 right-0 z-20">
-                <!-- DASHBOARD : Uniquement pour Coordinateur -->
-                ${userRole === "COORDINATEUR" ? `
-                <button onclick="switchView('dashboard')" data-view="dashboard" class="nav-btn flex flex-col items-center gap-1 flex-1">
-                    <i class="fa-solid fa-chart-pie text-lg"></i>
-                    <span class="text-[8px] font-black uppercase">Stats</span>
-                </button>` : ""}
-
-                <button onclick="switchView('patients')" data-view="patients" class="nav-btn flex flex-col items-center gap-1 flex-1">
-                    <i class="fa-solid fa-hospital-user text-lg"></i>
-                    <span class="text-[8px] font-black uppercase">Clients</span>
-                </button>
-                
-                <button onclick="switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-1 flex-1">
-                    <i class="fa-solid fa-calendar-check text-lg"></i>
-                    <span class="text-[8px] font-black uppercase">Visites</span>
-                </button>
-
-                <button onclick="switchView('feed')" data-view="feed" class="nav-btn flex flex-col items-center gap-1 flex-1">
-                    <i class="fa-solid fa-rss text-lg"></i>
-                    <span class="text-[8px] font-black uppercase">Feed</span>
-                </button>
-
-                ${userRole !== "AIDANT" ? `
-                <button onclick="switchView('billing')" data-view="billing" class="nav-btn flex flex-col items-center gap-1 flex-1">
-                    <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
-                    <span class="text-[8px] font-black uppercase">Factures</span>
-                </button>` : ""}
+            <!-- NAVIGATION MOBILE (Visible uniquement sur Mobile) -->
+            <footer class="lg:hidden bg-white/90 backdrop-blur-lg border-t border-slate-200 px-6 py-4 fixed bottom-0 left-0 right-0 z-40 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+                ${getNavLinks(userRole, 'mobile')}
             </footer>
-        </div>`;
+        </div>
+    </div>`;
+}
+
+/**
+ * 🔗 GÉNÉRATEUR DE LIENS DE NAVIGATION SYNCHRONISÉ
+ */
+function getNavLinks(role, mode) {
+    const isMobile = mode === 'mobile';
+    
+    // Configuration des onglets
+    const tabs = [
+        { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
+        { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', icon: 'fa-rss', label: 'Feed', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] }
+    ];
+
+    return tabs.filter(tab => tab.roles.includes(role)).map(tab => {
+        if (isMobile) {
+            return `
+                <button onclick="switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
+                    <i class="fa-solid ${tab.icon} text-lg"></i>
+                    <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
+                </button>`;
+        } else {
+            return `
+                <button onclick="switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm">
+                    <i class="fa-solid ${tab.icon} text-lg"></i>
+                    <span>${tab.label}</span>
+                </button>`;
+        }
+    }).join('');
 }
 
 
 
 
-
-
 /**
- * 🧭 MOTEUR DE NAVIGATION (Version Sécurisée & Premium)
+ * 🧭 MOTEUR DE ROUTAGE ÉLITE (Desktop Sidebar + Mobile Nav)
  */
 window.switchView = async (viewName) => {
   const container = document.getElementById("view-container");
+  const titleElement = document.getElementById("view-title");
   if (!container) return;
 
   const userRole = localStorage.getItem("user_role");
   const paymentStatus = localStorage.getItem("payment_status");
 
-  // 🛡️ SÉCURITÉ : BLOCAGE SI FACTURE EN RETARD (Famille uniquement)
+  // 🛡️ 1. SÉCURITÉ : BLOCAGE SI FACTURE EN RETARD (Uniquement pour la Famille)
   const restrictedViews = ["feed", "visits", "commandes"];
   if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
     UI.vibrate("error");
     return Swal.fire({
       icon: "warning",
-      title: `<span class="text-red-600">Accès Suspendu</span>`,
-      html: `<p class="text-sm">Merci de régulariser votre abonnement pour accéder au suivi de votre proche.</p>`,
-      confirmButtonText: "VOIR MA FACTURE",
-      confirmButtonColor: "#0f172a",
-      customClass: { popup: 'rounded-[2rem]' }
+      title: `<span class="text-rose-600">Accès Suspendu</span>`,
+      html: `<p class="text-sm text-slate-500">Votre abonnement présente un retard de paiement. Merci de régulariser pour accéder au suivi en direct.</p>`,
+      confirmButtonText: "RÉGULARISER MAINTENANT",
+      confirmButtonColor: "#0F172A",
+      customClass: { popup: 'rounded-[2.5rem]' }
     }).then(() => window.switchView("billing"));
   }
 
-  // 🎨 MISE À JOUR VISUELLE DES BOUTONS DE NAV
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
+  // 🎨 2. MISE À JOUR VISUELLE (Desktop Sidebar + Mobile Buttons)
+  document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
     const isActive = btn.dataset.view === viewName;
-    btn.classList.toggle("text-green-600", isActive);
-    btn.classList.toggle("active", isActive);
-    btn.classList.toggle("text-slate-300", !isActive);
+    
+    if (btn.classList.contains('sidebar-link')) {
+        // Style Sidebar Desktop
+        btn.classList.toggle("active", isActive);
+        btn.classList.toggle("text-white", isActive);
+        btn.classList.toggle("text-slate-400", !isActive);
+    } else {
+        // Style Bottom Nav Mobile
+        btn.classList.toggle("text-green-600", isActive);
+        btn.classList.toggle("text-slate-400", !isActive);
+    }
   });
 
-  // Sauvegarde de la vue pour le prochain rafraîchissement
+  // 📝 3. MISE À JOUR DU TITRE DYNAMIQUE (Header)
+  const viewTitles = {
+    dashboard: "Aperçu Analytique",
+    patients: "Gestion des Dossiers",
+    visits: "Suivi des Interventions",
+    feed: "Journal de Soins Live",
+    billing: "Centre de Facturation",
+    aidants: "Gestion de l'Équipe",
+    commandes: "Pharmacie & Logistique"
+  };
+  if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
+
+  // 💾 4. PERSISTANCE
   localStorage.setItem("last_view", viewName);
   AppState.currentView = viewName;
 
-  // 🚀 ROUTAGE & RENDU DES COMPOSANTS
-  switch (viewName) {
-    case "dashboard": 
-      Dashboard.loadAdminDashboard(); 
-      break;
+  // 🔄 5. NETTOYAGE ET LOADER AVANT RENDU
+  container.innerHTML = `
+    <div class="flex flex-col items-center justify-center h-64 animate-pulse">
+        <i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i>
+        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Chargement des données...</p>
+    </div>`;
 
-    case "patients":
-      container.innerHTML = `
-        <div class="flex justify-between items-center mb-8 animate-fadeIn">
-            <h3 class="font-black text-2xl text-slate-800">Dossiers Clients</h3>
-            ${userRole === "COORDINATEUR" ? `
-                <button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                    <i class="fa-solid fa-plus text-lg"></i>
-                </button>` : ""}
-        </div>
-        <div id="patients-list" class="space-y-4">
-             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-        </div>`;
-      Patients.loadPatients();
-      break;
+  // 🚀 6. RENDU DES COMPOSANTS
+  try {
+      switch (viewName) {
+        case "dashboard": 
+            Dashboard.loadAdminDashboard(); 
+            break;
 
-    case "visits":
-      container.innerHTML = `
-        <h3 class="font-black text-2xl text-slate-800 mb-8 animate-fadeIn">Planning & Visites</h3>
-        <div id="visits-list" class="space-y-4">
-            <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-        </div>`;
-      Visites.loadVisits();
-      break;
+        case "patients":
+            // On pré-injecte la structure pour éviter le flash blanc
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-8 animate-fadeIn">
+                    <div>
+                        <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
+                        <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
+                    </div>
+                    ${userRole === "COORDINATEUR" ? `
+                        <button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>` : ""}
+                </div>
+                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
+            Patients.loadPatients();
+            break;
 
-    case "feed":
-      // Redirection si aucun patient n'est sélectionné (sécurité UX)
-      if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
-      
-      container.innerHTML = `
-        <div class="flex items-center gap-4 mb-8 animate-fadeIn">
-            <button onclick="window.switchView('patients')" class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-slate-400">
-                <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <h3 class="font-black text-2xl text-slate-800">Journal de Soins</h3>
-        </div>
-        <div id="care-feed" class="space-y-6 pb-24"></div>`;
-      Messages.loadFeed();
-      break;
+        case "visits":
+            Visites.loadVisits();
+            break;
 
-    case "billing":
-      container.innerHTML = `
-        <h3 class="font-black text-2xl text-slate-800 mb-8 animate-fadeIn">Abonnement & Factures</h3>
-        <div id="billing-kpis" class="grid grid-cols-1 gap-4 mb-8"></div>
-        <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <tbody id="billing-table" class="divide-y divide-slate-50"></tbody>
-            </table>
-        </div>`;
-      Billing.loadBilling();
-      break;
+        case "feed":
+            if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
+            Messages.loadFeed();
+            break;
 
-    case "aidants": 
-      Aidants.loadAidants(); 
-      break;
+        case "billing":
+            Billing.loadBilling();
+            break;
 
-    case "commandes":
-      container.innerHTML = `
-        <div id="commandes-header" class="flex justify-between items-center mb-8 animate-fadeIn">
-            <h3 class="font-black text-2xl text-slate-800">Médicaments</h3>
-            ${userRole === "FAMILLE" ? `
-                <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                    <i class="fa-solid fa-cart-plus text-lg"></i>
-                </button>` : ""}
-        </div>
-        <div id="commandes-list" class="space-y-4 pb-24"></div>`;
-      Commandes.loadCommandes();
-      break;
+        case "aidants": 
+            Aidants.loadAidants(); 
+            break;
+
+        case "commandes":
+            Commandes.loadCommandes();
+            break;
+      }
+  } catch (err) {
+      container.innerHTML = `<div class="p-10 text-center text-rose-500 font-bold">Erreur de chargement : ${err.message}</div>`;
   }
 };
-
 
 // 🔑 BRANCHEMENTS GLOBAUX (À LA FIN POUR ÊTRE SÛR QUE TOUT EXISTE)
 window.CONFIG = CONFIG;
