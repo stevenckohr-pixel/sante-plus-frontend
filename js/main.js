@@ -337,9 +337,7 @@ function renderLogin() {
 /**
  * 🏗️ STRUCTURE PRINCIPALE
  */
-/**
- * 🏗️ STRUCTURE PRINCIPALE RESPONSIVE (Elite Layout)
- */
+
 function renderLayout() {
   const userRole = localStorage.getItem("user_role");
   const userName = localStorage.getItem("user_name");
