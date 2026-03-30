@@ -194,6 +194,13 @@ function nextStep() {
 
 
 async function submitRegistration() {
+    console.log("Données envoyées au serveur :", registrationData);
+
+    registrationData.email = registrationData.email ? registrationData.email.trim() : "";
+    if(!registrationData.email || !registrationData.email.includes('@')) {
+        return Swal.fire("Erreur", "L'email semble invalide.", "error");
+    }
+
     if(!registrationData.formule) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
 
     Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
