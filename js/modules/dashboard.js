@@ -2,95 +2,181 @@ import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
 /**
- * 🚀 CHARGEMENT DU DASHBOARD GLOBAL (Design Bento Premium)
+ * 🚀 DASHBOARD ÉLITE : Gestionnaire de Dossiers & KPIs
  */
 export async function loadAdminDashboard() {
     const container = document.getElementById('view-container');
     
     container.innerHTML = `
-        <div class="animate-fadeIn pb-24 px-1">
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Tableau de Bord</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Supervision en temps réel</p>
-                </div>
-                <button onclick="window.loadAdminDashboard()" class="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 text-slate-400 hover:text-green-600 transition-colors">
-                    <i class="fa-solid fa-rotate"></i>
-                </button>
-            </div>
+        <div class="animate-fadeIn pb-24">
             
-            <!-- KPIs : Bento Grid Style -->
-            <div class="grid grid-cols-2 gap-4 mb-10">
-                <!-- Patients -->
-                <div class="bg-white p-5 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 group hover:border-blue-200 transition-all">
-                    <div class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-hospital-user"></i>
+            <!-- 📊 KPIs : Ligne de statistiques pro -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                ${renderStatCard('Dossiers', 'stat-patients', 'fa-hospital-user', 'bg-blue-500')}
+                ${renderStatCard('Visites Jour', 'stat-visits', 'fa-calendar-check', 'bg-emerald-500')}
+                ${renderStatCard('À Valider', 'stat-pending', 'fa-clipboard-check', 'bg-amber-500')}
+                ${renderStatCard('Impayés', 'stat-late', 'fa-hand-holding-dollar', 'bg-rose-500')}
+            </div>
+
+            <!-- 📂 SECTION : GESTION DES DEMANDES D'ADMISSION -->
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mb-10">
+                <div class="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
+                    <div>
+                        <h3 class="text-xl font-black text-slate-800">Inscriptions en attente</h3>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Validation des accès & Activation Duo Pack</p>
                     </div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Dossiers</p>
-                    <h3 id="stat-patients" class="text-2xl font-black text-slate-800 mt-1">...</h3>
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 flex items-center gap-3">
+                            <i class="fa-solid fa-magnifying-glass text-slate-300"></i>
+                            <input type="text" placeholder="Filtrer..." class="bg-transparent border-none outline-none text-sm font-medium w-full md:w-48">
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Visites du jour -->
-                <div class="bg-emerald-50/50 p-5 rounded-[2.5rem] border border-emerald-100 group hover:border-emerald-300 transition-all">
-                    <div class="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center mb-3 shadow-lg shadow-emerald-200">
-                        <i class="fa-solid fa-calendar-check"></i>
-                    </div>
-                    <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Visites Jour</p>
-                    <h3 id="stat-visits" class="text-2xl font-black text-emerald-700 mt-1">...</h3>
+                <!-- TABLEAU DESKTOP (Visible uniquement sur PC) -->
+                <div class="hidden lg:block overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                <th class="px-8 py-5">Responsable</th>
+                                <th class="px-8 py-5">Type</th>
+                                <th class="px-8 py-5">Parent au Bénin</th>
+                                <th class="px-8 py-5">Date</th>
+                                <th class="px-8 py-5 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-table-body" class="divide-y divide-slate-50">
+                            <!-- JS Inject -->
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- À Valider -->
-                <div class="bg-amber-50/50 p-5 rounded-[2.5rem] border border-amber-100 group hover:border-amber-300 transition-all">
-                    <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center mb-3 shadow-lg shadow-amber-200">
-                        <i class="fa-solid fa-clipboard-check"></i>
-                    </div>
-                    <p class="text-[9px] font-black text-amber-600 uppercase tracking-widest">À Valider</p>
-                    <h3 id="stat-pending" class="text-2xl font-black text-amber-700 mt-1">...</h3>
-                </div>
-
-                <!-- Impayés -->
-                <div class="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 group hover:border-rose-300 transition-all">
-                    <div class="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center mb-3 shadow-lg shadow-rose-200">
-                        <i class="fa-solid fa-file-invoice-dollar"></i>
-                    </div>
-                    <p class="text-[9px] font-black text-rose-600 uppercase tracking-widest">Impayés</p>
-                    <h3 id="stat-late" class="text-2xl font-black text-rose-700 mt-1">...</h3>
+                <!-- LISTE MOBILE (Visible uniquement sur Mobile) -->
+                <div id="pending-mobile-list" class="lg:hidden divide-y divide-slate-50">
+                    <!-- JS Inject -->
                 </div>
             </div>
 
-            <!-- SECTION A : NOUVELLES INSCRIPTIONS -->
-            <div class="mb-10">
-                <div class="flex items-center gap-2 mb-5 px-1">
-                    <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                    <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest">📦 Demandes d'inscription</h4>
+            <!-- 📸 SECTION : RAPPORTS DE VISITE -->
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-8 border-b border-slate-50">
+                    <h3 class="text-xl font-black text-slate-800">Derniers rapports de soins</h3>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Certification des interventions terrain</p>
                 </div>
-                <div id="pending-registrations-list" class="space-y-4">
-                    <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-slate-200 text-2xl"></i></div>
-                </div>
-            </div>
-
-            <!-- SECTION B : VALIDATION DES VISITES -->
-            <div>
-                <div class="flex items-center gap-2 mb-5 px-1">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                    <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest">📸 Rapports terrain à certifier</h4>
-                </div>
-                <div id="pending-actions-list" class="space-y-4">
-                    <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-slate-200 text-2xl"></i></div>
+                <div id="pending-visits-list" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- JS Inject -->
                 </div>
             </div>
         </div>
     `;
 
-    // Appel des fonctions de données
+    // Lancer les chargements
     fetchStats();
-    loadPendingRegistrations();
-    fetchPendingVisits();
+    loadRegistrations();
+    loadVisitsToValidate();
 }
 
 /**
- * 📊 KPIs
+ * 🎨 Rendu d'une ligne du tableau (PC)
  */
+function renderTableRow(req) {
+    const patient = (req.patients && req.patients.length > 0) ? req.patients[0] : null;
+    const userData = btoa(JSON.stringify({ id: req.id, role: req.role, email: req.email, nom: req.nom }));
+
+    return `
+        <tr class="hover:bg-slate-50/80 transition-colors group">
+            <td class="px-8 py-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-lg">
+                        ${req.nom.charAt(0)}
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-slate-800 uppercase">${req.nom}</p>
+                        <p class="text-[11px] text-slate-400 font-medium">${req.email}</p>
+                    </div>
+                </div>
+            </td>
+            <td class="px-8 py-6">
+                <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[9px] font-black uppercase">
+                    ${req.role}
+                </span>
+            </td>
+            <td class="px-8 py-6">
+                ${patient ? `
+                    <div class="flex flex-col">
+                        <span class="text-xs font-black text-slate-700 uppercase">${patient.nom_complet}</span>
+                        <span class="text-[9px] text-green-600 font-bold uppercase mt-0.5">${patient.formule}</span>
+                    </div>
+                ` : '<span class="text-slate-300 italic text-xs">Aucun</span>'}
+            </td>
+            <td class="px-8 py-6 text-[11px] font-bold text-slate-400">
+                ${new Date(req.created_at).toLocaleDateString()}
+            </td>
+            <td class="px-8 py-6 text-right">
+                <button onclick="window.confirmActivation('${userData}')" class="bg-slate-900 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all shadow-xl shadow-slate-100">
+                    Activer
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
+/**
+ * 🎨 Rendu d'une carte (Mobile)
+ */
+function renderMobileCard(req) {
+    const patient = (req.patients && req.patients.length > 0) ? req.patients[0] : null;
+    const userData = btoa(JSON.stringify({ id: req.id, role: req.role, email: req.email, nom: req.nom }));
+
+    return `
+        <div class="p-6 bg-white">
+            <div class="flex justify-between items-start mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs">
+                        ${req.nom.charAt(0)}
+                    </div>
+                    <div>
+                        <p class="text-sm font-black text-slate-800 uppercase">${req.nom}</p>
+                        <p class="text-[10px] text-blue-500 font-bold uppercase">${req.role}</p>
+                    </div>
+                </div>
+            </div>
+            ${patient ? `
+                <div class="bg-slate-50 p-4 rounded-2xl mb-4 border border-slate-100 text-xs">
+                    <p class="font-black text-slate-700 uppercase">${patient.nom_complet}</p>
+                    <p class="text-green-600 font-bold mt-1">${patient.formule}</p>
+                </div>
+            ` : ''}
+            <button onclick="window.confirmActivation('${userData}')" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg">
+                ACTIVER LE DOSSIER
+            </button>
+        </div>
+    `;
+}
+
+// --- FONCTIONS DE DONNÉES ---
+
+async function loadRegistrations() {
+    const tableBody = document.getElementById('pending-table-body');
+    const mobileList = document.getElementById('pending-mobile-list');
+
+    try {
+        const res = await secureFetch('/admin/pending-registrations');
+        const pending = await res.json();
+
+        if (pending.length === 0) {
+            const emptyHTML = `<div class="p-20 text-center text-slate-300 italic text-sm">Tout est en ordre.</div>`;
+            tableBody.innerHTML = `<tr><td colspan="5">${emptyHTML}</td></tr>`;
+            mobileList.innerHTML = emptyHTML;
+            return;
+        }
+
+        tableBody.innerHTML = pending.map(req => renderTableRow(req)).join('');
+        mobileList.innerHTML = pending.map(req => renderMobileCard(req)).join('');
+
+    } catch (e) { console.error(e); }
+}
+
 async function fetchStats() {
     try {
         const res = await secureFetch('/dashboard/stats');
@@ -99,165 +185,84 @@ async function fetchStats() {
         document.getElementById('stat-visits').innerText = stats.visits_today;
         document.getElementById('stat-pending').innerText = stats.pending_validation;
         document.getElementById('stat-late').innerText = stats.late_payments;
-    } catch (e) { console.error("Stats Error:", e); }
+    } catch (e) {}
 }
 
-/**
- * 📦 DEMANDES DIASPORA (Duo Famille + Patient)
- */
-async function loadPendingRegistrations() {
-    const list = document.getElementById('pending-registrations-list');
-    if (!list) return;
-
-    try {
-        const res = await secureFetch('/admin/pending-registrations');
-        const pending = await res.json();
-
-        if (pending.length === 0) {
-            list.innerHTML = `
-                <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-white/50">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Aucune nouvelle demande</p>
-                </div>`;
-            return;
-        }
-
-        list.innerHTML = pending.map(req => {
-            const patient = (req.patients && req.patients.length > 0) ? req.patients[0] : null;
-            
-            // 💡 ASTUCE PRO : On encode les données en Base64 pour éviter les erreurs d'apostrophes dans le HTML
-            const userData = btoa(JSON.stringify({
-                id: req.id,
-                role: req.role,
-                email: req.email,
-                nom: req.nom
-            }));
-
-            return `
-                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-lg transition-shadow animate-fadeIn">
-                    <div class="flex justify-between items-center mb-5">
-                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-tighter">
-                            ${req.role === 'FAMILLE' ? 'DIASPORA' : 'PROFESSIONNEL'}
-                        </span>
-                        <span class="text-[9px] font-bold text-slate-300">${new Date(req.created_at).toLocaleDateString()}</span>
-                    </div>
-                    
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-lg">
-                            ${req.nom.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <h5 class="font-black text-slate-800 text-sm uppercase leading-none">${req.nom}</h5>
-                            <p class="text-[10px] text-slate-400 font-medium mt-1.5 underline underline-offset-2">${req.email}</p>
-                        </div>
-                    </div>
-                    
-                    ${patient ? `
-                        <div class="p-4 bg-green-50/50 rounded-2xl border border-green-100 mb-6">
-                            <p class="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Parent à accompagner</p>
-                            <p class="text-xs font-black text-slate-800 uppercase">${patient.nom_complet}</p>
-                            <div class="flex gap-2 mt-2">
-                                <span class="text-[8px] font-bold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-100">PACK : ${patient.formule}</span>
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    <button onclick="window.confirmRegistration('${userData}')" 
-                        class="w-full py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-700 active:scale-95 transition-all shadow-lg shadow-green-100">
-                        ACTIVER LE DOSSIER
-                    </button>
-                </div>
-            `;
-        }).join('');
-    } catch (err) { console.error("Erreur Dashboard:", err); }
+function renderStatCard(label, id, icon, color) {
+    return `
+        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-5">
+            <div class="w-14 h-14 rounded-2xl ${color} text-white flex items-center justify-center text-2xl shadow-lg">
+                <i class="fa-solid ${icon}"></i>
+            </div>
+            <div>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${label}</p>
+                <h3 id="${id}" class="text-2xl font-black text-slate-800 tracking-tight">...</h3>
+            </div>
+        </div>
+    `;
 }
 
-// 🔑 Nouvelle fonction pour décoder proprement
-window.confirmRegistration = (encodedData) => {
-    const { id, role, email, nom } = JSON.parse(atob(encodedData));
-    window.processRegistration(id, role, email, nom);
-};
-
-/**
- * 📸 VALIDATION DES RAPPORTS DE VISITE
- */
-async function fetchPendingVisits() {
-    const list = document.getElementById('pending-actions-list');
+async function loadVisitsToValidate() {
+    const list = document.getElementById('pending-visits-list');
     try {
         const res = await secureFetch('/visites?statut=En attente');
         const visits = await res.json();
         const pending = visits.filter(v => v.statut_validation === 'En attente');
 
         if (pending.length === 0) {
-            list.innerHTML = `<div class="p-8 text-center border-2 border-dashed border-slate-100 rounded-[2rem] opacity-40">
-                <i class="fa-solid fa-circle-check text-2xl text-emerald-500 mb-2"></i>
-                <p class="text-xs font-bold text-slate-400 italic">Tout est à jour</p>
-            </div>`;
+            list.innerHTML = `<p class="col-span-2 text-center text-slate-300 italic text-sm py-10">Aucun rapport en attente.</p>`;
             return;
         }
 
         list.innerHTML = pending.map(v => `
-            <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between animate-fadeIn">
+            <div class="bg-slate-50 p-4 rounded-3xl border border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                        <img src="${v.photo_url}" class="w-full h-full object-cover shadow-inner" onclick="window.open('${v.photo_url}')">
-                    </div>
+                    <img src="${v.photo_url}" class="w-12 h-12 rounded-xl object-cover shadow-inner" onclick="window.open('${v.photo_url}')">
                     <div>
-                        <h5 class="font-black text-slate-800 text-[11px] uppercase">${v.patient.nom_complet}</h5>
-                        <p class="text-[9px] text-slate-400 font-bold tracking-tighter">${UI.formatDate(v.heure_debut)}</p>
+                        <h5 class="font-black text-slate-800 text-[11px] uppercase leading-none">${v.patient.nom_complet}</h5>
+                        <p class="text-[9px] text-slate-400 font-bold mt-1">${UI.formatDate(v.heure_debut)}</p>
                     </div>
                 </div>
-                
                 <div class="flex gap-2">
-                    <button onclick="window.quickValidate('${v.id}', 'Validé')" class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all">
-                        <i class="fa-solid fa-check"></i>
+                    <button onclick="window.quickValidate('${v.id}', 'Validé')" class="w-9 h-9 rounded-xl bg-emerald-500 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-all">
+                        <i class="fa-solid fa-check text-xs"></i>
                     </button>
-                    <button onclick="window.quickValidate('${v.id}', 'Rejeté')" class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all">
-                        <i class="fa-solid fa-xmark"></i>
+                    <button onclick="window.quickValidate('${v.id}', 'Rejeté')" class="w-9 h-9 rounded-xl bg-rose-500 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-all">
+                        <i class="fa-solid fa-xmark text-xs"></i>
                     </button>
                 </div>
             </div>
         `).join('');
-    } catch (err) { console.error(err); }
+    } catch (e) {}
 }
 
-// Branchements sur window pour que le HTML les voit
-window.loadAdminDashboard = loadAdminDashboard;
-window.processRegistration = async (userId, role, email, nom) => {
-    const confirm = await Swal.fire({
-        title: 'Activer l\'accès ?',
-        text: `Un email de bienvenue sera envoyé à ${nom}.`,
+// 🔑 LOGIQUE DE VALIDATION (LIEN AVEC ÉTAPE 3)
+window.confirmActivation = (encodedData) => {
+    const { id, role, email, nom } = JSON.parse(atob(encodedData));
+    
+    Swal.fire({
+        title: '<h2 class="text-xl font-black">Valider ce dossier ?</h2>',
+        html: `<p class="text-sm text-slate-500">L'accès de <b>${nom}</b> sera activé et un email de bienvenue sera envoyé.</p>`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'OUI, VALIDER',
-        confirmButtonColor: '#10b981',
-        customClass: { popup: 'rounded-[2rem]' }
-    });
-
-    if (confirm.isConfirmed) {
-        try {
-            UI.vibrate();
-            Swal.fire({ title: 'Activation...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        confirmButtonText: 'OUI, ACTIVER TOUT',
+        confirmButtonColor: '#10B981',
+        cancelButtonText: 'Annuler',
+        customClass: { popup: 'rounded-[2.5rem]' }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            Swal.fire({ title: 'Traitement en cours...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
             
-            await secureFetch('/admin/validate-member', {
+            const res = await secureFetch('/admin/validate-member', {
                 method: 'POST',
-                body: JSON.stringify({ user_id: userId, role, email, nom })
+                body: JSON.stringify({ user_id: id, role, email, nom })
             });
 
-            Swal.fire("Succès", "Le compte et le dossier patient sont actifs.", "success");
-            loadAdminDashboard();
-        } catch (err) { Swal.fire("Erreur", err.message, "error"); }
-    }
-};
-
-window.quickValidate = async (id, status) => {
-    try {
-        UI.vibrate();
-        await secureFetch('/visites/validate', {
-            method: 'POST',
-            body: JSON.stringify({ visite_id: id, statut: status })
-        });
-        loadAdminDashboard();
-        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
-        Toast.fire({ icon: 'success', title: `Intervention ${status}` });
-    } catch (err) { alert(err.message); }
+            if (res.ok) {
+                UI.vibrate();
+                Swal.fire("Accès Opérationnel", "Le profil a été activé avec succès.", "success");
+                loadAdminDashboard();
+            }
+        }
+    });
 };
