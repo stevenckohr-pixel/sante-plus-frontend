@@ -213,3 +213,16 @@ body {
     border-color: #16a34a;
     box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
 }
+
+
+/* Empêche les inputs de trop zoomer sur iPhone lors du focus */
+input, select, textarea {
+    font-size: 16px !important; 
+}
+
+/* S'assure que le main prend bien tout l'espace restant */
+main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
