@@ -4,131 +4,179 @@ import { UI } from "../core/utils.js";
 
 /**
  * 📥 CHARGER LE JOURNAL DE SOINS
- * Cette fonction récupère le patient lié et affiche son fil d'actualité
  */
 export async function loadFeed() {
     const container = document.getElementById('care-feed');
     if (!container) return;
 
-    // 1. Si on est une Famille et qu'on n'a pas encore sélectionné de proche
     if (!AppState.currentPatient) {
         container.innerHTML = `
-            <div class="text-center py-20 bg-white rounded-[2rem] border-2 border-dashed border-slate-100">
-                <i class="fa-solid fa-hand-pointer text-slate-200 text-5xl mb-4"></i>
-                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Choisissez un dossier dans l'onglet "Clients"</p>
+            <div class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 animate-fadeIn">
+                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-fingerprint text-slate-200 text-3xl"></i>
+                </div>
+                <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Sélectionnez un dossier patient</p>
             </div>`;
         return;
     }
 
     try {
-        // 2. Récupération des messages (qui incluent les rapports de visites automatisés)
         const res = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         const messages = await res.json();
         AppState.messages = messages;
         renderFeed();
     } catch (err) {
-        console.error("Erreur chargement Feed:", err);
+        console.error("Erreur Feed:", err);
     }
 }
 
 /**
- * 🎨 RENDU DU JOURNAL (Style WhatsApp / Story)
+ * 🎨 RENDU DU JOURNAL (Design Story & Polaroid)
  */
 export function renderFeed() {
     const container = document.getElementById('care-feed');
     if (!container) return;
 
+    // Ajout de la zone de message rapide en haut (Nouveau !)
+    let html = `
+        <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-slate-100 mb-8 flex items-center gap-3 animate-fadeIn">
+            <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-green-100 transition-all" placeholder="Envoyer un message à l'équipe...">
+            <button onclick="window.sendQuickMessage()" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                <i class="fa-solid fa-paper-plane text-xs"></i>
+            </button>
+        </div>
+    `;
+
     if (AppState.messages.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-20 opacity-20">
-                <i class="fa-solid fa-feather-pointed text-5xl mb-4"></i>
-                <p class="font-black uppercase text-xs">Le journal est encore vierge</p>
+        html += `
+            <div class="text-center py-20 opacity-30">
+                <i class="fa-solid fa-wand-magic-sparkles text-4xl mb-4"></i>
+                <p class="font-black uppercase text-[10px] tracking-widest">Le journal commence ici</p>
             </div>`;
+        container.innerHTML = html;
         return;
     }
 
-    // On inverse pour avoir le plus récent en haut
-    container.innerHTML = AppState.messages.slice().reverse().map(msg => {
+    // Rendu des cartes de la plus récente à la plus ancienne
+    html += AppState.messages.slice().reverse().map(msg => {
         const reactions = msg.reactions || {};
         const isPhoto = msg.is_photo;
+        const roleColor = msg.sender_role === 'COORDINATEUR' ? 'text-blue-500' : 'text-green-600';
         
-        // On décode l'humeur si elle est présente dans le contenu (format: "Humeur|Message")
+        // Décodage intelligent de l'humeur
         let content = msg.content;
         let humeurBadge = "";
         
-        if (content.includes('|')) {
-            const parts = content.split('|');
-            const humeur = parts[0];
-            content = parts[1];
-            
+        if (!isPhoto && content.includes('|')) {
+            const [humeur, notes] = content.split('|');
             const emojis = { "Très Joyeux": "😊", "Calme": "😐", "Fatigué": "😴", "Triste": "😔" };
-            humeurBadge = `<span class="bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-[10px] shadow-sm font-black border border-slate-100">${emojis[humeur] || '✨'} ${humeur}</span>`;
+            humeurBadge = `
+                <div class="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100 mb-3 w-fit">
+                    <span class="text-sm">${emojis[humeur] || '✨'}</span>
+                    <span class="text-[9px] font-black uppercase text-slate-700 tracking-tighter">${humeur}</span>
+                </div>
+            `;
+            content = notes;
         }
 
         return `
-            <div class="feed-card animate-fadeIn mb-8">
-                <!-- En-tête de la publication -->
-                <div class="flex justify-between items-center mb-4">
+            <div class="feed-card bg-white rounded-[2.5rem] p-5 shadow-sm border border-slate-50 mb-8 animate-fadeIn relative overflow-hidden">
+                <!-- En-tête -->
+                <div class="flex justify-between items-center mb-5">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-xl bg-green-600 text-white flex items-center justify-center text-xs font-black shadow-lg">
+                        <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xs font-black shadow-lg">
                             ${msg.sender_name.charAt(0)}
                         </div>
                         <div>
-                            <p class="text-[10px] font-black text-slate-800 uppercase tracking-tighter">${msg.sender_name}</p>
-                            <p class="text-[8px] font-bold text-green-600 uppercase tracking-widest">${msg.sender_role}</p>
+                            <h4 class="text-[11px] font-black text-slate-800 uppercase leading-none">${msg.sender_name}</h4>
+                            <p class="text-[8px] font-bold ${roleColor} uppercase tracking-widest mt-1">${msg.sender_role}</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[9px] font-bold text-slate-300 block">${UI.formatDate(msg.created_at)}</span>
-                    </div>
+                    <span class="text-[9px] font-bold text-slate-300">${UI.formatDate(msg.created_at)}</span>
                 </div>
 
-                <!-- Contenu Principal -->
+                <!-- Contenu -->
                 <div class="relative">
                     ${isPhoto ? `
-                        <div class="relative group">
-                            <img src="${msg.content}" class="feed-photo shadow-xl border-4 border-white" onclick="window.open('${msg.content}')">
-                            <div class="absolute top-4 left-4">${humeurBadge}</div>
+                        <div class="group relative rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white mb-2">
+                            <img src="${msg.content}" class="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-110 cursor-pointer" onclick="window.open('${msg.content}')">
+                            <div class="absolute bottom-4 left-4">
+                                ${humeurBadge}
+                            </div>
                         </div>
                     ` : `
-                        <div class="p-5 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                            <p class="text-sm text-slate-600 leading-relaxed font-medium italic">"${content}"</p>
+                        <div class="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 relative">
+                            <i class="fa-solid fa-quote-left absolute top-4 left-4 text-slate-100 text-3xl"></i>
+                            <p class="text-sm text-slate-600 leading-relaxed font-medium italic relative z-10">"${content}"</p>
+                            <div class="mt-4">${humeurBadge}</div>
                         </div>
                     `}
                 </div>
 
-                <!-- Barre d'Interaction Diaspora -->
-                <div class="flex items-center justify-between mt-4 px-1">
-                    <div class="flex gap-2" id="react-list-${msg.id}">
-                        ${Object.entries(reactions).map(([type, count]) => `
-                            <div class="bg-white px-2 py-1 rounded-full text-[10px] font-black flex items-center gap-1 border border-slate-100 shadow-sm animate-bounce">
-                                <span>${type === 'coeur' ? '❤️' : '🙏'}</span>
-                                <span class="text-slate-400">${count}</span>
+                <!-- Interactions (Style Diaspora) -->
+                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-50">
+                    <div class="flex -space-x-1">
+                        ${Object.entries(reactions).map(([type, count]) => count > 0 ? `
+                            <div class="bg-white h-7 px-2 rounded-full border border-slate-100 shadow-sm flex items-center gap-1 animate-bounce">
+                                <span class="text-xs">${type === 'coeur' ? '❤️' : '🙏'}</span>
+                                <span class="text-[9px] font-black text-slate-400">${count}</span>
                             </div>
-                        `).join('')}
+                        ` : '').join('')}
                     </div>
 
-                    <div class="flex gap-3">
-                        <button onclick="window.sendReaction('${msg.id}', 'coeur')" class="w-10 h-10 rounded-full bg-white border border-slate-50 shadow-sm flex items-center justify-center hover:scale-125 transition-all active:bg-red-50 text-lg">❤️</button>
-                        <button onclick="window.sendReaction('${msg.id}', 'merci')" class="w-10 h-10 rounded-full bg-white border border-slate-50 shadow-sm flex items-center justify-center hover:scale-125 transition-all active:bg-blue-50 text-lg">🙏</button>
+                    <div class="flex gap-2">
+                        <button onclick="window.sendReaction('${msg.id}', 'coeur')" class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all active:scale-125">
+                            <i class="fa-solid fa-heart"></i>
+                        </button>
+                        <button onclick="window.sendReaction('${msg.id}', 'merci')" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all active:scale-125">
+                            <i class="fa-solid fa-hands-praying"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         `;
     }).join('');
+
+    container.innerHTML = html;
 }
 
 /**
- * ❤️ ENVOYER UNE RÉACTION (EMPREINTE ÉMOTIONNELLE)
+ * ✉️ ENVOYER UN MESSAGE RAPIDE (Famille <-> Équipe)
+ */
+window.sendQuickMessage = async () => {
+    const input = document.getElementById('quick-msg');
+    const content = input.value.trim();
+    if (!content) return;
+
+    try {
+        UI.vibrate();
+        const res = await secureFetch('/messages/send', {
+            method: 'POST',
+            body: JSON.stringify({
+                patient_id: AppState.currentPatient,
+                content: content,
+                is_photo: false
+            })
+        });
+
+        if (res.ok) {
+            input.value = '';
+            loadFeed(); // Rafraîchir
+        }
+    } catch (err) { console.error(err); }
+};
+
+/**
+ * ❤️ RÉACTIONS ÉMOTIONNELLES
  */
 window.sendReaction = async (msgId, type) => {
     try {
         UI.vibrate();
-        // On fait clignoter l'élément visuellement avant l'appel API (UI Optimiste)
         await secureFetch('/messages/react', {
             method: 'POST',
             body: JSON.stringify({ message_id: msgId, reaction_type: type })
         });
+        // On ne recharge pas tout le feed pour une simple réaction (UI Optimiste)
         loadFeed(); 
     } catch (err) { console.error(err); }
 };
