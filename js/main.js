@@ -90,103 +90,204 @@ function renderLogin() {
 }
 
 /**
- * 📝 DOSSIER D'ADMISSION MÉDICAL (Inscription complète)
+ * 🚀 MOTEUR D'INSCRIPTION PAR ÉTAPES (FULL SCREEN APP)
  */
-window.openRegisterFamily = async () => {
-    const { value: form } = await Swal.fire({
-        title: '<h2 class="text-xl font-black text-slate-800">Dossier d\'Admission</h2>',
-        width: '40rem',
-        confirmButtonText: 'VALIDER LE DOSSIER MÉDICAL',
-        confirmButtonColor: '#16a34a',
-        showCancelButton: true,
-        customClass: { popup: 'rounded-[2.5rem]' },
-        html: `
-            <div class="text-left space-y-6 mt-6 max-h-[60vh] overflow-y-auto px-4 custom-scroll">
+let registrationData = {};
+let currentStep = 1;
+
+window.openRegisterFamily = () => {
+    currentStep = 1;
+    registrationData = {};
+    renderRegisterStep();
+};
+
+function renderRegisterStep() {
+    const app = document.getElementById("app");
+    const progress = (currentStep / 4) * 100;
+
+    app.innerHTML = `
+    <div class="min-h-screen bg-white flex flex-col animate-fadeIn">
+        <!-- Header du formulaire -->
+        <header class="p-6 flex items-center justify-between border-b border-slate-50">
+            <button onclick="currentStep > 1 ? (currentStep--, renderRegisterStep()) : window.location.reload()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <div class="text-center">
+                <h2 class="font-black text-sm uppercase tracking-widest text-slate-800">Dossier d'Admission</h2>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Étape ${currentStep} sur 4</p>
+            </div>
+            <div class="w-10"></div> <!-- Spacer -->
+        </header>
+
+        <!-- Barre de progression -->
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: ${progress}%"></div>
+        </div>
+
+        <!-- Contenu de l'étape -->
+        <main class="flex-1 p-6 overflow-y-auto custom-scroll">
+            <div class="max-w-md mx-auto">
+                ${getStepHTML()}
+            </div>
+        </main>
+
+        <!-- Barre d'action basse -->
+        <footer class="p-6 border-t border-slate-50 bg-white">
+            <div class="max-w-md mx-auto">
+                <button onclick="nextStep()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+                    ${currentStep === 4 ? 'Finaliser l\'inscription' : 'Continuer'}
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+        </footer>
+    </div>`;
+}
+
+function getStepHTML() {
+    switch(currentStep) {
+        case 1: return `
+            <div class="animate-fadeIn">
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-6">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Vous êtes ?</h3>
+                <p class="text-slate-400 text-sm mb-8 leading-relaxed">Ces informations nous permettent de lier le payeur au dossier médical.</p>
                 
-                <!-- 1. IDENTITÉ DU PAYEUR (FAMILLE) -->
-                <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-100">
-                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4"><i class="fa-solid fa-user-shield mr-2"></i>1. Responsable Famille (Diaspora)</p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input id="f-nom" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Votre Nom complet">
-                        <select id="f-lien" class="swal2-input !m-0 !w-full !text-sm !rounded-xl">
-                            <option value="">Lien de parenté...</option>
-                            <option value="Fils/Fille">Fils / Fille</option>
-                            <option value="Frère/Soeur">Frère / Soeur</option>
-                            <option value="Conjoint">Époux / Épouse</option>
-                        </select>
-                        <input id="f-email" type="email" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Email">
-                        <input id="f-tel" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Téléphone (WhatsApp)">
+                <div class="space-y-4">
+                    <input id="f-nom" class="app-input" placeholder="Votre nom complet" value="${registrationData.nom_famille || ''}">
+                    <input id="f-email" type="email" class="app-input" placeholder="Votre adresse email" value="${registrationData.email || ''}">
+                    <input id="f-tel" class="app-input" placeholder="Téléphone (WhatsApp)" value="${registrationData.tel_famille || ''}">
+                    <input id="f-pass" type="password" class="app-input" placeholder="Créer un mot de passe d'accès">
+                </div>
+            </div>`;
+        
+        case 2: return `
+            <div class="animate-fadeIn">
+                <div class="w-16 h-16 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center text-2xl mb-6">
+                    <i class="fa-solid fa-hospital-user"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Le Parent</h3>
+                <p class="text-slate-400 text-sm mb-8">Qui allons-nous accompagner au Bénin ?</p>
+                
+                <div class="space-y-4">
+                    <input id="p-nom" class="app-input" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
+                    <input id="p-age" type="number" class="app-input" placeholder="Âge du patient" value="${registrationData.age_patient || ''}">
+                    <input id="p-addr" class="app-input" placeholder="Adresse exacte (Quartier/Rue)" value="${registrationData.adresse_patient || ''}">
+                </div>
+            </div>`;
+
+        case 3: return `
+            <div class="animate-fadeIn">
+                <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-6">
+                    <i class="fa-solid fa-notes-medical"></i>
+                </div>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Santé & Urgence</h3>
+                <p class="text-slate-400 text-sm mb-8">Informations cruciales pour nos intervenants.</p>
+                
+                <div class="space-y-6">
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" class="med-hist w-5 h-5 accent-green-600" value="Diabète">
+                            <span class="text-xs font-bold text-slate-700">Diabète</span>
+                        </label>
+                        <label class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" class="med-hist w-5 h-5 accent-green-600" value="Hypertension">
+                            <span class="text-xs font-bold text-slate-700">Tension</span>
+                        </label>
                     </div>
-                    <input id="f-pass" type="password" class="swal2-input !m-0 !w-full !text-sm !rounded-xl mt-4" placeholder="Créez votre mot de passe">
+                    <input id="p-urgence" class="app-input" placeholder="Contact d'urgence local" value="${registrationData.contact_urgence || ''}">
+                    <textarea id="p-notes" class="app-input h-32" placeholder="Observations (Allergies, mobilité...)">${registrationData.notes_medicales || ''}</textarea>
                 </div>
+            </div>`;
 
-                <!-- 2. IDENTITÉ DU PARENT (PATIENT) -->
-                <div class="bg-green-50 p-6 rounded-[2rem] border border-green-100">
-                    <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-4"><i class="fa-solid fa-hospital-user mr-2"></i>2. Le Parent à accompagner au Bénin</p>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input id="p-nom" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Nom complet du parent">
-                        <input id="p-age" type="number" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Âge">
-                        <input id="p-addr" class="swal2-input !m-0 !w-full !text-sm !rounded-xl col-span-2" placeholder="Adresse exacte (Cotonou, Calavi, Porto-Novo...)">
-                    </div>
+        case 4: return `
+            <div class="animate-fadeIn">
+                <div class="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-xl">
+                    <i class="fa-solid fa-crown"></i>
                 </div>
-
-                <!-- 3. PROFIL MÉDICAL & URGENCE -->
-                <div class="bg-amber-50 p-6 rounded-[2rem] border border-amber-100">
-                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4"><i class="fa-solid fa-file-medical mr-2"></i>3. Antécédents & Urgence Locale</p>
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <label class="flex items-center gap-2 text-xs font-bold text-slate-600"><input type="checkbox" class="med-hist" value="Hypertension"> Hypertension</label>
-                        <label class="flex items-center gap-2 text-xs font-bold text-slate-600"><input type="checkbox" class="med-hist" value="Diabète"> Diabète</label>
-                    </div>
-                    <input id="p-urgence" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Contact d'urgence local (Voisin/Famille sur place)">
-                    <textarea id="p-notes" class="swal2-textarea !text-xs !rounded-2xl" placeholder="Observations médicales particulières (allergies, mobilité...)"></textarea>
+                <h3 class="text-2xl font-black text-slate-800 mb-2">Abonnement</h3>
+                <p class="text-slate-400 text-sm mb-8">Choisissez la fréquence des visites.</p>
+                
+                <div class="space-y-4">
+                    <button onclick="setPlan('Basic')" class="w-full p-6 rounded-3xl border-2 ${registrationData.formule === 'Basic' ? 'border-green-500 bg-green-50' : 'border-slate-100'} text-left transition-all">
+                        <h4 class="font-black text-slate-800">BASIC</h4>
+                        <p class="text-xs text-slate-400 mt-1">1 visite de contrôle par semaine</p>
+                        <p class="text-green-600 font-black mt-2">50.000 CFA / mois</p>
+                    </button>
+                    <button onclick="setPlan('Standard')" class="w-full p-6 rounded-3xl border-2 ${registrationData.formule === 'Standard' ? 'border-green-500 bg-green-50' : 'border-slate-100'} text-left transition-all">
+                        <h4 class="font-black text-slate-800">STANDARD</h4>
+                        <p class="text-xs text-slate-400 mt-1">3 visites médicales par semaine</p>
+                        <p class="text-green-600 font-black mt-2">75.000 CFA / mois</p>
+                    </button>
+                    <button onclick="setPlan('Premium')" class="w-full p-6 rounded-3xl border-2 ${registrationData.formule === 'Premium' ? 'border-green-500 bg-green-50' : 'border-slate-100'} text-left transition-all">
+                        <h4 class="font-black text-slate-800">PREMIUM</h4>
+                        <p class="text-xs text-slate-400 mt-1">Suivi quotidien (7j/7)</p>
+                        <p class="text-green-600 font-black mt-2">100.000 CFA / mois</p>
+                    </button>
                 </div>
+            </div>`;
+    }
+}
 
-                <!-- 4. FORMULE -->
-                <div class="bg-slate-900 p-6 rounded-[2rem] text-white">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">4. Choix de la Formule</p>
-                    <select id="p-form" class="w-full p-4 bg-slate-800 border-none rounded-xl text-xs font-black outline-none cursor-pointer">
-                        <option value="Basic">PACK BASIC (1 visite/sem) - 50.000 CFA</option>
-                        <option value="Standard">PACK STANDARD (3 visites/sem) - 75.000 CFA</option>
-                        <option value="Premium">PACK PREMIUM (Quotidien) - 100.000 CFA</option>
-                    </select>
-                </div>
-            </div>`,
-        preConfirm: () => {
-            const hist = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
-            return {
-                nom_famille: document.getElementById('f-nom').value,
-                email: document.getElementById('f-email').value,
-                password: document.getElementById('f-pass').value,
-                tel_famille: document.getElementById('f-tel').value,
-                nom_patient: document.getElementById('p-nom').value,
-                adresse_patient: document.getElementById('p-addr').value,
-                formule: document.getElementById('p-form').value,
-                age_patient: document.getElementById('p-age').value,
-                lien_parente: document.getElementById('f-lien').value,
-                contact_urgence: document.getElementById('p-urgence').value,
-                notes_medicales: hist.join(', ') + " | " + document.getElementById('p-notes').value
-            }
-        }
-    });
+// --- LOGIQUE DE NAVIGATION ---
+window.setPlan = (plan) => {
+    registrationData.formule = plan;
+    renderRegisterStep();
+};
 
-    if (form) {
-        Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading() });
+function nextStep() {
+    // Collecte des données de l'étape actuelle
+    if (currentStep === 1) {
+        registrationData.nom_famille = document.getElementById('f-nom').value;
+        registrationData.email = document.getElementById('f-email').value;
+        registrationData.tel_famille = document.getElementById('f-tel').value;
+        registrationData.password = document.getElementById('f-pass').value;
+        if(!registrationData.email || !registrationData.password) return UI.vibrate('error');
+    }
+    if (currentStep === 2) {
+        registrationData.nom_patient = document.getElementById('p-nom').value;
+        registrationData.age_patient = document.getElementById('p-age').value;
+        registrationData.adresse_patient = document.getElementById('p-addr').value;
+    }
+    if (currentStep === 3) {
+        const history = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+        registrationData.contact_urgence = document.getElementById('p-urgence').value;
+        registrationData.notes_medicales = history.join(', ') + " | " + document.getElementById('p-notes').value;
+    }
+
+    if (currentStep < 4) {
+        currentStep++;
+        renderRegisterStep();
+    } else {
+        submitRegistration();
+    }
+}
+
+async function submitRegistration() {
+    if(!registrationData.formule) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
+
+    Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+    try {
         const res = await fetch(`${CONFIG.API_URL}/auth/register-family-patient`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form)
+            body: JSON.stringify(registrationData)
         });
+
         if(res.ok) {
             Swal.fire({
                 icon: "success",
-                title: "Demande reçue !",
-                text: "Un coordinateur médical va analyser le dossier et vous contacter pour l'activation.",
+                title: "Dossier Transmis !",
+                text: "Un coordinateur va valider vos informations sous 24h.",
+                confirmButtonText: "RETOUR À L'ACCUEIL",
                 confirmButtonColor: "#16a34a"
-            });
+            }).then(() => window.location.reload());
         }
+    } catch (e) {
+        Swal.fire("Erreur", "Connexion impossible au serveur", "error");
     }
-};
-
+}
 
 
 /**
