@@ -326,8 +326,8 @@ async function initApp() {
  */
 function renderLogin() {
   document.getElementById("app").innerHTML = `
-    <div class="relative min-h-screen flex flex-col justify-center items-center bg-[#F8FAFC] overflow-hidden px-4 font-sans">
-        
+    <div class="relative min-h-screen w-full flex flex-col justify-center items-center bg-[#F8FAFC] overflow-hidden px-4 font-sans text-center">
+    
         <!-- Blobs animés (Positionnement optimisé pour Desktop & Mobile) -->
         <div class="absolute -top-20 -left-20 w-96 h-96 bg-green-200 rounded-full filter blur-[80px] opacity-40 animate-blob pointer-events-none"></div>
         <div class="absolute top-1/2 -right-20 w-80 h-80 bg-blue-200 rounded-full filter blur-[80px] opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
