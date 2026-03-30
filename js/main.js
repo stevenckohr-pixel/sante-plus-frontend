@@ -11,6 +11,33 @@ import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
 
+/* --- CONFIGURATION SWEETALERT PREMIUM --- */
+const Toast = Swal.mixin({
+  toast: true,
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  customClass: {
+    popup: 'rounded-3xl shadow-2xl border border-slate-100',
+  }
+});
+
+// On remplace les alertes classiques par un design plus "App"
+window.showAppAlert = (title, text, icon = 'success') => {
+    Swal.fire({
+        title: `<span class="text-xl font-black text-slate-800">${title}</span>`,
+        html: `<p class="text-sm text-slate-500">${text}</p>`,
+        icon: icon,
+        confirmButtonText: 'COMPRIS',
+        confirmButtonColor: '#0F172A', // Ton bleu nuit
+        buttonsStyling: true,
+        customClass: {
+            popup: 'rounded-[3rem] p-8 border-none',
+            confirmButton: 'rounded-2xl px-8 py-4 font-black uppercase text-[10px] tracking-widest shadow-xl'
+        }
+    });
+};
 
 let registrationData = {};
 let currentStep = 1;
@@ -22,6 +49,7 @@ window.openRegisterFamily = () => {
     registrationData = {};
     renderRegisterStep();
 };
+
 
 
 
@@ -264,7 +292,7 @@ async function initPushNotifications() {
 
 
 /**
- * 🚀 INITIALISATION AU DÉMARRAGE
+ * 🚀 INITIALISATION DE L'APP
  */
 async function initApp() {
     const loader = document.getElementById("initial-loader");
@@ -294,45 +322,71 @@ async function initApp() {
 
 
 /**
- * 🔑 LOGIN UI (Style Pinterest / Clean UI)
+ * 🔑 LOGIN UI (Style Pinterest / Clean UI - Version Polie)
  */
 function renderLogin() {
   document.getElementById("app").innerHTML = `
-    <div class="relative min-h-screen flex flex-col justify-center items-center bg-slate-50 overflow-hidden px-4 font-sans">
-      <!-- Blobs animés en fond -->
-        <div class="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full filter blur-3xl opacity-30 animate-blob pointer-events-none"></div>
-        <div class="absolute -bottom-8 right-0 w-72 h-72 bg-blue-300 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-2000 pointer-events-none"></div>
+    <div class="relative min-h-screen flex flex-col justify-center items-center bg-[#F8FAFC] overflow-hidden px-4 font-sans">
+        
+        <!-- Blobs animés (Positionnement optimisé pour Desktop & Mobile) -->
+        <div class="absolute -top-20 -left-20 w-96 h-96 bg-green-200 rounded-full filter blur-[80px] opacity-40 animate-blob pointer-events-none"></div>
+        <div class="absolute top-1/2 -right-20 w-80 h-80 bg-blue-200 rounded-full filter blur-[80px] opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
+        <div class="absolute -bottom-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-teal-100 rounded-full filter blur-[80px] opacity-40 animate-blob animation-delay-4000 pointer-events-none"></div>
 
-
-        <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-2xl p-10 rounded-[3rem] shadow-2xl border border-white/50 animate-fadeIn z-50">
+        <!-- CARTE DE CONNEXION (Glassmorphism Élite) -->
+        <div class="relative w-full max-w-sm bg-white/70 backdrop-blur-3xl p-10 rounded-[3.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white animate-fadeIn z-50">
+            
+            <!-- Logo Section -->
             <div class="text-center mb-10">
-                <div class="w-20 h-20 mx-auto bg-green-600 text-white rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-green-200 mb-5">
+                <div class="w-24 h-24 mx-auto bg-gradient-to-tr from-green-500 to-emerald-400 text-white rounded-[2rem] flex items-center justify-center text-4xl shadow-2xl shadow-green-500/20 mb-6 transform transition hover:scale-105 duration-500">
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
-                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Santé Plus</h1>
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Protocole de confiance</p>
+                <h1 class="text-3xl font-[900] text-slate-900 tracking-tight leading-tight">Santé Plus</h1>
+                <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em] mt-2">Protocole de confiance</p>
             </div>
             
+            <!-- Formulaire -->
             <div class="space-y-4">
+                <!-- Input Email -->
                 <div class="relative group">
-                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
-                    <input id="email" type="email" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Email">
+                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500 transition-colors">
+                        <i class="fa-solid fa-envelope text-sm"></i>
+                    </div>
+                    <input id="email" type="email" 
+                        class="w-full pl-12 pr-5 py-5 bg-white/50 border border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all text-sm font-semibold text-slate-700 placeholder:text-slate-300 shadow-sm" 
+                        placeholder="Adresse email">
                 </div>
+
+                <!-- Input Password -->
                 <div class="relative group">
-                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
-                    <input id="password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Mot de passe">
+                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500 transition-colors">
+                        <i class="fa-solid fa-shield-lock text-sm"></i>
+                    </div>
+                    <input id="password" type="password" 
+                        class="w-full pl-12 pr-5 py-5 bg-white/50 border border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all text-sm font-semibold text-slate-700 placeholder:text-slate-300 shadow-sm" 
+                        placeholder="Code d'accès">
                 </div>
-                <button onclick="window.login()" id="btn-login" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:shadow-green-200 active:scale-95 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-3">
-                    Accéder à mon espace <i class="fa-solid fa-arrow-right"></i>
+
+                <!-- Bouton Connexion -->
+                <button onclick="window.login()" id="btn-login" 
+                    class="w-full mt-4 bg-slate-900 text-white py-5 rounded-[1.5rem] font-black shadow-[0_15px_30px_rgba(15,23,42,0.2)] hover:shadow-[0_20px_40px_rgba(15,23,42,0.3)] active:scale-[0.97] transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
+                    Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
                 </button>
             </div>
         </div>
 
-        <div class="relative z-10 mt-8 text-center animate-fadeIn" style="animation-delay: 0.3s">
-            <button onclick="window.openRegisterFamily()" class="text-slate-700 font-black text-[11px] uppercase tracking-widest bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 hover:text-green-600 transition-all active:scale-95">
-                Créer un compte Famille <i class="fa-solid fa-user-plus ml-2"></i>
+        <!-- Inscription (Design Pied de page) -->
+        <div class="relative z-50 mt-10 text-center animate-fadeIn" style="animation-delay: 0.4s">
+            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-4">Nouveau membre ?</p>
+            <button onclick="window.openRegisterFamily()" 
+                class="group bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 hover:border-green-200 transition-all active:scale-95 flex items-center gap-3 mx-auto">
+                <span class="text-slate-700 font-black text-[10px] uppercase tracking-widest">Créer un compte Famille</span>
+                <div class="w-6 h-6 rounded-lg bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                    <i class="fa-solid fa-user-plus text-[10px]"></i>
+                </div>
             </button>
         </div>
+        
     </div>`;
 }
 
@@ -340,81 +394,98 @@ function renderLogin() {
 /**
  * 🏗️ STRUCTURE PRINCIPALE
  */
-
 function renderLayout() {
   const userRole = localStorage.getItem("user_role");
   const userName = localStorage.getItem("user_name");
 
   document.getElementById("app").innerHTML = `
-    <div class="flex h-screen bg-slate-50 overflow-hidden font-sans">
+    <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
         
-        <!-- SIDEBAR DESKTOP (Visible uniquement sur grands écrans) -->
-        <aside class="hidden lg:flex flex-col w-72 bg-[#0F172A] text-white p-6 shadow-2xl z-30">
-            <div class="flex items-center gap-4 mb-12 px-2">
-                <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/20">
-                    <i class="fa-solid fa-heart-pulse text-white text-xl"></i>
+        <!-- 🖥️ SIDEBAR DESKTOP : Le Cockpit Pro -->
+        <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
+            <!-- Logo Section Premium -->
+            <div class="flex items-center gap-4 mb-14 px-2 translate-z-0">
+                <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                    <i class="fa-solid fa-heart-pulse text-white text-2xl"></i>
                 </div>
                 <div>
-                    <h2 class="font-black text-lg tracking-tighter uppercase leading-none">Santé Plus</h2>
-                    <span class="text-[8px] text-green-400 font-bold tracking-[0.3em] uppercase">Services Élite</span>
+                    <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
+                    <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80">Elite Management</span>
                 </div>
             </div>
 
-            <nav class="flex-1 space-y-2" id="nav-desktop">
+            <!-- Navigation Links -->
+            <nav class="flex-1 space-y-3" id="nav-desktop">
                 ${getNavLinks(userRole, 'desktop')}
             </nav>
 
-            <!-- Profil Bas Sidebar -->
-            <div class="mt-auto p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center font-black text-xs">
-                        ${userName.charAt(0)}
+            <!-- Profil Bas Sidebar (Design Card) -->
+            <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center font-black text-xs border border-white/20">
+                        ${userName ? userName.charAt(0).toUpperCase() : 'S'}
                     </div>
                     <div class="overflow-hidden">
-                        <p class="text-xs font-bold truncate">${userName}</p>
-                        <p class="text-[9px] text-slate-400 uppercase font-black tracking-widest">${userRole}</p>
+                        <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
+                        <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
                     </div>
                 </div>
-                <button onclick="window.logout()" class="mt-4 w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all">
-                    <i class="fa-solid fa-power-off"></i> Déconnexion
+                <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-power-off"></i> Fermer la session
                 </button>
             </div>
         </aside>
 
-        <!-- CONTENU PRINCIPAL -->
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- 🚀 CONTENEUR DE CONTENU (Viewport Dynamique) -->
+        <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
             
-            <!-- HEADER PRO (Sticky & Blur) -->
-            <header class="h-20 glass-header border-b border-slate-200/60 flex items-center justify-between px-6 lg:px-10 shrink-0 z-20">
-                <div class="lg:hidden flex items-center gap-3">
-                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
-                        <i class="fa-solid fa-heart-pulse"></i>
+            <!-- HEADER GLOBAL (Glassmorphism) -->
+            <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
+                <div class="lg:hidden flex items-center">
+                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+                        <i class="fa-solid fa-heart-pulse text-sm"></i>
                     </div>
                 </div>
                 
-                <h2 id="view-title" class="text-xl font-black text-slate-800 lg:text-2xl tracking-tight">Tableau de bord</h2>
+                <div class="flex flex-col">
+                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight">Tableau de bord</h2>
+                    <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
+                </div>
 
-                <div class="flex items-center gap-4">
-                    <button class="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 hover:text-green-600 transition-all shadow-sm">
+                <div class="flex items-center gap-3 lg:gap-6">
+                    <!-- Bouton Notification Hype -->
+                    <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-green-600 transition-all shadow-sm group">
                         <i class="fa-solid fa-bell text-sm"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
                     </button>
-                    <div class="h-8 w-[1px] bg-slate-200 hidden md:block"></div>
-                    <div class="hidden md:flex items-center gap-3 pl-2">
-                         <p class="text-sm font-bold text-slate-700">${userName}</p>
-                         <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-                            <i class="fa-solid fa-user-gear"></i>
+                    
+                    <div class="h-8 w-[1px] bg-slate-100 hidden md:block"></div>
+                    
+                    <div class="flex items-center gap-3 pl-2">
+                         <div class="hidden md:flex flex-col text-right">
+                            <p class="text-xs font-black text-slate-900 leading-none">${userName}</p>
+                            <span class="text-[9px] text-green-600 font-bold uppercase mt-1 tracking-tighter">Statut : ${userRole}</span>
+                         </div>
+                         <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200">
+                            <i class="fa-solid fa-user-check text-sm"></i>
                          </div>
                     </div>
                 </div>
             </header>
 
-            <!-- ZONE DE CONTENU DYNAMIQUE -->
-            <main id="main-content" class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scroll pb-28 lg:pb-10 bg-[#F1F5F9]/50">
-                <div id="view-container" class="max-w-7xl mx-auto"></div>
+            <!-- 🎨 ARRIÈRE-PLAN DÉCORATIF (Blobs positionnés) -->
+            <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
+            <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
+
+            <!-- 📥 ZONE DE RENDU (The Stage) -->
+            <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
+                <div id="view-container" class="max-w-7xl mx-auto min-h-full">
+                    <!-- Les vues (Dashboard, Patients, etc.) s'injectent ici -->
+                </div>
             </main>
 
-            <!-- NAVIGATION MOBILE (Visible uniquement sur Mobile) -->
-            <footer class="lg:hidden bg-white/90 backdrop-blur-lg border-t border-slate-200 px-6 py-4 fixed bottom-0 left-0 right-0 z-40 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
+            <!-- 📱 NAVIGATION MOBILE : Design Floating Hub -->
+            <footer class="lg:hidden h-20 bg-white/80 backdrop-blur-2xl border-t border-slate-100 px-6 py-2 fixed bottom-0 left-0 right-0 z-50 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
                 ${getNavLinks(userRole, 'mobile')}
             </footer>
         </div>
@@ -473,37 +544,34 @@ window.switchView = async (viewName) => {
   const userRole = localStorage.getItem("user_role");
   const paymentStatus = localStorage.getItem("payment_status");
 
-  // 🛡️ 1. SÉCURITÉ : BLOCAGE SI FACTURE EN RETARD (Uniquement pour la Famille)
+  // 🛡️ 1. SÉCURITÉ : BLOCAGE SI FACTURE EN RETARD
   const restrictedViews = ["feed", "visits", "commandes"];
   if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
     UI.vibrate("error");
     return Swal.fire({
       icon: "warning",
-      title: `<span class="text-rose-600">Accès Suspendu</span>`,
-      html: `<p class="text-sm text-slate-500">Votre abonnement présente un retard de paiement. Merci de régulariser pour accéder au suivi en direct.</p>`,
-      confirmButtonText: "RÉGULARISER MAINTENANT",
+      title: `<span class="text-rose-600 font-black">Accès Suspendu</span>`,
+      html: `<p class="text-sm text-slate-500">Merci de régulariser votre abonnement pour accéder au suivi en direct de votre proche.</p>`,
+      confirmButtonText: "VOIR MA FACTURE",
       confirmButtonColor: "#0F172A",
       customClass: { popup: 'rounded-[2.5rem]' }
     }).then(() => window.switchView("billing"));
   }
 
-  // 🎨 2. MISE À JOUR VISUELLE (Desktop Sidebar + Mobile Buttons)
+  // 🎨 2. MISE À JOUR VISUELLE DES ONGLETS (Desktop & Mobile)
   document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
     const isActive = btn.dataset.view === viewName;
-    
     if (btn.classList.contains('sidebar-link')) {
-        // Style Sidebar Desktop
         btn.classList.toggle("active", isActive);
         btn.classList.toggle("text-white", isActive);
         btn.classList.toggle("text-slate-400", !isActive);
     } else {
-        // Style Bottom Nav Mobile
         btn.classList.toggle("text-green-600", isActive);
         btn.classList.toggle("text-slate-400", !isActive);
     }
   });
 
-  // 📝 3. MISE À JOUR DU TITRE DYNAMIQUE (Header)
+  // 📝 3. MISE À JOUR DU TITRE (Header)
   const viewTitles = {
     dashboard: "Aperçu Analytique",
     patients: "Gestion des Dossiers",
@@ -511,30 +579,31 @@ window.switchView = async (viewName) => {
     feed: "Journal de Soins Live",
     billing: "Centre de Facturation",
     aidants: "Gestion de l'Équipe",
-    commandes: "Pharmacie & Logistique"
+    commandes: "Pharmacie & Logistique",
+    map: "Radar Terrain Live" // 👈 Ajouté pour la cohérence
   };
   if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
 
-  // 💾 4. PERSISTANCE
+  // 💾 4. MÉMOIRE DE NAVIGATION
   localStorage.setItem("last_view", viewName);
   AppState.currentView = viewName;
 
-  // 🔄 5. NETTOYAGE ET LOADER AVANT RENDU
+  // 🔄 5. LOADER ÉLÉGANT
   container.innerHTML = `
     <div class="flex flex-col items-center justify-center h-64 animate-pulse">
         <i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i>
-        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Chargement des données...</p>
+        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Synchronisation...</p>
     </div>`;
 
-  // 🚀 6. RENDU DES COMPOSANTS
+  // 🚀 6. GÉNÉRATION DE LA VUE
   try {
       switch (viewName) {
         case "dashboard": 
-            Dashboard.loadAdminDashboard(); 
+            await Dashboard.loadAdminDashboard(); 
             break;
 
         case "patients":
-            // On pré-injecte la structure pour éviter le flash blanc
+            // Injection de la structure pour les dossiers
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-8 animate-fadeIn">
                     <div>
@@ -546,40 +615,45 @@ window.switchView = async (viewName) => {
                             <i class="fa-solid fa-plus"></i>
                         </button>` : ""}
                 </div>
-                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>`;
-            Patients.loadPatients();
+                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div>`;
+            await Patients.loadPatients();
             break;
 
         case "visits":
-            Visites.loadVisits();
+            await Visites.loadVisits();
             break;
 
         case "feed":
             if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
-            Messages.loadFeed();
+            await Messages.loadFeed();
             break;
 
         case "billing":
-            Billing.loadBilling();
+            await Billing.loadBilling();
             break;
 
         case "aidants": 
-            Aidants.loadAidants(); 
+            await Aidants.loadAidants(); 
             break;
 
         case "commandes":
-            Commandes.loadCommandes();
+            await Commandes.loadCommandes();
             break;
         
-        case "map": // Ajoute ce cas
-            MapModule.initLiveMap();
+        case "map":
+            await MapModule.initLiveMap();
             break;
-              
       }
   } catch (err) {
-      container.innerHTML = `<div class="p-10 text-center text-rose-500 font-bold">Erreur de chargement : ${err.message}</div>`;
+      container.innerHTML = `
+        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm">
+            <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+            <p class="text-sm font-black text-slate-800 uppercase">Erreur de liaison</p>
+            <p class="text-xs text-slate-400 mt-2">${err.message}</p>
+        </div>`;
   }
 };
+
 
 // 🔑 BRANCHEMENTS GLOBAUX (À LA FIN POUR ÊTRE SÛR QUE TOUT EXISTE)
 window.CONFIG = CONFIG;
@@ -587,12 +661,23 @@ window.AppState = AppState;
 window.login = Auth.handleLogin;
 window.logout = Auth.handleLogout;
 window.openAddPatient = Patients.openAddPatientModal;
+window.openLinkFamilyModal = Patients.openLinkFamilyModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
 window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
 window.nextStep = nextStep;
+window.openAddAidantModal = Aidants.openAddAidantModal;
+window.loadAdminDashboard = Dashboard.loadAdminDashboard;
 window.renderRegisterStep = renderRegisterStep;
 window.renderLayout = renderLayout;
 window.switchView = switchView;
+window.prevStep = () => { 
+    if (currentStep > 1) {
+        currentStep--;
+        renderRegisterStep();
+    } else {
+        window.location.reload(); 
+    }
+};
 
 initApp();
