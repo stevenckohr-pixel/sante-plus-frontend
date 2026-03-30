@@ -116,23 +116,32 @@ async function getCurrentLocation() {
 }
 
 /**
- * ▶️ DÉMARRER UNE VISITE
+ * 🛰️ TRACKING LIVE & GEOFENCING (Variable globale pour le watcher)
+ */
+let geoWatchId = null; 
+
+/**
+ * ▶️ DÉMARRER UNE VISITE (Version Élite avec Surveillance Live)
  */
 window.startVisit = async (patientId) => {
   try {
     UI.vibrate();
+    
+    // UI Pro : Loader stylisé "SaaS"
     Swal.fire({
-      title: "Localisation...",
-      text: "Vérification de votre position GPS",
+      title: '<i class="fa-solid fa-satellite-dish fa-beat text-emerald-500 mb-2"></i><br><span class="text-xl font-black">Initialisation du Suivi</span>',
+      html: '<p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Couplage GPS et vérification du périmètre de sécurité...</p>',
       allowOutsideClick: false,
+      showConfirmButton: false,
+      customClass: { popup: 'rounded-[2.5rem]' },
       didOpen: () => Swal.showLoading(),
     });
 
-    // 1. Récupérer le GPS
+    // 1. Capturer la position d'entrée (Proof of Arrival)
     const coords = await getCurrentLocation();
     const gpsString = `${coords.lat},${coords.lon}`;
 
-    // 2. Envoyer au backend
+    // 2. Déclenchement au backend
     const res = await secureFetch("/visites/start", {
       method: "POST",
       body: JSON.stringify({
@@ -140,23 +149,84 @@ window.startVisit = async (patientId) => {
         gps_start: gpsString,
       }),
     });
+    
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
 
+    // 3. Stockage des identifiants de session
     localStorage.setItem("active_visit_id", data.visite_id);
+
+    // 🚀 LANCEMENT DU TRACKER LIVE (Le Watcher)
+    // Cela envoie la position au Coordinateur dès que l'aidant bouge de 1 mètre
+    startBackgroundTracking(data.visite_id);
 
     Swal.fire({
       icon: "success",
-      title: "Visite démarrée",
-      text: "La famille a été notifiée de votre arrivée.",
-      timer: 2000,
+      title: '<span class="text-emerald-600 font-black">Protocole Activé</span>',
+      html: `
+        <div class="text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-4">
+            <p class="text-[10px] text-slate-400 font-black uppercase mb-1">Système de sécurité</p>
+            <p class="text-xs font-bold text-slate-600 leading-relaxed">Tracking GPS Live : <span class="text-emerald-500">ACTIF</span><br>Rapport automatique : <span class="text-emerald-500">EN COURS</span></p>
+        </div>`,
+      timer: 3000,
       showConfirmButton: false,
+      customClass: { popup: 'rounded-[2.5rem]' }
     });
 
     window.switchView("visits");
+
   } catch (err) {
-    Swal.fire("Erreur GPS", err.message, "error");
+    UI.vibrate("error");
+    Swal.fire({
+        title: "Échec GPS",
+        text: "Veuillez activer votre localisation pour certifier votre arrivée.",
+        icon: "error",
+        confirmButtonColor: "#0F172A",
+        customClass: { popup: 'rounded-[2.5rem]' }
+    });
   }
 };
+
+/**
+ * 📡 MOTEUR DE SURVEILLANCE LIVE
+ * Envoie des signaux "ping" au serveur avec la position actuelle
+ */
+function startBackgroundTracking(visiteId) {
+    if (!navigator.geolocation) return;
+
+    // On s'assure qu'aucun autre watcher n'est actif
+    if (geoWatchId) navigator.geolocation.clearWatch(geoWatchId);
+
+    // Démarrage de la surveillance haute précision
+    geoWatchId = navigator.geolocation.watchPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            
+            // Envoi furtif au serveur (Sans bloquer l'interface de l'aidant)
+            fetch(`${window.CONFIG.API_URL}/visites/track`, {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    visite_id: visiteId,
+                    lat: latitude,
+                    lng: longitude
+                })
+            }).catch(e => console.warn("Signal GPS perdu temporairement..."));
+        },
+        (error) => console.error("Erreur Watcher GPS:", error),
+        { 
+            enableHighAccuracy: true, 
+            maximumAge: 10000, // On accepte une position vieille de 10s max
+            timeout: 5000 
+        }
+    );
+
+    // Sauvegarde de l'ID du watcher pour pouvoir le couper lors de endVisit()
+    localStorage.setItem("geo_watch_id", geoWatchId);
+}
 
 /**
  * ⏹️ TERMINER UNE VISITE
@@ -239,33 +309,34 @@ window.openEndVisitModal = async () => {
   }
 };
 
+
 /**
- * 📤 ENVOYER LE BILAN FINAL AU SERVEUR
+ * 📤 ENVOYER LE BILAN FINAL & COUPER LE SUIVI (Séquence de Clôture)
  */
 async function saveEndVisit(formValues) {
   const visiteId = localStorage.getItem("active_visit_id");
 
   try {
     Swal.fire({
-      title: "Transmission...",
-      text: "Envoi du bilan et de la photo",
+      title: '<i class="fa-solid fa-cloud-arrow-up fa-bounce text-blue-500 mb-2"></i><br><span class="text-xl font-black">Transmission...</span>',
+      html: '<p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Envoi du bilan certifié et archivage de la photo...</p>',
       allowOutsideClick: false,
+      showConfirmButton: false,
+      customClass: { popup: 'rounded-[2.5rem]' },
       didOpen: () => Swal.showLoading(),
     });
 
-    // 📍 On récupère la position GPS de fin (Preuve de présence continue)
+    // 📍 1. Capture de la position finale (Preuve de présence à la sortie)
     let gpsEnd = "0,0";
     try {
       const coords = await getCurrentLocation();
       gpsEnd = `${coords.lat},${coords.lon}`;
-    } catch (e) {
-      console.warn("GPS de fin non récupéré");
-    }
+    } catch (e) { console.warn("GPS final indisponible"); }
 
-    // Compression de la photo pour économiser la data
+    // 📸 2. Compression optimisée
     const compressedPhoto = await compressImage(formValues.photo);
 
-    // Préparation de l'envoi (FormData obligatoire pour les fichiers)
+    // 📦 3. Construction du colis de données
     const fd = new FormData();
     fd.append("visite_id", visiteId);
     fd.append("notes", formValues.notes);
@@ -274,28 +345,56 @@ async function saveEndVisit(formValues) {
     fd.append("gps_end", gpsEnd);
     fd.append("photo_visite", compressedPhoto);
 
+    // 🚀 4. Transmission au serveur
     const response = await fetch(`${window.CONFIG.API_URL}/visites/end`, {
       method: "POST",
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       body: fd,
     });
 
-    if (!response.ok) throw new Error("Erreur lors de l'envoi au serveur");
+    if (!response.ok) throw new Error("Erreur lors de l'archivage du rapport.");
 
-    // Nettoyage et succès
+    // ============================================================
+    // 🛑 5. PROTOCOLE DE DÉCOUPLAGE GPS (L'étape ajoutée)
+    // ============================================================
+    const watchId = localStorage.getItem("geo_watch_id");
+    if (watchId) {
+        navigator.geolocation.clearWatch(parseInt(watchId)); // Arrête physiquement le capteur
+        localStorage.removeItem("geo_watch_id"); // Nettoie le stockage
+        console.log("🛰️ [GPS] Surveillance Live désactivée proprement.");
+    }
+    
+    // Nettoyage de la session de visite
     localStorage.removeItem("active_visit_id");
     UI.vibrate("success");
 
+    // 🏆 6. UI de réussite
     await Swal.fire({
       icon: "success",
-      title: "Bilan envoyé !",
-      text: "La famille peut maintenant consulter votre rapport.",
-      confirmButtonColor: "#16a34a",
+      title: '<span class="text-emerald-500 font-black">Mission Accomplie</span>',
+      html: `
+        <div class="text-center">
+            <p class="text-sm text-slate-600">Le rapport a été transmis avec succès.<br>La famille a reçu une notification push.</p>
+            <div class="mt-4 p-3 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-shield-check text-emerald-500"></i>
+                <span class="text-[10px] font-black text-emerald-600 uppercase">Données sécurisées & Horodatées</span>
+            </div>
+        </div>`,
+      confirmButtonColor: "#0F172A",
+      confirmButtonText: "RETOUR AU PLANNING",
+      customClass: { popup: 'rounded-[2.5rem]' }
     });
 
     window.switchView("visits");
+
   } catch (err) {
     UI.vibrate("error");
-    Swal.fire("Échec de l'envoi", err.message, "error");
+    Swal.fire({
+        title: "Échec Transmission",
+        text: err.message,
+        icon: "error",
+        confirmButtonColor: "#ef4444",
+        customClass: { popup: 'rounded-[2.5rem]' }
+    });
   }
 }
