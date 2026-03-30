@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Santé Plus Services</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-900 overflow-hidden h-screen w-full font-sans">
+
+    <!-- LOADER PREMIUM -->
+    <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
+        <div class="relative mb-4">
+            <div class="w-16 h-16 border-4 border-green-100 border-t-green-600 rounded-full animate-spin"></div>
+            <i class="fa-solid fa-heart-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-green-600 animate-pulse"></i>
+        </div>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Santé Plus Services</p>
+    </div>
+
+    <!-- CONTENEUR PRINCIPAL -->
+    <div id="app" class="h-full w-full"></div>
+
+    <!-- ZONE DE STOCKAGE DES VUES (TEMPLATES) -->
+    <div id="view-templates" class="hidden">
+        
+        <!-- VUE A : DASHBOARD (Coordinateur) -->
+        <section id="template-dashboard">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
+                    <h3 id="stat-patients" class="text-2xl font-black text-slate-800">0</h3>
+                </div>
+                <div class="bg-green-50 p-5 rounded-[2rem] border border-green-100">
+                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Visites Jour</p>
+                    <h3 id="stat-visits" class="text-2xl font-black text-green-700">0</h3>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-[2rem] border border-orange-100">
+                    <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">À Valider</p>
+                    <h3 id="stat-pending" class="text-2xl font-black text-orange-700">0</h3>
+                </div>
+                <div class="bg-red-50 p-5 rounded-[2rem] border border-red-100">
+                    <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Retards</p>
+                    <h3 id="stat-late" class="text-2xl font-black text-red-700">0</h3>
+                </div>
+            </div>
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">Interventions à contrôler</h4>
+            <div id="pending-actions-list" class="space-y-3"></div>
+        </section>
+
+        <!-- VUE B : PATIENTS (Liste) -->
+        <section id="template-patients">
+            <div id="patients-list" class="space-y-4"></div>
+        </section>
+
+        <!-- VUE C : LIVE CARE FEED (Le Journal des Soins) -->
+        <section id="template-feed">
+            <div id="care-feed-container" class="space-y-6 pb-24">
+                <!-- Les cartes de visites et messages s'injectent ici -->
+            </div>
+        </section>
+
+        <!-- VUE D : FACTURATION (Billing) -->
+        <section id="template-billing">
+            <div id="billing-kpis" class="grid grid-cols-1 gap-4 mb-8"></div>
+            <div id="billing-list" class="space-y-3"></div>
+        </section>
+
+
+        <!-- VUE E : LIVRAISON MÉDICAMENTS -->
+        <section id="template-commandes">
+            <div id="commandes-header" class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-xl text-slate-800">Médicaments</h3>
+                <!-- Le bouton + sera ajouté dynamiquement pour la Famille -->
+            </div>
+            <div id="commandes-list" class="space-y-4 pb-24">
+                <!-- Les cartes de commandes s'injectent ici -->
+            </div>
+        </section>
+
+
+        <!-- VUE F : PLANNING (Agenda) -->
+        <section id="template-planning">
+            <div id="planning-header" class="flex justify-between items-center mb-6">
+                <h3 class="font-black text-xl text-slate-800">Mon Agenda</h3>
+                <!-- Bouton + pour le Coordinateur pour assigner -->
+            </div>
+            <div id="planning-list" class="space-y-4 pb-24">
+                <!-- Les cartes de planning s'injectent ici -->
+            </div>
+        </section>
+
+    </div>
+
+
+
+    <footer class="bg-white border-t border-slate-100 px-4 py-3 flex justify-between items-center shrink-0 fixed bottom-0 left-0 right-0 z-20">
+                <button onclick="switchView('patients')" data-view="patients" class="nav-btn flex flex-col items-center gap-1 flex-1 transition-all">
+                    <i class="fa-solid fa-hospital-user text-lg"></i>
+                    <span class="text-[8px] font-black uppercase">Clients</span>
+                </button>
+                <button onclick="switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-1 flex-1 transition-all">
+                    <i class="fa-solid fa-calendar-check text-lg"></i>
+                    <span class="text-[8px] font-black uppercase">Visites</span>
+                </button>
+                <button onclick="switchView('commandes')" data-view="commandes" class="nav-btn flex flex-col items-center gap-1 flex-1 transition-all text-slate-300">
+                    <i class="fa-solid fa-pills text-lg"></i>
+                    <span class="text-[8px] font-black uppercase">Médocs</span>
+                </button>
+                <button onclick="switchView('feed')" data-view="feed" class="nav-btn flex flex-col items-center gap-1 flex-1 transition-all">
+                    <i class="fa-solid fa-rss text-lg"></i>
+                    <span class="text-[8px] font-black uppercase">Live Care</span>
+                </button>
+                <button onclick="switchView('billing')" data-view="billing" class="nav-btn flex flex-col items-center gap-1 flex-1 transition-all">
+                    <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+                    <span class="text-[8px] font-black uppercase">Factures</span>
+                </button>
+            </footer>
+
+            
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

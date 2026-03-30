@@ -1,0 +1,78 @@
+:root {
+    --green-soft: #16a34a;
+    --green-bg: #f0fdf4;
+    --slate-900: #0f172a;
+    --radius-xl: 2.5rem;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #f8fafc;
+}
+
+/* --- ANIMATIONS --- */
+.animate-fadeIn {
+    animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- INTERFACE FEED (Journal) --- */
+.feed-card {
+    position: relative;
+    background: white;
+    border-radius: 2rem;
+    border-top-left-radius: 0.5rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f1f5f9;
+}
+
+.feed-photo {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 1.5rem;
+    margin: 0.75rem 0;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.feed-photo:active {
+    transform: scale(0.98);
+}
+
+/* --- NAVIGATION BASSE --- */
+.nav-btn {
+    color: #94a3b8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-btn.active {
+    color: var(--green-soft);
+    transform: translateY(-4px);
+}
+
+.nav-btn.active i {
+    filter: drop-shadow(0 10px 8px rgba(22, 163, 74, 0.2));
+}
+
+/* --- CUSTOM SCROLLBAR --- */
+.custom-scroll::-webkit-scrollbar { width: 0px; height: 0px; }
+
+/* --- SWEETALERT CUSTOM --- */
+.swal2-popup {
+    border-radius: 2.5rem !important;
+    padding: 2rem !important;
+}
+
+.swal2-confirm {
+    border-radius: 1rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    padding: 1rem 2rem !important;
+}
