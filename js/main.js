@@ -1,4 +1,3 @@
-
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
 import * as Auth from "./modules/auth.js";
@@ -11,8 +10,184 @@ import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 
-// Rendre la config accessible partout
+// 🔑 BRANCHEMENTS GLOBAUX (On le fait avant tout le reste !)
 window.CONFIG = CONFIG;
+window.AppState = AppState;
+window.login = Auth.handleLogin;
+window.logout = Auth.handleLogout;
+window.openAddPatient = Patients.openAddPatientModal;
+window.openOrderModal = Commandes.openOrderModal;
+window.markAsDelivered = Commandes.markAsDelivered;
+window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
+
+/**
+ * 🚀 INITIALISATION AU DÉMARRAGE
+ */
+async function initApp() {
+    const loader = document.getElementById("initial-loader");
+    const token = localStorage.getItem("token");
+
+    try {
+        if (token) {
+            renderLayout();
+            const userRole = localStorage.getItem("user_role");
+            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
+            const lastView = localStorage.getItem("last_view") || defaultView;
+            await window.switchView(lastView);
+        } else {
+            renderLogin();
+        }
+    } catch (err) {
+        renderLogin();
+    } finally {
+        if (loader) {
+            loader.style.opacity = "0";
+            setTimeout(() => loader.classList.add("hidden"), 500);
+        }
+    }
+}
+
+/**
+ * 🔑 LOGIN UI (Style Pinterest / Clean UI)
+ */
+function renderLogin() {
+  document.getElementById("app").innerHTML = `
+    <div class="relative min-h-screen flex flex-col justify-center items-center bg-slate-50 overflow-hidden px-4 font-sans">
+        <!-- Blobs animés en fond -->
+        <div class="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full filter blur-3xl opacity-30 animate-blob"></div>
+        <div class="absolute -bottom-8 right-0 w-72 h-72 bg-blue-300 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+        <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-2xl p-10 rounded-[3rem] shadow-2xl border border-white/50 animate-fadeIn z-10">
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 mx-auto bg-green-600 text-white rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-green-200 mb-5">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Santé Plus</h1>
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Protocole de confiance</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="relative group">
+                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
+                    <input id="email" type="email" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Email">
+                </div>
+                <div class="relative group">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
+                    <input id="password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Mot de passe">
+                </div>
+                <button onclick="window.login()" id="btn-login" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:shadow-green-200 active:scale-95 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-3">
+                    Accéder à mon espace <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="relative z-10 mt-8 text-center animate-fadeIn" style="animation-delay: 0.3s">
+            <button onclick="window.openRegisterFamily()" class="text-slate-700 font-black text-[11px] uppercase tracking-widest bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 hover:text-green-600 transition-all active:scale-95">
+                Créer un compte Famille <i class="fa-solid fa-user-plus ml-2"></i>
+            </button>
+        </div>
+    </div>`;
+}
+
+/**
+ * 📝 DOSSIER D'ADMISSION MÉDICAL (Inscription complète)
+ */
+window.openRegisterFamily = async () => {
+    const { value: form } = await Swal.fire({
+        title: '<h2 class="text-xl font-black text-slate-800">Dossier d\'Admission</h2>',
+        width: '40rem',
+        confirmButtonText: 'VALIDER LE DOSSIER MÉDICAL',
+        confirmButtonColor: '#16a34a',
+        showCancelButton: true,
+        customClass: { popup: 'rounded-[2.5rem]' },
+        html: `
+            <div class="text-left space-y-6 mt-6 max-h-[60vh] overflow-y-auto px-4 custom-scroll">
+                
+                <!-- 1. IDENTITÉ DU PAYEUR (FAMILLE) -->
+                <div class="bg-blue-50 p-6 rounded-[2rem] border border-blue-100">
+                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4"><i class="fa-solid fa-user-shield mr-2"></i>1. Responsable Famille (Diaspora)</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input id="f-nom" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Votre Nom complet">
+                        <select id="f-lien" class="swal2-input !m-0 !w-full !text-sm !rounded-xl">
+                            <option value="">Lien de parenté...</option>
+                            <option value="Fils/Fille">Fils / Fille</option>
+                            <option value="Frère/Soeur">Frère / Soeur</option>
+                            <option value="Conjoint">Époux / Épouse</option>
+                        </select>
+                        <input id="f-email" type="email" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Email">
+                        <input id="f-tel" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Téléphone (WhatsApp)">
+                    </div>
+                    <input id="f-pass" type="password" class="swal2-input !m-0 !w-full !text-sm !rounded-xl mt-4" placeholder="Créez votre mot de passe">
+                </div>
+
+                <!-- 2. IDENTITÉ DU PARENT (PATIENT) -->
+                <div class="bg-green-50 p-6 rounded-[2rem] border border-green-100">
+                    <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-4"><i class="fa-solid fa-hospital-user mr-2"></i>2. Le Parent à accompagner au Bénin</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <input id="p-nom" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Nom complet du parent">
+                        <input id="p-age" type="number" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Âge">
+                        <input id="p-addr" class="swal2-input !m-0 !w-full !text-sm !rounded-xl col-span-2" placeholder="Adresse exacte (Cotonou, Calavi, Porto-Novo...)">
+                    </div>
+                </div>
+
+                <!-- 3. PROFIL MÉDICAL & URGENCE -->
+                <div class="bg-amber-50 p-6 rounded-[2rem] border border-amber-100">
+                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-4"><i class="fa-solid fa-file-medical mr-2"></i>3. Antécédents & Urgence Locale</p>
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-600"><input type="checkbox" class="med-hist" value="Hypertension"> Hypertension</label>
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-600"><input type="checkbox" class="med-hist" value="Diabète"> Diabète</label>
+                    </div>
+                    <input id="p-urgence" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Contact d'urgence local (Voisin/Famille sur place)">
+                    <textarea id="p-notes" class="swal2-textarea !text-xs !rounded-2xl" placeholder="Observations médicales particulières (allergies, mobilité...)"></textarea>
+                </div>
+
+                <!-- 4. FORMULE -->
+                <div class="bg-slate-900 p-6 rounded-[2rem] text-white">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">4. Choix de la Formule</p>
+                    <select id="p-form" class="w-full p-4 bg-slate-800 border-none rounded-xl text-xs font-black outline-none cursor-pointer">
+                        <option value="Basic">PACK BASIC (1 visite/sem) - 50.000 CFA</option>
+                        <option value="Standard">PACK STANDARD (3 visites/sem) - 75.000 CFA</option>
+                        <option value="Premium">PACK PREMIUM (Quotidien) - 100.000 CFA</option>
+                    </select>
+                </div>
+            </div>`,
+        preConfirm: () => {
+            const hist = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+            return {
+                nom_famille: document.getElementById('f-nom').value,
+                email: document.getElementById('f-email').value,
+                password: document.getElementById('f-pass').value,
+                tel_famille: document.getElementById('f-tel').value,
+                nom_patient: document.getElementById('p-nom').value,
+                adresse_patient: document.getElementById('p-addr').value,
+                formule: document.getElementById('p-form').value,
+                age_patient: document.getElementById('p-age').value,
+                lien_parente: document.getElementById('f-lien').value,
+                contact_urgence: document.getElementById('p-urgence').value,
+                notes_medicales: hist.join(', ') + " | " + document.getElementById('p-notes').value
+            }
+        }
+    });
+
+    if (form) {
+        Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading() });
+        const res = await fetch(`${CONFIG.API_URL}/auth/register-family-patient`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(form)
+        });
+        if(res.ok) {
+            Swal.fire({
+                icon: "success",
+                title: "Demande reçue !",
+                text: "Un coordinateur médical va analyser le dossier et vous contacter pour l'activation.",
+                confirmButtonColor: "#16a34a"
+            });
+        }
+    }
+};
+
+
 
 /**
  * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
@@ -45,84 +220,7 @@ async function initPushNotifications() {
   } catch (err) { console.warn("🔔 Push non configuré."); }
 }
 
-/**
- * 🚀 INITIALISATION AU DÉMARRAGE
- */
-async function initApp() {
-    const loader = document.getElementById("initial-loader");
-    const token = localStorage.getItem("token");
 
-    try {
-        if (token) {
-            renderLayout();
-            initPushNotifications();
-            const userRole = localStorage.getItem("user_role");
-            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
-            const lastView = localStorage.getItem("last_view") || defaultView;
-            await window.switchView(lastView);
-        } else {
-            renderLogin();
-        }
-    } catch (err) {
-        renderLogin();
-    } finally {
-        if (loader) {
-            loader.style.opacity = "0";
-            setTimeout(() => loader.classList.add("hidden"), 500);
-        }
-    }
-}
-
-/**
- * 🔑 ÉCRAN DE CONNEXION (Design Premium UI/UX)
- */
-function renderLogin() {
-  document.getElementById("app").innerHTML = `
-        <div class="relative min-h-screen flex flex-col justify-center items-center bg-slate-50 overflow-hidden px-4">
-            <!-- Arrière-plan animé (Blobs) -->
-            <div class="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-            <div class="absolute top-0 right-0 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-            <div class="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-
-            <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-xl border border-white/50 animate-fadeIn z-10">
-                <div class="text-center mb-10">
-                    <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-green-500 to-teal-400 text-white rounded-[1.5rem] flex items-center justify-center text-4xl shadow-lg mb-5 transform transition hover:-translate-y-1">
-                        <i class="fa-solid fa-heart-pulse"></i>
-                    </div>
-                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Santé Plus</h1>
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Protocole de confiance</p>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500">
-                            <i class="fa-solid fa-envelope"></i>
-                        </div>
-                        <input id="email" type="email" class="w-full pl-11 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm" placeholder="Email">
-                    </div>
-
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500">
-                            <i class="fa-solid fa-lock"></i>
-                        </div>
-                        <input id="password" type="password" class="w-full pl-11 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm" placeholder="Mot de passe">
-                    </div>
-
-                    <button onclick="window.login()" id="btn-login" class="w-full relative overflow-hidden group bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-[0.98] transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2">
-                        <span class="relative z-10">Accéder à mon espace</span>
-                        <i class="fa-solid fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform"></i>
-                        <div class="absolute inset-0 bg-gradient-to-r from-green-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    </button>
-                </div>
-            </div>
-
-            <div class="relative z-10 mt-8 text-center">
-                <button onclick="window.openRegisterFamily()" class="inline-flex items-center gap-2 text-slate-700 font-black text-[11px] uppercase tracking-widest bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-100 hover:text-green-600 transition-all">
-                    Créer un compte Famille <i class="fa-solid fa-user-plus"></i>
-                </button>
-            </div>
-        </div>`;
-}
 
 /**
  * 🏗️ STRUCTURE PRINCIPALE
@@ -283,93 +381,15 @@ window.switchView = async (viewName) => {
   }
 };
 
+
+
 /**
- * 📝 DOSSIER D'ADMISSION (Inscription Famille + Patient complète)
+ * 🏗️ LAYOUT & NAVIGATION (Reste inchangé mais inclus pour complétude)
  */
-window.openRegisterFamily = async () => {
-    const { value: form } = await Swal.fire({
-        title: '<h2 class="text-xl font-black text-slate-800">Dossier d\'Admission</h2>',
-        width: '38rem',
-        padding: '2rem',
-        confirmButtonText: 'VALIDER LE DOSSIER',
-        confirmButtonColor: '#0f172a',
-        showCancelButton: true,
-        customClass: { popup: 'rounded-[2.5rem]' },
-        html: `
-            <div class="text-left space-y-5 mt-6 max-h-[60vh] overflow-y-auto px-2">
-                <!-- 1. FAMILLE -->
-                <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100">
-                    <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3">1. Responsable de la Famille</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input id="f-nom" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Nom complet">
-                        <input id="f-tel" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Téléphone (WhatsApp)">
-                        <input id="f-email" type="email" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Email">
-                        <input id="f-pass" type="password" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Mot de passe">
-                    </div>
-                </div>
+window.renderLayout = renderLayout;
+window.switchView = switchView;
 
-                <!-- 2. PATIENT -->
-                <div class="bg-green-50 p-5 rounded-3xl border border-green-100">
-                    <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mb-3">2. Parent à accompagner</p>
-                    <div class="grid grid-cols-2 gap-3">
-                        <input id="p-nom" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Nom du parent">
-                        <input id="p-age" type="number" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Âge">
-                        <input id="p-addr" class="swal2-input !m-0 !w-full !text-sm !rounded-xl col-span-2" placeholder="Adresse exacte au Bénin">
-                    </div>
-                </div>
-
-                <!-- 3. MEDICAL -->
-                <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100">
-                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3">3. Profil Médical & Urgence</p>
-                    <div class="grid grid-cols-2 gap-2 mb-3">
-                        <label class="flex items-center gap-2 text-[11px]"><input type="checkbox" class="med-history" value="Diabète"> Diabète</label>
-                        <label class="flex items-center gap-2 text-[11px]"><input type="checkbox" class="med-history" value="Hypertension"> Hypertension</label>
-                    </div>
-                    <input id="p-urgence" class="swal2-input !m-0 !w-full !text-sm !rounded-xl" placeholder="Contact d'urgence local">
-                </div>
-
-                <!-- 4. FORMULE -->
-                <select id="p-form" class="swal2-input !m-0 !w-full !text-sm !rounded-xl !bg-slate-900 !text-white">
-                    <option value="Basic">Pack Basic (1 visite/sem)</option>
-                    <option value="Standard">Pack Standard (3 visites/sem)</option>
-                    <option value="Premium">Pack Premium (7 visites/sem)</option>
-                </select>
-            </div>`,
-        preConfirm: () => {
-            return {
-                nom_famille: document.getElementById('f-nom').value,
-                email: document.getElementById('f-email').value,
-                password: document.getElementById('f-pass').value,
-                tel_famille: document.getElementById('f-tel').value,
-                nom_patient: document.getElementById('p-nom').value,
-                adresse_patient: document.getElementById('p-addr').value,
-                formule: document.getElementById('p-form').value,
-                // On peut ajouter les nouveaux champs ici
-            }
-        }
-    });
-
-    if (form) {
-        Swal.fire({ title: 'Traitement...', didOpen: () => Swal.showLoading() });
-        const res = await fetch(`${CONFIG.API_URL}/auth/register-family-patient`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form)
-        });
-        if(res.ok) {
-            Swal.fire("Succès", "Dossier envoyé ! Un coordinateur vous contactera.", "success");
-        }
-    }
-};
-
-// --- BRANCHEMENTS GLOBAUX ---
-window.login = Auth.handleLogin;
-window.logout = Auth.handleLogout;
-window.switchView = window.switchView;
-window.openAddPatient = Patients.openAddPatientModal;
-window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
-
-// Lancement
 initApp();
+
 
 
