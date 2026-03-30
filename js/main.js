@@ -7,7 +7,8 @@ import * as Dashboard from "./modules/dashboard.js";
 import * as Aidants from "./modules/aidants.js";
 import * as Commandes from "./modules/commandes.js";
 import * as Visites from "./modules/visites.js";
-import * as Messages from "./modules/message.js"; // Correction nom fichier
+import * as Messages from "./modules/message.js"; 
+
 
 window.CONFIG = CONFIG;
 
@@ -264,6 +265,8 @@ window.logout = Auth.handleLogout;
 window.openAddPatient = Patients.openAddPatientModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
+window.openAddAidantModal = Aidants.openAddAidantModal;
+
 
 window.viewPatientFeed = (id) => {
   AppState.currentPatient = id;
