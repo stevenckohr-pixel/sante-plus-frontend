@@ -22,7 +22,7 @@ export async function handleLogin() {
 
     if (!response.ok) throw new Error(data.error || "Erreur de connexion");
 
-    // 🔴 2FA POUR COORDINATEUR (Le correctif + Un super design)
+    // 🔴 2FA POUR COORDINATEUR
     if (data.status === "require_2fa") {
       btn.innerHTML = "VERIFICATION EN COURS...";
       
@@ -53,7 +53,6 @@ export async function handleLogin() {
         
         if (!verifyRes.ok) throw new Error(verifyData.message || "Code invalide");
         
-        // Connexion réussie après 2FA
         localStorage.setItem("token", verifyData.token);
         localStorage.setItem("user_role", verifyData.role);
         localStorage.setItem("user_name", verifyData.nom);
@@ -67,7 +66,7 @@ export async function handleLogin() {
       return;
     }
 
-    // 🟢 CONNEXION NORMALE (Aidant / Famille)
+    // 🟢 CONNEXION NORMALE
     localStorage.setItem("token", data.token);
     localStorage.setItem("user_role", data.role);
     localStorage.setItem("user_name", data.nom);
@@ -89,19 +88,7 @@ export async function handleLogin() {
   }
 }
 
-export async function registerFamily(data) {
-    const res = await fetch(`${window.CONFIG.API_URL}/auth/register-family-patient`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    return res;
-}
-
 export function handleLogout() {
   localStorage.clear();
   window.location.reload();
 }
-        }
-    }
-};
