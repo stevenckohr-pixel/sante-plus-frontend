@@ -275,20 +275,24 @@ async function submitRegistration() {
             body: JSON.stringify(registrationData)
         });
 
-        if(res.ok) {
-            Swal.fire({
-                icon: "success",
-                title: "Dossier Transmis !",
-                text: "Un coordinateur va valider vos informations sous 24h.",
-                confirmButtonText: "RETOUR À L'ACCUEIL",
-                confirmButtonColor: "#16a34a"
-            }).then(() => window.location.reload());
+        const data = await res.json(); // On récupère toujours la réponse (même en erreur)
+
+        if (!res.ok) {
+            throw new Error(data.error || "Une erreur est survenue");
         }
+
+        Swal.fire({
+            icon: "success",
+            title: "Dossier Transmis !",
+            text: "Un coordinateur va valider vos informations sous 24h.",
+            confirmButtonText: "RETOUR À L'ACCUEIL",
+            confirmButtonColor: "#16a34a"
+        }).then(() => window.location.reload());
+
     } catch (e) {
-        Swal.fire("Erreur", "Connexion impossible au serveur", "error");
+        Swal.fire("Erreur", e.message, "error");
     }
 }
-
 
 /**
  * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
