@@ -107,52 +107,75 @@ async function fetchStats() {
  */
 async function loadPendingRegistrations() {
     const list = document.getElementById('pending-registrations-list');
+    if (!list) return;
+
     try {
         const res = await secureFetch('/admin/pending-registrations');
         const pending = await res.json();
 
         if (pending.length === 0) {
-            list.innerHTML = `<div class="p-8 text-center border-2 border-dashed border-slate-100 rounded-[2rem] opacity-40">
-                <p class="text-xs font-bold text-slate-400 italic">Aucune nouvelle demande</p>
-            </div>`;
+            list.innerHTML = `
+                <div class="p-8 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem] bg-white/50">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Aucune nouvelle demande</p>
+                </div>`;
             return;
         }
 
         list.innerHTML = pending.map(req => {
             const patient = (req.patients && req.patients.length > 0) ? req.patients[0] : null;
+            
+            // 💡 ASTUCE PRO : On encode les données en Base64 pour éviter les erreurs d'apostrophes dans le HTML
+            const userData = btoa(JSON.stringify({
+                id: req.id,
+                role: req.role,
+                email: req.email,
+                nom: req.nom
+            }));
 
             return `
-                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm animate-fadeIn">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-tighter">DIASPORA ACCOUNT</div>
-                        <span class="text-[9px] font-bold text-slate-300 tracking-widest">${new Date().toLocaleDateString()}</span>
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-lg transition-shadow animate-fadeIn">
+                    <div class="flex justify-between items-center mb-5">
+                        <span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-tighter">
+                            ${req.role === 'FAMILLE' ? 'DIASPORA' : 'PROFESSIONNEL'}
+                        </span>
+                        <span class="text-[9px] font-bold text-slate-300">${new Date(req.created_at).toLocaleDateString()}</span>
                     </div>
                     
-                    <div class="flex items-center gap-3 mb-5">
-                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black">${req.nom.charAt(0)}</div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg shadow-lg">
+                            ${req.nom.charAt(0).toUpperCase()}
+                        </div>
                         <div>
-                            <h5 class="font-black text-slate-800 text-[13px] uppercase leading-none">${req.nom}</h5>
-                            <p class="text-[10px] text-slate-400 font-medium mt-1">${req.email}</p>
+                            <h5 class="font-black text-slate-800 text-sm uppercase leading-none">${req.nom}</h5>
+                            <p class="text-[10px] text-slate-400 font-medium mt-1.5 underline underline-offset-2">${req.email}</p>
                         </div>
                     </div>
                     
                     ${patient ? `
-                        <div class="p-4 bg-slate-50 rounded-3xl border border-slate-100 mb-6">
-                            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Parent au Bénin</p>
-                            <p class="text-xs font-black text-green-600 uppercase">${patient.nom_complet}</p>
-                            <p class="text-[9px] text-slate-400 font-bold mt-1">Pack choisi : ${patient.formule}</p>
+                        <div class="p-4 bg-green-50/50 rounded-2xl border border-green-100 mb-6">
+                            <p class="text-[8px] font-black text-green-600 uppercase tracking-widest mb-1">Parent à accompagner</p>
+                            <p class="text-xs font-black text-slate-800 uppercase">${patient.nom_complet}</p>
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-[8px] font-bold text-slate-500 bg-white px-2 py-1 rounded-lg border border-slate-100">PACK : ${patient.formule}</span>
+                            </div>
                         </div>
                     ` : ''}
 
-                    <button onclick="window.processRegistration('${req.id}', '${req.role}', '${req.email}', '${req.nom.replace(/'/g, "\\'")}')" 
-                        class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                    <button onclick="window.confirmRegistration('${userData}')" 
+                        class="w-full py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-green-700 active:scale-95 transition-all shadow-lg shadow-green-100">
                         ACTIVER LE DOSSIER
                     </button>
                 </div>
             `;
         }).join('');
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur Dashboard:", err); }
 }
+
+// 🔑 Nouvelle fonction pour décoder proprement
+window.confirmRegistration = (encodedData) => {
+    const { id, role, email, nom } = JSON.parse(atob(encodedData));
+    window.processRegistration(id, role, email, nom);
+};
 
 /**
  * 📸 VALIDATION DES RAPPORTS DE VISITE
