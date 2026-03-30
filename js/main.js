@@ -229,47 +229,55 @@ window.switchView = async (viewName) => {
  * 📝 INSCRIPTION LIBRE DES FAMILLES (DIASPORA)
  */
 window.openRegisterFamily = async () => {
-    const { value: formValues } = await Swal.fire({
-        title: '<span class="text-lg font-black uppercase text-slate-800">Compte Famille</span>',
+    const { value: form } = await Swal.fire({
+        title: 'Inscription Diaspora',
+        width: '600px',
         html: `
-            <div class="text-left space-y-4 p-2">
-                <p class="text-[10px] text-slate-400 font-bold uppercase">Créez votre accès pour suivre votre proche.</p>
-                <input id="reg-nom" class="swal2-input !m-0" placeholder="Votre nom complet">
-                <input id="reg-email" type="email" class="swal2-input !m-0" placeholder="Votre email">
-                <input id="reg-tel" class="swal2-input !m-0" placeholder="Votre téléphone">
-                <input id="reg-pass" type="password" class="swal2-input !m-0" placeholder="Choisissez un mot de passe">
+            <div class="text-left space-y-4">
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">1. Vos informations (Famille)</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <input id="f-nom" class="swal2-input !m-0" placeholder="Votre Nom">
+                    <input id="f-tel" class="swal2-input !m-0" placeholder="Votre Téléphone">
+                </div>
+                <input id="f-email" type="email" class="swal2-input !m-0" placeholder="Votre Email">
+                <input id="f-pass" type="password" class="swal2-input !m-0" placeholder="Choisissez un mot de passe">
+                
+                <p class="text-[10px] font-black text-green-600 uppercase tracking-widest mt-6">2. Le Proche à accompagner</p>
+                <input id="p-nom" class="swal2-input !m-0" placeholder="Nom complet du parent">
+                <input id="p-addr" class="swal2-input !m-0" placeholder="Adresse exacte au Bénin">
+                <select id="p-form" class="swal2-input !m-0">
+                    <option value="Basic">Formule Basic (1 visite/sem)</option>
+                    <option value="Standard">Formule Standard (3 visites/sem)</option>
+                    <option value="Premium">Formule Premium (7j/7)</option>
+                </select>
             </div>`,
-        confirmButtonText: 'CRÉER MON COMPTE',
-        confirmButtonColor: '#16a34a',
-        showCancelButton: true,
-        cancelButtonText: 'Annuler',
+        confirmButtonText: 'VALIDER MON INSCRIPTION',
         preConfirm: () => {
-            const nom = document.getElementById('reg-nom').value;
-            const email = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-pass').value;
-            if(!nom || !email || !password) return Swal.showValidationMessage("Merci de remplir tous les champs");
-            return { nom, email, telephone: document.getElementById('reg-tel').value, password, role: 'FAMILLE' };
+            // Récupération de tous les champs...
+            return {
+                nom_famille: document.getElementById('f-nom').value,
+                email: document.getElementById('f-email').value,
+                password: document.getElementById('f-pass').value,
+                tel_famille: document.getElementById('f-tel').value,
+                nom_patient: document.getElementById('p-nom').value,
+                adresse_patient: document.getElementById('p-addr').value,
+                formule: document.getElementById('p-form').value
+            }
         }
     });
 
-    if (formValues) {
-        try {
-            Swal.fire({ title: 'Inscription...', didOpen: () => Swal.showLoading() });
-            const res = await fetch(`${CONFIG.API_URL}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formValues)
-            });
-            if(res.ok) {
-                Swal.fire("Bienvenue !", "Votre compte a été créé. Connectez-vous maintenant.", "success");
-            } else {
-                const err = await res.json();
-                throw new Error(err.error);
-            }
-        } catch(e) { Swal.fire("Erreur", e.message, "error"); }
+    if (form) {
+        Swal.fire({ title: 'Traitement...', didOpen: () => Swal.showLoading() });
+        const res = await fetch(`${CONFIG.API_URL}/auth/register-family-patient`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(form)
+        });
+        if(res.ok) {
+            Swal.fire("Merci !", "Demande envoyée. Vérifiez vos mails.", "success");
+        }
     }
 };
-
 // Branchements globaux
 window.login = Auth.handleLogin;
 window.logout = Auth.handleLogout;
