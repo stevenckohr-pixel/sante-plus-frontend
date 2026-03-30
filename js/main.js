@@ -296,6 +296,14 @@ async function initPushNotifications() {
  */
 async function initApp() {
     const loader = document.getElementById("initial-loader");
+
+        setTimeout(() => {
+          if (loader && !loader.classList.contains('hidden')) {
+              loader.style.opacity = "0";
+              setTimeout(() => loader.classList.add("hidden"), 500);
+          }
+      }, 10000);
+    
     const token = localStorage.getItem("token");
 
     try {
