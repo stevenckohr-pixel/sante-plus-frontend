@@ -10,9 +10,10 @@ import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 
-
 let registrationData = {};
 let currentStep = 1;
+
+// --- DÉFINITION DES FONCTIONS ---
 
 window.openRegisterFamily = () => {
     currentStep = 1;
@@ -20,97 +21,6 @@ window.openRegisterFamily = () => {
     renderRegisterStep();
 };
 
-// --- LOGIQUE DE NAVIGATION ---
-window.setPlan = (plan) => {
-    registrationData.formule = plan;
-    renderRegisterStep();
-};
-
-// 🔑 BRANCHEMENTS GLOBAUX (On le fait avant tout le reste !)
-window.CONFIG = CONFIG;
-window.AppState = AppState;
-window.login = Auth.handleLogin;
-window.logout = Auth.handleLogout;
-window.openAddPatient = Patients.openAddPatientModal;
-window.openOrderModal = Commandes.openOrderModal;
-window.markAsDelivered = Commandes.markAsDelivered;
-window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
-window.nextStep = nextStep;
-window.renderRegisterStep = renderRegisterStep;
-
-
-/**
- * 🚀 INITIALISATION AU DÉMARRAGE
- */
-async function initApp() {
-    const loader = document.getElementById("initial-loader");
-    const token = localStorage.getItem("token");
-
-    try {
-        if (token) {
-            renderLayout();
-            const userRole = localStorage.getItem("user_role");
-            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
-            const lastView = localStorage.getItem("last_view") || defaultView;
-            await window.switchView(lastView);
-        } else {
-            renderLogin();
-        }
-    } catch (err) {
-        renderLogin();
-    } finally {
-        if (loader) {
-            loader.style.opacity = "0";
-            setTimeout(() => loader.classList.add("hidden"), 500);
-        }
-    }
-}
-
-/**
- * 🔑 LOGIN UI (Style Pinterest / Clean UI)
- */
-function renderLogin() {
-  document.getElementById("app").innerHTML = `
-    <div class="relative min-h-screen flex flex-col justify-center items-center bg-slate-50 overflow-hidden px-4 font-sans">
-        <!-- Blobs animés en fond -->
-        <div class="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full filter blur-3xl opacity-30 animate-blob"></div>
-        <div class="absolute -bottom-8 right-0 w-72 h-72 bg-blue-300 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-
-        <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-2xl p-10 rounded-[3rem] shadow-2xl border border-white/50 animate-fadeIn z-10">
-            <div class="text-center mb-10">
-                <div class="w-20 h-20 mx-auto bg-green-600 text-white rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-green-200 mb-5">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                </div>
-                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Santé Plus</h1>
-                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Protocole de confiance</p>
-            </div>
-            
-            <div class="space-y-4">
-                <div class="relative group">
-                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
-                    <input id="email" type="email" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Email">
-                </div>
-                <div class="relative group">
-                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
-                    <input id="password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Mot de passe">
-                </div>
-                <button onclick="window.login()" id="btn-login" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:shadow-green-200 active:scale-95 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-3">
-                    Accéder à mon espace <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="relative z-10 mt-8 text-center animate-fadeIn" style="animation-delay: 0.3s">
-            <button onclick="window.openRegisterFamily()" class="text-slate-700 font-black text-[11px] uppercase tracking-widest bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 hover:text-green-600 transition-all active:scale-95">
-                Créer un compte Famille <i class="fa-solid fa-user-plus ml-2"></i>
-            </button>
-        </div>
-    </div>`;
-}
-
-/**
- * 🚀 MOTEUR D'INSCRIPTION PAR ÉTAPES (FULL SCREEN APP)
- */
 
 
 function renderRegisterStep() {
@@ -154,6 +64,12 @@ function renderRegisterStep() {
         </footer>
     </div>`;
 }
+
+
+
+
+
+
 
 function getStepHTML() {
     switch(currentStep) {
@@ -242,9 +158,12 @@ function getStepHTML() {
 }
 
 
+window.setPlan = (plan) => {
+    registrationData.formule = plan;
+    renderRegisterStep();
+};
 
 function nextStep() {
-    // Collecte des données de l'étape actuelle
     if (currentStep === 1) {
         registrationData.nom_famille = document.getElementById('f-nom').value;
         registrationData.email = document.getElementById('f-email').value;
@@ -270,6 +189,9 @@ function nextStep() {
         submitRegistration();
     }
 }
+
+
+
 
 async function submitRegistration() {
     if(!registrationData.formule) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
@@ -302,6 +224,8 @@ async function submitRegistration() {
     }
 }
 
+
+
 /**
  * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
  */
@@ -333,6 +257,80 @@ async function initPushNotifications() {
   } catch (err) { console.warn("🔔 Push non configuré."); }
 }
 
+
+
+
+/**
+ * 🚀 INITIALISATION AU DÉMARRAGE
+ */
+async function initApp() {
+    const loader = document.getElementById("initial-loader");
+    const token = localStorage.getItem("token");
+
+    try {
+        if (token) {
+            renderLayout();
+            const userRole = localStorage.getItem("user_role");
+            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
+            const lastView = localStorage.getItem("last_view") || defaultView;
+            await window.switchView(lastView);
+        } else {
+            renderLogin();
+        }
+    } catch (err) {
+        renderLogin();
+    } finally {
+        if (loader) {
+            loader.style.opacity = "0";
+            setTimeout(() => loader.classList.add("hidden"), 500);
+        }
+    }
+}
+
+
+
+
+/**
+ * 🔑 LOGIN UI (Style Pinterest / Clean UI)
+ */
+function renderLogin() {
+  document.getElementById("app").innerHTML = `
+    <div class="relative min-h-screen flex flex-col justify-center items-center bg-slate-50 overflow-hidden px-4 font-sans">
+        <!-- Blobs animés en fond -->
+        <div class="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full filter blur-3xl opacity-30 animate-blob"></div>
+        <div class="absolute -bottom-8 right-0 w-72 h-72 bg-blue-300 rounded-full filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+        <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-2xl p-10 rounded-[3rem] shadow-2xl border border-white/50 animate-fadeIn z-10">
+            <div class="text-center mb-10">
+                <div class="w-20 h-20 mx-auto bg-green-600 text-white rounded-[1.5rem] flex items-center justify-center text-4xl shadow-xl shadow-green-200 mb-5">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Santé Plus</h1>
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Protocole de confiance</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="relative group">
+                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
+                    <input id="email" type="email" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Email">
+                </div>
+                <div class="relative group">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-green-500 transition-colors"></i>
+                    <input id="password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 transition-all text-sm font-medium" placeholder="Mot de passe">
+                </div>
+                <button onclick="window.login()" id="btn-login" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:shadow-green-200 active:scale-95 transition-all uppercase text-xs tracking-widest flex items-center justify-center gap-3">
+                    Accéder à mon espace <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="relative z-10 mt-8 text-center animate-fadeIn" style="animation-delay: 0.3s">
+            <button onclick="window.openRegisterFamily()" class="text-slate-700 font-black text-[11px] uppercase tracking-widest bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 hover:text-green-600 transition-all active:scale-95">
+                Créer un compte Famille <i class="fa-solid fa-user-plus ml-2"></i>
+            </button>
+        </div>
+    </div>`;
+}
 
 
 /**
@@ -392,6 +390,11 @@ function renderLayout() {
             </footer>
         </div>`;
 }
+
+
+
+
+
 
 /**
  * 🧭 MOTEUR DE NAVIGATION (Version Sécurisée & Premium)
@@ -506,14 +509,18 @@ window.switchView = async (viewName) => {
 };
 
 
-
-/**
- * 🏗️ LAYOUT & NAVIGATION (Reste inchangé mais inclus pour complétude)
- */
+// 🔑 BRANCHEMENTS GLOBAUX (À LA FIN POUR ÊTRE SÛR QUE TOUT EXISTE)
+window.CONFIG = CONFIG;
+window.AppState = AppState;
+window.login = Auth.handleLogin;
+window.logout = Auth.handleLogout;
+window.openAddPatient = Patients.openAddPatientModal;
+window.openOrderModal = Commandes.openOrderModal;
+window.markAsDelivered = Commandes.markAsDelivered;
+window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
+window.nextStep = nextStep;
+window.renderRegisterStep = renderRegisterStep;
 window.renderLayout = renderLayout;
 window.switchView = switchView;
 
 initApp();
-
-
-
