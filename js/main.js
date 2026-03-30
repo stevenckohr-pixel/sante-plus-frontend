@@ -28,6 +28,10 @@ window.openAddPatient = Patients.openAddPatientModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
 window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
+window.nextStep = nextStep;
+window.setPlan = setPlan;
+window.renderRegisterStep = renderRegisterStep;
+window.openRegisterFamily = openRegisterFamily; 
 
 /**
  * 🚀 INITIALISATION AU DÉMARRAGE
