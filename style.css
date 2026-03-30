@@ -177,3 +177,39 @@ body {
 .reaction-btn:active {
     transform: scale(1.4);
 }
+
+
+/* --- STEPPER ANIMATIONS --- */
+.step-container {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-bar {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #16a34a;
+    transition: width 0.3s ease;
+}
+
+/* Inputs plus aérés pour mobile */
+.app-input {
+    width: 100%;
+    padding: 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.app-input:focus {
+    background: white;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.1);
+}
