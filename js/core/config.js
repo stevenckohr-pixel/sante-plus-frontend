@@ -3,7 +3,7 @@ export const CONFIG = {
   API_URL:
     window.location.hostname === "localhost" ||
     window.location.hostname === "127.0.0.1"
-      ? "http://localhost:4000/api"
+      ? "https://stevenckohr-pixel.github.io/sante-plus-frontend//api"
       : "https://sante-plus-frontend.onrender.com/api",
 
   APP_NAME: "Santé Plus Services",
