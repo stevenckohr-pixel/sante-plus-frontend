@@ -17,6 +17,17 @@ export async function secureFetch(endpoint, options = {}) {
     headers,
   });
 
+    if (response.status === 503) {
+      Swal.fire({
+          title: "Réveil du serveur...",
+          text: "Le service gratuit Render se réactive (cela peut prendre 30 secondes).",
+          icon: "info",
+          showConfirmButton: false,
+          timer: 5000
+      });
+      throw new Error("Serveur en cours de démarrage");
+  }
+
   if (response.status === 401) {
     localStorage.removeItem("token");
     window.location.reload();
