@@ -296,37 +296,30 @@ async function initPushNotifications() {
  */
 async function initApp() {
     const loader = document.getElementById("initial-loader");
-
-        setTimeout(() => {
-          if (loader && !loader.classList.contains('hidden')) {
-              loader.style.opacity = "0";
-              setTimeout(() => loader.classList.add("hidden"), 500);
-          }
-      }, 10000);
-    
     const token = localStorage.getItem("token");
 
     try {
         if (token) {
             renderLayout();
-            const userRole = localStorage.getItem("user_role");
-            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
-            const lastView = localStorage.getItem("last_view") || defaultView;
+            // On lance le chargement mais on n'attend pas forcément la fin pour cacher le loader
+            const lastView = localStorage.getItem("last_view") || "patients";
             await window.switchView(lastView);
         } else {
             renderLogin();
         }
     } catch (err) {
+        console.error("Erreur Init:", err);
         renderLogin();
     } finally {
+        // 🟢 QUOI QU'IL ARRIVE, ON CACHE LE LOADER ICI
         if (loader) {
-            loader.style.opacity = "0";
-            setTimeout(() => loader.classList.add("hidden"), 500);
+            setTimeout(() => {
+                loader.style.opacity = "0";
+                setTimeout(() => loader.classList.add("hidden"), 500);
+            }, 1000); // On laisse 1 seconde pour que l'UI se dessine
         }
     }
 }
-
-
 
 
 /**
