@@ -9,6 +9,8 @@ import * as Commandes from "./modules/commandes.js";
 import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
+import * as MapModule from "./modules/map.js";
+
 
 let registrationData = {};
 let currentStep = 1;
@@ -418,15 +420,19 @@ function renderLayout() {
     </div>`;
 }
 
+
 /**
- * 🔗 GÉNÉRATEUR DE LIENS DE NAVIGATION SYNCHRONISÉ
+ * 🔗 GÉNÉRATEUR DE LIENS DE NAVIGATION SYNCHRONISÉ (Elite Version)
  */
 function getNavLinks(role, mode) {
     const isMobile = mode === 'mobile';
     
-    // Configuration des onglets
+    // Configuration centralisée des onglets
     const tabs = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
+        // 👇 LE NOUVEL ONGLET RADAR (Visible uniquement pour le coordinateur)
+        { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR'] }, 
+        
         { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'feed', icon: 'fa-rss', label: 'Feed', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
@@ -436,21 +442,22 @@ function getNavLinks(role, mode) {
 
     return tabs.filter(tab => tab.roles.includes(role)).map(tab => {
         if (isMobile) {
+            // Rendu pour la barre du bas (Mobile)
             return `
                 <button onclick="switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
                     <i class="fa-solid ${tab.icon} text-lg"></i>
                     <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
                 </button>`;
         } else {
+            // Rendu pour la Sidebar latérale (Desktop)
             return `
-                <button onclick="switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm">
+                <button onclick="switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm mb-1">
                     <i class="fa-solid ${tab.icon} text-lg"></i>
                     <span>${tab.label}</span>
                 </button>`;
         }
     }).join('');
 }
-
 
 
 
@@ -562,6 +569,11 @@ window.switchView = async (viewName) => {
         case "commandes":
             Commandes.loadCommandes();
             break;
+        
+        case "map": // Ajoute ce cas
+            MapModule.initLiveMap();
+            break;
+              
       }
   } catch (err) {
       container.innerHTML = `<div class="p-10 text-center text-rose-500 font-bold">Erreur de chargement : ${err.message}</div>`;
