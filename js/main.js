@@ -10,6 +10,15 @@ import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 
+
+let registrationData = {};
+let currentStep = 1;
+
+window.openRegisterFamily = () => {
+    currentStep = 1;
+    registrationData = {};
+    renderRegisterStep();
+};
 // 🔑 BRANCHEMENTS GLOBAUX (On le fait avant tout le reste !)
 window.CONFIG = CONFIG;
 window.AppState = AppState;
@@ -19,7 +28,6 @@ window.openAddPatient = Patients.openAddPatientModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
 window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
-window.openRegisterFamily = openRegisterFamily;
 
 /**
  * 🚀 INITIALISATION AU DÉMARRAGE
@@ -93,14 +101,14 @@ function renderLogin() {
 /**
  * 🚀 MOTEUR D'INSCRIPTION PAR ÉTAPES (FULL SCREEN APP)
  */
-let registrationData = {};
-let currentStep = 1;
+//let registrationData = {};
+//let currentStep = 1;
 
-window.openRegisterFamily = () => {
-    currentStep = 1;
-    registrationData = {};
-    renderRegisterStep();
-};
+//window.openRegisterFamily = () => {
+    //currentStep = 1;
+    //registrationData = {};
+    //renderRegisterStep();
+//};
 
 function renderRegisterStep() {
     const app = document.getElementById("app");
