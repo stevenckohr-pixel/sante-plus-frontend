@@ -77,32 +77,69 @@ async function initApp() {
 /**
  * 🔑 ÉCRAN DE CONNEXION
  */
+/**
+ * 🔑 ÉCRAN DE CONNEXION (Design Premium UI/UX)
+ */
 function renderLogin() {
   document.getElementById("app").innerHTML = `
-        <div class="h-screen flex items-center justify-center p-6 bg-slate-900">
-            <div class="w-full max-w-sm bg-white p-10 rounded-[2.5rem] shadow-2xl animate-fadeIn">
-                <div class="text-center mb-8">
-                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+        <div class="relative min-h-screen flex flex-col justify-center items-center bg-slate-50 overflow-hidden px-4">
+            
+            <!-- Arrière-plan animé (Blobs style Glassmorphism) -->
+            <div class="absolute top-0 left-0 w-72 h-72 bg-green-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+            <div class="absolute top-0 right-0 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+            <div class="absolute -bottom-8 left-20 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+
+            <!-- Conteneur principal -->
+            <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-2xl p-8 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 animate-fadeIn z-10">
+                
+                <!-- Logo & Titre -->
+                <div class="text-center mb-10">
+                    <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-green-500 to-teal-400 text-white rounded-[1.5rem] flex items-center justify-center text-4xl shadow-lg shadow-green-500/30 mb-5 transform transition hover:-translate-y-1 hover:shadow-green-500/50">
                         <i class="fa-solid fa-heart-pulse"></i>
                     </div>
-                    <h1 class="text-2xl font-black text-slate-800">Santé Plus</h1>
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Protocole de confiance</p>
+                    <h1 class="text-3xl font-black text-slate-800 tracking-tight">Santé Plus</h1>
+                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Protocole de confiance</p>
                 </div>
                 
+                <!-- Formulaire -->
                 <div class="space-y-4">
-                    <input id="email" type="email" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition-all" placeholder="Email">
-                    <input id="password" type="password" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-green-500 transition-all" placeholder="Mot de passe">
-                    <button onclick="window.login()" id="btn-login" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition-all uppercase text-xs tracking-widest">
-                        Connexion
-                    </button>
-
-                    <div class="text-center pt-6 border-t border-slate-50 mt-6">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase mb-2">Vous êtes de la famille ?</p>
-                        <button onclick="window.openRegisterFamily()" class="text-green-600 font-black text-xs uppercase underline tracking-widest hover:text-green-700 transition-colors">
-                            Créer un compte Diaspora
-                        </button>
+                    <!-- Input Email -->
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500 transition-colors">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <input id="email" type="email" class="w-full pl-11 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Votre adresse email">
                     </div>
+
+                    <!-- Input Password -->
+                    <div class="relative group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500 transition-colors">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <input id="password" type="password" class="w-full pl-11 pr-4 py-4 bg-slate-50/50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Mot de passe">
+                    </div>
+
+                    <!-- Mot de passe oublié (Optionnel pour l'instant) -->
+                    <div class="flex justify-end pb-2">
+                        <span class="text-[10px] font-bold text-slate-400 hover:text-green-600 cursor-pointer transition-colors">Code d'accès oublié ?</span>
+                    </div>
+
+                    <!-- Bouton Connexion -->
+                    <button onclick="window.login()" id="btn-login" class="w-full relative overflow-hidden group bg-slate-900 text-white py-4 rounded-2xl font-black shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all uppercase text-xs tracking-widest flex justify-center items-center gap-2">
+                        <span class="relative z-10">Accéder à mon espace</span>
+                        <i class="fa-solid fa-arrow-right relative z-10 group-hover:translate-x-1 transition-transform"></i>
+                        <!-- Effet gradient au survol -->
+                        <div class="absolute inset-0 bg-gradient-to-r from-green-600 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </button>
                 </div>
+            </div>
+
+            <!-- Pied de page : Inscription Famille -->
+            <div class="relative z-10 mt-8 text-center animate-fadeIn" style="animation-delay: 0.2s">
+                <p class="text-[11px] text-slate-500 font-medium mb-3">Nouveau sur la plateforme ?</p>
+                <button onclick="window.openRegisterFamily()" class="inline-flex items-center gap-2 text-slate-700 font-black text-[11px] uppercase tracking-widest bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-100 hover:border-green-300 hover:text-green-600 transition-all active:scale-95">
+                    Créer un compte Famille <i class="fa-solid fa-user-plus"></i>
+                </button>
             </div>
         </div>`;
 }
