@@ -1,173 +1,211 @@
 import { secureFetch } from "../core/api.js";
-import { CONFIG } from "../core/config.js";
 import { UI } from "../core/utils.js";
 
 /**
- * Charge les abonnements et met à jour le statut d'accès
+ * 🚀 CHARGEMENT DU DASHBOARD GLOBAL
  */
-export async function loadBilling() {
-  const table = document.getElementById("billing-table");
-  const kpiContainer = document.getElementById("billing-kpis");
-  const userRole = localStorage.getItem("user_role");
-
-  if (!table || !kpiContainer) return;
-
-  // --- PETITE ASTUCE : Détecter si on revient d'un paiement réussi ---
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("status") === "success") {
-    Swal.fire(
-      "Paiement Reçu",
-      "Merci ! Votre abonnement a été mis à jour.",
-      "success",
-    );
-    // On nettoie l'URL pour ne pas afficher le message en boucle
-    window.history.replaceState(
-      {},
-      document.title,
-      window.location.pathname + window.location.hash,
-    );
-  }
-
-  try {
-    const res = await secureFetch("/billing");
-    const abonnements = await res.json();
-
-    // 1. MISE À JOUR DU VÉRROU DE SÉCURITÉ
-    // On considère 'En retard' si au moins une facture est marquée comme telle
-    const hasDebt = abonnements.some((abo) => abo.statut === "En retard");
-    localStorage.setItem("payment_status", hasDebt ? "En retard" : "A jour");
-
-    let totalDue = 0,
-      totalPaid = 0,
-      totalLate = 0;
-    table.innerHTML = "";
-
-    // 2. RENDU DES LIGNES
-    abonnements.forEach((abo) => {
-      let statusBadge = "";
-      let actionButton = "";
-
-      if (abo.statut === "Payé") {
-        statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-green-100 text-green-700 border border-green-200">✅ PAYÉ</span>`;
-      } else if (abo.statut === "En retard") {
-        statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 animate-pulse">⚠️ IMPAYÉ</span>`;
-      } else {
-        statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-700 border border-amber-200">⏳ EN ATTENTE</span>`;
-      }
-
-      totalDue += abo.montant_du;
-      totalPaid += abo.montant_paye || 0;
-      if (abo.statut === "En retard")
-        totalLate += abo.montant_du - (abo.montant_paye || 0);
-
-      // Logique des boutons
-      if (userRole === "COORDINATEUR" && abo.statut !== "Payé") {
-        actionButton = `<button onclick="window.markAsPaid('${abo.id}', ${abo.montant_du})" class="text-blue-600 font-bold text-[10px] uppercase hover:underline">Valider</button>`;
-      } else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
-        actionButton = `
-                    <button onclick="window.payWithFeda('${abo.id}', ${abo.montant_du})" class="bg-green-600 text-white px-4 py-2 rounded-xl font-black text-[9px] uppercase shadow-lg shadow-green-200 active:scale-95 transition-all">
-                        Payer via MTN / MOOV
-                    </button>`;
-      }
-
-      table.innerHTML += `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                    <td class="p-4">
-                        <p class="font-black text-slate-800 text-xs uppercase">${abo.patient.nom_complet}</p>
-                        <p class="text-[9px] text-slate-400 font-bold">${abo.patient.formule}</p>
-                    </td>
-                    <td class="p-4 text-[11px] font-bold text-slate-500">${abo.mois_annee}</td>
-                    <td class="p-4 text-right">
-                        <p class="font-black text-slate-900 text-xs">${UI.formatMoney(abo.montant_du)}</p>
-                    </td>
-                    <td class="p-4 text-center">${statusBadge}</td>
-                    <td class="p-4 text-center">${actionButton}</td>
-                </tr>
-            `;
-    });
-
-    // 3. RENDU DES KPIs
-    kpiContainer.innerHTML = `
-            <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total encaissé</p>
-                    <h3 class="text-xl font-black text-green-600">${UI.formatMoney(totalPaid)}</h3>
+export async function loadAdminDashboard() {
+    const container = document.getElementById('view-container');
+    
+    // 1. Structure de base (Bento Grid)
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-20">
+            <h3 class="font-black text-xl text-slate-800 mb-6">Tableau de Bord</h3>
+            
+            <!-- KPIs : Statistiques en temps réel -->
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
+                    <h3 id="stat-patients" class="text-2xl font-black text-slate-800">...</h3>
                 </div>
-                <div class="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600">
-                    <i class="fa-solid fa-sack-dollar text-xl"></i>
+                <div class="bg-green-50 p-5 rounded-[2rem] border border-green-100">
+                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Visites Jour</p>
+                    <h3 id="stat-visits" class="text-2xl font-black text-green-700">...</h3>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-[2rem] border border-orange-100">
+                    <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">À Valider</p>
+                    <h3 id="stat-pending" class="text-2xl font-black text-orange-700">...</h3>
+                </div>
+                <div class="bg-red-50 p-5 rounded-[2rem] border border-red-100">
+                    <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Impayés</p>
+                    <h3 id="stat-late" class="text-2xl font-black text-red-700">...</h3>
                 </div>
             </div>
-            ${
-              totalLate > 0
-                ? `
-            <div class="bg-red-50 p-5 rounded-[2rem] border border-red-100 flex items-center justify-between">
-                <div>
-                    <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Retards de paiement</p>
-                    <h3 class="text-xl font-black text-red-700">${UI.formatMoney(totalLate)}</h3>
+
+            <!-- SECTION A : NOUVELLES INSCRIPTIONS (FAMILLE / AIDANT) -->
+            <div class="mb-10">
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">📦 Demandes d'inscription</h4>
                 </div>
-                <i class="fa-solid fa-hand-holding-dollar text-red-200 text-2xl"></i>
-            </div>`
-                : ""
-            }
-        `;
-  } catch (err) {
-    console.error(err);
-    UI.vibrate("error");
-  }
+                <div id="pending-registrations-list" class="grid grid-cols-1 gap-4">
+                    <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-slate-200 text-2xl"></i></div>
+                </div>
+            </div>
+
+            <!-- SECTION B : VALIDATION DES VISITES TERRAIN -->
+            <div>
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1">📸 Interventions à contrôler</h4>
+                <div id="pending-actions-list" class="space-y-3">
+                    <div class="flex justify-center py-10"><i class="fa-solid fa-spinner fa-spin text-slate-200 text-2xl"></i></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 2. Lancement des appels API
+    try {
+        fetchStats();
+        loadPendingRegistrations();
+        fetchPendingVisits();
+    } catch (err) {
+        console.error("Erreur Init Dashboard:", err);
+    }
 }
 
 /**
- * 💳 REDIRECTION VERS FEDAPAY
+ * 📊 RÉCUPÉRER LES CHIFFRES CLÉS
  */
-window.payWithFeda = async (abonnementId, montant) => {
-  try {
-    UI.vibrate();
-    Swal.fire({
-      title: "Sécurisation...",
-      text: "Lien de paiement en cours de génération",
-      allowOutsideClick: false,
-      didOpen: () => Swal.showLoading(),
+async function fetchStats() {
+    const res = await secureFetch('/dashboard/stats');
+    const stats = await res.json();
+    document.getElementById('stat-patients').innerText = stats.total_patients;
+    document.getElementById('stat-visits').innerText = stats.visits_today;
+    document.getElementById('stat-pending').innerText = stats.pending_validation;
+    document.getElementById('stat-late').innerText = stats.late_payments;
+}
+
+/**
+ * 📦 CHARGER LES INSCRIPTIONS EN ATTENTE (DUO FAMILLE + PATIENT)
+ */
+async function loadPendingRegistrations() {
+    const list = document.getElementById('pending-registrations-list');
+    if (!list) return;
+
+    try {
+        const res = await secureFetch('/admin/pending-registrations');
+        const pending = await res.json();
+
+        if (pending.length === 0) {
+            list.innerHTML = `<p class="text-center py-10 text-slate-300 italic text-xs border-2 border-dashed rounded-[2rem]">Aucune nouvelle demande.</p>`;
+            return;
+        }
+
+        list.innerHTML = pending.map(req => {
+            const isFamily = req.role === 'FAMILLE';
+            // On récupère les infos du patient lié s'il y en a un (le fameux Duo)
+            const patient = isFamily && req.patients && req.patients.length > 0 ? req.patients[0] : null;
+
+            return `
+                <div class="bg-white p-5 rounded-[2rem] border border-blue-100 shadow-sm flex flex-col justify-between animate-fadeIn">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-2 py-1 rounded-lg bg-blue-50 text-blue-600 text-[8px] font-black uppercase">${req.role}</span>
+                        <span class="text-[9px] font-bold text-slate-300">${new Date(req.created_at).toLocaleDateString()}</span>
+                    </div>
+                    
+                    <h5 class="font-black text-slate-800 text-sm uppercase">${req.nom}</h5>
+                    <p class="text-[10px] text-slate-400 mb-4 italic">${req.email}</p>
+                    
+                    ${patient ? `
+                        <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 mb-6">
+                            <p class="text-[8px] font-black text-slate-400 uppercase mb-1">Patient à créer</p>
+                            <p class="text-xs font-black text-green-600 uppercase">${patient.nom_complet}</p>
+                            <p class="text-[9px] text-slate-400 font-bold mt-1">Formule : ${patient.formule}</p>
+                        </div>
+                    ` : ''}
+
+                    <button onclick="window.processRegistration('${req.id}', '${req.role}', '${req.email}', '${req.nom.replace(/'/g, "\\'")}')" 
+                        class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-lg shadow-blue-100 active:scale-95 transition-all">
+                        VALIDER & ACTIVER L'ACCÈS
+                    </button>
+                </div>
+            `;
+        }).join('');
+    } catch (err) { console.error(err); }
+}
+
+/**
+ * 📸 RÉCUPÉRER LES VISITES À CONTRÔLER
+ */
+async function fetchPendingVisits() {
+    const list = document.getElementById('pending-actions-list');
+    if (!list) return;
+
+    try {
+        const res = await secureFetch('/visites?statut=En attente');
+        const visits = await res.json();
+        const pending = visits.filter(v => v.statut_validation === 'En attente');
+
+        if (pending.length === 0) {
+            list.innerHTML = `<div class="p-10 text-center opacity-20"><i class="fa-solid fa-check-circle text-4xl"></i></div>`;
+            return;
+        }
+
+        list.innerHTML = pending.map(v => `
+            <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between animate-fadeIn">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                        <img src="${v.photo_url}" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h5 class="font-black text-slate-800 text-[11px] uppercase">${v.patient.nom_complet}</h5>
+                        <p class="text-[9px] text-slate-400 font-bold">${UI.formatDate(v.heure_debut)}</p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-2">
+                    <button onclick="window.quickValidate('${v.id}', 'Validé')" class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all">
+                        <i class="fa-solid fa-check text-xs"></i>
+                    </button>
+                    <button onclick="window.quickValidate('${v.id}', 'Rejeté')" class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-600 hover:text-white transition-all">
+                        <i class="fa-solid fa-xmark text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) { console.error(err); }
+}
+
+/**
+ * ✅ ACTION : ACTIVER UN COMPTE
+ */
+window.processRegistration = async (userId, role, email, nom) => {
+    const confirm = await Swal.fire({
+        title: 'Activer l\'accès ?',
+        text: `Un email de bienvenue et les identifiants seront envoyés à ${nom}.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'OUI, VALIDER',
+        confirmButtonColor: '#16a34a'
     });
 
-    const res = await secureFetch("/billing/generate-payment", {
-      method: "POST",
-      body: JSON.stringify({
-        abonnement_id: abonnementId,
-        montant: montant,
-        email_client: localStorage.getItem("user_email"),
-      }),
-    });
+    if (confirm.isConfirmed) {
+        try {
+            UI.vibrate();
+            Swal.fire({ title: 'Activation...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            
+            await secureFetch('/admin/validate-member', {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId, role, email, nom })
+            });
 
-    const data = await res.json();
-    window.location.href = data.url;
-  } catch (err) {
-    Swal.fire("Erreur", "L'interface de paiement est indisponible.", "error");
-  }
+            Swal.fire("Succès", "Le compte est désormais actif.", "success");
+            loadAdminDashboard(); // Recharger tout le dashboard
+        } catch (err) { Swal.fire("Erreur", err.message, "error"); }
+    }
 };
 
 /**
- * ✅ VALIDATION MANUELLE
+ * 📸 ACTION : VALIDER VISITE
  */
-window.markAsPaid = async (id, montant) => {
-  const confirm = await Swal.fire({
-    title: "Confirmer la réception ?",
-    text: `Valider le paiement de ${UI.formatMoney(montant)} ?`,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "OUI, ENCAISSÉ",
-    confirmButtonColor: "#16a34a",
-  });
-
-  if (confirm.isConfirmed) {
+window.quickValidate = async (id, status) => {
     try {
-      await secureFetch("/billing/pay", {
-        method: "POST",
-        body: JSON.stringify({ abonnement_id: id, montant: montant }),
-      });
-      Swal.fire("Succès", "Facture mise à jour.", "success");
-      loadBilling();
-    } catch (err) {
-      Swal.fire("Erreur", err.message, "error");
-    }
-  }
+        UI.vibrate();
+        await secureFetch('/visites/validate', {
+            method: 'POST',
+            body: JSON.stringify({ visite_id: id, statut: status })
+        });
+        loadAdminDashboard();
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+        Toast.fire({ icon: 'success', title: `Intervention ${status}` });
+    } catch (err) { alert(err.message); }
 };
