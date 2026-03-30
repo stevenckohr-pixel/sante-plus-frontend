@@ -78,3 +78,51 @@ async function renderAidants(aidants) {
 
   list.innerHTML = cards.join("");
 }
+
+
+
+/**
+ * ➕ MODALE DE RECRUTEMENT
+ */
+window.openAddAidantModal = async () => {
+    const { value: formValues } = await Swal.fire({
+        title: 'Recruter un Aidant',
+        html: `
+            <div class="text-left space-y-4 p-2">
+                <input id="reg-nom" class="swal2-input !m-0" placeholder="Nom complet">
+                <input id="reg-email" type="email" class="swal2-input !m-0" placeholder="Email professionnel">
+                <input id="reg-tel" class="swal2-input !m-0" placeholder="Téléphone">
+                <input id="reg-pass" type="password" class="swal2-input !m-0" placeholder="Mot de passe temporaire">
+                <select id="reg-role" class="swal2-input !m-0">
+                    <option value="AIDANT">Rôle : Aidant (Companion)</option>
+                    <option value="COORDINATEUR">Rôle : Coordinateur (Admin)</option>
+                </select>
+            </div>`,
+        confirmButtonText: 'CRÉER LE COMPTE',
+        confirmButtonColor: '#0f172a',
+        showCancelButton: true,
+        preConfirm: () => {
+            return {
+                nom: document.getElementById('reg-nom').value,
+                email: document.getElementById('reg-email').value,
+                telephone: document.getElementById('reg-tel').value,
+                password: document.getElementById('reg-pass').value,
+                role: document.getElementById('reg-role').value
+            }
+        }
+    });
+
+    if (formValues) {
+        try {
+            Swal.fire({ title: 'Création...', didOpen: () => Swal.showLoading() });
+            await secureFetch('/auth/create-member', {
+                method: 'POST',
+                body: JSON.stringify(formValues)
+            });
+            Swal.fire("Succès", "Le nouveau membre a été ajouté à l'équipe.", "success");
+            loadAidants(); // Recharge la liste
+        } catch (err) {
+            Swal.fire("Erreur", err.message, "error");
+        }
+    }
+};
