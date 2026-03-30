@@ -19,6 +19,13 @@ window.openRegisterFamily = () => {
     registrationData = {};
     renderRegisterStep();
 };
+
+// --- LOGIQUE DE NAVIGATION ---
+window.setPlan = (plan) => {
+    registrationData.formule = plan;
+    renderRegisterStep();
+};
+
 // 🔑 BRANCHEMENTS GLOBAUX (On le fait avant tout le reste !)
 window.CONFIG = CONFIG;
 window.AppState = AppState;
@@ -29,8 +36,8 @@ window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
 window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
 window.nextStep = nextStep;
-window.setPlan = setPlan;
 window.renderRegisterStep = renderRegisterStep;
+
 
 /**
  * 🚀 INITIALISATION AU DÉMARRAGE
@@ -234,11 +241,7 @@ function getStepHTML() {
     }
 }
 
-// --- LOGIQUE DE NAVIGATION ---
-window.setPlan = (plan) => {
-    registrationData.formule = plan;
-    renderRegisterStep();
-};
+
 
 function nextStep() {
     // Collecte des données de l'étape actuelle
