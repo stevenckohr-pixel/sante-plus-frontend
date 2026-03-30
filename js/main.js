@@ -45,32 +45,39 @@ async function initPushNotifications() {
   }
 }
 
+
 /**
  * Initialisation au démarrage
  */
-
 async function initApp() {
-  const token = localStorage.getItem("token");
-  
-  // 💥 AJOUTE CE BLOC POUR FAIRE DISPARAÎTRE LE LOADER 💥
-  const loader = document.getElementById("initial-loader");
-  if (loader) {
-      loader.classList.add("opacity-0"); // Fait fondre le loader
-      setTimeout(() => loader.classList.add("hidden"), 500); // Le supprime complètement après 0.5s
-  }
-  // -----------------------------------------------------
+    const app = document.getElementById("app");
+    const loader = document.getElementById("initial-loader");
+    const token = localStorage.getItem("token");
 
-  if (token) {
-    renderLayout();
-    initPushNotifications(); // Active le Push dès l'entrée
-    
-    const userRole = localStorage.getItem("user_role");
-    const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
-    const lastView = localStorage.getItem("last_view") || defaultView;
-    window.switchView(lastView);
-  } else {
-    renderLogin();
-  }
+    try {
+        if (token) {
+            renderLayout();
+            initPushNotifications();
+            
+            const userRole = localStorage.getItem("user_role");
+            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
+            const lastView = localStorage.getItem("last_view") || defaultView;
+            
+            // Attendre que la vue soit chargée avant de cacher le loader
+            await window.switchView(lastView);
+        } else {
+            renderLogin();
+        }
+    } catch (err) {
+        console.error("Erreur initApp:", err);
+        renderLogin(); // En cas de problème, on redirige au login
+    } finally {
+        // 💥 LE SECRET : On cache le loader ici (garanti quoi qu'il arrive)
+        if (loader) {
+            loader.style.opacity = "0";
+            setTimeout(() => loader.classList.add("hidden"), 500);
+        }
+    }
 }
 
 /**
