@@ -1,7 +1,7 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
-window.login = async () => {
+export async function handleLogin() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
   const btn = document.getElementById("btn-login");
