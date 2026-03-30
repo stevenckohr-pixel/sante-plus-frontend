@@ -31,7 +31,7 @@ export function renderPatients() {
   if (AppState.patients.length === 0) {
     container.innerHTML = `
             <div class="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
-                <i class="fa-solid fa- users-slash text-slate-100 text-5xl mb-4"></i>
+                <i class="fa-solid fa-users-slash text-slate-100 text-5xl mb-4"></i>
                 <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Aucun dossier actif</p>
             </div>`;
     return;
