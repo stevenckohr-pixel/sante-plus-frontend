@@ -28,17 +28,17 @@ function renderRegisterStep() {
     const progress = (currentStep / 4) * 100;
 
     app.innerHTML = `
-    <div class="min-h-screen bg-white flex flex-col animate-fadeIn">
-        <!-- Header du formulaire -->
-        <header class="p-6 flex items-center justify-between border-b border-slate-50">
+    <div class="min-h-screen bg-white flex flex-col">
+        <!-- Header fixe en haut -->
+        <header class="sticky top-0 bg-white/95 backdrop-blur p-6 flex items-center justify-between border-b border-slate-50 z-20">
             <button onclick="currentStep > 1 ? (currentStep--, renderRegisterStep()) : window.location.reload()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <div class="text-center">
-                <h2 class="font-black text-sm uppercase tracking-widest text-slate-800">Dossier d'Admission</h2>
-                <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Étape ${currentStep} sur 4</p>
+                <h2 class="font-black text-sm uppercase text-slate-800">Dossier d'Admission</h2>
+                <p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Étape ${currentStep} sur 4</p>
             </div>
-            <div class="w-10"></div> <!-- Spacer -->
+            <div class="w-10"></div>
         </header>
 
         <!-- Barre de progression -->
@@ -46,26 +46,20 @@ function renderRegisterStep() {
             <div class="progress-fill" style="width: ${progress}%"></div>
         </div>
 
-        <!-- Contenu de l'étape -->
-        <main class="flex-1 p-6 overflow-y-auto custom-scroll">
-            <div class="max-w-md mx-auto">
+        <!-- Contenu scrollable (Le bouton est DANS le scroll ici) -->
+        <main class="flex-1 overflow-y-auto p-6 pb-12 custom-scroll">
+            <div class="max-w-md mx-auto space-y-8">
                 ${getStepHTML()}
-            </div>
-        </main>
-
-        <!-- Barre d'action basse -->
-        <footer class="p-6 border-t border-slate-50 bg-white">
-            <div class="max-w-md mx-auto">
+                
+                <!-- BOUTON DANS LE FLUX -->
                 <button onclick="nextStep()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
                     ${currentStep === 4 ? 'Finaliser l\'inscription' : 'Continuer'}
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                 </button>
             </div>
-        </footer>
+        </main>
     </div>`;
 }
-
-
 
 
 
