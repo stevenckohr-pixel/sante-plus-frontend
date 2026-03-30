@@ -48,12 +48,22 @@ async function initPushNotifications() {
 /**
  * Initialisation au démarrage
  */
+
 async function initApp() {
   const token = localStorage.getItem("token");
+  
+  // 💥 AJOUTE CE BLOC POUR FAIRE DISPARAÎTRE LE LOADER 💥
+  const loader = document.getElementById("initial-loader");
+  if (loader) {
+      loader.classList.add("opacity-0"); // Fait fondre le loader
+      setTimeout(() => loader.classList.add("hidden"), 500); // Le supprime complètement après 0.5s
+  }
+  // -----------------------------------------------------
+
   if (token) {
     renderLayout();
     initPushNotifications(); // Active le Push dès l'entrée
-
+    
     const userRole = localStorage.getItem("user_role");
     const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
     const lastView = localStorage.getItem("last_view") || defaultView;
