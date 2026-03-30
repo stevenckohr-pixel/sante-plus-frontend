@@ -31,7 +31,6 @@ window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchVi
 window.nextStep = nextStep;
 window.setPlan = setPlan;
 window.renderRegisterStep = renderRegisterStep;
-window.openRegisterFamily = openRegisterFamily; 
 
 /**
  * 🚀 INITIALISATION AU DÉMARRAGE
@@ -105,14 +104,7 @@ function renderLogin() {
 /**
  * 🚀 MOTEUR D'INSCRIPTION PAR ÉTAPES (FULL SCREEN APP)
  */
-//let registrationData = {};
-//let currentStep = 1;
 
-//window.openRegisterFamily = () => {
-    //currentStep = 1;
-    //registrationData = {};
-    //renderRegisterStep();
-//};
 
 function renderRegisterStep() {
     const app = document.getElementById("app");
