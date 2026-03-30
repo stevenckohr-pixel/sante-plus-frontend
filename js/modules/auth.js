@@ -89,6 +89,14 @@ export async function handleLogin() {
   }
 }
 
+export async function registerFamily(data) {
+    const res = await fetch(`${window.CONFIG.API_URL}/auth/register-family-patient`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+    return res;
+}
 
 export function handleLogout() {
   localStorage.clear();
