@@ -32,7 +32,17 @@ html, body {
     height: 100vh;
     height: 100dvh;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    
+}
+
+
+/* On n'active le mode "côte à côte" que pour le dashboard sur PC */
+@media (min-width: 1024px) {
+    /* Si la sidebar est présente (donc après login) */
+    #app:has(aside) {
+        flex-direction: row;
+    }
 }
 
 /* --- 🖥️ DESKTOP SIDEBAR --- */
