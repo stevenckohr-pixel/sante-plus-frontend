@@ -243,22 +243,34 @@ function renderLayout() {
                 </div>
                 <button onclick="window.logout()" class="text-slate-300 hover:text-red-500 transition-colors"><i class="fa-solid fa-power-off text-xl"></i></button>
             </header>
+
             <main id="main-content" class="flex-1 overflow-y-auto p-5 custom-scroll pb-24">
                 <div id="view-container" class="max-w-md mx-auto"></div>
             </main>
+
             <footer class="bg-white border-t border-slate-100 px-4 py-3 flex justify-between items-center fixed bottom-0 left-0 right-0 z-20">
+                <!-- DASHBOARD : Uniquement pour Coordinateur -->
+                ${userRole === "COORDINATEUR" ? `
+                <button onclick="switchView('dashboard')" data-view="dashboard" class="nav-btn flex flex-col items-center gap-1 flex-1">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                    <span class="text-[8px] font-black uppercase">Stats</span>
+                </button>` : ""}
+
                 <button onclick="switchView('patients')" data-view="patients" class="nav-btn flex flex-col items-center gap-1 flex-1">
                     <i class="fa-solid fa-hospital-user text-lg"></i>
                     <span class="text-[8px] font-black uppercase">Clients</span>
                 </button>
+                
                 <button onclick="switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-1 flex-1">
                     <i class="fa-solid fa-calendar-check text-lg"></i>
                     <span class="text-[8px] font-black uppercase">Visites</span>
                 </button>
+
                 <button onclick="switchView('feed')" data-view="feed" class="nav-btn flex flex-col items-center gap-1 flex-1">
                     <i class="fa-solid fa-rss text-lg"></i>
                     <span class="text-[8px] font-black uppercase">Feed</span>
                 </button>
+
                 ${userRole !== "AIDANT" ? `
                 <button onclick="switchView('billing')" data-view="billing" class="nav-btn flex flex-col items-center gap-1 flex-1">
                     <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
@@ -267,7 +279,6 @@ function renderLayout() {
             </footer>
         </div>`;
 }
-
 
 /**
  * 🧭 MOTEUR DE NAVIGATION (Version Sécurisée & Premium)
