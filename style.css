@@ -191,3 +191,24 @@ input, select, textarea {
     font-weight: 800 !important;
     padding: 1rem 2rem !important;
 }
+
+
+
+/* Empêche les blobs de bloquer le clic */
+.animate-blob {
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+
+/* S'assure que le loader disparaît vraiment du champ tactile */
+#initial-loader.hidden {
+    display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+
+/* On remet le conteneur de login bien au-dessus */
+#app {
+    position: relative;
+    z-index: 10;
+}
