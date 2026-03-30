@@ -48,12 +48,14 @@ export function renderFeed() {
     `;
 
     if (AppState.messages.length === 0) {
-        html += `
-            <div class="text-center py-20 opacity-30">
-                <i class="fa-solid fa-wand-magic-sparkles text-4xl mb-4"></i>
-                <p class="font-black uppercase text-[10px] tracking-widest">Le journal commence ici</p>
+        container.innerHTML = `
+            <div class="text-center py-20 animate-fadeIn">
+                <div class="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fa-solid fa-calendar-plus text-3xl"></i>
+                </div>
+                <p class="font-black uppercase text-xs text-slate-800">Aucun journal pour l'instant</p>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Le premier rapport sera généré dès la première visite.</p>
             </div>`;
-        container.innerHTML = html;
         return;
     }
 
