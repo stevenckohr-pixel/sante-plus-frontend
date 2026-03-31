@@ -11,34 +11,33 @@ import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
 
-
+/* --- DONNÉES ONBOARDING PREMIUM AVEC IMAGES --- */
 const ONBOARDING_STEPS = [
     {
-        title: "Bienvenue sur SPS",
-        desc: "L'excellence médicale au service de votre famille en un clic.",
-        icon: "fa-heart-pulse",
-        color: "bg-emerald-500"
+        title: "L'Excellence à domicile",
+        desc: "Bénéficiez d'un accompagnement médical de prestige pour vos parents restés au pays.",
+        image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
+        accent: "border-emerald-500"
     },
     {
-        title: "Journal de Soins",
-        desc: "Suivez chaque intervention de nos aidants en temps réel avec photos et rapports.",
-        icon: "fa-rss",
-        color: "bg-blue-500"
+        title: "Suivi Live Diaspora",
+        desc: "Consultez le carnet de santé numérique et recevez les photos des visites en temps réel.",
+        image: "https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?auto=format&fit=crop&q=80&w=800",
+        accent: "border-blue-500"
     },
     {
-        title: "Radar Terrain",
-        desc: "Notre technologie GPS sécurisée vous garantit la présence de l'aidant au domicile.",
-        icon: "fa-satellite-dish",
-        color: "bg-indigo-500"
+        title: "Radar de Présence",
+        desc: "Notre technologie GPS certifie la présence réelle de l'aidant à chaque intervention.",
+        image: "https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=800",
+        accent: "border-indigo-500"
     },
     {
-        title: "Paiement Simple",
-        desc: "Régularisez vos abonnements via MTN ou Moov Money en toute sécurité.",
-        icon: "fa-shield-check",
-        color: "bg-slate-900"
+        title: "Transactions Sécurisées",
+        desc: "Abonnements simplifiés via Mobile Money avec facturation automatique et transparente.",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
+        accent: "border-slate-900"
     }
 ];
-
 let onboardingStep = 0;
 
 /* --- CONFIGURATION SWEETALERT PREMIUM --- */
@@ -703,37 +702,46 @@ function renderOnboarding() {
     const isLast = onboardingStep === ONBOARDING_STEPS.length - 1;
 
     app.innerHTML = `
-        <div class="onboarding-overlay animate-fadeIn font-sans">
-            <!-- Bouton Ignorer -->
-            ${!isLast ? `<button onclick="window.finishOnboarding()" class="absolute top-10 right-10 text-[10px] font-black uppercase text-slate-400 tracking-widest">Ignorer</button>` : ''}
-
-            <!-- Contenu de la Slide -->
-            <div class="onboarding-slide active">
-                <div class="w-24 h-24 ${step.color} text-white rounded-[2.5rem] flex items-center justify-center text-4xl shadow-2xl mb-12 shadow-${step.color.split('-')[1]}-200">
-                    <i class="fa-solid ${step.icon}"></i>
-                </div>
-                <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4">${step.title}</h2>
-                <p class="text-slate-400 text-sm leading-relaxed px-6">${step.desc}</p>
+        <div class="onboarding-overlay animate-fadeIn font-sans bg-white">
+            
+            <!-- Zone Image Premium -->
+            <div class="onboarding-image-container animate-fadeIn">
+                <img src="${step.image}" class="onboarding-img shadow-2xl">
+                <div class="onboarding-image-blur"></div>
+                
+                <!-- Bouton Ignorer flottant -->
+                ${!isLast ? `
+                    <button onclick="window.finishOnboarding()" class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/30 z-50">
+                        Ignorer
+                    </button>
+                ` : ''}
             </div>
 
-            <!-- Footer Navigation -->
-            <div class="p-12 flex flex-col items-center gap-10">
-                <!-- Dots -->
-                <div class="flex gap-2">
+            <!-- Zone Texte & Navigation -->
+            <div class="flex-1 flex flex-col items-center text-center px-10">
+                <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4 leading-tight">
+                    ${step.title}
+                </h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-10">
+                    ${step.desc}
+                </p>
+
+                <!-- Dots de progression -->
+                <div class="flex gap-2 mb-12">
                     ${ONBOARDING_STEPS.map((_, i) => `
                         <div class="onboarding-dot ${i === onboardingStep ? 'active' : ''}"></div>
                     `).join('')}
                 </div>
 
-                <!-- Bouton Action -->
-                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" class="w-full max-w-xs py-5 bg-slate-900 text-white rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all">
-                    ${isLast ? 'Commencer l\'aventure' : 'Continuer'}
+                <!-- Bouton Principal -->
+                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" 
+                    class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 active:scale-95 transition-all">
+                    ${isLast ? 'Démarrer SPS Élite' : 'Continuer'}
                 </button>
             </div>
         </div>
     `;
 }
-
 window.nextOnboarding = () => {
     onboardingStep++;
     renderOnboarding();
