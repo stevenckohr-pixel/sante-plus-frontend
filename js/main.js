@@ -236,12 +236,13 @@ function renderAuthView(mode = 'login', stepSource = 1) {
 /**
  * 📦 MINI-VUES DE L'INSCRIPTION IN-CARD
  */
+/**
+ * 📦 MINI-VUES DYNAMIQUES (Alignées sur le PDF)
+ */
 function getStepHTML() {
     switch(currentStep) {
         case 1: return `
-            <div class="text-center mb-4">
-                <h3 class="text-base font-black text-slate-800">Identité du Payeur</h3>
-            </div>
+            <div class="text-center mb-4"><h3 class="text-base font-black text-slate-800">Identité du Payeur</h3></div>
             <div class="space-y-3">
                 <input id="f-nom" class="app-input !py-3 !text-sm" placeholder="Nom complet" value="${registrationData.nom_famille || ''}">
                 <select id="f-lien" class="app-input !py-3 !text-sm">
@@ -251,53 +252,138 @@ function getStepHTML() {
                     <option value="Conjoint">Conjoint(e)</option>
                 </select>
                 <input id="f-email" type="email" class="app-input !py-3 !text-sm" placeholder="Email" value="${registrationData.email || ''}">
-                <input id="f-tel" class="app-input !py-3 !text-sm" placeholder="Téléphone" value="${registrationData.tel_famille || ''}">
-                <input id="f-pass" type="password" class="app-input !py-3 !text-sm" placeholder="Créer un mot de passe" value="${registrationData.password || ''}">
+                <input id="f-pass" type="password" class="app-input !py-3 !text-sm" placeholder="Créer un mot de passe">
             </div>`;
         
         case 2: return `
-            <div class="text-center mb-4">
-                <h3 class="text-base font-black text-slate-800">Le Proche au Bénin</h3>
-            </div>
+            <div class="text-center mb-4"><h3 class="text-base font-black text-slate-800">Le Proche au Bénin</h3></div>
             <div class="space-y-3">
                 <input id="p-nom" class="app-input !py-3 !text-sm" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
-                <input id="p-age" type="number" class="app-input !py-3 !text-sm" placeholder="Âge du patient" value="${registrationData.age_patient || ''}">
-                <input id="p-addr" class="app-input !py-3 !text-sm" placeholder="Adresse exacte (Ville, Quartier)" value="${registrationData.adresse_patient || ''}">
+                <input id="p-addr" class="app-input !py-3 !text-sm" placeholder="Adresse (Ville, Quartier)" value="${registrationData.adresse_patient || ''}">
+                <input id="p-urgence" class="app-input !py-3 !text-sm" placeholder="Urgence locale (Voisin/Proche)" value="${registrationData.contact_urgence || ''}">
             </div>`;
 
         case 3: return `
-            <div class="text-center mb-4">
-                <h3 class="text-base font-black text-slate-800">Santé & Urgence</h3>
-            </div>
+            <div class="text-center mb-4"><h3 class="text-base font-black text-slate-800">Profil de Santé</h3></div>
             <div class="space-y-4">
                 <div class="flex justify-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <label class="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" class="med-hist accent-green-600" value="Diabète"> Diabète</label>
                     <label class="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" class="med-hist accent-green-600" value="Tension"> Tension</label>
                 </div>
-                <input id="p-urgence" class="app-input !py-3 !text-sm" placeholder="Contact d'urgence local" value="${registrationData.contact_urgence || ''}">
-                <textarea id="p-notes" class="app-input !py-3 !text-sm h-20" placeholder="Observations médicales...">${registrationData.notes_medicales ? registrationData.notes_medicales.split(' | ')[1] || '' : ''}</textarea>
+                <textarea id="p-notes" class="app-input !py-3 !text-sm h-28" placeholder="Observations (Allergies, mobilité, habitudes...)">${registrationData.notes_medicales || ''}</textarea>
             </div>`;
 
         case 4: return `
             <div class="text-center mb-4">
-                <h3 class="text-base font-black text-slate-800">Formule de Soins</h3>
+                <h3 class="text-base font-black text-slate-800">Type de Service</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Sélectionnez la catégorie</p>
             </div>
-            <div class="space-y-3">
-                <button onclick="window.setPlan('Basic')" class="w-full p-4 rounded-[1.25rem] border-2 ${registrationData.formule === 'Basic' ? 'border-green-500 bg-green-50' : 'border-slate-100 bg-slate-50'} text-left transition-all">
-                    <h4 class="font-black text-slate-800 text-xs uppercase">Basic <span class="text-green-600 float-right">50k CFA</span></h4>
-                    <p class="text-[9px] text-slate-500 mt-1 font-bold">1 visite / semaine</p>
+            <div class="grid grid-cols-1 gap-4">
+                <button onclick="window.selectCategory('SENIOR')" class="w-full p-6 rounded-3xl border-2 ${registrationData.categorie === 'SENIOR' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white'} text-left transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-xl">👴</div>
+                        <div>
+                            <h4 class="font-black text-slate-800 text-sm">PERSONNE ÂGÉE</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Maintien à domicile</p>
+                        </div>
+                    </div>
                 </button>
-                <button onclick="window.setPlan('Standard')" class="w-full p-4 rounded-[1.25rem] border-2 ${registrationData.formule === 'Standard' ? 'border-green-500 bg-green-50' : 'border-slate-100 bg-slate-50'} text-left transition-all">
-                    <h4 class="font-black text-slate-800 text-xs uppercase">Standard <span class="text-green-600 float-right">75k CFA</span></h4>
-                    <p class="text-[9px] text-slate-500 mt-1 font-bold">3 visites / semaine</p>
-                </button>
-                <button onclick="window.setPlan('Premium')" class="w-full p-4 rounded-[1.25rem] border-2 ${registrationData.formule === 'Premium' ? 'border-green-500 bg-green-50' : 'border-slate-100 bg-slate-50'} text-left transition-all">
-                    <h4 class="font-black text-slate-800 text-xs uppercase">Premium <span class="text-green-600 float-right">100k CFA</span></h4>
-                    <p class="text-[9px] text-slate-500 mt-1 font-bold">Suivi quotidien (7j/7)</p>
+                <button onclick="window.selectCategory('MAMAN_BEBE')" class="w-full p-6 rounded-3xl border-2 ${registrationData.categorie === 'MAMAN_BEBE' ? 'border-pink-500 bg-pink-50' : 'border-slate-100 bg-white'} text-left transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-xl">👶</div>
+                        <div>
+                            <h4 class="font-black text-slate-800 text-sm">MAMAN & BÉBÉ</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase">Sortie de maternité</p>
+                        </div>
+                    </div>
                 </button>
             </div>`;
+
+        case 5: return renderPricingPacks(); // Fonction séparée pour la clarté
+
+        case 6: return `
+            <div class="text-center mb-4">
+                <h3 class="text-base font-black text-slate-800">Engagement Élite</h3>
+            </div>
+            <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100 mb-6">
+                <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
+                    <b>AVERTISSEMENT LÉGAL :</b> Santé Plus Services propose un accompagnement <b>humain et logistique</b>. Nos aidants ne sont pas des infirmiers. 
+                    <br><br>
+                    ❌ Pas d'injections<br>
+                    ❌ Pas de prescriptions<br>
+                    ❌ Pas de soins médicaux
+                </p>
+            </div>
+            <label class="flex items-start gap-3 p-4 bg-white rounded-2xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition-all">
+                <input type="checkbox" id="legal-check" class="mt-1 w-5 h-5 accent-emerald-500">
+                <span class="text-xs font-bold text-slate-700 leading-tight">Je certifie avoir compris que ce service est non-médical.</span>
+            </label>`;
     }
 }
+
+/**
+ * 💸 GÉNÉRATEUR DE PACKS (Selon le PDF)
+ */
+function renderPricingPacks() {
+    const isSenior = registrationData.categorie === 'SENIOR';
+    const packs = isSenior ? [
+        { id: 'REGULIER', label: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000' },
+        { id: 'COMPLET', label: 'Accompagnement Complet', desc: 'Situations complexes', price: '150.000' }
+    ] : [
+        { id: 'MATERNITE', label: 'Sortie Maternité', desc: 'Forfait 2 semaines', price: '75.000' },
+        { id: 'CONFORT', label: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000' }
+    ];
+
+    return `
+        <div class="text-center mb-6"><h3 class="text-base font-black text-slate-800">Choix du Pack</h3></div>
+        <div class="space-y-3">
+            ${packs.map(p => `
+                <button onclick="window.setElitePlan('${p.id}', '${p.price}')" class="w-full p-5 rounded-[1.5rem] border-2 ${registrationData.type_pack === p.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white'} text-left transition-all">
+                    <h4 class="font-black text-slate-800 text-xs uppercase">${p.label} <span class="text-emerald-600 float-right">${p.price} CFA</span></h4>
+                    <p class="text-[9px] text-slate-400 mt-1 font-bold">${p.desc}</p>
+                </button>
+            `).join('')}
+        </div>`;
+}
+
+// --- LOGIQUE DE PILOTAGE ---
+
+window.selectCategory = (cat) => {
+    registrationData.categorie = cat;
+    window.nextAuthStep();
+};
+
+window.setElitePlan = (packId, price) => {
+    registrationData.type_pack = packId;
+    registrationData.montant_prevu = price;
+    window.nextAuthStep();
+};
+
+window.nextAuthStep = () => {
+    if (currentStep === 1) {
+        registrationData.nom_famille = document.getElementById('f-nom').value;
+        registrationData.email = document.getElementById('f-email').value;
+        registrationData.password = document.getElementById('f-pass').value;
+        registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
+    }
+    if (currentStep === 2) {
+        registrationData.nom_patient = document.getElementById('p-nom').value;
+        registrationData.adresse_patient = document.getElementById('p-addr').value;
+        registrationData.contact_urgence = document.getElementById('p-urgence').value;
+    }
+    if (currentStep === 6) {
+        if(!document.getElementById('legal-check').checked) return UI.vibrate('error');
+        registrationData.engagement_non_medical = true;
+        submitRegistration();
+        return;
+    }
+
+    currentStep++;
+    renderAuthView('register', currentStep);
+};
+
+
+
 
 /**
  * 🚶 LOGIQUE DU STEPPER & INSCRIPTION
@@ -307,31 +393,6 @@ function setPlan(plan) {
     renderAuthView('register', 4);
 }
 
-function nextAuthStep() {
-    if (currentStep === 1) {
-        registrationData.nom_famille = document.getElementById('f-nom').value;
-        registrationData.email = document.getElementById('f-email').value;
-        registrationData.tel_famille = document.getElementById('f-tel').value;
-        registrationData.password = document.getElementById('f-pass').value;
-        registrationData.lien_parente = document.getElementById('f-lien').value;
-        if(!registrationData.email || !registrationData.password) return UI.vibrate('error');
-    } else if (currentStep === 2) {
-        registrationData.nom_patient = document.getElementById('p-nom').value;
-        registrationData.age_patient = document.getElementById('p-age').value;
-        registrationData.adresse_patient = document.getElementById('p-addr').value;
-    } else if (currentStep === 3) {
-        const history = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
-        registrationData.contact_urgence = document.getElementById('p-urgence').value;
-        registrationData.notes_medicales = history.join(', ') + " | " + document.getElementById('p-notes').value;
-    }
-
-    if (currentStep < 4) {
-        currentStep++;
-        renderAuthView('register', currentStep);
-    } else {
-        submitRegistration();
-    }
-}
 
 function prevAuthStep() {
     if (currentStep > 1) {
@@ -702,7 +763,27 @@ window.openAddAidantModal = Aidants.openAddAidantModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
 
-window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
+
+window.viewPatientFeed = async (id) => { 
+    const userRole = localStorage.getItem("user_role");
+    
+    // Si c'est un Aidant, on l'envoie sur la fiche de Briefing (Elite View)
+    if (userRole === 'AIDANT') {
+        UI.vibrate();
+        // On affiche d'abord le loader
+        document.getElementById("view-container").innerHTML = `<div class="flex justify-center p-20"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-200"></i></div>`;
+        
+        // On appelle la nouvelle vue de détail que tu as ajoutée dans patients.js
+        await Patients.renderPatientDetailsView(id);
+    } 
+    // Si c'est une Famille ou Coordinateur, on va direct au journal de soins
+    else {
+        AppState.currentPatient = id; 
+        window.switchView("feed"); 
+    }
+};
+
+
 window.switchView = switchView;
 
 // Inscription In-Card
