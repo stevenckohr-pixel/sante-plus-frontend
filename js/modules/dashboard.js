@@ -181,11 +181,20 @@ async function fetchStats() {
     try {
         const res = await secureFetch('/dashboard/stats');
         const stats = await res.json();
+        
         document.getElementById('stat-patients').innerText = stats.total_patients;
         document.getElementById('stat-visits').innerText = stats.visits_today;
         document.getElementById('stat-pending').innerText = stats.pending_validation;
-        document.getElementById('stat-late').innerText = stats.late_payments;
-    } catch (e) {}
+        
+        // 💰 Affichage du CA au lieu des impayés (plus valorisant)
+        const revenueElement = document.getElementById('stat-late');
+        revenueElement.innerText = new Intl.NumberFormat('fr-FR').format(stats.revenue_total) + ' CFA';
+        revenueElement.classList.add('text-emerald-600'); // On le met en vert
+        
+        // On change le label de la carte
+        revenueElement.previousElementSibling.innerText = "CA ENCAISSÉ";
+        
+    } catch (e) { console.error("Stats Error:", e); }
 }
 
 function renderStatCard(label, id, icon, color) {
