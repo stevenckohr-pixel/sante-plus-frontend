@@ -37,52 +37,42 @@ export function renderPatients() {
     return;
   }
 
-  container.innerHTML = AppState.patients
-    .map((p) => {
-      // On vérifie si une famille est déjà liée
-      const hasFamily = p.famille_user_id !== null;
-      const familyName = p.famille ? p.famille.nom : "Non liée";
-
-      return `
-        <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-between group hover:border-green-500 transition-all animate-fadeIn">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 font-black border border-slate-100">
-                    ${UI.getInitials(p.nom_complet)}
-                </div>
-                <div>
-                    <h4 class="font-black text-slate-800 uppercase text-xs">${p.nom_complet}</h4>
-                    <div class="flex flex-wrap items-center gap-2 mt-1">
-                        <span class="text-[8px] font-black px-2 py-0.5 rounded-md bg-green-50 text-green-600 border border-green-100 uppercase">${p.formule}</span>
-                        <span class="text-[9px] font-bold text-slate-400 uppercase"><i class="fa-solid fa-house-chimney text-[8px] mr-1"></i>${p.adresse || "Cotonou"}</span>
+container.innerHTML = AppState.patients.map((p) => {
+    const initials = p.nom_complet.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
+    
+    return `
+        <div class="patient-card animate-fadeIn">
+            <div class="flex items-start justify-between mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 bg-slate-100 rounded-[1.5rem] flex items-center justify-center text-slate-400 font-extrabold text-lg border-2 border-white shadow-inner">
+                        ${initials}
                     </div>
-                    <!-- Indicateur de famille -->
-                    <p class="text-[9px] mt-1 ${hasFamily ? "text-blue-500" : "text-orange-400"} font-bold">
-                        <i class="fa-solid fa-people-roof mr-1"></i>Famille : ${familyName}
-                    </p>
+                    <div>
+                        <h4 class="font-black text-slate-800 text-sm uppercase leading-none">${p.nom_complet}</h4>
+                        <div class="flex items-center gap-2 mt-2">
+                             <span class="status-pill ${p.formule === 'Premium' ? 'bg-purple-50 text-purple-600' : 'bg-green-50 text-green-600'}">${p.formule}</span>
+                             <span class="text-[10px] font-bold text-slate-400"><i class="fa-solid fa-map-pin mr-1"></i>${p.adresse || 'Cotonou'}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="flex items-center gap-2">
-                <!-- Bouton de liaison (Admin uniquement) -->
-                ${
-                  userRole === "COORDINATEUR" && !hasFamily
-                    ? `
-                    <button onclick="window.openLinkFamilyModal('${p.id}', '${p.nom_complet.replace(/'/g, "\\'")}')" class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center" title="Lier une famille">
-                        <i class="fa-solid fa-link"></i>
-                    </button>
-                `
-                    : ""
-                }
-
-                <!-- Bouton vers le Feed -->
-                <button onclick="window.viewPatientFeed('${p.id}')" class="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-green-600 group-hover:text-white transition-all flex items-center justify-center">
-                    <i class="fa-solid fa-chevron-right"></i>
+                <button onclick="window.viewPatientFeed('${p.id}')" class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
+            </div>
+
+            <div class="flex items-center justify-between pt-4 border-t border-slate-50">
+                 <div class="flex -space-x-2">
+                     <!-- Petit clin d'oeil aux avatars de tes refs -->
+                     <div class="w-6 h-6 rounded-full border-2 border-white bg-blue-500 text-[8px] flex items-center justify-center text-white font-bold">F</div>
+                     <div class="w-6 h-6 rounded-full border-2 border-white bg-emerald-500 text-[8px] flex items-center justify-center text-white font-bold">A</div>
+                 </div>
+                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                    Famille : <span class="text-slate-800">${p.famille ? p.famille.nom : 'Non liée'}</span>
+                 </p>
             </div>
         </div>
     `;
-    })
-    .join("");
+}).join("");
 }
 
 /**
