@@ -84,6 +84,7 @@ async function initApp() {
                 return; 
             }
             renderLayout();
+            Visites.resumeTrackingIfActive(); 
             const userRole = localStorage.getItem("user_role");
             const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
             const lastView = localStorage.getItem("last_view") || defaultView;
@@ -595,6 +596,10 @@ window.switchView = async (viewName) => {
         case "billing": await Billing.loadBilling(); break;
         case "aidants": await Aidants.loadAidants(); break;
         case "commandes": await Commandes.loadCommandes(); break;
+        case "add-patient": await Patients.renderAddPatientView(); break;
+        case "link-family": await Patients.renderLinkFamilyView(); break;
+        case "add-aidant": await Aidants.renderAddAidantView(); break;
+        case "end-visit": await Visites.renderEndVisitView(); break;
       }
   } catch (err) {
       container.innerHTML = `<div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm"><i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i><p class="text-sm font-black text-slate-800 uppercase">Erreur de liaison</p><p class="text-xs text-slate-400 mt-2">${err.message}</p></div>`;
@@ -673,17 +678,30 @@ window.finishOnboarding = () => {
     window.location.reload(); 
 };
 
+
+
 /* --- 🔑 MAÎTRE DES BRANCHEMENTS --- */
 window.CONFIG = CONFIG;
 window.AppState = AppState;
 window.login = Auth.handleLogin;
 window.logout = Auth.handleLogout;
-window.openAddPatient = Patients.openAddPatientModal;
-window.openLinkFamilyModal = Patients.openLinkFamilyModal;
+window.verifyOTP = Auth.verifyOTP;
+
+// 🚀 NOUVELLE LOGIQUE DE PAGES (Adieu les modales pour la gestion !)
+window.openAddPatient = () => window.switchView('add-patient');
+window.openEndVisit = () => window.switchView('end-visit');
+window.submitEndVisit = Visites.submitEndVisit;
+window.submitAddAidant = Aidants.submitAddAidant;
+window.openLinkFamilyModal = (id, name) => {
+    AppState.tempData = { patientId: id, patientName: name }; 
+    window.switchView('link-family');
+};
+
+// Modales restantes (à transformer bientôt)
 window.openAddAidantModal = Aidants.openAddAidantModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
-window.verifyOTP = Auth.verifyOTP;
+
 window.viewPatientFeed = (id) => { AppState.currentPatient = id; window.switchView("feed"); };
 window.switchView = switchView;
 
@@ -697,5 +715,6 @@ window.setPlan = setPlan;
 window.startOnboarding = startOnboarding;
 window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
+
 
 initApp();
