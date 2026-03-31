@@ -1,95 +1,85 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
+import supabase from "../core/supabaseClient.js"; // 👈 Assure-toi que le chemin est bon
 
 let map = null;
-let markers = {}; // Stocke les marqueurs pour les mettre à jour sans scintillement
+let markers = {}; 
+let paths = {}; // Stocke les lignes de trajet (Polylines)
 
+/**
+ * 🛰️ INITIALISATION DU RADAR LIVE
+ */
 export async function initLiveMap() {
     const container = document.getElementById('view-container');
     container.innerHTML = document.getElementById('template-map').innerHTML;
 
-    // 1. Initialisation de la carte centrée sur Cotonou
+    // 1. Initialisation Leaflet centrée sur Cotonou
     if (map) map.remove(); 
     map = L.map('map', { zoomControl: false }).setView([6.368, 2.401], 13);
 
-    // 2. Style de carte "SaaS Dark" ou "Professional Bright"
+    // Style de carte "SaaS Light"
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: 'Santé Plus Services'
+        attribution: 'SPS Elite Radar'
     }).addTo(map);
 
-    // 3. Charger les positions immédiatement puis toutes les 30s
-    refreshTruckingPositions();
-    const interval = setInterval(() => {
-        if (document.getElementById('map')) {
-            refreshTruckingPositions();
-        } else {
-            clearInterval(interval); // Arrête le tracking si on change de page
-        }
-    }, 15000); // 15 secondes pour du quasi-temps réel
-}
+    // 2. Chargement initial (Visites en cours + Trajectoires passées)
+    await refreshAllPositions();
 
-async function refreshTruckingPositions() {
-    try {
-        // On récupère les visites en cours avec les dernières positions live
-        const res = await secureFetch('/visites/live-tracking');
-        const data = await res.json();
-
-        document.getElementById('active-count-badge').innerText = `${data.length} AIDANTS LIVE`;
-
-        data.forEach(item => {
-            const { lat, lng, aidant_nom, patient_nom, is_inside, visite_id } = item;
-            
-            const markerColor = is_inside ? '#10B981' : '#F43F5E';
-            const pulseClass = is_inside ? '' : 'animate-ping';
-
-            // Custom Icon Style Radar
-            const customIcon = L.divIcon({
-                className: 'custom-div-icon',
-                html: `
-                    <div class="relative flex items-center justify-center">
-                        <div class="absolute w-8 h-8 rounded-full opacity-20" style="background: ${markerColor}"></div>
-                        <div class="w-4 h-4 rounded-full border-2 border-white shadow-lg ${pulseClass}" style="background: ${markerColor}"></div>
-                        <div class="absolute -top-8 bg-slate-900 text-white text-[8px] font-black px-2 py-1 rounded shadow-xl whitespace-nowrap">
-                            ${aidant_nom} • ${patient_nom}
-                        </div>
-                    </div>`,
-                iconSize: [30, 30],
-                iconAnchor: [15, 15]
-            });
-
-            if (markers[visite_id]) {
-                markers[visite_id].setLatLng([lat, lng]); // Déplacement fluide
-            } else {
-                markers[visite_id] = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-            }
-        });
-    } catch (e) { console.error("Map Sync Error:", e); }
-}
-
-
-
-
-// Dans modules/map.js, modifie la logique visuelle :
-
-async function updateSingleMarker(payload) {
-    const { lat, lng, visite_id, alerte_geofence } = payload;
+    // 3. ⚡ BRANCHEMENT SUPABASE REALTIME
+    // On écoute les nouvelles insertions dans "positions_live"
+    console.log("🛰️ Radar Realtime Activé...");
     
-    // 🔴 ROUGE si l'aidant est sorti du périmètre, VERT s'il est OK
-    const statusColor = alerte_geofence ? '#F43F5E' : '#10B981';
+    supabase
+        .channel('schema-db-changes')
+        .on(
+            'postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'positions_live' }, 
+            (payload) => {
+                console.log("📍 Mouvement détecté :", payload.new);
+                updateMovement(payload.new);
+            }
+        )
+        .subscribe();
+}
+
+/**
+ * 🔄 MOTEUR DE MOUVEMENT (Marker + Polyline)
+ */
+async function updateMovement(data) {
+    const { lat, lng, visite_id, alerte_geofence } = data;
+    const point = [lat, lng];
+
+    // 1. GESTION DU MARQUEUR
+    const statusColor = alerte_geofence ? '#F43F5E' : '#10B981'; // Rouge si hors zone
     const rippleEffect = alerte_geofence ? 'animate-ping' : '';
 
     if (markers[visite_id]) {
-        markers[visite_id].setLatLng([lat, lng]);
-        // Mise à jour de la couleur du marqueur existant
+        markers[visite_id].setLatLng(point);
         markers[visite_id].setIcon(createCustomIcon(statusColor, rippleEffect));
     } else {
-        // Création d'un nouveau marqueur
-        markers[visite_id] = L.marker([lat, lng], { 
+        // Si le marqueur n'existe pas encore (nouvelle visite qui démarre)
+        markers[visite_id] = L.marker(point, { 
             icon: createCustomIcon(statusColor, rippleEffect) 
         }).addTo(map);
     }
+
+    // 2. GESTION DU TRACÉ (Breadcrumbs)
+    if (!paths[visite_id]) {
+        paths[visite_id] = L.polyline([point], {
+            color: '#3B82F6',
+            weight: 3,
+            opacity: 0.4,
+            dashArray: '5, 10',
+            lineJoin: 'round'
+        }).addTo(map);
+    } else {
+        paths[visite_id].addLatLng(point); // On allonge la ligne en direct
+    }
 }
 
+/**
+ * 🎨 CRÉATION D'ICÔNE RADAR HYPE
+ */
 function createCustomIcon(color, ripple) {
     return L.divIcon({
         className: 'custom-radar-icon',
@@ -101,4 +91,45 @@ function createCustomIcon(color, ripple) {
         iconSize: [40, 40],
         iconAnchor: [20, 20]
     });
+}
+
+/**
+ * 📥 RÉCUPÉRATION INITIALE ET HISTORIQUE
+ */
+async function refreshAllPositions() {
+    try {
+        // Récupère les aidants actuellement en visite
+        const res = await secureFetch('/visites/live-tracking');
+        const activeVisits = await res.json();
+
+        document.getElementById('active-count-badge').innerText = `${activeVisits.length} AIDANTS LIVE`;
+
+        for (const visit of activeVisits) {
+            // Pour chaque aidant, on va chercher son historique de points (sa trajectoire)
+            const trajRes = await secureFetch(`/visites/trajectory/${visit.visite_id}`);
+            const history = await trajRes.json();
+
+            if (history.length > 0) {
+                const points = history.map(p => [p.lat, p.lng]);
+                
+                // Dessiner la ligne complète
+                paths[visit.visite_id] = L.polyline(points, {
+                    color: '#3B82F6',
+                    weight: 3,
+                    opacity: 0.4,
+                    dashArray: '5, 10'
+                }).addTo(map);
+
+                // Placer le marqueur au dernier point connu
+                const lastPoint = history[history.length - 1];
+                updateMovement({
+                    ...lastPoint,
+                    visite_id: visit.visite_id,
+                    alerte_geofence: visit.is_inside === false
+                });
+            }
+        }
+    } catch (e) {
+        console.error("Erreur chargement Radar Initial :", e);
+    }
 }
