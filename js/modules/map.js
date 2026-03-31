@@ -65,3 +65,40 @@ async function refreshTruckingPositions() {
         });
     } catch (e) { console.error("Map Sync Error:", e); }
 }
+
+
+
+
+// Dans modules/map.js, modifie la logique visuelle :
+
+async function updateSingleMarker(payload) {
+    const { lat, lng, visite_id, alerte_geofence } = payload;
+    
+    // 🔴 ROUGE si l'aidant est sorti du périmètre, VERT s'il est OK
+    const statusColor = alerte_geofence ? '#F43F5E' : '#10B981';
+    const rippleEffect = alerte_geofence ? 'animate-ping' : '';
+
+    if (markers[visite_id]) {
+        markers[visite_id].setLatLng([lat, lng]);
+        // Mise à jour de la couleur du marqueur existant
+        markers[visite_id].setIcon(createCustomIcon(statusColor, rippleEffect));
+    } else {
+        // Création d'un nouveau marqueur
+        markers[visite_id] = L.marker([lat, lng], { 
+            icon: createCustomIcon(statusColor, rippleEffect) 
+        }).addTo(map);
+    }
+}
+
+function createCustomIcon(color, ripple) {
+    return L.divIcon({
+        className: 'custom-radar-icon',
+        html: `
+            <div class="relative flex items-center justify-center">
+                <div class="absolute w-12 h-12 rounded-full opacity-20 ${ripple}" style="background: ${color}"></div>
+                <div class="w-5 h-5 rounded-full border-4 border-white shadow-xl" style="background: ${color}"></div>
+            </div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+    });
+}
