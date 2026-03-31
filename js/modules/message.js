@@ -2,28 +2,65 @@ import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI } from "../core/utils.js";
 
+// État local pour gérer l'onglet actif
+let activeTab = 'STORY'; 
+
 /**
  * 📥 CHARGER LE JOURNAL DE SOINS
  */
 export async function loadFeed() {
-    const container = document.getElementById('care-feed');
+    const container = document.getElementById('view-container');
     if (!container) return;
 
     if (!AppState.currentPatient) {
-        container.innerHTML = `
-            <div class="text-center py-20 bg-white rounded-[3rem] border-2 border-dashed border-slate-100 animate-fadeIn">
-                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fa-solid fa-fingerprint text-slate-200 text-3xl"></i>
-                </div>
-                <p class="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Sélectionnez un dossier patient</p>
-            </div>`;
-        return;
+        return window.switchView('patients');
     }
 
+    // 1. Structure de base avec les Onglets (Tabs)
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-24">
+            <!-- Header avec Retour -->
+            <div class="flex items-center gap-4 mb-8">
+                <button onclick="window.switchView('patients')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Suivi en Direct</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Dossier Patient : #00${AppState.currentPatient.substring(0,3)}</p>
+                </div>
+            </div>
+
+            <!-- 🔄 SWITCHER DE VUE (Style iOS Premium) -->
+            <div class="bg-slate-100/50 p-1.5 rounded-[2rem] flex items-center gap-1 mb-8 max-w-md mx-auto border border-slate-200/30">
+                <button onclick="window.filterFeed('STORY')" id="tab-story" class="flex-1 py-3 rounded-[1.6rem] text-[10px] font-black uppercase tracking-widest transition-all">
+                    Journal de Vie
+                </button>
+                <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" class="flex-1 py-3 rounded-[1.6rem] text-[10px] font-black uppercase tracking-widest transition-all">
+                    Pièces Jointes
+                </button>
+            </div>
+
+            <!-- ZONE DE SAISIE RAPIDE (Uniquement pour le Journal) -->
+            <div id="input-area" class="mb-8">
+                <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-slate-100 flex items-center gap-3">
+                    <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-green-100 transition-all" placeholder="Écrire un message à l'équipe...">
+                    <button onclick="window.sendQuickMessage()" class="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTENU DYNAMIQUE -->
+            <div id="care-feed-content" class="space-y-8">
+                 <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+            </div>
+        </div>
+    `;
+
+    // 2. Charger les données
     try {
         const res = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-        const messages = await res.json();
-        AppState.messages = messages;
+        AppState.messages = await res.json();
         renderFeed();
     } catch (err) {
         console.error("Erreur Feed:", err);
@@ -31,120 +68,129 @@ export async function loadFeed() {
 }
 
 /**
- * 🎨 RENDU DU JOURNAL (Design Story & Polaroid)
+ * 🎨 RENDU FILTRÉ
  */
 export function renderFeed() {
-    const container = document.getElementById('care-feed');
-    if (!container) return;
+    const content = document.getElementById('care-feed-content');
+    const inputArea = document.getElementById('input-area');
+    const btnStory = document.getElementById('tab-story');
+    const btnDoc = document.getElementById('tab-doc');
 
-    // Ajout de la zone de message rapide en haut (Nouveau !)
-    let html = `
-        <div class="bg-white p-4 rounded-[2rem] shadow-sm border border-slate-100 mb-8 flex items-center gap-3 animate-fadeIn">
-            <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-green-100 transition-all" placeholder="Envoyer un message à l'équipe...">
-            <button onclick="window.sendQuickMessage()" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                <i class="fa-solid fa-paper-plane text-xs"></i>
-            </button>
-        </div>
-    `;
+    if (!content) return;
 
-    if (AppState.messages.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-20 animate-fadeIn">
-                <div class="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fa-solid fa-calendar-plus text-3xl"></i>
-                </div>
-                <p class="font-black uppercase text-xs text-slate-800">Aucun journal pour l'instant</p>
-                <p class="text-[10px] text-slate-400 mt-2 font-medium">Le premier rapport sera généré dès la première visite.</p>
+    // Mise à jour visuelle des onglets
+    const activeClass = "bg-white text-slate-900 shadow-sm border border-slate-200/50";
+    const inactiveClass = "text-slate-400 hover:text-slate-600";
+    
+    btnStory.className = `flex-1 py-3 rounded-[1.6rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'STORY' ? activeClass : inactiveClass}`;
+    btnDoc.className = `flex-1 py-3 rounded-[1.6rem] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'DOCUMENT' ? activeClass : inactiveClass}`;
+
+    // On affiche/cache la zone de texte selon l'onglet
+    inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
+
+    // Filtrage des données (On suppose que le backend renvoie un champ 'type_media')
+    // Si type_media n'existe pas encore, on considère tout comme 'STORY'
+    const filtered = AppState.messages.filter(m => {
+        if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
+        return m.type_media !== 'DOCUMENT'; // STORY par défaut
+    }).slice().reverse();
+
+    if (filtered.length === 0) {
+        content.innerHTML = `
+            <div class="text-center py-20 opacity-30">
+                <i class="fa-solid ${activeTab === 'STORY' ? 'fa-feather-pointed' : 'fa-folder-open'} text-4xl mb-4"></i>
+                <p class="font-black uppercase text-[10px] tracking-widest">Aucun élément dans cette section</p>
             </div>`;
         return;
     }
 
-    // Rendu des cartes de la plus récente à la plus ancienne
-    html += AppState.messages.slice().reverse().map(msg => {
-        const reactions = msg.reactions || {};
-        const isPhoto = msg.is_photo;
-        const roleColor = msg.sender_role === 'COORDINATEUR' ? 'text-blue-500' : 'text-green-600';
-        
-        // Décodage intelligent de l'humeur
-        let content = msg.content;
-        let humeurBadge = "";
-        
-        if (!isPhoto && content.includes('|')) {
-            const [humeur, notes] = content.split('|');
-            const emojis = { "Très Joyeux": "😊", "Calme": "😐", "Fatigué": "😴", "Triste": "😔" };
-            humeurBadge = `
-                <div class="flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100 mb-3 w-fit">
-                    <span class="text-sm">${emojis[humeur] || '✨'}</span>
-                    <span class="text-[9px] font-black uppercase text-slate-700 tracking-tighter">${humeur}</span>
-                </div>
-            `;
-            content = notes;
-        }
-
-        return `
-            <div class="feed-card bg-white rounded-[2.5rem] p-5 shadow-sm border border-slate-50 mb-8 animate-fadeIn relative overflow-hidden">
-                <!-- En-tête -->
-                <div class="flex justify-between items-center mb-5">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xs font-black shadow-lg">
-                            ${msg.sender_name.charAt(0)}
-                        </div>
-                        <div>
-                            <h4 class="text-[11px] font-black text-slate-800 uppercase leading-none">${msg.sender_name}</h4>
-                            <p class="text-[8px] font-bold ${roleColor} uppercase tracking-widest mt-1">${msg.sender_role}</p>
-                        </div>
-                    </div>
-                    <span class="text-[9px] font-bold text-slate-300">${UI.formatDate(msg.created_at)}</span>
-                </div>
-
-                <!-- Contenu -->
-                <div class="relative">
-                    ${isPhoto ? `
-                        <div class="group relative rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white mb-2">
-                            <img src="${msg.content}" class="w-full h-72 object-cover transition-transform duration-700 group-hover:scale-110 cursor-pointer" onclick="window.open('${msg.content}')">
-                            <div class="absolute bottom-4 left-4">
-                                ${humeurBadge}
-                            </div>
-                        </div>
-                    ` : `
-                        <div class="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 relative">
-                            <i class="fa-solid fa-quote-left absolute top-4 left-4 text-slate-100 text-3xl"></i>
-                            <p class="text-sm text-slate-600 leading-relaxed font-medium italic relative z-10">"${content}"</p>
-                            <div class="mt-4">${humeurBadge}</div>
-                        </div>
-                    `}
-                </div>
-
-                <!-- Interactions (Style Diaspora) -->
-                <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-50">
-                    <div class="flex -space-x-1">
-                        ${Object.entries(reactions).map(([type, count]) => count > 0 ? `
-                            <div class="bg-white h-7 px-2 rounded-full border border-slate-100 shadow-sm flex items-center gap-1 animate-bounce">
-                                <span class="text-xs">${type === 'coeur' ? '❤️' : '🙏'}</span>
-                                <span class="text-[9px] font-black text-slate-400">${count}</span>
-                            </div>
-                        ` : '').join('')}
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button onclick="window.sendReaction('${msg.id}', 'coeur')" class="w-9 h-9 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all active:scale-125">
-                            <i class="fa-solid fa-heart"></i>
-                        </button>
-                        <button onclick="window.sendReaction('${msg.id}', 'merci')" class="w-9 h-9 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all active:scale-125">
-                            <i class="fa-solid fa-hands-praying"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    container.innerHTML = html;
+    content.innerHTML = filtered.map(msg => activeTab === 'STORY' ? renderStoryCard(msg) : renderDocCard(msg)).join('');
 }
 
 /**
- * ✉️ ENVOYER UN MESSAGE RAPIDE (Famille <-> Équipe)
+ * 📸 DESIGN : CARTE JOURNAL (Look Instagram)
  */
+function renderStoryCard(msg) {
+    const isPhoto = msg.is_photo;
+    let content = msg.content;
+    let humeurBadge = "";
+
+    if (!isPhoto && content.includes('|')) {
+        const [humeur, notes] = content.split('|');
+        const emojis = { "Très Joyeux": "😊", "Calme": "😐", "Fatigué": "😴", "Triste": "😔" };
+        humeurBadge = `<div class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100 flex items-center gap-2"><span class="text-xs">${emojis[humeur] || '✨'}</span><span class="text-[9px] font-black uppercase text-slate-700">${humeur}</span></div>`;
+        content = notes;
+    }
+
+    return `
+        <div class="feed-card bg-white rounded-[2.5rem] p-5 shadow-sm border border-slate-50 animate-fadeIn">
+            <div class="flex justify-between items-center mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shadow-lg">${msg.sender_name.charAt(0)}</div>
+                    <div>
+                        <h4 class="text-[11px] font-black text-slate-800 uppercase leading-none">${msg.sender_name}</h4>
+                        <p class="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-1">${msg.sender_role}</p>
+                    </div>
+                </div>
+                <span class="text-[9px] font-bold text-slate-300 italic">${UI.formatDate(msg.created_at)}</span>
+            </div>
+
+            ${isPhoto ? `
+                <div class="relative group rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white mb-2">
+                    <img src="${msg.content}" class="w-full h-80 object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" onclick="window.open('${msg.content}')">
+                    <div class="absolute bottom-4 left-4">${humeurBadge}</div>
+                </div>
+            ` : `
+                <div class="bg-slate-50/50 p-6 rounded-[2.2rem] border border-slate-100 italic text-slate-600 text-sm leading-relaxed relative">
+                    <i class="fa-solid fa-quote-left absolute top-4 left-4 text-slate-100 text-3xl"></i>
+                    <span class="relative z-10">"${content}"</span>
+                </div>
+            `}
+
+            <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-50">
+                <div class="flex gap-2">
+                    <button onclick="window.sendReaction('${msg.id}', 'coeur')" class="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 transition-colors">
+                        <i class="fa-solid fa-heart"></i> <span class="text-[10px] font-black">${msg.reactions?.coeur || 0}</span>
+                    </button>
+                    <button onclick="window.sendReaction('${msg.id}', 'merci')" class="flex items-center gap-1.5 text-slate-400 hover:text-blue-500 transition-colors">
+                        <i class="fa-solid fa-hands-praying"></i> <span class="text-[10px] font-black">${msg.reactions?.merci || 0}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * 📄 DESIGN : CARTE DOCUMENT (Look Dropbox/Drive)
+ */
+function renderDocCard(msg) {
+    return `
+        <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-all animate-fadeIn">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center text-2xl shadow-inner">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <div>
+                    <h4 class="font-black text-slate-800 text-xs uppercase tracking-tight">${msg.titre_media || 'Reçu / Ordonnance'}</h4>
+                    <p class="text-[10px] text-slate-400 font-bold mt-1 uppercase tracking-widest">${UI.formatDate(msg.created_at)}</p>
+                </div>
+            </div>
+            <button onclick="window.open('${msg.content}')" class="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                <i class="fa-solid fa-download text-sm"></i>
+            </button>
+        </div>
+    `;
+}
+
+// --- BRANCHEMENTS WINDOW ---
+
+window.filterFeed = (type) => {
+    UI.vibrate();
+    activeTab = type;
+    renderFeed();
+};
+
 window.sendQuickMessage = async () => {
     const input = document.getElementById('quick-msg');
     const content = input.value.trim();
@@ -157,20 +203,17 @@ window.sendQuickMessage = async () => {
             body: JSON.stringify({
                 patient_id: AppState.currentPatient,
                 content: content,
-                is_photo: false
+                is_photo: false,
+                type_media: 'STORY' // Toujours STORY pour les messages texte de la famille
             })
         });
-
         if (res.ok) {
             input.value = '';
-            loadFeed(); // Rafraîchir
+            loadFeed(); 
         }
     } catch (err) { console.error(err); }
 };
 
-/**
- * ❤️ RÉACTIONS ÉMOTIONNELLES
- */
 window.sendReaction = async (msgId, type) => {
     try {
         UI.vibrate();
@@ -178,7 +221,6 @@ window.sendReaction = async (msgId, type) => {
             method: 'POST',
             body: JSON.stringify({ message_id: msgId, reaction_type: type })
         });
-        // On ne recharge pas tout le feed pour une simple réaction (UI Optimiste)
         loadFeed(); 
     } catch (err) { console.error(err); }
 };
