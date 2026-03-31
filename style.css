@@ -375,15 +375,21 @@ main {
 }
 
 
-
+/* Force la carte à remplir son conteneur arrondi */
 #map {
     height: 100%;
     width: 100%;
-    background: #f1f5f9; /* Couleur de fond en attendant le chargement */
+    z-index: 10;
+    background-color: #f8fafc; /* Couleur de fond en attendant les tuiles */
 }
 
-/* Fix pour éviter que les icônes SPS ne passent sous la carte */
+/* Évite que les éléments Leaflet (boutons zoom, etc) cassent ton design */
 .leaflet-container {
     border-radius: 2.5rem;
-    z-index: 10 !important;
+    font-family: inherit;
+}
+
+/* Cache les contrôles Leaflet par défaut pour un look plus "App" */
+.leaflet-control-attribution, .leaflet-control-zoom {
+    display: none !important;
 }
