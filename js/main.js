@@ -402,98 +402,94 @@ function renderLayout() {
   const userName = localStorage.getItem("user_name");
 
   document.getElementById("app").innerHTML = `
-    <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
+    <div class="flex h-screen bg-slate-50 overflow-hidden font-sans">
         
-        <!-- 🖥️ SIDEBAR DESKTOP : Le Cockpit Pro -->
-        <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-            <!-- Logo Section Premium -->
-            <div class="flex items-center gap-4 mb-14 px-2 translate-z-0">
-                <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
-                    <i class="fa-solid fa-heart-pulse text-white text-2xl"></i>
+        <!-- 🖥️ SIDEBAR DESKTOP -->
+        <aside class="hidden lg:flex flex-col w-72 bg-[#0F172A] text-white p-6 shadow-2xl z-30">
+            <div class="flex items-center gap-3 mb-10 px-2">
+                <div class="w-10 h-10 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-heart-pulse text-white text-xl"></i>
                 </div>
-                <div>
-                    <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
-                    <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80">Elite Management</span>
-                </div>
+                <h2 class="font-black text-xl tracking-tighter uppercase leading-none">SPS</h2>
             </div>
 
-            <!-- Navigation Links -->
-            <nav class="flex-1 space-y-3" id="nav-desktop">
+            <!-- MENU SCROLLABLE SUR PC -->
+            <nav class="flex-1 space-y-2 overflow-y-auto custom-scroll pr-2" id="nav-desktop">
                 ${getNavLinks(userRole, 'desktop')}
             </nav>
 
-            <!-- Profil Bas Sidebar (Design Card) -->
-            <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center font-black text-xs border border-white/20">
-                        ${userName ? userName.charAt(0).toUpperCase() : 'S'}
+            <!-- Profil Bas Sidebar (Fixe) -->
+            <div class="mt-6 p-4 bg-slate-800/50 rounded-3xl border border-slate-700">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Session</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center font-black text-xs text-white">
+                        ${userName.charAt(0)}
                     </div>
-                    <div class="overflow-hidden">
-                        <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
-                        <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
-                    </div>
+                    <p class="text-xs font-bold truncate flex-1">${userName}</p>
                 </div>
-                <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-power-off"></i> Fermer la session
+                <button onclick="window.logout()" class="mt-4 w-full py-2 bg-rose-500/10 text-rose-500 rounded-xl text-[10px] font-black uppercase hover:bg-rose-500 hover:text-white transition-all">
+                    Déconnexion
                 </button>
             </div>
         </aside>
 
-        <!-- 🚀 CONTENEUR DE CONTENU (Viewport Dynamique) -->
-        <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
+        <!-- 📱 CONTENU PRINCIPAL -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
             
-            <!-- HEADER GLOBAL (Glassmorphism) -->
-            <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
-                <div class="lg:hidden flex items-center">
-                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+            <!-- HEADER MOBILE & PC -->
+            <header class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 flex items-center justify-between px-6 lg:px-10 shrink-0 z-20">
+                <div class="flex items-center gap-3">
+                    <div class="lg:hidden w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white">
                         <i class="fa-solid fa-heart-pulse text-sm"></i>
                     </div>
-                </div>
-                
-                <div class="flex flex-col">
-                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight">Tableau de bord</h2>
-                    <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
+                    <h2 id="view-title" class="text-lg lg:text-2xl font-[900] text-slate-800 tracking-tight">Dashboard</h2>
                 </div>
 
-                <div class="flex items-center gap-3 lg:gap-6">
-                    <!-- Bouton Notification Hype -->
-                    <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-green-600 transition-all shadow-sm group">
-                        <i class="fa-solid fa-bell text-sm"></i>
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                <!-- ZONE UTILISATEUR (Indispensable pour mobile pour se déconnecter) -->
+                <div class="flex items-center gap-3">
+                    <button class="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center border border-slate-100">
+                        <i class="fa-solid fa-bell"></i>
                     </button>
-                    
-                    <div class="h-8 w-[1px] bg-slate-100 hidden md:block"></div>
-                    
-                    <div class="flex items-center gap-3 pl-2">
-                         <div class="hidden md:flex flex-col text-right">
-                            <p class="text-xs font-black text-slate-900 leading-none">${userName}</p>
-                            <span class="text-[9px] text-green-600 font-bold uppercase mt-1 tracking-tighter">Statut : ${userRole}</span>
-                         </div>
-                         <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200">
-                            <i class="fa-solid fa-user-check text-sm"></i>
-                         </div>
-                    </div>
+                    <!-- Avatar cliquable pour voir le profil / se déconnecter -->
+                    <button onclick="window.openProfileMenu()" class="w-10 h-10 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg overflow-hidden border-2 border-white">
+                         <span class="font-black text-xs">${userName.charAt(0)}</span>
+                    </button>
                 </div>
             </header>
 
-            <!-- 🎨 ARRIÈRE-PLAN DÉCORATIF (Blobs positionnés) -->
-            <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
-            <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
-
-            <!-- 📥 ZONE DE RENDU (The Stage) -->
-            <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
-                <div id="view-container" class="max-w-7xl mx-auto min-h-full">
-                    <!-- Les vues (Dashboard, Patients, etc.) s'injectent ici -->
-                </div>
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-10 custom-scroll pb-28 lg:pb-10">
+                <div id="view-container" class="max-w-6xl mx-auto"></div>
             </main>
 
-            <!-- 📱 NAVIGATION MOBILE : Design Floating Hub -->
-            <footer class="lg:hidden h-20 bg-white/80 backdrop-blur-2xl border-t border-slate-100 px-6 py-2 fixed bottom-0 left-0 right-0 z-50 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
+            <!-- NAVIGATION MOBILE (Épurée) -->
+            <footer class="lg:hidden bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-3 fixed bottom-0 left-0 right-0 z-40 flex justify-between items-center shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
                 ${getNavLinks(userRole, 'mobile')}
             </footer>
         </div>
     </div>`;
 }
+
+/**
+ * 👤 MODALE DE PROFIL RAPIDE (Pour Mobile)
+ */
+window.openProfileMenu = () => {
+    const userName = localStorage.getItem("user_name");
+    const userRole = localStorage.getItem("user_role");
+    
+    Swal.fire({
+        title: `<div class="text-sm font-black uppercase text-slate-400 tracking-widest mb-1">Mon Compte</div><div class="text-xl font-black text-slate-800">${userName}</div>`,
+        html: `
+            <div class="text-center p-4">
+                <div class="inline-block px-4 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase mb-6">${userRole}</div>
+                <div class="space-y-3">
+                    <button onclick="Swal.close()" class="w-full py-4 bg-slate-50 rounded-2xl font-bold text-slate-700 text-sm">Mon Profil</button>
+                    <button onclick="window.logout()" class="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold text-sm">Déconnexion</button>
+                </div>
+            </div>`,
+        showConfirmButton: false,
+        customClass: { popup: 'rounded-[3rem] p-6' }
+    });
+};
 
 
 /**
