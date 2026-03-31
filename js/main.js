@@ -363,66 +363,67 @@ async function initApp() {
 function renderLogin() {
   document.getElementById("app").innerHTML = `
     <div class="relative min-h-screen w-full flex flex-col justify-center items-center bg-[#F8FAFC] overflow-hidden px-4 font-sans text-center">
-    
-        <!-- Blobs animés (Positionnement optimisé pour Desktop & Mobile) -->
-        <div class="absolute -top-20 -left-20 w-96 h-96 bg-green-200 rounded-full filter blur-[80px] opacity-40 animate-blob pointer-events-none"></div>
-        <div class="absolute top-1/2 -right-20 w-80 h-80 bg-blue-200 rounded-full filter blur-[80px] opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
-        <div class="absolute -bottom-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-teal-100 rounded-full filter blur-[80px] opacity-40 animate-blob animation-delay-4000 pointer-events-none"></div>
+        
+        <!-- Animations de fond -->
+        <div class="absolute -top-20 -left-20 w-96 h-96 bg-green-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none"></div>
+        <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none"></div>
 
-        <!-- CARTE DE CONNEXION (Glassmorphism Élite) -->
-        <div class="relative w-full max-w-sm bg-white/70 backdrop-blur-3xl p-10 rounded-[3.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white animate-fadeIn z-50">
+        <!-- 💎 LA CARTE UNIQUE -->
+        <div class="relative w-full max-w-sm bg-white/80 backdrop-blur-3xl rounded-[4rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white animate-fadeIn z-50 overflow-hidden">
             
             <!-- Logo Section -->
-            <div class="text-center mb-10">
-                <div class="w-24 h-24 mx-auto bg-gradient-to-tr from-green-500 to-emerald-400 text-white rounded-[2rem] flex items-center justify-center text-4xl shadow-2xl shadow-green-500/20 mb-6 transform transition hover:scale-105 duration-500">
+            <div class="text-center pt-12 pb-8">
+                <div class="w-20 h-20 mx-auto bg-slate-900 text-white rounded-[2.2rem] flex items-center justify-center text-3xl shadow-2xl mb-5 transform transition duration-500 hover:scale-105">
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
-                <h1 class="text-3xl font-[900] text-slate-900 tracking-tight leading-tight">Santé Plus</h1>
-                <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em] mt-2">Protocole de confiance</p>
+                <h1 class="text-2xl font-[900] text-slate-900 tracking-tight leading-none">Santé Plus</h1>
+                <p class="text-slate-400 text-[9px] font-black uppercase tracking-[0.3em] mt-2 italic">Elite Management</p>
+            </div>
+
+            <!-- 🔄 BOUTON D'INSCRIPTION N°1 : Les Onglets (Le plus Hype) -->
+            <div class="px-10 mb-8">
+                <div class="bg-slate-100/50 p-1.5 rounded-[1.8rem] flex items-center gap-1 border border-slate-200/30">
+                    <button class="flex-1 py-3 rounded-[1.4rem] text-[10px] font-[800] uppercase tracking-widest bg-white text-slate-900 shadow-sm transition-all">
+                        Connexion
+                    </button>
+                    <!-- C'est ICI que l'on commence l'admission -->
+                    <button onclick="window.openRegisterFamily()" class="flex-1 py-3 rounded-[1.4rem] text-[10px] font-[800] uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all">
+                        Admission
+                    </button>
+                </div>
             </div>
             
-            <!-- Formulaire -->
-            <div class="space-y-4">
-                <!-- Input Email -->
+            <!-- Champs de saisie -->
+            <div class="px-10 pb-6 space-y-4">
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500 transition-colors">
-                        <i class="fa-solid fa-envelope text-sm"></i>
-                    </div>
-                    <input id="email" type="email" 
-                        class="w-full pl-12 pr-5 py-5 bg-white/50 border border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all text-sm font-semibold text-slate-700 placeholder:text-slate-300 shadow-sm" 
-                        placeholder="Adresse email">
+                    <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                    <input id="email" type="email" class="w-full pl-12 pr-5 py-5 bg-white border border-slate-100 rounded-[1.6rem] outline-none focus:border-green-500 transition-all text-sm font-semibold" placeholder="Adresse email">
                 </div>
 
-                <!-- Input Password -->
                 <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-300 group-focus-within:text-green-500 transition-colors">
-                        <i class="fa-solid fa-shield-lock text-sm"></i>
-                    </div>
-                    <input id="password" type="password" 
-                        class="w-full pl-12 pr-5 py-5 bg-white/50 border border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/5 transition-all text-sm font-semibold text-slate-700 placeholder:text-slate-300 shadow-sm" 
-                        placeholder="Code d'accès">
+                    <i class="fa-solid fa-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                    <input id="password" type="password" class="w-full pl-12 pr-5 py-5 bg-white border border-slate-100 rounded-[1.6rem] outline-none focus:border-green-500 transition-all text-sm font-semibold" placeholder="Code d'accès">
                 </div>
 
-                <!-- Bouton Connexion -->
-                <button onclick="window.login()" id="btn-login" 
-                    class="w-full mt-4 bg-slate-900 text-white py-5 rounded-[1.5rem] font-black shadow-[0_15px_30px_rgba(15,23,42,0.2)] hover:shadow-[0_20px_40px_rgba(15,23,42,0.3)] active:scale-[0.97] transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
+                <button onclick="window.login()" id="btn-login" class="w-full bg-slate-900 text-white py-5 rounded-[1.6rem] font-black shadow-xl active:scale-[0.97] transition-all uppercase text-[10px] tracking-[0.25em] flex items-center justify-center gap-3">
                     Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
                 </button>
             </div>
-        </div>
 
-        <!-- Inscription (Design Pied de page) -->
-        <div class="relative z-50 mt-10 text-center animate-fadeIn" style="animation-delay: 0.4s">
-            <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest mb-4">Nouveau membre ?</p>
-            <button onclick="window.openRegisterFamily()" 
-                class="group bg-white px-8 py-4 rounded-2xl shadow-sm border border-slate-100 hover:border-green-200 transition-all active:scale-95 flex items-center gap-3 mx-auto">
-                <span class="text-slate-700 font-black text-[10px] uppercase tracking-widest">Créer un compte Famille</span>
-                <div class="w-6 h-6 rounded-lg bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                    <i class="fa-solid fa-user-plus text-[10px]"></i>
-                </div>
-            </button>
+            <!-- 🔗 BOUTON D'INSCRIPTION N°2 : Le lien de secours (Toujours interne) -->
+            <div class="pb-10 pt-2">
+                <button onclick="window.openRegisterFamily()" class="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-green-600 transition-colors">
+                    Nouveau dossier ? <span class="text-slate-900 ml-1">Commencer ici</span>
+                </button>
+            </div>
+
+            <!-- Footer Sécurisé -->
+            <div class="bg-slate-50/50 py-5 px-10 border-t border-slate-100">
+                <span class="text-[9px] text-green-500 font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-shield-check"></i> Système 256-bit hautement sécurisé
+                </span>
+            </div>
         </div>
-        
     </div>`;
 }
 
