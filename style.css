@@ -373,3 +373,17 @@ main {
     opacity: 0.05;
     border-radius: 50%;
 }
+
+
+
+#map {
+    height: 100%;
+    width: 100%;
+    background: #f1f5f9; /* Couleur de fond en attendant le chargement */
+}
+
+/* Fix pour éviter que les icônes SPS ne passent sous la carte */
+.leaflet-container {
+    border-radius: 2.5rem;
+    z-index: 10 !important;
+}
