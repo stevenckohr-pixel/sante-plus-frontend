@@ -1,45 +1,49 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
-import supabase from "../core/supabaseClient.js"; // 👈 Assure-toi que le chemin est bon
+import supabase from "../core/supabaseClient.js"; 
 
 let map = null;
 let markers = {}; 
-let paths = {}; // Stocke les lignes de trajet (Polylines)
+let paths = {}; 
 
 /**
  * 🛰️ INITIALISATION DU RADAR LIVE
  */
 export async function initLiveMap() {
     const container = document.getElementById('view-container');
+    
+    // 1. On injecte le template
     container.innerHTML = document.getElementById('template-map').innerHTML;
 
-    // 1. Initialisation Leaflet centrée sur Cotonou
-    if (map) map.remove(); 
-    map = L.map('map', { zoomControl: false }).setView([6.368, 2.401], 13);
+    // 2. On attend un court instant que le DOM soit "prêt" et visible
+    setTimeout(async () => {
+        const mapElement = document.getElementById('map');
+        if (!mapElement) return;
 
-    // Style de carte "SaaS Light"
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: 'SPS Elite Radar'
-    }).addTo(map);
+        // On nettoie l'ancienne instance si elle existe
+        if (map) {
+            map.remove();
+            markers = {};
+            paths = {};
+        }
 
-    // 2. Chargement initial (Visites en cours + Trajectoires passées)
-    await refreshAllPositions();
+        // 3. Initialisation de la carte
+        map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false
+        }).setView([6.368, 2.401], 13); // Centré sur Cotonou
 
-    // 3. ⚡ BRANCHEMENT SUPABASE REALTIME
-    // On écoute les nouvelles insertions dans "positions_live"
-    console.log("🛰️ Radar Realtime Activé...");
-    
-    supabase
-        .channel('schema-db-changes')
-        .on(
-            'postgres_changes', 
-            { event: 'INSERT', schema: 'public', table: 'positions_live' }, 
-            (payload) => {
-                console.log("📍 Mouvement détecté :", payload.new);
-                updateMovement(payload.new);
-            }
-        )
-        .subscribe();
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+        // 🔥 IMPORTANT : Force Leaflet à recalculer sa taille réelle
+        map.invalidateSize();
+
+        // 4. Charger les données
+        await refreshAllPositions();
+        
+        // ⚡ Lancer le Realtime
+        console.log("🛰️ Radar SPS opérationnel.");
+    }, 100); 
 }
 
 /**
