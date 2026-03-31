@@ -2,6 +2,8 @@ import { CONFIG } from "./config.js";
 
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
+  console.log(`📡 Appel API : ${endpoint}`); 
+
 
   const headers = {
     "Content-Type": "application/json",
@@ -16,6 +18,8 @@ export async function secureFetch(endpoint, options = {}) {
     ...options,
     headers,
   });
+
+    console.log(`📥 Réponse API [${response.status}] : ${endpoint}`); // <--- AJOUTE ÇA !
 
     if (response.status === 503) {
       Swal.fire({
