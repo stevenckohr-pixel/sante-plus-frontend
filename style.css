@@ -309,3 +309,67 @@ main {
 /* Custom SweetAlert */
 .swal2-popup { border-radius: 3.5rem !important; padding: 3rem !important; }
 .swal2-confirm { border-radius: 1.5rem !important; background: var(--slate-900) !important; font-weight: 800 !important; }
+
+
+
+/* --- MOBILE MENU TILES (HUB) --- */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    padding: 1rem 0;
+}
+
+.menu-tile {
+    background: white;
+    border-radius: 2.5rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    min-height: 160px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-tile:active {
+    transform: scale(0.95);
+    background-color: var(--slate-100);
+}
+
+.menu-tile i {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.menu-tile .tile-label {
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--slate-900);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.menu-tile .tile-desc {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--slate-400);
+    margin-top: 4px;
+}
+
+/* Décoration de fond des tuiles */
+.menu-tile::after {
+    content: '';
+    position: absolute;
+    right: -10%;
+    bottom: -10%;
+    width: 80px;
+    height: 80px;
+    background: currentColor;
+    opacity: 0.05;
+    border-radius: 50%;
+}
