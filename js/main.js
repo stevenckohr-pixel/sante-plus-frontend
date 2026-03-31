@@ -52,45 +52,47 @@ window.openRegisterFamily = () => {
 
 
 
-
 function renderRegisterStep() {
     const app = document.getElementById("app");
     const progress = (currentStep / 4) * 100;
 
     app.innerHTML = `
-    <div class="min-h-screen bg-white flex flex-col">
-        <!-- Header fixe en haut -->
-        <header class="sticky top-0 bg-white/95 backdrop-blur p-6 flex items-center justify-between border-b border-slate-50 z-20">
-            <button onclick="currentStep > 1 ? (currentStep--, renderRegisterStep()) : window.location.reload()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+    <div class="h-full flex flex-col bg-white animate-fadeIn">
+        
+        <!-- HEADER FIXE -->
+        <header class="p-6 flex items-center justify-between border-b border-slate-50 shrink-0">
+            <button onclick="window.prevStep()" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
                 <i class="fa-solid fa-arrow-left"></i>
             </button>
             <div class="text-center">
-                <h2 class="font-black text-sm uppercase text-slate-800">Dossier d'Admission</h2>
-                <p class="text-[9px] text-slate-400 font-bold uppercase mt-0.5">Étape ${currentStep} sur 4</p>
+                <h2 class="font-black text-[11px] uppercase tracking-[0.2em] text-slate-800">Dossier d'Admission</h2>
+                <p class="text-[9px] text-green-600 font-bold uppercase mt-0.5">Étape ${currentStep} / 4</p>
             </div>
             <div class="w-10"></div>
         </header>
 
-        <!-- Barre de progression -->
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: ${progress}%"></div>
+        <!-- BARRE DE PROGRESSION -->
+        <div class="h-1 bg-slate-100 shrink-0">
+            <div class="h-full bg-green-500 transition-all duration-500" style="width: ${progress}%"></div>
         </div>
 
-        <!-- Contenu scrollable (Le bouton est DANS le scroll ici) -->
-        <main class="flex-1 overflow-y-auto p-6 pb-12 custom-scroll">
-            <div class="max-w-md mx-auto space-y-8">
+        <!-- ZONE DE CONTENU SCROLLABLE -->
+        <main class="form-scroll-area custom-scroll">
+            <div class="max-w-md mx-auto w-full flex-1">
                 ${getStepHTML()}
-                
-                <!-- BOUTON DANS LE FLUX -->
-                <button onclick="nextStep()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+            </div>
+
+            <!-- BOUTON D'ACTION (Placé dans le scroll pour être toujours visible à la fin) -->
+            <div class="max-w-md mx-auto w-full mt-8 pb-10">
+                <button onclick="window.nextStep()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3">
                     ${currentStep === 4 ? 'Finaliser l\'inscription' : 'Continuer'}
-                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    <i class="fa-solid fa-chevron-right text-[8px]"></i>
                 </button>
             </div>
         </main>
+
     </div>`;
 }
-
 
 
 
