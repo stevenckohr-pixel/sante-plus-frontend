@@ -86,7 +86,7 @@ async function initApp() {
             renderLayout();
             Visites.resumeTrackingIfActive(); 
             const userRole = localStorage.getItem("user_role");
-            const defaultView = userRole === "COORDINATEUR" ? "dashboard" : "patients";
+            const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
             const lastView = localStorage.getItem("last_view") || defaultView;
             await window.switchView(lastView);
         } else {
@@ -434,6 +434,68 @@ async function submitRegistration() {
     }
 }
 
+
+
+
+/**
+ * 📱 HUB DE NAVIGATION MOBILE (Interface par Blocs)
+ */
+function renderMobileHub() {
+    const userRole = localStorage.getItem("user_role");
+    const userName = localStorage.getItem("user_name");
+    const container = document.getElementById("view-container");
+    
+    // Définition des blocs selon le rôle
+    const menuItems = [
+        { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', roles: ['COORDINATEUR'] },
+        { id: 'patients', label: 'Dossiers', desc: 'Gestion Clients', icon: 'fa-hospital-user', color: 'text-emerald-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', label: 'Visites', desc: 'Interventions', icon: 'fa-calendar-check', color: 'text-blue-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: 'Journal', desc: 'Live Feed', icon: 'fa-rss', color: 'text-orange-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'aidants', label: 'Équipe', desc: 'Ressources Humaines', icon: 'fa-user-nurse', color: 'text-slate-600', roles: ['COORDINATEUR'] }
+    ];
+
+    const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
+
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-10">
+            <!-- Header de bienvenue style Pinterest -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bienvenue sur SPS</p>
+                    <h3 class="text-2xl font-[900] text-slate-900 tracking-tight">Bonjour, ${userName.split(' ')[0]} 👋</h3>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200">
+                    <i class="fa-solid fa- fingerprint"></i>
+                </div>
+            </div>
+
+            <!-- Barre de recherche stylisée -->
+            <div class="bg-white border border-slate-100 p-4 rounded-[1.5rem] flex items-center gap-3 mb-8 shadow-sm">
+                <i class="fa-solid fa-magnifying-glass text-slate-300"></i>
+                <input type="text" placeholder="Rechercher un dossier..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
+            </div>
+
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-1">Menu Principal</h4>
+
+            <!-- GRILLE DE BLOCS -->
+            <div class="menu-grid">
+                ${filteredMenu.map(item => `
+                    <div onclick="window.switchView('${item.id}')" class="menu-tile ${item.color}">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-xl">
+                            <i class="fa-solid ${item.icon}"></i>
+                        </div>
+                        <div>
+                            <p class="tile-label">${item.label}</p>
+                            <p class="tile-desc">${item.desc}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
 /**
  * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
  */
@@ -475,11 +537,11 @@ function renderLayout() {
   document.getElementById("app").innerHTML = `
     <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
         
-        <!-- 🖥️ SIDEBAR DESKTOP -->
+        <!-- 🖥️ SIDEBAR DESKTOP (Inchangée, garde le look SaaS Pro) -->
         <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
             <div class="flex items-center gap-4 mb-14 px-2">
                 <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
-                    <i class="fa-solid fa-heart-pulse text-white text-2xl"></i>
+                    <img src="https://cdn-icons-png.flaticon.com/512/8206/8206334.png" class="w-8 h-8">
                 </div>
                 <div>
                     <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
@@ -493,7 +555,7 @@ function renderLayout() {
 
             <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center font-black text-xs border border-white/20">
+                    <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20">
                         ${userName ? userName.charAt(0).toUpperCase() : 'S'}
                     </div>
                     <div class="overflow-hidden">
@@ -502,7 +564,7 @@ function renderLayout() {
                     </div>
                 </div>
                 <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-power-off"></i> Déconnexion
+                    <i class="fa-solid fa-power-off"></i> Fermer la session
                 </button>
             </div>
         </aside>
@@ -510,47 +572,63 @@ function renderLayout() {
         <!-- 🚀 CONTENEUR DE CONTENU -->
         <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
             
-            <header class="h-20 lg:h-24 glass-header border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
+            <!-- HEADER GLOBAL (Glassmorphism) -->
+            <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
                 <div class="lg:hidden flex items-center">
                     <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                        <i class="fa-solid fa-heart-pulse text-sm"></i>
+                        <img src="https://cdn-icons-png.flaticon.com/512/8206/8206334.png" class="w-6 h-6">
                     </div>
                 </div>
                 
                 <div class="flex flex-col">
-                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight">Tableau de bord</h2>
+                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
                     <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
                 </div>
 
-                <div class="flex items-center gap-3 lg:gap-6">
+                <div class="flex items-center gap-3">
                     <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-green-600 transition-all shadow-sm group">
                         <i class="fa-solid fa-bell text-sm"></i>
                         <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
                     </button>
-                    
-                    <div class="h-8 w-[1px] bg-slate-100 hidden md:block"></div>
-                    
-                    <div class="flex items-center gap-3 pl-2">
-                         <div class="hidden md:flex flex-col text-right">
-                            <p class="text-xs font-black text-slate-900 leading-none">${userName}</p>
-                            <span class="text-[9px] text-green-600 font-bold uppercase mt-1 tracking-tighter">Statut : ${userRole}</span>
-                         </div>
-                         <button onclick="window.openProfileMenu()" class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200 active:scale-95 transition-all">
-                            <i class="fa-solid fa-user-gear text-sm"></i>
-                         </button>
-                    </div>
+                    <button onclick="window.openProfileMenu()" class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200 active:scale-95 transition-all lg:ml-2">
+                        <i class="fa-solid fa-user-gear text-sm"></i>
+                    </button>
                 </div>
             </header>
 
+            <!-- ARRIÈRE-PLAN DÉCORATIF -->
             <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
             <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
 
+            <!-- 📥 ZONE DE RENDU -->
             <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
                 <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
             </main>
 
-            <footer class="lg:hidden h-20 bg-white/80 backdrop-blur-2xl border-t border-slate-100 px-6 py-2 fixed bottom-0 left-0 right-0 z-50 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
-                ${getNavLinks(userRole, 'mobile')}
+            <!-- 📱 NAVIGATION MOBILE : Design "Floating Hub" Premium -->
+            <footer class="lg:hidden h-24 bg-white/80 backdrop-blur-2xl border-t border-slate-100 px-10 py-2 fixed bottom-0 left-0 right-0 z-50 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.04)]">
+                
+                <!-- BOUTON HOME (Retour à la grille de blocs) -->
+                <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-1.5 transition-all active:scale-90">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-house-chimney text-xl"></i>
+                    </div>
+                    <span class="text-[8px] font-black uppercase tracking-widest">Accueil</span>
+                </button>
+
+                <!-- BOUTON ACTION CENTRAL (Flottant) -->
+                <button onclick="window.openAddPatient()" class="w-16 h-16 bg-slate-900 text-white rounded-[1.8rem] flex items-center justify-center shadow-[0_15px_35px_rgba(15,23,42,0.3)] -mt-14 border-4 border-[#F8FAFC] active:scale-95 transition-all duration-300">
+                    <i class="fa-solid fa-plus text-2xl"></i>
+                </button>
+
+                <!-- BOUTON RADAR (Accès rapide Map) -->
+                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-1.5 transition-all active:scale-90">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center">
+                        <i class="fa-solid fa-location-dot text-xl"></i>
+                    </div>
+                    <span class="text-[8px] font-black uppercase tracking-widest">Radar</span>
+                </button>
+
             </footer>
         </div>
     </div>`;
@@ -661,6 +739,7 @@ window.switchView = async (viewName) => {
         case "link-family": await Patients.renderLinkFamilyView(); break;
         case "add-aidant": await Aidants.renderAddAidantView(); break;
         case "end-visit": await Visites.renderEndVisitView(); break;
+        case "home": renderMobileHub(); break;
       }
   } catch (err) {
       container.innerHTML = `<div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm"><i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i><p class="text-sm font-black text-slate-800 uppercase">Erreur de liaison</p><p class="text-xs text-slate-400 mt-2">${err.message}</p></div>`;
@@ -683,6 +762,11 @@ window.openProfileMenu = () => {
         customClass: { popup: 'rounded-[3rem] p-6' }
     });
 };
+
+
+
+
+
 
 /* --- 📝 LOGIQUE DE L'ONBOARDING (Slides d'accueil) --- */
 window.startOnboarding = () => {
