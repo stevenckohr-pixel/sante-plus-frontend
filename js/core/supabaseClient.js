@@ -6,8 +6,8 @@
 const { createClient } = window.supabase;
 
 const supabaseUrl = "https://tagqwwfbpfzluahboczh.supabase.co";
-// Utilise ta clé anon/public ici pour le frontend
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3F3d2ZicGZ6bHVhaGJvY3poIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDgwNjEwNiwiZXhwIjoyMDkwMzgyMTA2fQ.SKaZYQ_QS3lxPpU8y_kbs3DG2m3dqLAUlt8XWFnugzo"; 
+
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3F3d2ZicGZ6bHVhaGJvY3poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDYxMDYsImV4cCI6MjA5MDM4MjEwNn0.I0HqBYPTrxPOg41sEWm_hU7YY3f9ZXCekUX5NlgIBWw"; 
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
