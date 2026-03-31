@@ -28,8 +28,8 @@ self.addEventListener("push", function (event) {
   const data = event.data.json();
   const options = {
     body: data.message,
-    icon: "https://cdn-icons-png.flaticon.com/512/9752/9752284.png",
-    badge: "https://cdn-icons-png.flaticon.com/512/9752/9752284.png",
+    icon: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
+    badge: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
     vibrate: [100, 50, 100],
     data: { url: data.url }
   };
