@@ -11,6 +11,36 @@ import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
 
+
+const ONBOARDING_STEPS = [
+    {
+        title: "Bienvenue sur SPS",
+        desc: "L'excellence médicale au service de votre famille en un clic.",
+        icon: "fa-heart-pulse",
+        color: "bg-emerald-500"
+    },
+    {
+        title: "Journal de Soins",
+        desc: "Suivez chaque intervention de nos aidants en temps réel avec photos et rapports.",
+        icon: "fa-rss",
+        color: "bg-blue-500"
+    },
+    {
+        title: "Radar Terrain",
+        desc: "Notre technologie GPS sécurisée vous garantit la présence de l'aidant au domicile.",
+        icon: "fa-satellite-dish",
+        color: "bg-indigo-500"
+    },
+    {
+        title: "Paiement Simple",
+        desc: "Régularisez vos abonnements via MTN ou Moov Money en toute sécurité.",
+        icon: "fa-shield-check",
+        color: "bg-slate-900"
+    }
+];
+
+let onboardingStep = 0;
+
 /* --- CONFIGURATION SWEETALERT PREMIUM --- */
 const Toast = Swal.mixin({
   toast: true,
@@ -302,6 +332,10 @@ async function initApp() {
 
     try {
         if (token) {
+            if (!localStorage.getItem("onboarding_seen")) {
+                      window.startOnboarding();
+                      return; 
+                  }
             renderLayout();
             // On lance le chargement mais on n'attend pas forcément la fin pour cacher le loader
             const lastView = localStorage.getItem("last_view") || "patients";
@@ -653,6 +687,62 @@ window.switchView = async (viewName) => {
   }
 };
 
+
+
+window.startOnboarding = () => {
+    // Si l'utilisateur l'a déjà vu, on ne l'affiche pas
+    if (localStorage.getItem("onboarding_seen")) return;
+    
+    onboardingStep = 0;
+    renderOnboarding();
+};
+
+function renderOnboarding() {
+    const app = document.getElementById("app");
+    const step = ONBOARDING_STEPS[onboardingStep];
+    const isLast = onboardingStep === ONBOARDING_STEPS.length - 1;
+
+    app.innerHTML = `
+        <div class="onboarding-overlay animate-fadeIn font-sans">
+            <!-- Bouton Ignorer -->
+            ${!isLast ? `<button onclick="window.finishOnboarding()" class="absolute top-10 right-10 text-[10px] font-black uppercase text-slate-400 tracking-widest">Ignorer</button>` : ''}
+
+            <!-- Contenu de la Slide -->
+            <div class="onboarding-slide active">
+                <div class="w-24 h-24 ${step.color} text-white rounded-[2.5rem] flex items-center justify-center text-4xl shadow-2xl mb-12 shadow-${step.color.split('-')[1]}-200">
+                    <i class="fa-solid ${step.icon}"></i>
+                </div>
+                <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4">${step.title}</h2>
+                <p class="text-slate-400 text-sm leading-relaxed px-6">${step.desc}</p>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="p-12 flex flex-col items-center gap-10">
+                <!-- Dots -->
+                <div class="flex gap-2">
+                    ${ONBOARDING_STEPS.map((_, i) => `
+                        <div class="onboarding-dot ${i === onboardingStep ? 'active' : ''}"></div>
+                    `).join('')}
+                </div>
+
+                <!-- Bouton Action -->
+                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" class="w-full max-w-xs py-5 bg-slate-900 text-white rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all">
+                    ${isLast ? 'Commencer l\'aventure' : 'Continuer'}
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+window.nextOnboarding = () => {
+    onboardingStep++;
+    renderOnboarding();
+};
+
+window.finishOnboarding = () => {
+    localStorage.setItem("onboarding_seen", "true");
+    window.location.reload(); // Redémarre l'app normalement vers le Dashboard
+};
 
 // 🔑 BRANCHEMENTS GLOBAUX (À LA FIN POUR ÊTRE SÛR QUE TOUT EXISTE)
 window.CONFIG = CONFIG;
