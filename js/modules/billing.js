@@ -102,33 +102,61 @@ export async function loadBilling() {
   }
 }
 
+
 /**
- * 💳 REDIRECTION VERS FEDAPAY (Paiement Mobile Money)
+ * 💳 REDIRECTION VERS FEDAPAY (Paiement Mobile Money / Carte)
+ * Design Unifié SPS Elite
  */
 window.payWithFeda = async (abonnementId, montant) => {
   try {
     UI.vibrate();
+
+    // 🎨 UI de transition Premium
     Swal.fire({
-      title: "Sécurisation...",
-      text: "Génération du lien de paiement FedaPay",
+      title: '<i class="fa-solid fa-shield-halved fa-beat text-emerald-500 mb-3 text-4xl"></i><br><span class="text-xl font-black">Sécurisation...</span>',
+      html: `
+        <div class="text-center">
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-4">Connexion aux passerelles sécurisées</p>
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Montant :</span>
+                <span class="text-sm font-black text-slate-900">${UI.formatMoney(montant)}</span>
+            </div>
+        </div>`,
       allowOutsideClick: false,
+      showConfirmButton: false,
+      customClass: { popup: 'rounded-[3rem]' },
       didOpen: () => Swal.showLoading(),
     });
 
+    // 1. Appel au backend pour créer la transaction FedaPay
     const res = await secureFetch("/billing/generate-payment", {
       method: "POST",
       body: JSON.stringify({
         abonnement_id: abonnementId,
         montant: montant,
-        email_client: localStorage.getItem("user_email"), // Assure-toi de le stocker au login
+        email_client: localStorage.getItem("user_email") || "client@santeplus.bj",
       }),
     });
 
     const data = await res.json();
-    // Redirection vers le Checkout FedaPay (Interface MTN/Moov)
-    window.location.href = data.url;
+    
+    if (!res.ok) throw new Error(data.error || "Échec de connexion FedaPay");
+
+    // 2. Redirection vers le Checkout FedaPay (MTN / Moov / Visa)
+    // On laisse un petit délai pour que l'utilisateur voie que c'est "sécurisé"
+    setTimeout(() => {
+        window.location.href = data.url;
+    }, 1500);
+
   } catch (err) {
-    Swal.fire("Erreur", "Impossible de contacter FedaPay", "error");
+    UI.vibrate("error");
+    Swal.fire({
+        title: "Erreur de paiement",
+        text: "La passerelle de paiement est temporairement indisponible.",
+        icon: "error",
+        confirmButtonColor: "#0F172A",
+        customClass: { popup: 'rounded-[2.5rem]' }
+    });
   }
 };
 
