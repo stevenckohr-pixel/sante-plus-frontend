@@ -65,24 +65,9 @@ export async function renderEndVisitView() {
                 
                 <!-- 1. ACTIVITÉS -->
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Tâches réalisées</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Tâches réalisées pour ${patient.nom_complet}</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
-                            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Repas"> 
-                            <span class="text-xs font-black text-slate-700 uppercase">🍲 Repas</span>
-                        </label>
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
-                            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Toilette"> 
-                            <span class="text-xs font-black text-slate-700 uppercase">🧼 Toilette</span>
-                        </label>
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
-                            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Médicaments"> 
-                            <span class="text-xs font-black text-slate-700 uppercase">💊 Médic</span>
-                        </label>
-                        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
-                            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Courses"> 
-                            <span class="text-xs font-black text-slate-700 uppercase">🛒 Courses</span>
-                        </label>
+                        ${getChecklistHTML(patient.categorie_service)}
                     </div>
                 </div>
 
@@ -354,40 +339,40 @@ window.startVisit = async (patientId) => {
 function startBackgroundTracking(visiteId) {
     if (!navigator.geolocation) return;
 
-    // On s'assure qu'aucun autre watcher n'est actif
     if (geoWatchId) navigator.geolocation.clearWatch(geoWatchId);
 
-    // Démarrage de la surveillance haute précision
     geoWatchId = navigator.geolocation.watchPosition(
         async (position) => {
-            const { latitude, longitude } = position.coords;
+            const { latitude, longitude, accuracy } = position.coords;
             
-            // Envoi furtif au serveur (Sans bloquer l'interface de l'aidant)
+            // 🛡️ FILTRE DE PRÉCISION ÉLITE
+            // Si la précision est supérieure à 60 mètres, on ignore le point (trop imprécis)
+            if (accuracy > 60) {
+                console.warn(`🛰️ [GPS] Point ignoré : précision trop faible (${Math.round(accuracy)}m)`);
+                return;
+            }
+
+            console.log(`🛰️ [GPS] Point certifié : ${latitude}, ${longitude} (Précision: ${Math.round(accuracy)}m)`);
+
             fetch(`${window.CONFIG.API_URL}/visites/track`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({
-                    visite_id: visiteId,
-                    lat: latitude,
-                    lng: longitude
-                })
-            }).catch(e => console.warn("Signal GPS perdu temporairement..."));
+                body: JSON.stringify({ visite_id: visiteId, lat: latitude, lng: longitude })
+            }).catch(e => {});
         },
         (error) => console.error("Erreur Watcher GPS:", error),
         { 
             enableHighAccuracy: true, 
-            maximumAge: 10000, // On accepte une position vieille de 10s max
-            timeout: 5000 
+            maximumAge: 0, 
+            timeout: 10000 
         }
     );
 
-    // Sauvegarde de l'ID du watcher pour pouvoir le couper lors de endVisit()
     localStorage.setItem("geo_watch_id", geoWatchId);
 }
-
 
 
 /**
@@ -419,6 +404,29 @@ export function resumeTrackingIfActive() {
         console.log("🛰️ [GPS] Reprise du suivi pour la visite :", activeVisitId);
         startBackgroundTracking(activeVisitId);
     }
+}
+
+
+
+function getChecklistHTML(category) {
+    const tasks = category === 'MAMAN_BEBE' ? [
+        { label: 'Aide Organisation', icon: '✨' },
+        { label: 'Assistance Bébé', icon: '👶' },
+        { label: 'Repas légers', icon: '🍲' },
+        { label: 'Écoute / Soutien', icon: '🎧' }
+    ] : [
+        { label: 'Rappel Médocs', icon: '💊' },
+        { label: 'Prise Tension', icon: '🩺' },
+        { label: 'Aide Repas', icon: '🍲' },
+        { label: 'Courses / Logistique', icon: '🛒' }
+    ];
+
+    return tasks.map(t => `
+        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="${t.label}"> 
+            <span class="text-xs font-black text-slate-700 uppercase">${t.icon} ${t.label}</span>
+        </label>
+    `).join('');
 }
 
 /**
