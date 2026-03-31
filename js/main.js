@@ -107,6 +107,9 @@ async function initApp() {
 /**
  * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Login + Admission In-Card)
  */
+/**
+ * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Taille fixe & Scroll interne)
+ */
 function renderAuthView(mode = 'login', stepSource = 1) {
     const app = document.getElementById("app");
     currentStep = stepSource; 
@@ -117,7 +120,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 1. MODE CONNEXION
     if (mode === 'login') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-4 animate-fadeIn">
+            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center h-full mt-4">
                 <div class="relative group">
                     <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="email" type="email" class="app-input !pl-12" placeholder="Adresse email" value="${registrationData.email || ''}">
@@ -126,7 +129,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     <i class="fa-solid fa-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="password" type="password" class="app-input !pl-12" placeholder="Code d'accès">
                 </div>
-                <button onclick="window.login()" id="btn-login" class="w-full mt-4 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
+                <button onclick="window.login()" id="btn-login" class="w-full mt-2 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
                     Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
                 </button>
             </div>`;
@@ -134,10 +137,15 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 2. MODE ADMISSION (Formulaire par étapes)
     else {
         dynamicContent = `
-            <div class="px-8 pb-8 animate-fadeIn">
-                <div class="mb-6">${getStepHTML()}</div>
-                <div class="flex gap-3">
-                    ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
+            <div class="px-8 pb-4 animate-fadeIn flex flex-col min-h-full">
+                <!-- Zone des champs -->
+                <div class="mb-auto">
+                    ${getStepHTML()}
+                </div>
+                
+                <!-- Boutons d'action (Poussés vers le bas si espace dispo) -->
+                <div class="flex gap-3 mt-6 shrink-0">
+                    ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-[1.25rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
                     <button onclick="window.nextAuthStep()" class="flex-1 bg-green-600 text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-green-200 active:scale-95 transition-all">
                         ${currentStep === 4 ? 'Finaliser' : 'Suivant'}
                     </button>
@@ -145,26 +153,28 @@ function renderAuthView(mode = 'login', stepSource = 1) {
             </div>`;
     }
 
-    // RENDU GLOBAL DE LA VUE D'AUTHENTIFICATION (Centrage absolu forcé)
+    // 🚀 LE CONTENEUR PRINCIPAL DE LA CARTE (Verrouillé en taille)
     app.innerHTML = `
-    <div class="absolute inset-0 w-full min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4 overflow-y-auto custom-scroll z-50">
+    <div class="fixed inset-0 w-full h-[100dvh] flex items-center justify-center bg-[#F8FAFC] p-4 lg:p-8 z-50">
         
         <!-- Blobs animés -->
-        <div class="fixed top-0 left-0 w-96 h-96 bg-green-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
-        <div class="fixed bottom-0 right-0 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
+        <div class="absolute -top-20 -left-20 w-96 h-96 bg-green-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
+        <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
 
-        <div class="relative w-full max-w-md bg-white/80 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 my-10">
+        <!-- 💎 LA CARTE : Hauteur fixe à 620px, max 85% de l'écran -->
+        <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[620px] max-h-[85dvh]">
             
-            <div class="text-center pt-10 pb-6">
-                <div class="w-16 h-16 mx-auto bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center text-2xl shadow-2xl mb-4">
+            <!-- HEADER FIXE (Ne scrolle pas) -->
+            <div class="shrink-0 text-center pt-8 pb-4">
+                <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
                 <h1 class="text-xl font-[900] text-slate-900 tracking-tight leading-none">Santé Plus</h1>
-                <p class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-2">${stepTitle}</p>
+                <p class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
             </div>
 
-            <!-- TABS DE BASCULE -->
-            <div class="px-8 mb-6">
+            <!-- TABS DE BASCULE FIXES -->
+            <div class="shrink-0 px-8 mb-4">
                 <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
                     <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                         Connexion
@@ -175,27 +185,29 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 </div>
             </div>
 
-            <!-- Jauge de progression (Uniquement pour Admission) -->
+            <!-- JAUGE DE PROGRESSION FIXE -->
             ${mode === 'register' ? `
-                <div class="px-8 mb-6">
+                <div class="shrink-0 px-8 mb-4">
                     <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
                         <div class="h-full bg-green-500 transition-all duration-300" style="width: ${(currentStep/4)*100}%"></div>
                     </div>
                 </div>
             ` : ''}
 
-            <!-- Zone de Contenu Dynamique (Champs de saisie) -->
-            ${dynamicContent}
+            <!-- ZONE DE CONTENU SCROLLABLE (Seul l'intérieur scrolle) -->
+            <div class="flex-1 overflow-y-auto custom-scroll relative">
+                ${dynamicContent}
+            </div>
 
-            <!-- Footer interne -->
-            <div class="bg-slate-50/50 py-4 px-8 border-t border-slate-100 flex items-center justify-between">
+            <!-- FOOTER FIXE -->
+            <div class="shrink-0 bg-slate-50/50 py-4 px-8 border-t border-slate-100 flex items-center justify-between mt-auto">
                 <span class="text-[8px] text-slate-400 font-[800] uppercase tracking-widest">© 2026 SPS Elite</span>
                 <span class="text-[8px] text-green-500 font-[800] uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-shield-check"></i> Sécurisé</span>
             </div>
+            
         </div>
     </div>`;
 }
-
 /**
  * 📦 MINI-VUES DE L'INSCRIPTION IN-CARD
  */
