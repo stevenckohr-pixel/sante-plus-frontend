@@ -776,7 +776,7 @@ window.switchView = async (viewName) => {
 
         case "patients": 
             container.innerHTML = `
-                <div class="flex justify-between items-center mb-8 animate-slideIn ">
+                <div class="flex justify-between items-center mb-8 animate-slideIn pb-32">
                     <div>
                         <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
                         <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
@@ -822,7 +822,7 @@ window.switchView = async (viewName) => {
   } catch (err) {
       console.error("DEBUG VIEW ERROR:", err);
       container.innerHTML = `
-        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-slideIn ">
+        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-slideIn pb-32">
             <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
             <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
             <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
