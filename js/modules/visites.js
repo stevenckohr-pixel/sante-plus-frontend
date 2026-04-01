@@ -365,11 +365,11 @@ window.startVisit = async (patientId) => {
 
     window.switchView("visits");
 
-  } catch (err) {
+} catch (err) {
     UI.vibrate("error");
     Swal.fire({
-        title: "Échec GPS",
-        text: "Veuillez activer votre localisation pour certifier votre arrivée.",
+        title: "Erreur Visite",
+        text: err.message, 
         icon: "error",
         confirmButtonColor: "#0F172A",
         customClass: { popup: 'rounded-[2.5rem]' }
