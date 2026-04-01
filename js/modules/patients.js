@@ -41,32 +41,48 @@ export function renderPatients() {
   }
 
   container.innerHTML = AppState.patients.map((p) => {
+    // --- 🧠 LOGIQUE DE THÉMATISATION (DEMANDE CLIENTE) ---
+    const isMaman = p.categorie_service === 'MAMAN_BEBE';
+    const isPremium = p.formule === 'Premium';
+
+    // 1. Couleurs et icônes selon la catégorie
+    const themeColorClass = isMaman ? 'border-pink-200' : 'border-emerald-100';
+    const badgeColorClass = isMaman ? 'bg-pink-100 text-pink-600' : 'bg-emerald-50 text-emerald-600';
+    const categoryIcon = isMaman ? '🍼' : '👴';
+    const categoryLabel = isMaman ? 'Maman & Bébé' : 'Dossier Sénior';
+
+    // 2. Style Premium (Bordure Gold)
+    const premiumCardClass = isPremium ? 'border-2 border-amber-300 shadow-[0_10px_30px_rgba(212,175,55,0.1)] bg-[#FFFEFA]' : 'border-slate-100 bg-white';
+
+    // --- 📐 LOGIQUE TECHNIQUE EXISTANTE ---
     const initials = p.nom_complet.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
-    
-    // 🏠 LOGIQUE GPS : On vérifie si le domicile est déjà enregistré
     const hasGps = p.lat && p.lng;
-    
-    // 🔐 DROITS : Seuls le Coordinateur et l'Aidant peuvent fixer le GPS
     const canManageGps = (userRole === 'COORDINATEUR' || userRole === 'AIDANT');
 
     return `
-        <div class="patient-card animate-fadeIn group">
+        <div class="patient-card animate-fadeIn group ${premiumCardClass}">
             <div class="flex items-start justify-between mb-6">
                 <div class="flex items-center gap-4">
-                    <!-- Avatar avec indicateur GPS (Vert si fixé, Gris si manquant) -->
+                    <!-- Avatar avec indicateur GPS et thème dynamique -->
                     <div class="relative">
-                        <div class="w-14 h-14 bg-white rounded-[1.5rem] flex items-center justify-center text-slate-400 font-[900] text-lg border-2 border-slate-50 shadow-inner group-hover:border-green-100 transition-colors">
+                        <div class="w-14 h-14 bg-white rounded-[1.5rem] flex items-center justify-center text-slate-400 font-[900] text-lg border-2 ${themeColorClass} shadow-inner group-hover:border-amber-400 transition-colors">
                             ${initials}
                         </div>
                         <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-4 border-white ${hasGps ? 'bg-emerald-500' : 'bg-slate-300'} shadow-sm" title="${hasGps ? 'Domicile fixé' : 'GPS Manquant'}"></div>
                     </div>
 
                     <div>
-                        <h4 class="font-black text-slate-800 text-sm uppercase leading-none">${p.nom_complet}</h4>
-                        <div class="flex items-center gap-2 mt-2">
-                             <span class="status-pill ${p.formule === 'Premium' ? 'bg-purple-50 text-purple-600' : 'bg-green-50 text-green-600'}">${p.formule}</span>
-                             <span class="text-[10px] font-bold text-slate-400 truncate max-w-[120px]"><i class="fa-solid fa-map-pin mr-1"></i>${p.adresse || 'Cotonou'}</span>
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-black text-slate-800 text-sm uppercase leading-none">${p.nom_complet}</h4>
+                            ${isPremium ? '<i class="fa-solid fa-crown text-[10px] text-amber-500 animate-bounce"></i>' : ''}
                         </div>
+                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                             <!-- Badge Formule (Gold si Premium) -->
+                             <span class="status-pill ${isPremium ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}">${p.formule}</span>
+                             <!-- Badge Catégorie (Nouveau) -->
+                             <span class="status-pill ${badgeColorClass}">${categoryIcon} ${categoryLabel}</span>
+                        </div>
+                        <p class="text-[10px] font-bold text-slate-400 mt-2"><i class="fa-solid fa-map-pin mr-1"></i>${p.adresse || 'Cotonou'}</p>
                     </div>
                 </div>
 
@@ -80,7 +96,7 @@ export function renderPatients() {
                         </button>
                     ` : ''}
 
-                    <button onclick="window.viewPatientFeed('${p.id}')" class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                    <button onclick="window.viewPatientFeed('${p.id}')" class="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all hover:bg-green-600">
                         <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>
@@ -89,8 +105,8 @@ export function renderPatients() {
             <div class="flex items-center justify-between pt-4 border-t border-slate-50">
                  <div class="flex items-center gap-2">
                      <div class="flex -space-x-2">
-                        <div class="w-6 h-6 rounded-full border-2 border-white bg-blue-500 text-[8px] flex items-center justify-center text-white font-bold">F</div>
-                        <div class="w-6 h-6 rounded-full border-2 border-white bg-emerald-500 text-[8px] flex items-center justify-center text-white font-bold">A</div>
+                        <div class="w-6 h-6 rounded-full border-2 border-white bg-blue-500 text-[8px] flex items-center justify-center text-white font-bold" title="Compte Famille">F</div>
+                        <div class="w-6 h-6 rounded-full border-2 border-white bg-emerald-500 text-[8px] flex items-center justify-center text-white font-bold" title="Aidant Assigné">A</div>
                      </div>
                      <p class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">
                         Famille : <span class="text-slate-700">${p.famille ? p.famille.nom : 'Non liée'}</span>
@@ -108,7 +124,6 @@ export function renderPatients() {
     `;
   }).join("");
 }
-
 
 
 /**
