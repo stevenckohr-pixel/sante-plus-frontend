@@ -455,11 +455,15 @@ function prevAuthStep() {
 }
 
 async function submitRegistration() {
-    if(!registrationData.formule) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
+    // ✅ CORRECTION : On vérifie 'type_pack' au lieu de 'formule'
+    if(!registrationData.type_pack) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
+    
+    // On s'assure de copier 'type_pack' dans 'formule' pour que le backend le comprenne sans erreur
+    registrationData.formule = registrationData.type_pack;
 
     registrationData.email = registrationData.email.trim().toLowerCase();
 
-    Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, customClass: { popup: 'rounded-[2.5rem]' } });
 
     try {
         const res = await fetch(`${CONFIG.API_URL}/auth/register-family-patient`, {
