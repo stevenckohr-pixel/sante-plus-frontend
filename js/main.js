@@ -1057,6 +1057,7 @@ window.openAssignModal = Planning.openAssignModal;
 window.openOrderModal = Commandes.openOrderModal;
 window.loadPlanning = Planning.loadPlanning; 
 window.loadCommandes = Commandes.loadCommandes;
+window.openMissionBriefing = Planning.openMissionBriefing;
 
 
 
