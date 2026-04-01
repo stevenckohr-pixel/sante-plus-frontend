@@ -1069,6 +1069,10 @@ window.loadRegistrations = Admin.loadRegistrations;
 window.confirmActivation = Admin.confirmActivation;
 window.fetchStats = Dashboard.fetchStats;
 window.openOrderModal = Commandes.openOrderModal; 
+window.openActivationPage = Admin.openActivationPage;
+window.processValidation = Admin.processValidation;
+
+
 
 
 
