@@ -10,6 +10,8 @@ import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
 import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
+import * as Planning from "./modules/planning.js";
+
 
 /* --- DONNÉES ONBOARDING PREMIUM AVEC IMAGES --- */
 const ONBOARDING_STEPS =[
