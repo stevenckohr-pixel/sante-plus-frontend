@@ -130,7 +130,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 1. MODE CONNEXION (Centré verticalement, sans scroll)
     if (mode === 'login') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-4 animate-slideIn  flex flex-col justify-center min-h-full">
+            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
                 <div class="relative group">
                     <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="email" type="email" class="app-input !pl-12" placeholder="Adresse email" value="${registrationData.email || ''}">
@@ -147,7 +147,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 2. MODE ADMISSION (Scrollable uniquement si nécessaire, bouton en bas)
     else if (mode === 'register') {
         dynamicContent = `
-            <div class="px-8 pb-6 animate-slideIn  flex flex-col h-full">
+            <div class="px-8 pb-6 animate-fadeIn flex flex-col h-full">
                 <div class="flex-1 overflow-y-auto custom-scroll pr-2 pb-4">
                     ${getStepHTML()}
                 </div>
@@ -162,7 +162,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 3. 🔒 MODE OTP (Centré, sans scroll)
     else if (mode === 'otp') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-6 animate-slideIn  flex flex-col justify-center min-h-full text-center">
+            <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
                 <div class="w-16 h-16 mx-auto bg-amber-50 border-4 border-white shadow-xl text-amber-500 rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
                     <i class="fa-solid fa-lock"></i>
                 </div>
@@ -248,7 +248,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 </div>
 
                 <!-- TABS DE BASCULE -->
-                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-slideIn " style="display: ${mode !== 'otp' ? 'block' : 'none'}">
+                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
                     <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
                         <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                             Connexion
@@ -511,7 +511,7 @@ function renderMobileHub() {
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     container.innerHTML = `
-        <div class="animate-slideIn  pb-10">
+        <div class="animate-fadeIn pb-10">
             <!-- Header de bienvenue style Pinterest -->
             <div class="flex items-center justify-between mb-8">
                 <div>
@@ -767,49 +767,73 @@ window.switchView = async (viewName) => {
   try {
       switch (viewName) {
         case "dashboard": 
+            container.innerHTML = document.getElementById("template-dashboard").innerHTML;
             await Dashboard.loadAdminDashboard(); 
             break;
 
         case "map": 
+            // MapModule gère lui-même son innerHTML dans sa fonction initLiveMap, on l'appelle directement
             await MapModule.initLiveMap(); 
             break;
 
         case "patients": 
             container.innerHTML = `
-                <div class="flex justify-between items-center mb-8 animate-slideIn pb-32">
-                    <div>
-                        <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
-                        <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
+                <div class="animate-slideIn pb-32">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
+                            <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
+                        </div>
+                        ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
                     </div>
-                    ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl"><i class="fa-solid fa-plus"></i></button>` : ""}
-                </div>
-                <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div>`;
+                    <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                </div>`;
             await Patients.loadPatients(); 
             break;
 
         case "visits": 
             // 🚨 FIX : Injecter le template AVANT de charger les données
-            container.innerHTML = document.getElementById("template-visits").innerHTML;
+            container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
             await Visites.loadVisits(); 
             break;
 
         case "feed": 
             if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
+            // Messages.loadFeed s'occupe de l'injection HTML, on l'appelle direct
             await Messages.loadFeed(); 
             break;
 
         case "billing": 
             // 🚨 FIX : Injecter le template AVANT de charger les données
-            container.innerHTML = document.getElementById("template-billing").innerHTML;
+            container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
             await Billing.loadBilling(); 
             break;
 
         case "aidants": 
+            // La vue aidants n'a pas de template, on doit gérer son HTML ici
+            container.innerHTML = `
+                <div class="animate-slideIn pb-32">
+                     <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
+                            <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
+                        </div>
+                        ${userRole === 'COORDINATEUR' ? `
+                            <button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center">
+                                <i class="fa-solid fa-user-plus text-lg"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                    <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+                    </div>
+                </div>`;
             await Aidants.loadAidants(); 
             break;
 
         case "commandes": 
-            container.innerHTML = document.getElementById("template-commandes").innerHTML;
+            // 🚨 FIX : Injecter le template AVANT de charger les données
+            container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-commandes").innerHTML + `</div>`;
             await Commandes.loadCommandes(); 
             break;
 
@@ -817,12 +841,17 @@ window.switchView = async (viewName) => {
         case "link-family": await Patients.renderLinkFamilyView(); break;
         case "add-aidant": await Aidants.renderAddAidantView(); break;
         case "end-visit": await Visites.renderEndVisitView(); break;
-        case "home": renderMobileHub(); break;
+        
+        case "home": 
+             // On s'assure que le contenu du hub mobile s'affiche bien
+             container.innerHTML = document.getElementById("template-home").innerHTML;
+             renderMobileHub(); 
+             break;
       }
   } catch (err) {
       console.error("DEBUG VIEW ERROR:", err);
       container.innerHTML = `
-        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-slideIn pb-32">
+        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
             <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
             <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
             <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
@@ -866,8 +895,8 @@ function renderOnboarding() {
     const isLast = onboardingStep === ONBOARDING_STEPS.length - 1;
 
     app.innerHTML = `
-        <div class="absolute inset-0 z-[10000] animate-slideIn  font-sans bg-white flex flex-col">
-            <div class="onboarding-image-container animate-slideIn ">
+        <div class="absolute inset-0 z-[10000] animate-fadeIn font-sans bg-white flex flex-col">
+            <div class="onboarding-image-container animate-fadeIn">
                 <img src="${step.image}" class="onboarding-img shadow-2xl">
                 <div class="onboarding-image-blur"></div>
                 ${!isLast ? `
@@ -947,7 +976,7 @@ window.viewPatientFeed = async (id) => {
         if (titleElement) titleElement.innerText = "Briefing Patient";
         
         document.getElementById("view-container").innerHTML = `
-            <div class="flex justify-center p-20 animate-slideIn ">
+            <div class="flex justify-center p-20 animate-fadeIn">
                 <i class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-200"></i>
             </div>`;
         
