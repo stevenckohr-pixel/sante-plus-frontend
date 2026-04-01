@@ -930,7 +930,7 @@ window.submitRegistration = submitRegistration;
 window.startOnboarding = startOnboarding;
 window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
-window.setPatientHomeDirect = (id) => window.setPatientHomeDirect(id);
+window.setPatientHomeDirect = Patients.setPatientHomeDirect;
 
 
 initApp();
