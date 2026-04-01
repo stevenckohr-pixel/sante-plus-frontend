@@ -1007,7 +1007,6 @@ window.openLinkFamilyModal = (id, name) => {
 
 // Modales restantes (à transformer bientôt)
 window.openAddAidantModal = Aidants.openAddAidantModal;
-window.openOrderModal = Commandes.openOrderModal;
 window.markAsDelivered = Commandes.markAsDelivered;
 
 
