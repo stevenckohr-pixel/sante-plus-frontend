@@ -118,18 +118,21 @@ async function initApp() {
 /**
  * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Login + Admission + OTP In-Card)
  */
+/**
+ * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Optimisé UX)
+ */
 function renderAuthView(mode = 'login', stepSource = 1) {
     const app = document.getElementById("app");
     currentStep = typeof stepSource === 'number' ? stepSource : 1; 
-    const otpEmail = mode === 'otp' ? stepSource : null; // Si c'est OTP, on passe l'email ici
+    const otpEmail = mode === 'otp' ? stepSource : null;
 
     let dynamicContent = "";
-    let stepTitle = mode === 'login' ? "Espace Sécurisé" : (mode === 'otp' ? "Sécurité Avancée" : `Étape ${currentStep} / 4`);
+    let stepTitle = mode === 'login' ? "Espace Sécurisé" : (mode === 'otp' ? "Sécurité Avancée" : `Étape ${currentStep} / 6`);
 
-    // 1. MODE CONNEXION
+    // 1. MODE CONNEXION (Centré verticalement, sans scroll)
     if (mode === 'login') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center h-full mt-4">
+            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
                 <div class="relative group">
                     <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="email" type="email" class="app-input !pl-12" placeholder="Adresse email" value="${registrationData.email || ''}">
@@ -138,75 +141,116 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     <i class="fa-solid fa-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="password" type="password" class="app-input !pl-12" placeholder="Code d'accès">
                 </div>
-                <button onclick="window.login()" id="btn-login" class="w-full mt-2 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
+                <button onclick="window.login()" id="btn-login" class="w-full mt-4 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
                     Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
                 </button>
             </div>`;
     } 
-    // 2. MODE ADMISSION (Formulaire par étapes)
+    // 2. MODE ADMISSION (Scrollable uniquement si nécessaire, bouton en bas)
     else if (mode === 'register') {
         dynamicContent = `
-            <div class="px-8 pb-4 animate-fadeIn flex flex-col min-h-full">
-                <div class="mb-auto">
+            <div class="px-8 pb-6 animate-fadeIn flex flex-col h-full">
+                <div class="flex-1 overflow-y-auto custom-scroll pr-2 pb-4">
                     ${getStepHTML()}
                 </div>
-                <div class="flex gap-3 mt-6 shrink-0">
-                    ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-[1.25rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
-                    <button onclick="window.nextAuthStep()" class="flex-1 bg-green-600 text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-green-200 active:scale-95 transition-all">
-                        ${currentStep === 4 ? 'Finaliser' : 'Suivant'}
+                <div class="flex gap-3 pt-4 border-t border-slate-50 shrink-0 mt-auto">
+                    ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-[1.25rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all hover:bg-slate-200"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
+                    <button onclick="window.nextAuthStep()" class="flex-1 bg-emerald-500 text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-emerald-200 active:scale-95 transition-all hover:bg-emerald-600">
+                        ${currentStep === 6 ? 'Valider le dossier' : 'Étape Suivante'}
                     </button>
                 </div>
             </div>`;
     }
-    // 3. 🔒 MODE OTP (Nouveau design)
+    // 3. 🔒 MODE OTP (Centré, sans scroll)
     else if (mode === 'otp') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center h-full text-center">
-                <div class="w-20 h-20 mx-auto bg-amber-50 border-4 border-white shadow-xl text-amber-500 rounded-[2rem] flex items-center justify-center text-3xl mb-2">
+            <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
+                <div class="w-16 h-16 mx-auto bg-amber-50 border-4 border-white shadow-xl text-amber-500 rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div>
-                    <h3 class="text-xl font-[900] text-slate-800 tracking-tight">Code de vérification</h3>
-                    <p class="text-xs text-slate-500 font-medium mt-2 leading-relaxed">Saisissez le code à 6 chiffres envoyé à <br><b class="text-slate-800">${otpEmail}</b></p>
+                    <h3 class="text-xl font-[900] text-slate-800 tracking-tight">Vérification Requise</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-2 leading-relaxed">Code à 6 chiffres envoyé à <br><b class="text-slate-800">${otpEmail}</b></p>
                 </div>
                 
-                <div class="pt-4">
-                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-5 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-amber-400 transition-all text-3xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
+                <div class="pt-2">
+                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-amber-400 transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
                 </div>
                 
-                <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-4 bg-slate-900 text-white py-5 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
-                    Vérifier le code <i class="fa-solid fa-shield-check"></i>
+                <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-2 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-800">
+                    Vérifier l'identité <i class="fa-solid fa-shield-check"></i>
                 </button>
                 
-                <button onclick="window.renderAuthView('login')" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4 hover:text-slate-700 transition-colors">
-                    <i class="fa-solid fa-arrow-left mr-1"></i> Annuler
+                <button onclick="window.renderAuthView('login')" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 hover:text-slate-700 transition-colors">
+                    Annuler la connexion
                 </button>
             </div>`;
     }
 
-    // 🚀 LE CONTENEUR PRINCIPAL
-    app.innerHTML = `
-    <div class="fixed inset-0 w-full h-[100dvh] flex items-center justify-center bg-[#F8FAFC] p-4 lg:p-8 z-50">
+    // 🚀 INJECTION DU CONTENEUR UNIQUEMENT SI NÉCESSAIRE (Évite le flash)
+    // On vérifie si la carte d'auth existe déjà pour ne remplacer QUE l'intérieur
+    const existingCard = document.getElementById("auth-card-content");
+
+    if (existingCard) {
+        // La carte est déjà là, on met juste à jour le contenu (Transition fluide)
+        document.getElementById("auth-step-title").innerText = stepTitle;
         
-        <!-- Blobs animés -->
-        <div class="absolute -top-20 -left-20 w-96 h-96 bg-green-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
-        <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
+        // Mise à jour des boutons de l'onglet
+        const tabContainer = document.getElementById("auth-tabs");
+        if (tabContainer && mode !== 'otp') {
+            tabContainer.style.display = "block";
+            tabContainer.innerHTML = `
+                <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
+                    <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                        Connexion
+                    </button>
+                    <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                        Admission
+                    </button>
+                </div>`;
+        } else if (tabContainer) {
+            tabContainer.style.display = "none";
+        }
 
-        <!-- 💎 LA CARTE FIXE -->
-        <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[620px] max-h-[85dvh]">
+        // Mise à jour de la jauge
+        const progressContainer = document.getElementById("auth-progress");
+        if (progressContainer) {
+            if (mode === 'register') {
+                progressContainer.style.display = "block";
+                progressContainer.innerHTML = `
+                    <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
+                    </div>`;
+            } else {
+                progressContainer.style.display = "none";
+            }
+        }
+
+        // Injection du nouveau formulaire
+        existingCard.innerHTML = dynamicContent;
+    } else {
+        // Premier chargement de la page : on construit toute la structure
+        app.innerHTML = `
+        <div class="fixed inset-0 w-full h-[100dvh] flex items-center justify-center bg-[#F8FAFC] p-4 lg:p-8 z-50">
             
-            <!-- HEADER FIXE -->
-            <div class="shrink-0 text-center pt-8 pb-4">
-                <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
-                    <i class="fa-solid fa-heart-pulse"></i>
-                </div>
-                <h1 class="text-xl font-[900] text-slate-900 tracking-tight leading-none">Santé Plus</h1>
-                <p class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
-            </div>
+            <!-- Blobs animés en fond -->
+            <div class="absolute -top-20 -left-20 w-96 h-96 bg-emerald-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
+            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
 
-            <!-- TABS DE BASCULE (Cachées en mode OTP) -->
-            ${mode !== 'otp' ? `
-                <div class="shrink-0 px-8 mb-4 animate-fadeIn">
+            <!-- 💎 LA CARTE FIXE (Hauteur définie pour éviter les sauts) -->
+            <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
+                
+                <!-- HEADER FIXE -->
+                <div class="shrink-0 text-center pt-8 pb-4">
+                    <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
+                        <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-8 h-8 object-contain invert">
+                    </div>
+                    <h1 class="text-xl font-[900] text-slate-900 tracking-tight leading-none uppercase">Santé Plus</h1>
+                    <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
+                </div>
+
+                <!-- TABS DE BASCULE -->
+                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
                     <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
                         <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                             Connexion
@@ -216,31 +260,31 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                         </button>
                     </div>
                 </div>
-            ` : ''}
 
-            <!-- JAUGE DE PROGRESSION -->
-            ${mode === 'register' ? `
-                <div class="shrink-0 px-8 mb-4">
+                <!-- JAUGE DE PROGRESSION -->
+                <div id="auth-progress" class="shrink-0 px-8 mb-2" style="display: ${mode === 'register' ? 'block' : 'none'}">
                     <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-green-500 transition-all duration-300" style="width: ${(currentStep/4)*100}%"></div>
+                        <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
                     </div>
                 </div>
-            ` : ''}
 
-            <!-- ZONE DE CONTENU SCROLLABLE -->
-            <div class="flex-1 overflow-y-auto custom-scroll relative">
-                ${dynamicContent}
-            </div>
+                <!-- 🔄 ZONE DE CONTENU DYNAMIQUE -->
+                <div id="auth-card-content" class="flex-1 flex flex-col relative overflow-hidden">
+                    ${dynamicContent}
+                </div>
 
-            <!-- FOOTER FIXE -->
-            <div class="shrink-0 bg-slate-50/50 py-4 px-8 border-t border-slate-100 flex items-center justify-between mt-auto">
-                <span class="text-[8px] text-slate-400 font-[800] uppercase tracking-widest">© 2026 SPS Elite</span>
-                <span class="text-[8px] text-green-500 font-[800] uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-shield-check"></i> Sécurisé</span>
+                <!-- FOOTER FIXE -->
+                <div class="shrink-0 bg-slate-50/50 py-4 px-8 border-t border-slate-100 flex items-center justify-between mt-auto">
+                    <span class="text-[8px] text-slate-400 font-[800] uppercase tracking-widest">© 2026 SPS Elite</span>
+                    <span class="text-[8px] text-emerald-500 font-[800] uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-shield-check"></i> Sécurisé</span>
+                </div>
+                
             </div>
-            
-        </div>
-    </div>`;
+        </div>`;
+    }
 }
+
+
 
 /**
  * 📦 MINI-VUES DE L'INSCRIPTION IN-CARD
