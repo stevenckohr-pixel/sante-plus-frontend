@@ -2,16 +2,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
+    /* Couleurs de base & Structure */
     --sidebar-bg: #0F172A;      /* Bleu nuit pro (SaaS) */
-    --accent-green: #10B981;    /* Vert émeraude moderne */
-    --green-soft: #16a34a;
-    --accent-blue: #3B82F6;
-    --rose-500: #F43F5E;
     --slate-50: #F8FAFC;
     --slate-100: #F1F5F9;
     --slate-200: #E2E8F0;
     --slate-400: #94A3B8;
     --slate-900: #0F172A;
+    --white-pure: #FFFFFF;
+    
+    /* Branding Santé Plus (Demande Cliente) */
+    --accent-green: #10B981;    /* Vert émeraude doux */
+    --green-soft: #16a34a;
+    --accent-blue: #3B82F6;
+    --rose-500: #F43F5E;
+    --gold-premium: #D4AF37;    /* Or (Gold) pour le côté Élite */
+    
+    /* Couleurs spécifiques Maman & Bébé */
+    --pink-soft: #FDF2F8;
+    --pink-text: #DB2777;
+    --blue-baby: #EFF6FF;
+
+    /* Arrondis */
     --radius-xl: 2.5rem;
     --radius-lg: 1.5rem;
 }
@@ -186,6 +198,19 @@ main {
     transform: translateY(-5px);
     box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.07);
     border-color: var(--accent-green);
+}
+
+/* Style pour les cartes "Premium" avec bordure dorée */
+.patient-card.premium {
+    border: 2px solid var(--gold-premium);
+    background: linear-gradient(to bottom right, #ffffff, #fffdfa);
+}
+
+/* Badge spécifique Maman & Bébé */
+.badge-maman {
+    background-color: var(--pink-soft);
+    color: var(--pink-text);
+    border: 1px solid #FCE7F3;
 }
 
 .app-input {
