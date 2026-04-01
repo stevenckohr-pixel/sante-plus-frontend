@@ -275,11 +275,11 @@ export function renderVisits() {
 
   container.innerHTML = AppState.visites
     .map((v) => {
-      const isPending = v.statut_validation === "En attente";
+      const isPending =  v.statut === "En attente";
       const statusColor =
-        v.statut_validation === "Validé"
+         v.statut === "Validé"
           ? "text-green-500"
-          : v.statut_validation === "Rejeté"
+          :  v.statut === "Rejeté"
             ? "text-red-500"
             : "text-orange-500";
 
@@ -290,7 +290,7 @@ export function renderVisits() {
                         <h4 class="font-black text-slate-800 uppercase text-xs">${v.patient.nom_complet}</h4>
                         <p class="text-[10px] text-slate-400">${UI.formatDate(v.heure_debut)}</p>
                     </div>
-                    <span class="text-[9px] font-black uppercase ${statusColor}">${v.statut_validation}</span>
+                    <span class="text-[9px] font-black uppercase ${statusColor}">${ v.statut}</span>
                 </div>
                 
                 ${v.photo_url ? `<img src="${v.photo_url}" class="w-full h-32 object-cover rounded-2xl mb-3 shadow-inner">` : ""}
