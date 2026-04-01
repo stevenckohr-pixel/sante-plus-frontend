@@ -97,7 +97,14 @@ export async function verifyOTP(email) {
     }
 }
 
+
+
+
+
 export function handleLogout() {
-  localStorage.clear();
+  localStorage.removeItem("token");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("user_name");
+  localStorage.removeItem("user_email");
   window.location.reload();
 }
