@@ -802,6 +802,12 @@ window.switchView = async (viewName) => {
                     <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                 </div>`;
             await Patients.loadPatients(); 
+                if (localStorage.getItem("active_visit_id")) {
+                    // Si une visite est en cours, force la mise à jour visuelle du bouton
+                    if (typeof Visites.refreshAidantUI === 'function') {
+                        Visites.refreshAidantUI(AppState.currentPatient);
+                    }
+                }
             break;
 
         case "visits": 
