@@ -742,8 +742,16 @@ window.switchView = async (viewName) => {
         case "home": renderMobileHub(); break;
       }
   } catch (err) {
-      container.innerHTML = `<div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm"><i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i><p class="text-sm font-black text-slate-800 uppercase">Erreur de liaison</p><p class="text-xs text-slate-400 mt-2">${err.message}</p></div>`;
-  }
+      console.error("DEBUG VIEW ERROR:", err);
+      container.innerHTML = `
+        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm">
+            <h3 class="text-rose-500 font-black text-lg">ERREUR DE CHARGEMENT</h3>
+            <p class="text-xs text-slate-500 mt-2">Message : ${err.message}</p>
+            <div class="mt-4 p-4 bg-slate-900 text-green-400 text-[10px] text-left rounded-xl overflow-x-auto">
+                ${err.stack.replace(/\n/g, '<br>')}
+            </div>
+        </div>`;
+      }
 };
 
 window.openProfileMenu = () => {
