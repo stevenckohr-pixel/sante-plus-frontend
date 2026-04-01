@@ -1067,7 +1067,9 @@ window.loadCommandes = Commandes.loadCommandes;
 window.openMissionBriefing = Planning.openMissionBriefing;
 window.loadRegistrations = Admin.loadRegistrations;
 window.confirmActivation = Admin.confirmActivation;
-window.fetchStats = Dashboard.fetchStats; 
+window.fetchStats = Dashboard.fetchStats;
+window.openOrderModal = Commandes.openOrderModal; 
+
 
 
 initApp();
