@@ -16,7 +16,8 @@ export async function loadPatients() {
     AppState.patients = data;
     renderPatients();
   } catch (err) {
-    container.innerHTML = `<p class="text-red-500 text-center">Erreur: ${err.message}</p>`;
+    container.innerHTML = `<p class="text-rose-500 text-center p-10 font-bold">Erreur: ${err.message}</p>`;
+    throw err; 
   }
 }
 
