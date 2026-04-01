@@ -9,7 +9,7 @@ export async function loadRegistrations() {
     if (!tableBody) return;
 
     try {
-        const res = await secureFetch('/admin/pending-registrations');
+         const res = await secureFetch('/api/admin/pending-registrations');
         const pending = await res.json();
 
         if (pending.length === 0) {
