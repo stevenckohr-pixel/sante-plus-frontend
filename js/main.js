@@ -502,10 +502,13 @@ function renderMobileHub() {
     const userName = localStorage.getItem("user_name");
     const container = document.getElementById("view-container");
     
-    // Définition des blocs selon le rôle
     const menuItems = [
         { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', roles: ['COORDINATEUR'] },
         { id: 'patients', label: 'Dossiers', desc: 'Gestion Clients', icon: 'fa-hospital-user', color: 'text-emerald-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        
+        { id: 'planning', label: 'Planning', desc: 'Mon Agenda', icon: 'fa-calendar-days', color: 'text-purple-500', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'commandes', label: 'Pharmacie', desc: 'Médicaments', icon: 'fa-pills', color: 'text-cyan-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+
         { id: 'visits', label: 'Visites', desc: 'Interventions', icon: 'fa-calendar-check', color: 'text-blue-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'feed', label: 'Journal', desc: 'Live Feed', icon: 'fa-rss', color: 'text-orange-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', roles: ['COORDINATEUR', 'FAMILLE'] },
@@ -698,6 +701,10 @@ function getNavLinks(role, mode) {
         { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR'] }, 
         { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles:['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles:['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        
+        { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'commandes', icon: 'fa-pills', label: 'Pharmacie', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+
         { id: 'feed', icon: 'fa-rss', label: 'Feed', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles:['COORDINATEUR', 'FAMILLE'] },
         { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] }
@@ -835,11 +842,26 @@ window.switchView = async (viewName) => {
             await Aidants.loadAidants(); 
             break;
 
-        case "commandes": 
-            // 🚨 FIX : Injecter le template AVANT de charger les données
-            container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-commandes").innerHTML + `</div>`;
-            await Commandes.loadCommandes(); 
-            break;
+            case "commandes": 
+                container.innerHTML = `
+                    <div class="animate-slideIn pb-32">
+                        <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Suivi des médicaments</p>
+                            </div>
+                            <!-- 🚀 BOUTON POUR COMMANDER (Uniquement pour la Famille) -->
+                            ${userRole === "FAMILLE" ? `
+                                <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>` : ""}
+                        </div>
+                        <div id="commandes-list" class="space-y-4">
+                             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+                        </div>
+                    </div>`;
+                await Commandes.loadCommandes(); 
+                break;
 
         case "add-patient": await Patients.renderAddPatientView(); break;
         case "link-family": await Patients.renderLinkFamilyView(); break;
