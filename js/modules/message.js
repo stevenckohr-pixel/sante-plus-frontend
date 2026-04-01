@@ -115,45 +115,88 @@ function renderStoryCard(msg) {
     let content = msg.content;
     let humeurBadge = "";
 
+    // --- 🧠 DÉCODAGE DE L'HUMEUR (Logique métier) ---
     if (!isPhoto && content.includes('|')) {
         const [humeur, notes] = content.split('|');
-        const emojis = { "Très Joyeux": "😊", "Calme": "😐", "Fatigué": "😴", "Triste": "😔" };
-        humeurBadge = `<div class="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm border border-slate-100 flex items-center gap-2"><span class="text-xs">${emojis[humeur] || '✨'}</span><span class="text-[9px] font-black uppercase text-slate-700">${humeur}</span></div>`;
+        const emojis = { 
+            "Très Joyeux": "😊", 
+            "Calme": "😐", 
+            "Fatigué": "😴", 
+            "Triste": "😔" 
+        };
+        // Design du badge : Blanc translucide avec bordure Or (Amber)
+        humeurBadge = `
+            <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-3 animate-fadeIn">
+                <span class="text-lg">${emojis[humeur] || '✨'}</span>
+                <div class="flex flex-col">
+                    <span class="text-[8px] font-black text-amber-600 uppercase tracking-widest">Humeur du proche</span>
+                    <span class="text-[10px] font-black text-slate-800 uppercase">${humeur}</span>
+                </div>
+            </div>`;
         content = notes;
     }
 
+    // --- 🎨 STYLE SELON LE RÔLE ---
+    const isAidant = msg.sender_role === 'AIDANT';
+    const roleColorClass = isAidant ? 'text-emerald-500' : 'text-blue-500';
+    const avatarBg = isAidant ? 'bg-slate-900' : 'bg-blue-600';
+
     return `
-        <div class="feed-card bg-white rounded-[2.5rem] p-5 shadow-sm border border-slate-50 animate-fadeIn">
-            <div class="flex justify-between items-center mb-5">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shadow-lg">${msg.sender_name.charAt(0)}</div>
+        <div class="feed-card bg-white rounded-[3rem] p-6 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-slate-50 animate-fadeIn mb-10">
+            
+            <!-- HEADER : Identité de l'expéditeur -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-11 h-11 rounded-[1.2rem] ${avatarBg} text-white flex items-center justify-center text-xs font-black shadow-lg">
+                        ${msg.sender_name.charAt(0).toUpperCase()}
+                    </div>
                     <div>
-                        <h4 class="text-[11px] font-black text-slate-800 uppercase leading-none">${msg.sender_name}</h4>
-                        <p class="text-[8px] font-bold text-green-600 uppercase tracking-widest mt-1">${msg.sender_role}</p>
+                        <h4 class="text-xs font-black text-slate-800 uppercase tracking-tight">${msg.sender_name}</h4>
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <p class="text-[9px] font-bold ${roleColorClass} uppercase tracking-[0.2em]">${msg.sender_role}</p>
+                        </div>
                     </div>
                 </div>
-                <span class="text-[9px] font-bold text-slate-300 italic">${UI.formatDate(msg.created_at)}</span>
+                <div class="text-right">
+                    <span class="text-[10px] font-black text-slate-300 uppercase">${UI.formatDate(msg.created_at)}</span>
+                </div>
             </div>
 
+            <!-- CONTENU : Photo Polaroid ou Message Texte -->
             ${isPhoto ? `
-                <div class="relative group rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white mb-2">
-                    <img src="${msg.content}" class="w-full h-80 object-cover hover:scale-105 transition-transform duration-700 cursor-pointer" onclick="window.open('${msg.content}')">
-                    <div class="absolute bottom-4 left-4">${humeurBadge}</div>
+                <div class="relative group rounded-[2.5rem] overflow-hidden shadow-2xl border-[6px] border-white ring-1 ring-slate-100">
+                    <img src="${msg.content}" class="w-full h-96 object-cover hover:scale-105 transition-transform duration-1000 cursor-pointer" onclick="window.open('${msg.content}')">
+                    
+                    <!-- Badge de Certification Or (Gold) -->
+                    <div class="absolute top-4 right-4 bg-slate-900/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 flex items-center gap-2">
+                        <i class="fa-solid fa-certificate text-amber-400 text-[10px]"></i>
+                        <span class="text-[8px] font-black text-white uppercase tracking-widest">Rapport Certifié</span>
+                    </div>
+
+                    ${humeurBadge}
                 </div>
             ` : `
-                <div class="bg-slate-50/50 p-6 rounded-[2.2rem] border border-slate-100 italic text-slate-600 text-sm leading-relaxed relative">
-                    <i class="fa-solid fa-quote-left absolute top-4 left-4 text-slate-100 text-3xl"></i>
-                    <span class="relative z-10">"${content}"</span>
+                <div class="bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 italic text-slate-600 text-sm leading-relaxed relative overflow-hidden">
+                    <i class="fa-solid fa-quote-left absolute -top-2 -left-2 text-slate-200/50 text-6xl"></i>
+                    <span class="relative z-10 font-medium">"${content}"</span>
                 </div>
             `}
 
-            <div class="flex items-center justify-between mt-5 pt-4 border-t border-slate-50">
-                <div class="flex gap-2">
-                    <button onclick="window.sendReaction('${msg.id}', 'coeur')" class="flex items-center gap-1.5 text-slate-400 hover:text-rose-500 transition-colors">
-                        <i class="fa-solid fa-heart"></i> <span class="text-[10px] font-black">${msg.reactions?.coeur || 0}</span>
+            <!-- FOOTER : Réactions Élite -->
+            <div class="flex items-center justify-between mt-6 pt-5 border-t border-slate-50">
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Réagir au rapport :</p>
+                <div class="flex gap-3">
+                    <button onclick="window.sendReaction('${msg.id}', 'coeur')" 
+                        class="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-500 rounded-full hover:bg-rose-500 hover:text-white transition-all active:scale-90 border border-rose-100">
+                        <i class="fa-solid fa-heart text-xs"></i> 
+                        <span class="text-[10px] font-black">${msg.reactions?.coeur || 0}</span>
                     </button>
-                    <button onclick="window.sendReaction('${msg.id}', 'merci')" class="flex items-center gap-1.5 text-slate-400 hover:text-blue-500 transition-colors">
-                        <i class="fa-solid fa-hands-praying"></i> <span class="text-[10px] font-black">${msg.reactions?.merci || 0}</span>
+                    
+                    <button onclick="window.sendReaction('${msg.id}', 'merci')" 
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-500 rounded-full hover:bg-blue-500 hover:text-white transition-all active:scale-90 border border-blue-100">
+                        <i class="fa-solid fa-hands-praying text-xs"></i> 
+                        <span class="text-[10px] font-black">${msg.reactions?.merci || 0}</span>
                     </button>
                 </div>
             </div>
