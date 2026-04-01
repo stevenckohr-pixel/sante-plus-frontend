@@ -1065,23 +1065,8 @@ window.openOrderModal = Commandes.openOrderModal;
 window.loadPlanning = Planning.loadPlanning; 
 window.loadCommandes = Commandes.loadCommandes;
 window.openMissionBriefing = Planning.openMissionBriefing;
-
+window.loadRegistrations = Admin.loadRegistrations;
 
 window.confirmActivation = async (id, email, nom, role) => {
-    const confirm = await Swal.fire({
-        title: "Activer ce compte ?",
-        text: `Envoyer les accès à ${nom} ?`,
-        icon: "question",
-        showCancelButton: true
-    });
 
-    if (confirm.isConfirmed) {
-        await secureFetch('/admin/validate-member', {
-            method: 'POST',
-            body: JSON.stringify({ user_id: id, email, nom, role })
-        });
-        loadRegistrations(); // Rafraîchit le tableau
-        Swal.fire("Activé", "Email envoyé au collaborateur.", "success");
-    }
-};
 initApp();
