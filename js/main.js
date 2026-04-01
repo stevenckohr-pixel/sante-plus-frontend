@@ -1051,6 +1051,12 @@ window.startOnboarding = startOnboarding;
 window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
 window.setPatientHomeDirect = Patients.setPatientHomeDirect;
+window.openAssignModal = Planning.openAssignModal;
+window.openOrderModal = Commandes.openOrderModal;
+window.loadPlanning = Planning.loadPlanning; 
+window.loadCommandes = Commandes.loadCommandes;
+
+
 
 
 initApp();
