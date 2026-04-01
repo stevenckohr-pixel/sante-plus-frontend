@@ -154,28 +154,7 @@ function renderMobileCard(req) {
     `;
 }
 
-// --- FONCTIONS DE DONNÉES ---
 
-async function loadRegistrations() {
-    const tableBody = document.getElementById('pending-table-body');
-    const mobileList = document.getElementById('pending-mobile-list');
-
-    try {
-        const res = await secureFetch('/admin/pending-registrations');
-        const pending = await res.json();
-
-        if (pending.length === 0) {
-            const emptyHTML = `<div class="p-20 text-center text-slate-300 italic text-sm">Tout est en ordre.</div>`;
-            tableBody.innerHTML = `<tr><td colspan="5">${emptyHTML}</td></tr>`;
-            mobileList.innerHTML = emptyHTML;
-            return;
-        }
-
-        tableBody.innerHTML = pending.map(req => renderTableRow(req)).join('');
-        mobileList.innerHTML = pending.map(req => renderMobileCard(req)).join('');
-
-    } catch (e) { console.error(e); }
-}
 
 async function fetchStats() {
     try {
