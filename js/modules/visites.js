@@ -216,7 +216,7 @@ export async function submitEndVisit() {
             confirmButtonText: "RETOUR AU PLANNING",
             customClass: { popup: 'rounded-[3rem]' }
         });
-
+        window.viewPatientFeed(AppState.currentPatient); 
         window.switchView("visits");
 
     } catch (err) {
