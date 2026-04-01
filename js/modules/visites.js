@@ -4,6 +4,30 @@ import { UI, compressImage } from "../core/utils.js";
 
 let geoWatchId = null;
 
+
+
+// Ajoute cette fonction tout en haut de ton fichier visites.js
+function getChecklistHTML(category) {
+    const tasks = category === 'MAMAN_BEBE' ? [
+        { label: 'Aide Organisation', icon: '✨' },
+        { label: 'Assistance Bébé', icon: '👶' },
+        { label: 'Repas légers', icon: '🍲' },
+        { label: 'Écoute / Soutien', icon: '🎧' }
+    ] : [
+        { label: 'Rappel Médocs', icon: '💊' },
+        { label: 'Prise Tension', icon: '🩺' },
+        { label: 'Aide Repas', icon: '🍲' },
+        { label: 'Courses / Logistique', icon: '🛒' }
+    ];
+
+    return tasks.map(t => `
+        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="${t.label}"> 
+            <span class="text-xs font-black text-slate-700 uppercase">${t.icon} ${t.label}</span>
+        </label>
+    `).join('');
+}
+
 export function refreshAidantUI(patientId) {
     const container = document.getElementById("aidant-active-area");
     if (!container) return;
@@ -65,9 +89,9 @@ export async function renderEndVisitView() {
                 
                 <!-- 1. ACTIVITÉS -->
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Tâches réalisées pour ${patient.nom_complet}</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Tâches réalisées</label>
                     <div class="grid grid-cols-2 gap-3">
-                        ${getChecklistHTML(patient.categorie_service)}
+                        ${getChecklistHTML(patient.categorie_service)} 
                     </div>
                 </div>
 
@@ -408,26 +432,6 @@ export function resumeTrackingIfActive() {
 
 
 
-function getChecklistHTML(category) {
-    const tasks = category === 'MAMAN_BEBE' ? [
-        { label: 'Aide Organisation', icon: '✨' },
-        { label: 'Assistance Bébé', icon: '👶' },
-        { label: 'Repas légers', icon: '🍲' },
-        { label: 'Écoute / Soutien', icon: '🎧' }
-    ] : [
-        { label: 'Rappel Médocs', icon: '💊' },
-        { label: 'Prise Tension', icon: '🩺' },
-        { label: 'Aide Repas', icon: '🍲' },
-        { label: 'Courses / Logistique', icon: '🛒' }
-    ];
-
-    return tasks.map(t => `
-        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
-            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="${t.label}"> 
-            <span class="text-xs font-black text-slate-700 uppercase">${t.icon} ${t.label}</span>
-        </label>
-    `).join('');
-}
 
 /**
  * 🏠 FIXER LE DOMICILE DU PATIENT (Elite Feature)
