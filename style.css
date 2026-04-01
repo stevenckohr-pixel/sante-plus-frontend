@@ -359,3 +359,31 @@ main {
 /* Custom SweetAlert */
 .swal2-popup { border-radius: 3.5rem !important; padding: 3rem !important; }
 .swal2-confirm { border-radius: 1.5rem !important; background: var(--slate-900) !important; font-weight: 800 !important; }
+
+
+
+/* --- ✨ ANIMATIONS AVANCÉES (Transitions de pages) --- */
+
+.animate-fadeIn { 
+    animation: fadeIn 0.4s cubic-bezier(0.2, 1, 0.2, 1) forwards; 
+}
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+/* La nouvelle animation "iOS Style" */
+.animate-slideIn {
+    animation: slideIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    opacity: 0; /* Commence caché */
+}
+@keyframes slideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(30px); /* Arrive de la droite */
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0); /* Se pose à sa place */
+    }
+}
