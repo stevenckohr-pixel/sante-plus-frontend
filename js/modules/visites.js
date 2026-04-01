@@ -6,19 +6,26 @@ let geoWatchId = null;
 
 
 
-// Ajoute cette fonction tout en haut de ton fichier visites.js
+// DANS frontend/js/modules/visites.js
+
 function getChecklistHTML(category) {
-    const tasks = category === 'MAMAN_BEBE' ? [
-        { label: 'Aide Organisation', icon: '✨' },
-        { label: 'Assistance Bébé', icon: '👶' },
-        { label: 'Repas légers', icon: '🍲' },
-        { label: 'Écoute / Soutien', icon: '🎧' }
-    ] : [
-        { label: 'Rappel Médocs', icon: '💊' },
-        { label: 'Prise Tension', icon: '🩺' },
-        { label: 'Aide Repas', icon: '🍲' },
-        { label: 'Courses / Logistique', icon: '🛒' }
+    // 🍼 Tâches spécifiques pour les jeunes mamans
+    const tasksMaman = [
+        { label: 'Aide Organisation (Rangement)', icon: '🧺' },
+        { label: 'Assistance non-médicale Bébé', icon: '🍼' },
+        { label: 'Préparation repas simples', icon: '🍲' },
+        { label: 'Soutien moral et écoute', icon: '🗣️' }
     ];
+
+    // 👴 Tâches spécifiques pour les Séniors / Post-Hôpital
+    const tasksSenior = [
+        { label: 'Rappel des médicaments', icon: '💊' }, /
+        { label: 'Aide à la mobilité / Promenade', icon: '🚶' },
+        { label: 'Assistance repas / courses', icon: '🛒' },
+        { label: 'Présence rassurante & Ecoute', icon: '🤝' }
+    ];
+
+    const tasks = category === 'MAMAN_BEBE' ? tasksMaman : tasksSenior;
 
     return tasks.map(t => `
         <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
