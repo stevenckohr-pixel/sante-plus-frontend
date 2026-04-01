@@ -1,5 +1,7 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
+import { loadRegistrations } from "../modules/admin.js"; 
+
 
 /**
  * 🚀 DASHBOARD ÉLITE : Gestionnaire de Dossiers & KPIs
