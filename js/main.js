@@ -680,7 +680,8 @@ window.switchView = async (viewName) => {
   const userRole = localStorage.getItem("user_role");
   const paymentStatus = localStorage.getItem("payment_status");
 
-  const restrictedViews =["feed", "visits", "commandes"];
+  // 🛡️ SÉCURITÉ PAIEMENT
+  const restrictedViews = ["feed", "visits", "commandes"];
   if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
     UI.vibrate("error");
     return Swal.fire({
@@ -693,6 +694,7 @@ window.switchView = async (viewName) => {
     }).then(() => window.switchView("billing"));
   }
 
+  // 🎨 MISE À JOUR DE L'INTERFACE (ACTIVE TABS)
   document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
     const isActive = btn.dataset.view === viewName;
     if (btn.classList.contains('sidebar-link')) {
@@ -715,12 +717,19 @@ window.switchView = async (viewName) => {
   localStorage.setItem("last_view", viewName);
   AppState.currentView = viewName;
 
+  // 🌀 AFFICHER LE LOADER PENDANT LA TRANSITION
   container.innerHTML = `<div class="flex flex-col items-center justify-center h-64 animate-pulse"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i></div>`;
 
   try {
       switch (viewName) {
-        case "dashboard": await Dashboard.loadAdminDashboard(); break;
-        case "map": await MapModule.initLiveMap(); break;
+        case "dashboard": 
+            await Dashboard.loadAdminDashboard(); 
+            break;
+
+        case "map": 
+            await MapModule.initLiveMap(); 
+            break;
+
         case "patients": 
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-8 animate-fadeIn">
@@ -728,22 +737,38 @@ window.switchView = async (viewName) => {
                         <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
                         <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
                     </div>
-                    ${userRole === "COORDINATEUR" ? `
-                        <button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95">
-                            <i class="fa-solid fa-plus"></i>
-                        </button>` : ""}
+                    ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl"><i class="fa-solid fa-plus"></i></button>` : ""}
                 </div>
                 <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div>`;
             await Patients.loadPatients(); 
             break;
-        case "visits": await Visites.loadVisits(); break;
+
+        case "visits": 
+            // 🚨 FIX : Injecter le template AVANT de charger les données
+            container.innerHTML = document.getElementById("template-visits").innerHTML;
+            await Visites.loadVisits(); 
+            break;
+
         case "feed": 
             if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
             await Messages.loadFeed(); 
             break;
-        case "billing": await Billing.loadBilling(); break;
-        case "aidants": await Aidants.loadAidants(); break;
-        case "commandes": await Commandes.loadCommandes(); break;
+
+        case "billing": 
+            // 🚨 FIX : Injecter le template AVANT de charger les données
+            container.innerHTML = document.getElementById("template-billing").innerHTML;
+            await Billing.loadBilling(); 
+            break;
+
+        case "aidants": 
+            await Aidants.loadAidants(); 
+            break;
+
+        case "commandes": 
+            container.innerHTML = document.getElementById("template-commandes").innerHTML;
+            await Commandes.loadCommandes(); 
+            break;
+
         case "add-patient": await Patients.renderAddPatientView(); break;
         case "link-family": await Patients.renderLinkFamilyView(); break;
         case "add-aidant": await Aidants.renderAddAidantView(); break;
@@ -753,14 +778,13 @@ window.switchView = async (viewName) => {
   } catch (err) {
       console.error("DEBUG VIEW ERROR:", err);
       container.innerHTML = `
-        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm">
-            <h3 class="text-rose-500 font-black text-lg">ERREUR DE CHARGEMENT</h3>
-            <p class="text-xs text-slate-500 mt-2">Message : ${err.message}</p>
-            <div class="mt-4 p-4 bg-slate-900 text-green-400 text-[10px] text-left rounded-xl overflow-x-auto">
-                ${err.stack.replace(/\n/g, '<br>')}
-            </div>
+        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
+            <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+            <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+            <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
+            <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
         </div>`;
-      }
+  }
 };
 
 window.openProfileMenu = () => {
