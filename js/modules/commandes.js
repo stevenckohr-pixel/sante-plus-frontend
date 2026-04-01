@@ -111,22 +111,36 @@ window.markAsDelivered = async (commandeId) => {
   }
 };
 
-window.openOrderModal = async () => {
+
+
+
+/**
+ * 💊 OUVRIR LA MODALE DE COMMANDE
+ */
+export async function openOrderModal() { 
   const { value: text } = await Swal.fire({
     title: "Commander des médicaments",
     input: "textarea",
     inputPlaceholder: "Listez les médicaments et les quantités...",
     showCancelButton: true,
     confirmButtonColor: "#16a34a",
+    customClass: { popup: 'rounded-[2.5rem]' }
   });
+
   if (text) {
-    await secureFetch("/commandes/add", {
-      method: "POST",
-      body: JSON.stringify({
-        patient_id: window.AppState.currentPatient,
-        liste_medocs: text,
-      }),
-    });
-    loadCommandes();
+    try {
+        await secureFetch("/commandes/add", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: window.AppState.currentPatient,
+                liste_medocs: text,
+            }),
+        });
+        UI.vibrate();
+        Swal.fire("Envoyé", "La commande a été transmise au coordinateur.", "success");
+        loadCommandes(); 
+    } catch(e) {
+        Swal.fire("Erreur", e.message, "error");
+    }
   }
-};
+}
