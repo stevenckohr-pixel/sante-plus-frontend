@@ -118,9 +118,7 @@ async function initApp() {
 /**
  * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Login + Admission + OTP In-Card)
  */
-/**
- * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Optimisé UX)
- */
+
 function renderAuthView(mode = 'login', stepSource = 1) {
     const app = document.getElementById("app");
     currentStep = typeof stepSource === 'number' ? stepSource : 1; 
@@ -271,12 +269,6 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 <!-- 🔄 ZONE DE CONTENU DYNAMIQUE -->
                 <div id="auth-card-content" class="flex-1 flex flex-col relative overflow-hidden">
                     ${dynamicContent}
-                </div>
-
-                <!-- FOOTER FIXE -->
-                <div class="shrink-0 bg-slate-50/50 py-4 px-8 border-t border-slate-100 flex items-center justify-between mt-auto">
-                    <span class="text-[8px] text-slate-400 font-[800] uppercase tracking-widest">© 2026 SPS Elite</span>
-                    <span class="text-[8px] text-emerald-500 font-[800] uppercase tracking-widest flex items-center gap-1"><i class="fa-solid fa-shield-check"></i> Sécurisé</span>
                 </div>
                 
             </div>
