@@ -69,42 +69,51 @@ window.showAppAlert = (title, text, icon = 'success') => {
 let registrationData = {};
 let currentStep = 1;
 
+
 /**
- * 🚀 INITIALISATION DE L'APP
+ * 🚀 INITIALISATION AU DÉMARRAGE
  */
 async function initApp() {
     const loader = document.getElementById("initial-loader");
     const token = localStorage.getItem("token");
 
+    // On prépare la disparition du loader
+    const hideLoader = () => {
+        if (loader) {
+            loader.style.opacity = "0";
+            setTimeout(() => loader.classList.add("hidden"), 500);
+        }
+    };
+
     try {
         if (token) {
-            // Check de l'onboarding pour la première connexion
+            // Check de l'onboarding
             if (!localStorage.getItem("onboarding_seen")) {
+                hideLoader(); // On cache le loader avant de lancer l'onboarding
                 window.startOnboarding();
                 return; 
             }
+            
             renderLayout();
             Visites.resumeTrackingIfActive(); 
+            
             const userRole = localStorage.getItem("user_role");
+            // Adaptation Viewport : 'home' pour mobile, 'dashboard' pour coordinateur desktop
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
             const lastView = localStorage.getItem("last_view") || defaultView;
+            
             await window.switchView(lastView);
+            hideLoader(); // Cache après le rendu
         } else {
-            renderAuthView('login'); // Appel de la vue Unifiée
+            renderAuthView('login');
+            hideLoader(); // Cache après le login
         }
     } catch (err) {
         console.error("Erreur Init:", err);
         renderAuthView('login');
-    } finally {
-        if (loader) {
-            setTimeout(() => {
-                loader.style.opacity = "0";
-                setTimeout(() => loader.classList.add("hidden"), 500);
-            }, 1000);
-        }
+        hideLoader();
     }
 }
-
 
 /**
  * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Login + Admission + OTP In-Card)
@@ -858,31 +867,40 @@ window.markAsDelivered = Commandes.markAsDelivered;
 
 window.viewPatientFeed = async (id) => { 
     const userRole = localStorage.getItem("user_role");
+    const titleElement = document.getElementById("view-title");
     
-    // Si c'est un Aidant, on l'envoie sur la fiche de Briefing (Elite View)
+    // Sauvegarde en mémoire
+    localStorage.setItem("current_patient_id", id);
+    AppState.currentPatient = id;
+
+    // Si c'est un Aidant, on l'envoie sur la fiche de Briefing
     if (userRole === 'AIDANT') {
         UI.vibrate();
-        // On affiche d'abord le loader
-        document.getElementById("view-container").innerHTML = `<div class="flex justify-center p-20"><i class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-200"></i></div>`;
+        if (titleElement) titleElement.innerText = "Briefing Patient";
         
-        // On appelle la nouvelle vue de détail que tu as ajoutée dans patients.js
+        document.getElementById("view-container").innerHTML = `
+            <div class="flex justify-center p-20 animate-fadeIn">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-200"></i>
+            </div>`;
+        
         await Patients.renderPatientDetailsView(id);
     } 
-    // Si c'est une Famille ou Coordinateur, on va direct au journal de soins
+    // Si c'est une Famille ou Coordinateur, on va direct au journal
     else {
-        AppState.currentPatient = id; 
         window.switchView("feed"); 
     }
 };
 
-
 window.switchView = switchView;
+window.viewPatientDetails = Patients.renderPatientDetailsView;
 
 // Inscription In-Card
-window.renderAuthView = renderAuthView;
+// Remplace le bloc inscription par :
+window.renderAuthView = renderAuthView; // C'est ta fonction qui gère login/register/otp
 window.nextAuthStep = nextAuthStep;
 window.prevAuthStep = prevAuthStep;
 window.setPlan = setPlan;
+window.submitRegistration = submitRegistration; 
 
 // Onboarding
 window.startOnboarding = startOnboarding;
