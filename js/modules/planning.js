@@ -43,9 +43,9 @@ export async function loadPlanning() {
                     </div>
                 ` : ''}
                 
-                ${userRole === "AIDANT" && item.statut !== "Terminé" ? `
-                    <button onclick="window.viewPatientFeed('${item.patient_id}')" class="w-full mt-4 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">
-                        Ouvrir le dossier
+                ${userRole === "AIDANT" && item.statut !== 'Terminé' ? `
+                    <button onclick="window.openMissionBriefing('${item.patient_id}', '${item.id}')" class="w-full mt-4 py-3 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase shadow-xl active:scale-95 transition-all">
+                        Ouvrir le Briefing
                     </button>
                 ` : ''}
             </div>
@@ -156,5 +156,15 @@ window.startPlannedVisit = (patientId, planningId) => {
 };
 
 
-
+/**
+ * 💡 TRANSITION INTELLIGENTE
+ * Lie la mission du planning à la visite qui va démarrer
+ */
+window.openMissionBriefing = (patientId, planningId) => {
+    UI.vibrate();
+    // On mémorise quelle mission du planning on traite
+    localStorage.setItem("active_planning_id", planningId);
+    // On redirige vers la fiche patient habituelle
+    window.viewPatientFeed(patientId);
+};
 
