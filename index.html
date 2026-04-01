@@ -77,8 +77,21 @@
 
         <!-- VUE D : FACTURATION (Billing) -->
         <section id="template-billing">
-            <div id="billing-kpis" class="grid grid-cols-1 gap-4 mb-8"></div>
-            <div id="billing-list" class="space-y-3"></div>
+            <div id="billing-kpis" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"></div>
+            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <th class="p-4">Dossier</th>
+                            <th class="p-4">Période</th>
+                            <th class="p-4 text-right">Montant</th>
+                            <th class="p-4 text-center">Statut</th>
+                            <th class="p-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="billing-table" class="divide-y divide-slate-50"></tbody>
+                </table>
+            </div>
         </section>
 
 
@@ -147,6 +160,17 @@
             <div id="mobile-hub-content" class="animate-fadeIn pb-10">
                 <!-- Le contenu sera injecté par renderMobileHub() -->
             </div>
+        </section>
+
+
+        <section id="template-visits">
+            <div class="flex justify-between items-center mb-8 animate-fadeIn">
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Suivi des Interventions</h3>
+                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Historique des soins certifiés</p>
+                </div>
+            </div>
+            <div id="visits-list" class="space-y-4 pb-24"></div>
         </section>
 
     </div>
