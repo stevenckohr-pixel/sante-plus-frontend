@@ -19,7 +19,7 @@ function getChecklistHTML(category) {
 
     // 👴 Tâches spécifiques pour les Séniors / Post-Hôpital
     const tasksSenior = [
-        { label: 'Rappel des médicaments', icon: '💊' }, /
+        { label: 'Rappel des médicaments', icon: '💊' }, 
         { label: 'Aide à la mobilité / Promenade', icon: '🚶' },
         { label: 'Assistance repas / courses', icon: '🛒' },
         { label: 'Présence rassurante & Ecoute', icon: '🤝' }
