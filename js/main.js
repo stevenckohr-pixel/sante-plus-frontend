@@ -308,7 +308,7 @@ function getStepHTML() {
                 </button>
             </div>`;
 
-        case 5: return renderPricingPacks(); // Fonction séparée pour la clarté
+        case 5: return renderPricingPacks(); 
 
         case 6: return `
             <div class="text-center mb-4">
@@ -316,16 +316,16 @@ function getStepHTML() {
             </div>
             <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100 mb-6">
                 <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
-                    <b>AVERTISSEMENT LÉGAL :</b> Santé Plus Services propose un accompagnement <b>humain et logistique</b>. Nos aidants ne sont pas des infirmiers. 
+                    <b>AVERTISSEMENT LÉGAL :</b> Santé Plus Services propose un accompagnement <b>humain et logistique</b>. Nos intervenants ne sont pas des médecins ou infirmiers. 
                     <br><br>
                     ❌ Pas d'injections<br>
-                    ❌ Pas de prescriptions<br>
-                    ❌ Pas de soins médicaux
+                    ❌ Pas de prescriptions médicales<br>
+                    ❌ Pas d'actes infirmiers
                 </p>
             </div>
             <label class="flex items-start gap-3 p-4 bg-white rounded-2xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition-all">
                 <input type="checkbox" id="legal-check" class="mt-1 w-5 h-5 accent-emerald-500">
-                <span class="text-xs font-bold text-slate-700 leading-tight">Je certifie avoir compris que ce service est non-médical.</span>
+                <span class="text-xs font-bold text-slate-700 leading-tight">Je certifie avoir compris que ce service est une assistance au quotidien, non-médicale.</span>
             </label>`;
     }
 }
@@ -335,20 +335,28 @@ function getStepHTML() {
  */
 function renderPricingPacks() {
     const isSenior = registrationData.categorie === 'SENIOR';
+    
+    // Intégration des vrais tarifs des PDF
     const packs = isSenior ? [
+        { id: 'PONCTUEL', label: 'Intervention Ponctuelle', desc: 'Rdv médical, besoin urgent', price: '10.000' },
         { id: 'REGULIER', label: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000' },
-        { id: 'COMPLET', label: 'Accompagnement Complet', desc: 'Situations complexes', price: '150.000' }
+        { id: 'COMPLET', label: 'Accompagnement Complet', desc: 'Présence soutenue & Famille à distance', price: '150.000' }
     ] : [
-        { id: 'MATERNITE', label: 'Sortie Maternité', desc: 'Forfait 2 semaines', price: '75.000' },
-        { id: 'CONFORT', label: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000' }
+        { id: 'ESSENTIEL', label: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000' },
+        { id: 'CONFORT', label: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000' },
+        { id: 'SERENITE', label: 'Pack Sérénité', desc: 'Présence quasi quotidienne', price: '150.000' },
+        { id: 'MATERNITE', label: 'Spécial Sortie Maternité', desc: 'Suivi intensif sur 2 semaines', price: '70.000' }
     ];
 
     return `
-        <div class="text-center mb-6"><h3 class="text-base font-black text-slate-800">Choix du Pack</h3></div>
-        <div class="space-y-3">
+        <div class="text-center mb-6">
+            <h3 class="text-base font-black text-slate-800">Choix de la formule</h3>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Tarifs mensuels indicatifs en CFA</p>
+        </div>
+        <div class="space-y-3 max-h-80 overflow-y-auto custom-scroll pr-2">
             ${packs.map(p => `
-                <button onclick="window.setElitePlan('${p.id}', '${p.price}')" class="w-full p-5 rounded-[1.5rem] border-2 ${registrationData.type_pack === p.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white'} text-left transition-all">
-                    <h4 class="font-black text-slate-800 text-xs uppercase">${p.label} <span class="text-emerald-600 float-right">${p.price} CFA</span></h4>
+                <button onclick="window.setElitePlan('${p.id}', '${p.price}')" class="w-full p-5 rounded-[1.5rem] border-2 ${registrationData.type_pack === p.id ? 'border-emerald-500 bg-emerald-50 shadow-md' : 'border-slate-100 bg-white'} text-left transition-all">
+                    <h4 class="font-black text-slate-800 text-xs uppercase">${p.label} <span class="text-emerald-600 float-right">${p.price} F</span></h4>
                     <p class="text-[9px] text-slate-400 mt-1 font-bold">${p.desc}</p>
                 </button>
             `).join('')}
@@ -380,7 +388,7 @@ window.nextAuthStep = () => {
         registrationData.adresse_patient = document.getElementById('p-addr').value;
         registrationData.contact_urgence = document.getElementById('p-urgence').value;
     }
-    if (currentStep === 6) {
+    if (currentStep === 6) { 
         if(!document.getElementById('legal-check').checked) return UI.vibrate('error');
         registrationData.engagement_non_medical = true;
         submitRegistration();
