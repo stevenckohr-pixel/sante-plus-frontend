@@ -1042,7 +1042,7 @@ window.viewPatientDetails = Patients.renderPatientDetailsView;
 
 // Inscription In-Card
 // Remplace le bloc inscription par :
-window.renderAuthView = renderAuthView; // C'est ta fonction qui gère login/register/otp
+window.renderAuthView = renderAuthView; 
 window.nextAuthStep = nextAuthStep;
 window.prevAuthStep = prevAuthStep;
 window.setPlan = setPlan;
