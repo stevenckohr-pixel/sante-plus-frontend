@@ -275,3 +275,33 @@ window.confirmActivation = (encodedData) => {
         }
     });
 };
+
+
+
+
+
+export async function loadRegistrations() {
+    const tableBody = document.getElementById('pending-table-body');
+    if (!tableBody) return;
+
+    try {
+        // 1. Récupération des profils en attente
+        const res = await secureFetch('/admin/pending-registrations');
+        const pending = await res.json();
+
+        // 2. Affichage
+        tableBody.innerHTML = pending.map(req => `
+            <tr class="border-b border-slate-50">
+                <td class="p-4 font-bold">${req.nom}</td>
+                <td class="p-4 text-xs">${req.email}</td>
+                <td class="p-4 text-xs">${req.role}</td>
+                <td class="p-4 text-right">
+                    <button onclick="window.confirmActivation('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
+                            class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-black uppercase">
+                        Activer
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) { console.error(e); }
+}
