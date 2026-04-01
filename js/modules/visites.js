@@ -71,6 +71,10 @@ export function refreshAidantUI(patientId) {
  */
 export async function renderEndVisitView() {
     const container = document.getElementById("view-container");
+
+    // 1. Récupérer les infos du patient
+    const res = await secureFetch(`/patients/${AppState.currentPatient}`);
+    const patient = await res.json(); 
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-lg mx-auto pb-24">
