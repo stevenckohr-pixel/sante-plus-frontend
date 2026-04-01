@@ -9,43 +9,52 @@ let paths = {};
 /**
  * 🛰️ INITIALISATION DU RADAR LIVE
  */
+/**
+ * 🛰️ INITIALISATION DU RADAR LIVE
+ */
 export async function initLiveMap() {
     const container = document.getElementById('view-container');
     
     // 1. On injecte le template
     container.innerHTML = document.getElementById('template-map').innerHTML;
 
-    // 2. On attend un court instant que le DOM soit "prêt" et visible
+    // 2. 🚨 On donne le temps au navigateur de dessiner le DOM (300ms au lieu de 100)
     setTimeout(async () => {
         const mapElement = document.getElementById('map');
-        if (!mapElement) return;
+        if (!mapElement) {
+            console.error("Map container introuvable !");
+            return;
+        }
 
-        // On nettoie l'ancienne instance si elle existe
+        // On nettoie l'ancienne instance si elle existe pour éviter les conflits
         if (map) {
             map.remove();
             markers = {};
             paths = {};
         }
 
-        // 3. Initialisation de la carte
+        // 3. Initialisation de la carte avec des options robustes
         map = L.map('map', {
             zoomControl: false,
-            attributionControl: false
+            attributionControl: false,
+            preferCanvas: true // 🚨 Améliore les perfs sur mobile
         }).setView([6.368, 2.401], 13); // Centré sur Cotonou
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
 
-        // 🔥 IMPORTANT : Force Leaflet à recalculer sa taille réelle
-        map.invalidateSize();
+        // 4. 🔥 LE FIX MAGIQUE : On force Leaflet à redessiner après l'init
+        setTimeout(() => {
+            map.invalidateSize(true);
+        }, 100); // Un deuxième micro-délai pour assurer le coup
 
-        // 4. Charger les données
+        // 5. Charger les données
         await refreshAllPositions();
         
-        // ⚡ Lancer le Realtime
         console.log("🛰️ Radar SPS opérationnel.");
-    }, 100); 
+    }, 300); // 300ms laisse le temps à l'animation slideIn de se terminer
 }
-
 /**
  * 🔄 MOTEUR DE MOUVEMENT (Marker + Polyline)
  */
