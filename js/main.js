@@ -130,7 +130,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 1. MODE CONNEXION (Centré verticalement, sans scroll)
     if (mode === 'login') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
+            <div class="px-8 pb-8 space-y-4 animate-slideIn  flex flex-col justify-center min-h-full">
                 <div class="relative group">
                     <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="email" type="email" class="app-input !pl-12" placeholder="Adresse email" value="${registrationData.email || ''}">
@@ -147,7 +147,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 2. MODE ADMISSION (Scrollable uniquement si nécessaire, bouton en bas)
     else if (mode === 'register') {
         dynamicContent = `
-            <div class="px-8 pb-6 animate-fadeIn flex flex-col h-full">
+            <div class="px-8 pb-6 animate-slideIn  flex flex-col h-full">
                 <div class="flex-1 overflow-y-auto custom-scroll pr-2 pb-4">
                     ${getStepHTML()}
                 </div>
@@ -162,7 +162,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     // 3. 🔒 MODE OTP (Centré, sans scroll)
     else if (mode === 'otp') {
         dynamicContent = `
-            <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
+            <div class="px-8 pb-8 space-y-6 animate-slideIn  flex flex-col justify-center min-h-full text-center">
                 <div class="w-16 h-16 mx-auto bg-amber-50 border-4 border-white shadow-xl text-amber-500 rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
                     <i class="fa-solid fa-lock"></i>
                 </div>
@@ -248,7 +248,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 </div>
 
                 <!-- TABS DE BASCULE -->
-                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
+                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-slideIn " style="display: ${mode !== 'otp' ? 'block' : 'none'}">
                     <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
                         <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                             Connexion
@@ -511,7 +511,7 @@ function renderMobileHub() {
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     container.innerHTML = `
-        <div class="animate-fadeIn pb-10">
+        <div class="animate-slideIn  pb-10">
             <!-- Header de bienvenue style Pinterest -->
             <div class="flex items-center justify-between mb-8">
                 <div>
@@ -776,7 +776,7 @@ window.switchView = async (viewName) => {
 
         case "patients": 
             container.innerHTML = `
-                <div class="flex justify-between items-center mb-8 animate-fadeIn">
+                <div class="flex justify-between items-center mb-8 animate-slideIn ">
                     <div>
                         <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
                         <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
@@ -822,7 +822,7 @@ window.switchView = async (viewName) => {
   } catch (err) {
       console.error("DEBUG VIEW ERROR:", err);
       container.innerHTML = `
-        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
+        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-slideIn ">
             <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
             <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
             <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
@@ -866,8 +866,8 @@ function renderOnboarding() {
     const isLast = onboardingStep === ONBOARDING_STEPS.length - 1;
 
     app.innerHTML = `
-        <div class="absolute inset-0 z-[10000] animate-fadeIn font-sans bg-white flex flex-col">
-            <div class="onboarding-image-container animate-fadeIn">
+        <div class="absolute inset-0 z-[10000] animate-slideIn  font-sans bg-white flex flex-col">
+            <div class="onboarding-image-container animate-slideIn ">
                 <img src="${step.image}" class="onboarding-img shadow-2xl">
                 <div class="onboarding-image-blur"></div>
                 ${!isLast ? `
@@ -947,7 +947,7 @@ window.viewPatientFeed = async (id) => {
         if (titleElement) titleElement.innerText = "Briefing Patient";
         
         document.getElementById("view-container").innerHTML = `
-            <div class="flex justify-center p-20 animate-fadeIn">
+            <div class="flex justify-center p-20 animate-slideIn ">
                 <i class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-200"></i>
             </div>`;
         
