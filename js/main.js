@@ -1067,6 +1067,5 @@ window.loadCommandes = Commandes.loadCommandes;
 window.openMissionBriefing = Planning.openMissionBriefing;
 window.loadRegistrations = Admin.loadRegistrations;
 
-window.confirmActivation = async (id, email, nom, role) => {
 
 initApp();
