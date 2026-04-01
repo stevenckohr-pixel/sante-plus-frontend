@@ -56,16 +56,21 @@ export async function loadPlanning() {
     }
 }
 
+
 /**
- * 🗓️ MODALE D'ASSIGNATION (Coordinateur)
- * Exportée pour être branchée sur window dans main.js
+ * 🗓️ MODALE D'ASSIGNATION PREMIUM
  */
 export async function openAssignModal() {
     try {
         UI.vibrate();
         
-        // 1. Charger les patients et les aidants pour les menus déroulants
-        Swal.fire({ title: 'Chargement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+        // 1. Chargement discret
+        Swal.fire({ 
+            title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500"></i>',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            customClass: { popup: 'bg-transparent shadow-none' }
+        });
 
         const [resPatients, resAidants] = await Promise.all([
             secureFetch('/patients'),
@@ -76,49 +81,80 @@ export async function openAssignModal() {
         const aidants = await resAidants.json();
         Swal.close();
 
+        // 🎨 LE NOUVEAU DESIGN ÉLITE
         const { value: formValues } = await Swal.fire({
-            title: '<span class="text-xl font-black uppercase tracking-tight">Planifier une visite</span>',
-            html: `
-                <div class="text-left space-y-4 pt-4">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Patient concerné</label>
-                        <select id="swal-patient" class="swal2-input !mt-1">
-                            <option value="">-- Choisir le Patient --</option>
-                            ${patients.map(p => `<option value="${p.id}">${p.nom_complet}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Aidant assigné</label>
-                        <select id="swal-aidant" class="swal2-input !mt-1">
-                            <option value="">-- Choisir l'Aidant --</option>
-                            ${aidants.map(a => `<option value="${a.id}">${a.nom}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Date</label>
-                            <input id="swal-date" type="date" class="swal2-input !mt-1" value="${new Date().toISOString().split('T')[0]}">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Heure</label>
-                            <input id="swal-heure" type="time" class="swal2-input !mt-1" value="09:00">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Instructions (Optionnel)</label>
-                        <textarea id="swal-notes" class="swal2-textarea !mt-1" placeholder="Ex: Vérifier la tension..."></textarea>
-                    </div>
-                </div>`,
+            showCloseButton: true,
             showCancelButton: true,
             confirmButtonText: 'CONFIRMER LA MISSION',
-            confirmButtonColor: '#0F172A',
-            cancelButtonText: 'Annuler',
-            customClass: { popup: 'rounded-[3rem] p-8' },
+            cancelButtonText: 'ANNULER',
+            confirmButtonColor: '#0F172A', // Navy
+            customClass: {
+                popup: 'rounded-[3rem] p-10 lg:p-14 border-none shadow-2xl',
+                confirmButton: 'rounded-2xl px-8 py-4 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-95 transition-all',
+                cancelButton: 'rounded-2xl px-8 py-4 font-bold uppercase text-[10px] tracking-widest text-slate-400'
+            },
+            html: `
+                <div class="text-left animate-fadeIn">
+                    <!-- HEADER -->
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl shadow-inner">
+                            <i class="fa-solid fa-calendar-circle-plus"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-[900] text-slate-800 tracking-tight leading-none">Nouvelle Mission</h3>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2">Planification Élite</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- PATIENT -->
+                        <div class="group">
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Dossier Patient</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-hospital-user absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                                <select id="swal-patient" class="app-input !pl-12 !py-4 font-bold text-slate-700 appearance-none cursor-pointer">
+                                    <option value="">-- Sélectionner le patient --</option>
+                                    ${patients.map(p => `<option value="${p.id}">${p.nom_complet}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- AIDANT -->
+                        <div class="group">
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Aidant Mobile</label>
+                            <div class="relative">
+                                <i class="fa-solid fa-user-nurse absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                                <select id="swal-aidant" class="app-input !pl-12 !py-4 font-bold text-slate-700 appearance-none cursor-pointer">
+                                    <option value="">-- Choisir un intervenant --</option>
+                                    ${aidants.map(a => `<option value="${a.id}">${a.nom}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- DATE & HEURE -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Date prévue</label>
+                                <input id="swal-date" type="date" class="app-input font-bold !py-4" value="${new Date().toISOString().split('T')[0]}">
+                            </div>
+                            <div>
+                                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Heure</label>
+                                <input id="swal-heure" type="time" class="app-input font-bold !py-4" value="09:00">
+                            </div>
+                        </div>
+
+                        <!-- NOTES -->
+                        <div>
+                            <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-3 mb-2 block">Instructions particulières</label>
+                            <textarea id="swal-notes" class="app-input !rounded-[1.5rem] h-28 !py-4" placeholder="Ex: Rappeler la prise de médicaments à 10h..."></textarea>
+                        </div>
+                    </div>
+                </div>`,
             preConfirm: () => {
                 const patient_id = document.getElementById('swal-patient').value;
                 const aidant_id = document.getElementById('swal-aidant').value;
                 if (!patient_id || !aidant_id) {
-                    Swal.showValidationMessage('Merci de choisir un patient et un aidant');
+                    Swal.showValidationMessage('Veuillez remplir tous les champs');
                     return false;
                 }
                 return {
@@ -132,22 +168,29 @@ export async function openAssignModal() {
         });
 
         if (formValues) {
-            Swal.fire({ title: 'Enregistrement...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+            Swal.fire({ title: 'Planification...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, customClass: { popup: 'rounded-[3rem]' } });
             
-            await secureFetch('/planning/add', {
+            const res = await secureFetch('/planning/add', {
                 method: 'POST',
                 body: JSON.stringify(formValues)
             });
             
-            UI.vibrate("success");
-            Swal.fire("Mission Programmée", "L'aidant a été notifié de sa nouvelle mission.", "success");
-            loadPlanning(); // Recharge la vue liste
+            if (res.ok) {
+                UI.vibrate("success");
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Mission Enregistrée',
+                    text: "L'aidant recevra une notification pour son intervention.",
+                    confirmButtonColor: '#10B981',
+                    customClass: { popup: 'rounded-[2.5rem]' }
+                });
+                loadPlanning();
+            }
         }
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
     }
 }
-
 
 // Fonction pour lier le planning au démarrage de la visite
 window.startPlannedVisit = (patientId, planningId) => {
