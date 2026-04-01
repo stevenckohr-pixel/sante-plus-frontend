@@ -367,7 +367,7 @@ window.submitLinkFamily = async (patientId) => {
 /**
  * 🎯 FIXATION DIRECTE DU GPS (One-Click)
  */
-window.setPatientHomeDirect = async (patientId) => {
+export async function setPatientHomeDirect(patientId) { 
     try {
         UI.vibrate();
         
@@ -409,4 +409,4 @@ window.setPatientHomeDirect = async (patientId) => {
         UI.vibrate("error");
         Swal.fire("Erreur GPS", "Veuillez autoriser la localisation sur votre téléphone.", "error");
     }
-};
+}
