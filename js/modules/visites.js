@@ -227,6 +227,7 @@ export async function loadVisits() {
   try {
     const response = await secureFetch("/visites");
     const data = await response.json();
+    console.log("DEBUG: Données reçues Visites:", data); 
     AppState.visites = data;
     renderVisits();
   } catch (err) {
