@@ -842,27 +842,48 @@ window.switchView = async (viewName) => {
             await Aidants.loadAidants(); 
             break;
 
-            case "commandes": 
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
-                        <div class="flex justify-between items-center mb-8">
-                            <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Suivi des médicaments</p>
-                            </div>
-                            <!-- 🚀 BOUTON POUR COMMANDER (Uniquement pour la Famille) -->
-                            ${userRole === "FAMILLE" ? `
-                                <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>` : ""}
-                        </div>
-                        <div id="commandes-list" class="space-y-4">
-                             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-                        </div>
-                    </div>`;
-                await Commandes.loadCommandes(); 
-                break;
 
+case "planning":
+    container.innerHTML = `
+        <div class="animate-slideIn pb-32">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
+                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
+                </div>
+                <!-- 🚀 BOUTON POUR L'ADMIN : Assigner une mission -->
+                ${userRole === "COORDINATEUR" ? `
+                    <button onclick="window.openAssignModal()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                    </button>` : ""}
+            </div>
+            <div id="planning-list" class="space-y-4">
+                 <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+            </div>
+        </div>`;
+    await Planning.loadPlanning(); // Appelle la fonction de chargement
+    break;
+
+case "commandes":
+    container.innerHTML = `
+        <div class="animate-slideIn pb-32">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
+                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Commandes et Livraisons</p>
+                </div>
+                <!-- 🚀 BOUTON POUR LA FAMILLE : Passer commande -->
+                ${userRole === "FAMILLE" ? `
+                    <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>` : ""}
+            </div>
+            <div id="commandes-list" class="space-y-4">
+                 <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+            </div>
+        </div>`;
+    await Commandes.loadCommandes(); 
+    break;
         case "add-patient": await Patients.renderAddPatientView(); break;
         case "link-family": await Patients.renderLinkFamilyView(); break;
         case "add-aidant": await Aidants.renderAddAidantView(); break;
