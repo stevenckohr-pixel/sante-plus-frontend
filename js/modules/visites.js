@@ -220,6 +220,9 @@ export async function submitEndVisit() {
 /**
  * Charge les visites (Historique pour l'aidant ou le coordinateur)
  */
+/**
+ * 📥 CHARGER LES VISITES
+ */
 export async function loadVisits() {
   const container = document.getElementById("visits-list");
   if (!container) return;
@@ -227,14 +230,31 @@ export async function loadVisits() {
   try {
     const response = await secureFetch("/visites");
     const data = await response.json();
-    console.log("DEBUG: Données reçues Visites:", data); 
-    AppState.visites = data;
+
+    // 🛡️ SÉCURITÉ : Si le serveur renvoie une erreur (ex: 400 ou 500)
+    if (!response.ok) {
+        throw new Error(data.error || "Erreur lors de la récupération des visites");
+    }
+
+    console.log("✅ Données reçues Visites:", data);
+    
+    // On s'assure que data est bien un tableau avant de le map
+    AppState.visites = Array.isArray(data) ? data : [];
     renderVisits();
+
   } catch (err) {
-    container.innerHTML = `<p class="text-red-500">Erreur : ${err.message}</p>`;
+    console.error("❌ Erreur loadVisits:", err.message);
+    container.innerHTML = `
+        <div class="p-8 text-center bg-rose-50 rounded-[2rem] border border-rose-100">
+            <i class="fa-solid fa-circle-exclamation text-rose-500 text-2xl mb-2"></i>
+            <p class="text-xs font-black text-rose-600 uppercase">Échec du chargement</p>
+            <p class="text-[10px] text-rose-400 mt-1">${err.message}</p>
+        </div>`;
+    
+    // 🔥 CRUCIAL : On renvoie l'erreur pour que le loader de main.js s'arrête
+    throw err; 
   }
 }
-
 
 
 /**
