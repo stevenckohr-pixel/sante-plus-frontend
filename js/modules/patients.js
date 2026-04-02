@@ -7,20 +7,24 @@ import * as Visites from "./visites.js";
 /**
  * 📥 1. CHARGER LA LISTE DES PATIENTS
  */
+import { showSkeleton } from "../core/utils.js";
+
 export async function loadPatients() {
-  const container = document.getElementById("patients-list");
-  if (!container) return;
+    const container = document.getElementById("patients-list");
+    if (!container) return;
 
-  try {
-    const response = await secureFetch("/patients");
-    const data = await response.json();
+    // Afficher le squelette
+    showSkeleton(container, 'patient-card');
 
-    AppState.patients = data;
-    renderPatients();
-  } catch (err) {
-    container.innerHTML = `<p class="text-rose-500 text-center p-10 font-bold">Erreur: ${err.message}</p>`;
-    throw err; 
-  }
+    try {
+        const response = await secureFetch("/patients");
+        const data = await response.json();
+        AppState.patients = data;
+        renderPatients();
+    } catch (err) {
+        container.innerHTML = `<p class="text-rose-500 text-center p-10 font-bold">Erreur: ${err.message}</p>`;
+        throw err;
+    }
 }
 
 /**
