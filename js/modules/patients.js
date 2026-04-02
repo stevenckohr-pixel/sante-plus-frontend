@@ -243,36 +243,56 @@ export async function renderPatientDetailsView(patientId) {
                         ${initials}
                     </div>
                     ${isPremium ? `
-                        <div class="absolute -top-2 -right-2 badge-gold w-8 h-8 rounded-full flex items-center justify-center shadow-md">
-                            <i class="fa-solid fa-crown text-xs text-amber-600"></i>
+                        <div class="absolute -top-2 -right-2 bg-gold-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md">
+                            <i class="fa-solid fa-crown text-xs text-white"></i>
                         </div>
                     ` : ''}
                 </div>
-                <h3 class="text-xl font-black text-slate-800 tracking-tight">${p.nom_complet}</h3>
+                <h3 class="text-xl font-black text-slate-deep tracking-tight">${p.nom_complet}</h3>
                 <div class="flex flex-wrap items-center justify-center gap-2 mt-2">
-                    <span class="px-3 py-1 rounded-full ${isMaman ? 'badge-pink' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'} text-[10px] font-bold uppercase tracking-wider">
-                        ${isMaman ? '🍼 Maman & Bébé' : '👴 Dossier Sénior'}
-                    </span>
+                    ${isMaman ? `
+                        <span class="badge-pink px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            <i class="fa-solid fa-baby-carriage text-[10px] mr-1"></i> Maman & Bébé
+                        </span>
+                    ` : `
+                        <span class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                            <i class="fa-solid fa-user-plus text-[10px] mr-1"></i> Dossier Sénior
+                        </span>
+                    `}
                     ${isPremium ? `
                         <span class="badge-gold px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                            ⭐ Premium
+                            <i class="fa-solid fa-crown text-[10px] mr-1"></i> Premium
                         </span>
                     ` : ''}
                 </div>
             </div>
 
+            <!-- Bannière Premium ou Maman -->
+            <div class="${isMaman ? 'maman-banner' : 'premium-banner'} p-4 rounded-xl mb-6 text-center">
+                <p class="text-[10px] font-black uppercase tracking-wider">
+                    ${isMaman ? '👶 Programme Maman & Bébé' : '⭐ Programme Premium'}
+                </p>
+                <p class="text-sm font-bold mt-1 ${isMaman ? 'text-rose-primary' : 'text-slate-deep'}">
+                    ${isMaman ? 'Accompagnement personnalisé post-maternité' : 'Accès prioritaire et services exclusifs'}
+                </p>
+            </div>
+
             <!-- Grille Bento des infos vitales (cartes modernisées) -->
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Urgence Locale</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        <i class="fa-solid fa-phone mr-1"></i> Urgence Locale
+                    </p>
                     <p class="text-xs font-semibold text-slate-700">${p.contact_urgence || 'Non renseigné'}</p>
                 </div>
                 <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pack Actif</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                        <i class="fa-solid fa-box mr-1"></i> Pack Actif
+                    </p>
                     <p class="text-xs font-semibold text-slate-700">${p.type_pack || 'Standard'}</p>
                 </div>
-                <div class="col-span-2 ${isMaman ? 'bg-pink-50 border-pink-100' : 'bg-amber-50 border-amber-100'} p-5 rounded-xl border">
-                    <p class="text-[9px] font-black ${isMaman ? 'text-pink-500' : 'text-amber-600'} uppercase tracking-wider mb-2">
+                <div class="col-span-2 ${isMaman ? 'bg-rose-soft border-rose-primary/20' : 'bg-gold-soft border-gold-primary/20'} p-5 rounded-xl border">
+                    <p class="text-[9px] font-black ${isMaman ? 'text-rose-primary' : 'text-gold-primary'} uppercase tracking-wider mb-2">
                         <i class="fa-solid fa-heartbeat mr-1"></i> Points d'attention
                     </p>
                     <p class="text-sm font-medium text-slate-700 leading-relaxed">"${p.notes_medicales || 'Aucune consigne particulière.'}"</p>
@@ -283,7 +303,7 @@ export async function renderPatientDetailsView(patientId) {
             <div id="aidant-active-area" class="mt-4"></div>
 
             <!-- Bouton retour stylisé -->
-            <button onclick="window.switchView('patients')" class="w-full mt-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 transition-colors flex items-center justify-center gap-2">
+            <button onclick="window.switchView('patients')" class="w-full mt-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-deep transition-colors flex items-center justify-center gap-2">
                 <i class="fa-solid fa-arrow-left text-xs"></i> Retour à la liste
             </button>
         </div>
@@ -293,6 +313,8 @@ export async function renderPatientDetailsView(patientId) {
     window.AppState.currentPatient = p.id;
     Visites.refreshAidantUI(p.id);
 }
+
+
 /**
  * 📄 VUE : PAGE LIAISON FAMILLE (DUO PACK)
  */
