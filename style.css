@@ -1051,3 +1051,50 @@ body {
         background-color: #0F172A;
     }
 }
+
+
+
+/* ============================================ */
+/* OPTIMISATIONS POUR PETITS RAM */
+/* ============================================ */
+
+/* Désactiver les animations sur les petits appareils */
+@media (max-width: 640px) {
+    .animate-fadeIn, .animate-slideIn, .animate-pulse, .animate-spin,
+    .transition-all, .transition-transform, .transition-opacity {
+        animation-duration: 0.01s !important;
+        transition-duration: 0.01s !important;
+    }
+    
+    /* Réduire les ombres (consomment du GPU) */
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+        box-shadow: none !important;
+    }
+    
+    /* Simplifier les backgrounds */
+    .bg-white\/70, .bg-white\/90, .backdrop-blur-lg, .backdrop-blur-md {
+        background: white !important;
+        backdrop-filter: none !important;
+    }
+    
+    /* Réduire les bordures arrondies */
+    .rounded-2xl, .rounded-3xl, .rounded-[2rem], .rounded-[3rem] {
+        border-radius: 0.75rem !important;
+    }
+}
+
+/* Limiter la mémoire GPU */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Éviter les repaints inutiles */
+img {
+    content-visibility: auto;
+}
+
+/* Cache les éléments hors écran */
+.lazy-load {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 500px;
+}
