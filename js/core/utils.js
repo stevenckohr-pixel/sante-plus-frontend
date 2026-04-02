@@ -65,3 +65,94 @@ export async function compressImage(file, maxWidth = 800) {
     };
   });
 }
+
+
+
+/**
+ * 🎨 MODALE DE SÉLECTION MODERNE (remplace select)
+ * @param {Array} items - Liste d'objets {id, name, extra?}
+ * @param {string} title - Titre de la modale
+ * @param {string} placeholder - Texte de recherche
+ * @returns {Promise<Object>} - Élément sélectionné
+ */
+export async function openModernSelector(items, title, placeholder = "Rechercher...") {
+    return new Promise(async (resolve) => {
+        let searchTerm = '';
+        let filteredItems = [...items];
+        
+        const renderList = () => {
+            const filtered = items.filter(item => 
+                item.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            if (filtered.length === 0) {
+                return `<div class="text-center py-8 text-slate-400 text-xs">Aucun résultat</div>`;
+            }
+            
+            return filtered.map(item => `
+                <div class="selector-item p-4 border-b border-slate-50 active:bg-slate-50 transition-colors cursor-pointer" data-id="${item.id}" data-name="${item.name.replace(/'/g, "\\'")}">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-bold text-slate-800 text-sm">${item.name}</p>
+                            ${item.extra ? `<p class="text-[10px] text-slate-400 mt-0.5">${item.extra}</p>` : ''}
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                    </div>
+                </div>
+            `).join('');
+        };
+        
+        const modalContent = `
+            <div class="max-h-[60vh] flex flex-col">
+                <div class="relative mb-4">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                    <input type="text" id="selector-search" 
+                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-emerald-300 transition"
+                           placeholder="${placeholder}" 
+                           autocomplete="off">
+                </div>
+                <div id="selector-list" class="overflow-y-auto max-h-[50vh]">
+                    ${renderList()}
+                </div>
+            </div>
+        `;
+        
+        const { value: confirmed } = await Swal.fire({
+            title: `<span class="text-base font-black text-slate-800">${title}</span>`,
+            html: modalContent,
+            showConfirmButton: false,
+            showCancelButton: true,
+            cancelButtonText: "Fermer",
+            cancelButtonColor: "#94A3B8",
+            customClass: {
+                popup: 'rounded-2xl p-6',
+                cancelButton: 'rounded-xl px-6 py-2.5 text-[10px] font-black uppercase tracking-wider'
+            },
+            didOpen: () => {
+                const searchInput = document.getElementById('selector-search');
+                const listContainer = document.getElementById('selector-list');
+                
+                searchInput.addEventListener('input', (e) => {
+                    searchTerm = e.target.value;
+                    listContainer.innerHTML = renderList();
+                    attachItemEvents();
+                });
+                
+                const attachItemEvents = () => {
+                    document.querySelectorAll('.selector-item').forEach(el => {
+                        el.addEventListener('click', () => {
+                            const id = el.dataset.id;
+                            const name = el.dataset.name;
+                            const selectedItem = items.find(i => i.id == id);
+                            Swal.close();
+                            resolve(selectedItem);
+                        });
+                    });
+                };
+                attachItemEvents();
+            }
+        });
+        
+        if (!confirmed) resolve(null);
+    });
+}
