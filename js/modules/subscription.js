@@ -445,5 +445,3 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// ✅ Export
-export { renderSubscriptionPage };
