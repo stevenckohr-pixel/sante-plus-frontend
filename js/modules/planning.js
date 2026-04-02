@@ -113,13 +113,86 @@ export async function openAssignPage() {
 /**
  * 🎨 RENDU DE LA PAGE D'ASSIGNATION
  */
+
+/**
+ * 🔧 CONFIGURATION DES FILTRES DE RECHERCHE
+ */
+function setupDropdownFilters() {
+    // Filtre aidants
+    const aidantSearch = document.getElementById('aidant-search');
+    if (aidantSearch) {
+        aidantSearch.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.aidant-item').forEach(item => {
+                const name = item.dataset.name?.toLowerCase() || '';
+                const email = item.dataset.email?.toLowerCase() || '';
+                item.style.display = name.includes(term) || email.includes(term) ? 'flex' : 'none';
+            });
+        });
+    }
+    
+    // Filtre patients
+    const patientSearch = document.getElementById('patient-search');
+    if (patientSearch) {
+        patientSearch.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.patient-item').forEach(item => {
+                const name = item.dataset.name?.toLowerCase() || '';
+                item.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        });
+    }
+}
+
+/**
+ * 🔽 OUVERTURE/FERMETURE DROPDOWN AIDANT
+ */
+window.toggleAidantDropdown = () => {
+    const dropdown = document.getElementById('aidant-dropdown');
+    const chevron = document.getElementById('aidant-chevron');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+        if (chevron) chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        
+        // Fermer l'autre dropdown
+        const patientDropdown = document.getElementById('patient-dropdown');
+        const patientChevron = document.getElementById('patient-chevron');
+        if (patientDropdown && !patientDropdown.classList.contains('hidden')) {
+            patientDropdown.classList.add('hidden');
+            if (patientChevron) patientChevron.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+/**
+ * 🔽 OUVERTURE/FERMETURE DROPDOWN PATIENT
+ */
+window.togglePatientDropdown = () => {
+    const dropdown = document.getElementById('patient-dropdown');
+    const chevron = document.getElementById('patient-chevron');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+        if (chevron) chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        
+        // Fermer l'autre dropdown
+        const aidantDropdown = document.getElementById('aidant-dropdown');
+        const aidantChevron = document.getElementById('aidant-chevron');
+        if (aidantDropdown && !aidantDropdown.classList.contains('hidden')) {
+            aidantDropdown.classList.add('hidden');
+            if (aidantChevron) aidantChevron.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+
+
+
 async function renderAssignPage() {
     const container = document.getElementById("view-container");
     const { aidants, patients } = window._assignData || { aidants: [], patients: [] };
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
-            <!-- Header -->
             <div class="flex items-center gap-4 mb-8">
                 <button onclick="window.switchView('rh-dashboard')" 
                         class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95">
@@ -131,7 +204,6 @@ async function renderAssignPage() {
                 </div>
             </div>
 
-            <!-- Formulaire moderne -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <!-- Sélecteur Aidant -->
                 <div class="p-6 border-b border-slate-100">
@@ -230,34 +302,69 @@ async function renderAssignPage() {
                     </div>
                 </div>
 
-                <!-- Date et Instructions -->
+                <!-- TYPE D'ASSIGNATION (NOUVEAU) -->
                 <div class="p-6 border-b border-slate-100">
-                    <div class="grid grid-cols-2 gap-4 mb-6">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">
+                        <i class="fa-solid fa-clock mr-2"></i> Type d'assignation
+                    </label>
+                    <div class="flex gap-3">
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer border-2 transition-all border-emerald-500 bg-emerald-50" id="type-permanente">
+                            <input type="radio" name="assign-type" value="permanente" class="hidden" checked>
+                            <i class="fa-solid fa-infinity text-emerald-500"></i>
+                            <span class="text-xs font-bold">Permanente</span>
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer border-2 border-slate-200 transition-all" id="type-temporelle">
+                            <input type="radio" name="assign-type" value="temporelle" class="hidden">
+                            <i class="fa-solid fa-calendar-week text-blue-500"></i>
+                            <span class="text-xs font-bold">Période définie</span>
+                        </label>
+                        <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer border-2 border-slate-200 transition-all" id="type-ponctuelle">
+                            <input type="radio" name="assign-type" value="ponctuelle" class="hidden">
+                            <i class="fa-solid fa-calendar-day text-amber-500"></i>
+                            <span class="text-xs font-bold">Ponctuelle</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Période (affiché si temporelle ou ponctuelle) -->
+                <div id="period-container" class="p-6 border-b border-slate-100 hidden">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                                <i class="fa-regular fa-calendar mr-1"></i> Date
+                                <i class="fa-regular fa-calendar mr-1"></i> Date de début
                             </label>
-                            <input type="date" id="assign-date" 
-                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                            <input type="date" id="assign-date-debut" 
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
                                    value="${new Date().toISOString().split('T')[0]}">
                         </div>
-                        <div>
+                        <div id="date-fin-container">
                             <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                                <i class="fa-regular fa-clock mr-1"></i> Heure
+                                <i class="fa-regular fa-calendar-check mr-1"></i> Date de fin
                             </label>
-                            <input type="time" id="assign-time" 
-                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
-                                   value="09:00">
+                            <input type="date" id="assign-date-fin" 
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                         </div>
                     </div>
-                    <div>
+                    
+                    <!-- Pour ponctuelle, heure spécifique -->
+                    <div id="heure-container" class="mt-4 hidden">
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-pen mr-1"></i> Instructions pour l'aidant
+                            <i class="fa-regular fa-clock mr-1"></i> Heure de début
                         </label>
-                        <textarea id="assign-notes" rows="4" 
-                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300 resize-none"
-                                  placeholder="Ex: Le patient a besoin d'aide pour la prise de médicaments..."></textarea>
+                        <input type="time" id="assign-heure" 
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                               value="09:00">
                     </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="p-6 border-b border-slate-100">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        <i class="fa-solid fa-pen mr-1"></i> Instructions pour l'aidant
+                    </label>
+                    <textarea id="assign-notes" rows="3" 
+                              class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none"
+                              placeholder="Consignes particulières pour cette intervention..."></textarea>
                 </div>
 
                 <!-- Actions -->
@@ -266,7 +373,7 @@ async function renderAssignPage() {
                             class="flex-1 py-4 rounded-xl font-black text-[10px] uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-all">
                         Annuler
                     </button>
-                    <button onclick="window.submitAssignment()" 
+                    <button onclick="window.submitAssignmentEnhanced()" 
                             class="flex-1 py-4 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-wider shadow-lg shadow-emerald-200 active:scale-95 transition-all flex items-center justify-center gap-2">
                         <i class="fa-solid fa-link"></i> Assigner
                     </button>
@@ -281,108 +388,44 @@ async function renderAssignPage() {
     
     // Configuration des dropdowns
     setupDropdownFilters();
-}
-
-/**
- * 🔧 CONFIGURATION DES FILTRES DE RECHERCHE
- */
-function setupDropdownFilters() {
-    // Filtre aidants
-    const aidantSearch = document.getElementById('aidant-search');
-    if (aidantSearch) {
-        aidantSearch.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            document.querySelectorAll('.aidant-item').forEach(item => {
-                const name = item.dataset.name?.toLowerCase() || '';
-                const email = item.dataset.email?.toLowerCase() || '';
-                item.style.display = name.includes(term) || email.includes(term) ? 'flex' : 'none';
-            });
-        });
-    }
     
-    // Filtre patients
-    const patientSearch = document.getElementById('patient-search');
-    if (patientSearch) {
-        patientSearch.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            document.querySelectorAll('.patient-item').forEach(item => {
-                const name = item.dataset.name?.toLowerCase() || '';
-                item.style.display = name.includes(term) ? 'flex' : 'none';
-            });
-        });
-    }
+    // Gestionnaire des types d'assignation
+    setupAssignTypeHandlers();
 }
 
-/**
- * 🔽 OUVERTURE/FERMETURE DROPDOWN AIDANT
- */
-window.toggleAidantDropdown = () => {
-    const dropdown = document.getElementById('aidant-dropdown');
-    const chevron = document.getElementById('aidant-chevron');
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-        if (chevron) chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        
-        // Fermer l'autre dropdown
-        const patientDropdown = document.getElementById('patient-dropdown');
-        const patientChevron = document.getElementById('patient-chevron');
-        if (patientDropdown && !patientDropdown.classList.contains('hidden')) {
-            patientDropdown.classList.add('hidden');
-            if (patientChevron) patientChevron.style.transform = 'rotate(0deg)';
-        }
-    }
-};
 
 /**
- * 🔽 OUVERTURE/FERMETURE DROPDOWN PATIENT
+ * 📤 SOUMISSION AVEC TYPE D'ASSIGNATION
  */
-window.togglePatientDropdown = () => {
-    const dropdown = document.getElementById('patient-dropdown');
-    const chevron = document.getElementById('patient-chevron');
-    if (dropdown) {
-        dropdown.classList.toggle('hidden');
-        if (chevron) chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
-        
-        // Fermer l'autre dropdown
-        const aidantDropdown = document.getElementById('aidant-dropdown');
-        const aidantChevron = document.getElementById('aidant-chevron');
-        if (aidantDropdown && !aidantDropdown.classList.contains('hidden')) {
-            aidantDropdown.classList.add('hidden');
-            if (aidantChevron) aidantChevron.style.transform = 'rotate(0deg)';
-        }
-    }
-};
-
-/**
- * 📤 SOUMISSION DE L'ASSIGNATION
- */
-window.submitAssignment = async () => {
+window.submitAssignmentEnhanced = async () => {
     if (!window._selectedAidant) {
         UI.vibrate('error');
-        Swal.fire({ 
-            title: "Aidant requis", 
-            text: "Veuillez sélectionner un aidant", 
-            icon: "warning", 
-            customClass: { popup: 'rounded-2xl' } 
-        });
+        Swal.fire({ title: "Aidant requis", text: "Veuillez sélectionner un aidant", icon: "warning" });
         return;
     }
     if (!window._selectedPatient) {
         UI.vibrate('error');
-        Swal.fire({ 
-            title: "Patient requis", 
-            text: "Veuillez sélectionner un patient", 
-            icon: "warning", 
-            customClass: { popup: 'rounded-2xl' } 
-        });
+        Swal.fire({ title: "Patient requis", text: "Veuillez sélectionner un patient", icon: "warning" });
         return;
     }
     
-    Swal.fire({ 
-        title: "Assignation...", 
-        didOpen: () => Swal.showLoading(), 
-        allowOutsideClick: false 
-    });
+    const assignType = document.querySelector('input[name="assign-type"]:checked')?.value || 'permanente';
+    const dateDebut = document.getElementById("assign-date-debut")?.value;
+    const dateFin = document.getElementById("assign-date-fin")?.value;
+    const heure = document.getElementById("assign-heure")?.value;
+    const notes = document.getElementById("assign-notes")?.value || "";
+    
+    // Validation selon le type
+    if (assignType === 'temporelle' && !dateFin) {
+        Swal.fire({ title: "Date de fin requise", text: "Veuillez spécifier une date de fin", icon: "warning" });
+        return;
+    }
+    if (assignType === 'ponctuelle' && !dateDebut) {
+        Swal.fire({ title: "Date requise", text: "Veuillez spécifier une date", icon: "warning" });
+        return;
+    }
+    
+    Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     
     try {
         await secureFetch("/assignments/assign", {
@@ -390,35 +433,72 @@ window.submitAssignment = async () => {
             body: JSON.stringify({
                 aidant_id: window._selectedAidant.id,
                 patient_id: window._selectedPatient.id,
-                date_prevue: document.getElementById("assign-date")?.value,
-                heure_prevue: document.getElementById("assign-time")?.value,
-                notes: document.getElementById("assign-notes")?.value || ""
+                type_assignation: assignType,
+                date_debut: dateDebut || new Date().toISOString().split('T')[0],
+                date_fin: assignType === 'temporelle' ? dateFin : null,
+                heure_prevue: assignType === 'ponctuelle' ? heure : null,
+                notes: notes
             })
         });
         
-        Swal.fire({ 
-            icon: "success", 
-            title: "Succès", 
-            text: "Patient assigné avec succès", 
-            timer: 2000, 
-            showConfirmButton: false 
-        });
+        Swal.fire({ icon: "success", title: "Succès", text: "Assignation créée avec succès", timer: 2000, showConfirmButton: false });
         window.switchView("rh-dashboard");
         
     } catch (err) {
         Swal.close();
-        Swal.fire({ 
-            title: "Erreur", 
-            text: err.message, 
-            icon: "error", 
-            customClass: { popup: 'rounded-2xl' } 
-        });
+        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
     }
 };
 
 /**
- * 🔧 Échapper les caractères HTML
+ * 🔧 Gestionnaire des types d'assignation
  */
+function setupAssignTypeHandlers() {
+    const typePermanente = document.getElementById('type-permanente');
+    const typeTemporelle = document.getElementById('type-temporelle');
+    const typePonctuelle = document.getElementById('type-ponctuelle');
+    const periodContainer = document.getElementById('period-container');
+    const dateFinContainer = document.getElementById('date-fin-container');
+    const heureContainer = document.getElementById('heure-container');
+    
+    const setActiveStyle = (element, isActive) => {
+        if (isActive) {
+            element.classList.add('border-emerald-500', 'bg-emerald-50');
+            element.classList.remove('border-slate-200');
+        } else {
+            element.classList.remove('border-emerald-500', 'bg-emerald-50');
+            element.classList.add('border-slate-200');
+        }
+    };
+    
+    typePermanente.addEventListener('click', () => {
+        typePermanente.querySelector('input').checked = true;
+        setActiveStyle(typePermanente, true);
+        setActiveStyle(typeTemporelle, false);
+        setActiveStyle(typePonctuelle, false);
+        periodContainer.classList.add('hidden');
+    });
+    
+    typeTemporelle.addEventListener('click', () => {
+        typeTemporelle.querySelector('input').checked = true;
+        setActiveStyle(typeTemporelle, true);
+        setActiveStyle(typePermanente, false);
+        setActiveStyle(typePonctuelle, false);
+        periodContainer.classList.remove('hidden');
+        dateFinContainer.classList.remove('hidden');
+        heureContainer.classList.add('hidden');
+    });
+    
+    typePonctuelle.addEventListener('click', () => {
+        typePonctuelle.querySelector('input').checked = true;
+        setActiveStyle(typePonctuelle, true);
+        setActiveStyle(typePermanente, false);
+        setActiveStyle(typeTemporelle, false);
+        periodContainer.classList.remove('hidden');
+        dateFinContainer.classList.add('hidden');
+        heureContainer.classList.remove('hidden');
+    });
+}
 
 /**
  * 💡 TRANSITION INTELLIGENTE - Briefing
