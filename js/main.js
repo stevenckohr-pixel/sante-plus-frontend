@@ -898,12 +898,16 @@ case "commandes":
         case "link-family": await Patients.renderLinkFamilyView(); break;
         case "add-aidant": await Aidants.renderAddAidantView(); break;
         case "end-visit": await Visites.renderEndVisitView(); break;
-        
+        case "start-visit":
+        await Visites.renderStartVisitView(AppState.currentPatient);
+        break;
         case "home": 
              // On s'assure que le contenu du hub mobile s'affiche bien
              container.innerHTML = document.getElementById("template-home").innerHTML;
              renderMobileHub(); 
              break;
+
+        
       }
   } catch (err) {
       console.error("DEBUG VIEW ERROR:", err);
@@ -1071,6 +1075,8 @@ window.fetchStats = Dashboard.fetchStats;
 window.openOrderModal = Commandes.openOrderModal; 
 window.openActivationPage = Admin.openActivationPage;
 window.processValidation = Admin.processValidation;
+window.confirmStartVisit = Visites.startVisit; 
+
 
 
 
