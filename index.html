@@ -49,6 +49,24 @@
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden h-screen w-full font-sans">
 
+      <!-- ============================================ -->
+    <!-- SCRIPT PRINCIPAL -->
+    <!-- ============================================ -->
+    <script type="module" src="js/main.js"></script>
+
+    <!-- ============================================ -->
+    <!-- SERVICE WORKER -->
+    <!-- ============================================ -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('🚀 Service Worker opérationnel !'))
+                    .catch(err => console.log('❌ Échec SW', err));
+            });
+        }
+    </script>
+
     <!-- ============================================ -->
     <!-- LOADER PREMIUM -->
     <!-- ============================================ -->
@@ -235,22 +253,6 @@
 
     </div>
 
-    <!-- ============================================ -->
-    <!-- SCRIPT PRINCIPAL -->
-    <!-- ============================================ -->
-    <script type="module" src="js/main.js"></script>
-
-    <!-- ============================================ -->
-    <!-- SERVICE WORKER -->
-    <!-- ============================================ -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('🚀 Service Worker opérationnel !'))
-                    .catch(err => console.log('❌ Échec SW', err));
-            });
-        }
-    </script>
+  
 </body>
 </html>
