@@ -390,31 +390,58 @@ function getStepHTML() {
                 <textarea id="p-notes" class="app-input !py-3 !text-sm h-28" placeholder="Observations (Allergies, mobilité, habitudes...)">${registrationData.notes_medicales || ''}</textarea>
             </div>`;
 
-        case 4: return `
-            <div class="text-center mb-4">
-                <h3 class="text-base font-black text-slate-800">Type de Service</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Sélectionnez la catégorie</p>
-            </div>
-            <div class="grid grid-cols-1 gap-4">
-                <button onclick="window.selectCategory('SENIOR')" class="w-full p-6 rounded-3xl border-2 ${registrationData.categorie === 'SENIOR' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 bg-white'} text-left transition-all">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-xl">👴</div>
-                        <div>
-                            <h4 class="font-black text-slate-800 text-sm">PERSONNE ÂGÉE</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Maintien à domicile</p>
+            case 4: return `
+                <div class="text-center mb-6">
+                    <h3 class="text-base font-black text-slate-800">Type de Service</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Sélectionnez la catégorie</p>
+                </div>
+                
+                <!-- Sélecteur moderne pour catégorie -->
+                <div id="category-selector" class="space-y-3">
+                    <!-- Carte Sénior -->
+                    <div onclick="window.openCategorySelector('SENIOR')" 
+                         class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-emerald-200">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl">
+                                👴
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-black text-slate-800 text-base">Personne Âgée</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Maintien à domicile</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300"></i>
                         </div>
                     </div>
-                </button>
-                <button onclick="window.selectCategory('MAMAN_BEBE')" class="w-full p-6 rounded-3xl border-2 ${registrationData.categorie === 'MAMAN_BEBE' ? 'border-pink-500 bg-pink-50' : 'border-slate-100 bg-white'} text-left transition-all">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-xl">👶</div>
-                        <div>
-                            <h4 class="font-black text-slate-800 text-sm">MAMAN & BÉBÉ</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">Sortie de maternité</p>
+                    
+                    <!-- Carte Maman & Bébé -->
+                    <div onclick="window.openCategorySelector('MAMAN_BEBE')" 
+                         class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-pink-200">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">
+                                👶
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-black text-slate-800 text-base">Maman & Bébé</h4>
+                                <p class="text-[10px] text-pink-500 font-bold uppercase mt-0.5">Sortie de maternité</p>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300"></i>
                         </div>
                     </div>
-                </button>
-            </div>`;
+                </div>
+                
+                <!-- Indicateur de sélection (caché au début) -->
+                <div id="selected-category-display" class="mt-4 hidden">
+                    <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <div class="flex items-center gap-2">
+                            <i id="selected-category-icon" class="fa-solid fa-check-circle text-emerald-500"></i>
+                            <span id="selected-category-text" class="text-xs font-bold text-emerald-700"></span>
+                        </div>
+                        <button onclick="window.clearCategorySelection()" class="text-[10px] text-emerald-500 underline">Modifier</button>
+                    </div>
+                </div>
+            `;
+
+            
 
         case 5: return renderPricingPacks(); 
 
@@ -437,6 +464,110 @@ function getStepHTML() {
             </label>`;
     }
 }
+
+
+// Ouvre le sélecteur de catégorie avec style moderne
+window.openCategorySelector = async (category) => {
+    const categories = {
+        'SENIOR': {
+            name: 'Personne Âgée',
+            desc: 'Maintien à domicile',
+            icon: '👴',
+            color: 'emerald',
+            bgClass: 'bg-emerald-50 border-emerald-200',
+            textClass: 'text-emerald-700'
+        },
+        'MAMAN_BEBE': {
+            name: 'Maman & Bébé',
+            desc: 'Sortie de maternité',
+            icon: '👶',
+            color: 'pink',
+            bgClass: 'bg-pink-50 border-pink-200',
+            textClass: 'text-pink-600'
+        }
+    };
+    
+    const cat = categories[category];
+    if (!cat) return;
+    
+    // Confirmation visuelle avant de valider
+    const confirmModal = `
+        <div class="text-center">
+            <div class="text-6xl mb-3">${cat.icon}</div>
+            <p class="text-lg font-black text-slate-800">${cat.name}</p>
+            <p class="text-xs text-slate-400 mt-1">${cat.desc}</p>
+            <div class="mt-4 p-3 ${cat.bgClass} rounded-xl">
+                <p class="text-[10px] font-bold ${cat.textClass}">✓ Vous allez recevoir des offres adaptées</p>
+            </div>
+        </div>
+    `;
+    
+    const result = await Swal.fire({
+        title: 'Confirmer la catégorie',
+        html: confirmModal,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmer',
+        confirmButtonColor: category === 'MAMAN_BEBE' ? '#DB2777' : '#10B981',
+        cancelButtonText: 'Annuler',
+        customClass: {
+            popup: 'rounded-2xl p-6',
+            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
+            cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
+        }
+    });
+    
+    if (result.isConfirmed) {
+        registrationData.categorie = category;
+        
+        // Mettre à jour l'affichage
+        const displayDiv = document.getElementById('selected-category-display');
+        const iconSpan = document.getElementById('selected-category-icon');
+        const textSpan = document.getElementById('selected-category-text');
+        
+        if (displayDiv && iconSpan && textSpan) {
+            iconSpan.className = category === 'MAMAN_BEBE' ? 'fa-solid fa-baby-carriage text-pink-500' : 'fa-solid fa-user-plus text-emerald-500';
+            textSpan.innerText = `${cat.icon} ${cat.name} sélectionné`;
+            displayDiv.classList.remove('hidden');
+        }
+        
+        // Mettre en surbrillance la carte sélectionnée
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('border-emerald-500', 'border-pink-500', 'bg-emerald-50', 'bg-pink-50');
+            card.classList.add('border-slate-100');
+        });
+        
+        const selectedCard = category === 'MAMAN_BEBE' 
+            ? document.querySelector('.category-card:last-child')
+            : document.querySelector('.category-card:first-child');
+        
+        if (selectedCard) {
+            selectedCard.classList.remove('border-slate-100');
+            selectedCard.classList.add(category === 'MAMAN_BEBE' ? 'border-pink-500' : 'border-emerald-500');
+            selectedCard.classList.add(category === 'MAMAN_BEBE' ? 'bg-pink-50' : 'bg-emerald-50');
+        }
+        
+        UI.vibrate('success');
+        
+        // Passer automatiquement à l'étape suivante après un petit délai
+        setTimeout(() => {
+            window.nextAuthStep();
+        }, 500);
+    }
+};
+
+// Effacer la sélection (pour modifier)
+window.clearCategorySelection = () => {
+    registrationData.categorie = null;
+    const displayDiv = document.getElementById('selected-category-display');
+    if (displayDiv) displayDiv.classList.add('hidden');
+    
+    document.querySelectorAll('.category-card').forEach(card => {
+        card.classList.remove('border-emerald-500', 'border-pink-500', 'bg-emerald-50', 'bg-pink-50');
+        card.classList.add('border-slate-100');
+    });
+};
+
 
 /**
  * 💸 GÉNÉRATEUR DE PACKS (Selon le PDF)
