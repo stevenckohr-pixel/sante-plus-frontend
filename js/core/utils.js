@@ -453,7 +453,6 @@ export function showInfoToast(message, duration = 2000) {
 export function showLocalLoader(container, message = 'Chargement...') {
     if (!container) return;
     
-    // Sauvegarder le contenu original si ce n'est pas déjà fait
     if (!container.dataset.originalContent) {
         container.dataset.originalContent = container.innerHTML;
     }
