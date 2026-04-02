@@ -11,7 +11,8 @@ import * as Messages from "./modules/message.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
-import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader } from "./core/utils.js";
+import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader, initLazyLoading, secureFetchWithCache } from "./core/utils.js";
+
 
 
 
@@ -139,6 +140,8 @@ async function initApp() {
 
     // Initialiser les micro-interactions
     initMicroInteractions();
+    initLazyLoading();
+
     
     // Récupérer la préférence utilisateur pour les sons
     const savedSoundPref = localStorage.getItem('sounds_enabled');
