@@ -576,55 +576,55 @@ export async function secureFetchWithCache(endpoint, options = {}, useCache = tr
  * 🔒 VÉRIFICATION DES DROITS D'ACCÈS (Période de grâce + Paiement)
  * @returns {Object} { hasAccess, reason, daysUntilBlock }
  */
+/**
+ * 🔒 VÉRIFICATION DES DROITS D'ACCÈS (Version abonnement 1 mois + 5 jours)
+ */
 export function checkAccessRights() {
     const userRole = localStorage.getItem("user_role");
     const paymentStatus = localStorage.getItem("payment_status");
     const lastPaymentDate = localStorage.getItem("last_payment_date");
+    const subscriptionEndDate = localStorage.getItem("subscription_end_date");
     
-    // Les coordinateurs et aidants ont toujours accès
+    // Coordinateurs et aidants : accès total
     if (userRole === "COORDINATEUR" || userRole === "AIDANT") {
-        return { hasAccess: true, reason: null };
+        return { hasAccess: true, isExpiringSoon: false };
     }
     
-    const today = new Date();
-    const currentDay = today.getDate();
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
-    
-    // 📅 Période de grâce : 1er au 5 du mois
-    const isGracePeriod = currentDay <= 5;
-    
-    // ✅ Si paiement à jour, accès total
-    if (paymentStatus === "A jour") {
-        return { hasAccess: true, reason: null };
-    }
-    
-    // ⚠️ Période de grâce : accès temporaire même si impayé
-    if (isGracePeriod && paymentStatus === "En retard") {
-        const daysUntilBlock = 6 - currentDay;
-        return { 
-            hasAccess: true, 
-            reason: "period_grace",
-            message: `⚠️ Période de grâce jusqu'au 5. Pensez à régulariser votre paiement (plus que ${daysUntilBlock} jour(s)).`,
-            daysUntilBlock
-        };
-    }
-    
-    // 🔒 Hors période de grâce ET impayé = accès bloqué
-    if (!isGracePeriod && paymentStatus === "En retard") {
-        // Calculer le prochain déblocage (1er du mois prochain)
-        const nextMonth = new Date(currentYear, currentMonth + 1, 1);
-        const daysUntilNextMonth = Math.ceil((nextMonth - today) / (1000 * 60 * 60 * 24));
-        
+    // Si pas de date de paiement, accès refusé
+    if (!lastPaymentDate && paymentStatus !== "A jour") {
         return {
             hasAccess: false,
-            reason: "payment_required",
-            message: `🔒 Accès suspendu. Veuillez régulariser votre paiement pour accéder au suivi de votre proche.`,
-            daysUntilNextMonth
+            isExpired: true,
+            message: "Aucun abonnement actif. Veuillez souscrire un abonnement."
         };
     }
     
-    return { hasAccess: true, reason: null };
+    // Calculer les jours restants
+    let joursRestants = 0;
+    let endDateObj = null;
+    
+    if (subscriptionEndDate) {
+        endDateObj = new Date(subscriptionEndDate);
+        const today = new Date();
+        joursRestants = Math.ceil((endDateObj - today) / (1000 * 60 * 60 * 24));
+    }
+    
+    // ✅ Abonnement valide
+    if (paymentStatus === "A jour" && joursRestants > 0) {
+        return {
+            hasAccess: true,
+            isExpiringSoon: joursRestants <= 5,
+            joursRestants: joursRestants,
+            endDate: endDateObj
+        };
+    }
+    
+    // 🔒 Abonnement expiré
+    return {
+        hasAccess: false,
+        isExpired: true,
+        message: "Votre abonnement a expiré. Veuillez renouveler pour continuer à suivre votre proche."
+    };
 }
 
 /**
