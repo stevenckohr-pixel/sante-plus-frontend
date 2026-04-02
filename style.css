@@ -1032,3 +1032,22 @@ main {
         max-width: 85%;
     }
 }
+
+
+/* Amélioration de l'icône Apple Touch */
+apple-touch-icon {
+    border-radius: 20%;
+    box-shadow: none;
+}
+
+/* Pour éviter le cadre noir sur l'écran de démarrage */
+body {
+    background-color: #0F172A;
+}
+
+/* Amélioration du splash screen iOS */
+@media (display-mode: standalone) {
+    body {
+        background-color: #0F172A;
+    }
+}
