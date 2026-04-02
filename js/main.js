@@ -1166,6 +1166,9 @@ function getNavLinks(role, mode) {
 // ============================================
 // TRANSITION FLUIDE AVEC LOADER LOCAL
 // ============================================
+// ============================================
+// TRANSITION FLUIDE SANS SACCADES
+// ============================================
 
 let isTransitioning = false;
 let pendingView = null;
@@ -1179,38 +1182,63 @@ window.switchView = async function(viewName) {
     isTransitioning = true;
     
     const container = document.getElementById("view-container");
+    const mainContent = document.querySelector("main");
     
     if (!container) {
         isTransitioning = false;
         return;
     }
     
-    // 1. Animation de sortie
-    container.style.transition = "opacity 0.1s ease";
+    // 1. Animation de sortie (plus douce)
+    container.style.transition = "opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)";
     container.style.opacity = "0";
-    await new Promise(r => setTimeout(r, 80));
+    container.style.transform = "translateY(10px)";
     
-    // 2. Afficher le loader ✅
+    // 2. Attendre un peu pour que l'animation se fasse
+    await new Promise(r => setTimeout(r, 150));
+    
+    // 3. Afficher un loader élégant (plus petit)
     container.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-20 min-h-[200px]">
-            <div class="relative w-12 h-12">
+        <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
+            <div class="relative w-10 h-10">
                 <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
                 <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
-                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
+                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-pulse">
             </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
         </div>
     `;
     
+    // 4. Petit délai pour que le loader s'affiche
+    await new Promise(r => setTimeout(r, 50));
+    
     try {
         await performViewSwitch(viewName);
+        
+        // 5. Animation d'entrée
         container.style.opacity = "1";
+        container.style.transform = "translateY(0)";
+        
+        // 6. Nettoyer les styles après animation
         setTimeout(() => {
-            if (container) container.style.transition = "";
-        }, 100);
+            if (container) {
+                container.style.transition = "";
+                container.style.transform = "";
+            }
+        }, 250);
+        
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        container.innerHTML = `...`;
+        container.innerHTML = `
+            <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+                <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+                <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
+                <button onclick="window.switchView('${viewName}')" 
+                        class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
+                    Réessayer
+                </button>
+            </div>`;
         container.style.opacity = "1";
     }
     
