@@ -414,3 +414,7 @@ export async function setPatientHomeDirect(patientId) {
         Swal.fire("Erreur GPS", "Veuillez autoriser la localisation", "error");
     }
 }
+
+
+
+
