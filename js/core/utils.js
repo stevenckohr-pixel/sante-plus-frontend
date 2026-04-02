@@ -1,4 +1,4 @@
-
+// Ajoute à la fin du fichier :
 
 /**
  * Utilitaires partagés Santé Plus Services
@@ -726,3 +726,6 @@ function getDaysRemaining(lastPaymentDate) {
     
     return diffDays > 0 ? diffDays : 0;
 }
+
+
+export { calculateSubscriptionEndDate, isSubscriptionValid, getDaysRemaining };
