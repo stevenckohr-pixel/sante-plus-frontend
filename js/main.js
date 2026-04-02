@@ -12,6 +12,8 @@ import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
+import { openModernSelector } from "./core/utils.js";
+
 
 
 
@@ -1228,6 +1230,8 @@ window.openActivationPage = Admin.openActivationPage;
 window.processValidation = Admin.processValidation;
 window.confirmStartVisit = Visites.startVisit; 
 window.setThemeColor = setThemeColor;
+window.openModernSelector = openModernSelector;
+
 
 
 
