@@ -8,13 +8,10 @@ import * as Aidants from "./modules/aidants.js";
 import * as Commandes from "./modules/commandes.js";
 import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
-import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
-import { openModernSelector } from "./core/utils.js";
 import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound } from "./core/utils.js";
-
 
 
 
