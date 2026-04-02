@@ -387,3 +387,121 @@ main {
         transform: translateX(0); /* Se pose à sa place */
     }
 }
+
+
+
+/* === OPTIMISATIONS MOBILE PRIORITAIRES === */
+
+/* Réduction de la hauteur du footer mobile */
+@media (max-width: 1023px) {
+    footer {
+        height: 64px !important; /* h-16 */
+    }
+    
+    footer .nav-btn i {
+        font-size: 1.25rem !important; /* text-lg */
+    }
+    
+    footer .nav-btn span {
+        font-size: 9px !important;
+    }
+    
+    /* Bouton central flottant réduit */
+    footer button.w-16.h-16 {
+        width: 56px !important;
+        height: 56px !important;
+        margin-top: -28px !important;
+    }
+    
+    /* Header réduit */
+    header {
+        height: 56px !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Padding bottom du contenu principal pour éviter le cache du footer */
+    main {
+        padding-bottom: 80px !important;
+    }
+    
+    /* Dernier élément toujours visible */
+    .pb-32, .pb-24 {
+        padding-bottom: 100px !important;
+    }
+}
+
+/* Tailles de police adaptées au mobile */
+@media (max-width: 640px) {
+    .text-2xl {
+        font-size: 1.25rem !important; /* 20px */
+    }
+    
+    .text-xl {
+        font-size: 1.125rem !important; /* 18px */
+    }
+    
+    .text-lg {
+        font-size: 1rem !important; /* 16px */
+    }
+    
+    .text-base {
+        font-size: 0.875rem !important; /* 14px */
+    }
+    
+    .text-sm {
+        font-size: 0.75rem !important; /* 12px */
+    }
+    
+    .text-xs {
+        font-size: 0.7rem !important; /* 11px */
+    }
+    
+    /* Arrondis réduits */
+    .rounded-\[2rem\], .rounded-\[2\.5rem\], .rounded-\[3rem\] {
+        border-radius: 1rem !important; /* rounded-xl */
+    }
+    
+    .rounded-\[1\.5rem\], .rounded-\[1\.8rem\] {
+        border-radius: 0.75rem !important; /* rounded-lg */
+    }
+    
+    /* Padding réduit sur les cartes */
+    .bento-card, .patient-card, .menu-tile {
+        padding: 1rem !important;
+    }
+    
+    /* Espacement réduit entre les éléments */
+    .space-y-6 {
+        row-gap: 1rem !important;
+    }
+    
+    .space-y-4 {
+        row-gap: 0.75rem !important;
+    }
+    
+    .gap-4 {
+        gap: 0.75rem !important;
+    }
+}
+
+/* Couleurs spécifiques */
+.bg-premium-gold {
+    background-color: #D4AF37 !important;
+}
+.text-premium-gold {
+    color: #D4AF37 !important;
+}
+.border-premium-gold {
+    border-color: #D4AF37 !important;
+}
+
+.bg-maman-pink {
+    background-color: #FDF2F8 !important;
+}
+.text-maman-pink {
+    color: #DB2777 !important;
+}
+.border-maman-pink {
+    border-color: #DB2777 !important;
+}
