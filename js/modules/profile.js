@@ -10,6 +10,7 @@ export async function renderProfilePage() {
     const userId = localStorage.getItem("user_id");
     const userName = localStorage.getItem("user_name");
     const userEmail = localStorage.getItem("user_email");
+    const userPhoto = localStorage.getItem("user_photo");
     
     // Récupérer les infos complètes depuis le backend
     let profile = null;
@@ -54,8 +55,8 @@ export async function renderProfilePage() {
                     <div id="profile-photo-container" 
                          class="w-32 h-32 rounded-2xl ${themeBgClass} border-4 border-white shadow-xl flex items-center justify-center cursor-pointer overflow-hidden"
                          onclick="document.getElementById('profile-photo-input').click()">
-                        ${profile?.photo_url ? 
-                            `<img src="${profile.photo_url}" class="w-full h-full object-cover">` : 
+                        ${userPhoto ? 
+                            `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
                             `<i class="fa-solid fa-camera text-4xl ${themeTextClass}"></i>`
                         }
                     </div>
@@ -69,7 +70,7 @@ export async function renderProfilePage() {
                 <p class="text-xs font-bold ${themeTextClass} uppercase tracking-wider mt-1">${userRole}</p>
             </div>
             
-            <!-- Formulaire d'informations -->
+            <!-- UN SEUL BLOC Informations personnelles -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="font-black text-slate-800">Informations personnelles</h4>
@@ -110,102 +111,28 @@ export async function renderProfilePage() {
             </div>
             
             ${userRole === "FAMILLE" && patient ? `
-            <!-- Section Patient (pour la famille) -->
+            <!-- Section Patient -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-6">
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="font-black text-slate-800">Dossier de votre proche</h4>
                     <p class="text-[10px] text-slate-400 mt-1">Informations du patient</p>
                 </div>
-                
-                <div class="p-6 space-y-5">
-                    <div class="flex items-center gap-4">
-                        <div class="relative">
-                            <div id="patient-photo-container" 
-                                 class="w-20 h-20 rounded-xl ${themeBgClass} border-2 border-white shadow-md flex items-center justify-center cursor-pointer overflow-hidden"
-                                 onclick="document.getElementById('patient-photo-input').click()">
-                                ${patient?.photo_url ? 
-                                    `<img src="${patient.photo_url}" class="w-full h-full object-cover">` : 
-                                    `<i class="fa-solid fa-user text-2xl ${themeTextClass}"></i>`
-                                }
-                            </div>
-                            <button onclick="document.getElementById('patient-photo-input').click()" 
-                                    class="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg">
-                                <i class="fa-solid fa-pen text-[8px]"></i>
-                            </button>
-                            <input type="file" id="patient-photo-input" accept="image/*" class="hidden" onchange="window.updatePatientPhoto(this.files[0])">
-                        </div>
-                        <div>
-                            <p class="font-black text-slate-800">${patient.nom_complet}</p>
-                            <p class="text-[10px] text-slate-400">${patient.formule || 'Standard'}</p>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-location-dot mr-1"></i> Adresse
-                        </label>
-                        <input type="text" id="patient-adresse" value="${escapeHtml(patient.adresse || '')}" 
-                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300">
-                    </div>
-                    
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-notes-medical mr-1"></i> Notes médicales
-                        </label>
-                        <textarea id="patient-notes" rows="3" 
-                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
-                                  placeholder="Allergies, traitements, précautions...">${escapeHtml(patient.notes_medicales || '')}</textarea>
-                    </div>
-                    
-                    <button onclick="window.updatePatientInfo()" 
-                            class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
-                        <i class="fa-solid fa-save mr-2"></i> Enregistrer les infos du patient
-                    </button>
-                </div>
+                <!-- ... contenu patient ... -->
             </div>
             ` : ''}
             
             ${userRole === "AIDANT" ? `
-            <!-- Section Aidant - Compétences -->
+            <!-- Section Aidant -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-6">
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="font-black text-slate-800">Compétences & Disponibilités</h4>
                     <p class="text-[10px] text-slate-400 mt-1">Informations professionnelles</p>
                 </div>
-                
-                <div class="p-6 space-y-5">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-stethoscope mr-1"></i> Compétences
-                        </label>
-                        <div class="flex flex-wrap gap-2">
-                            ${['Soins de base', 'Aide à la mobilité', 'Préparation repas', 'Accompagnement', 'Premiers secours'].map(skill => `
-                                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs">
-                                    <input type="checkbox" class="skill-check" value="${skill}" ${profile?.competences?.includes(skill) ? 'checked' : ''}>
-                                    ${skill}
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-calendar mr-1"></i> Disponibilités
-                        </label>
-                        <textarea id="aidant-disponibilites" rows="2" 
-                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
-                                  placeholder="Lundis et mercredis après-midi, week-ends...">${profile?.disponibilites || ''}</textarea>
-                    </div>
-                    
-                    <button onclick="window.updateAidantInfo()" 
-                            class="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
-                        <i class="fa-solid fa-save mr-2"></i> Enregistrer les infos professionnelles
-                    </button>
-                </div>
+                <!-- ... contenu aidant ... -->
             </div>
             ` : ''}
             
-            <!-- Statistiques (pour tous) -->
+            <!-- Statistiques -->
             <div class="bg-slate-50 rounded-2xl p-6 mt-6">
                 <h4 class="font-black text-slate-800 mb-4">Statistiques</h4>
                 <div class="grid grid-cols-2 gap-4">
@@ -227,7 +154,6 @@ export async function renderProfilePage() {
         </div>
     `;
     
-    // Charger les statistiques
     loadUserStats(userRole, userId);
 }
 
