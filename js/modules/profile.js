@@ -4,6 +4,7 @@ import { UI, compressImage } from "../core/utils.js";
 /**
  * 📱 PAGE PROFIL UTILISATEUR
  */
+
 export async function renderProfilePage() {
     const container = document.getElementById("view-container");
     const userRole = localStorage.getItem("user_role");
@@ -66,44 +67,52 @@ export async function renderProfilePage() {
                     </button>
                     <input type="file" id="profile-photo-input" accept="image/*" class="hidden" onchange="window.updateProfilePhoto(this.files[0])">
                 </div>
-                <h2 class="text-xl font-black text-slate-800 mt-4">${escapeHtml(profile?.nom || userName)}</h2>
+                <h2 class="text-xl font-black text-slate-800 mt-4">${escapeHtml(profile?.prenom || '')} ${escapeHtml(profile?.nom || userName)}</h2>
                 <p class="text-xs font-bold ${themeTextClass} uppercase tracking-wider mt-1">${userRole}</p>
             </div>
             
-            <!-- UN SEUL BLOC - Informations personnelles -->
+            <!-- UN SEUL BLOC - Informations personnelles enrichies -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="font-black text-slate-800">Informations personnelles</h4>
                     <p class="text-[10px] text-slate-400 mt-1">Modifiez vos informations ci-dessous</p>
                 </div>
                 
-                <div class="p-6 space-y-5">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-user mr-1"></i> Nom complet
-                        </label>
-                        <input type="text" id="profile-nom" value="${escapeHtml(profile?.nom || userName)}" 
-                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300">
+                <div class="p-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Prénom</label>
+                            <input type="text" id="profile-prenom" value="${escapeHtml(profile?.prenom || '')}" 
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Nom</label>
+                            <input type="text" id="profile-nom" value="${escapeHtml(profile?.nom || userName)}" 
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
                     </div>
                     
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-envelope mr-1"></i> Email
-                        </label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Email</label>
                         <input type="email" id="profile-email" value="${escapeHtml(profile?.email || userEmail)}" 
-                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300">
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                     </div>
                     
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-phone mr-1"></i> Téléphone
-                        </label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Téléphone</label>
                         <input type="tel" id="profile-telephone" value="${escapeHtml(profile?.telephone || '')}" 
-                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
                                placeholder="+229 XX XXX XXX">
                     </div>
                     
-                    <button onclick="window.updateProfile()" 
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Adresse</label>
+                        <input type="text" id="profile-adresse" value="${escapeHtml(profile?.adresse || '')}" 
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                               placeholder="Votre adresse complète">
+                    </div>
+                    
+                    <button onclick="window.updateProfileFull()" 
                             class="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
                         <i class="fa-solid fa-save mr-2"></i> Enregistrer les modifications
                     </button>
@@ -111,15 +120,15 @@ export async function renderProfilePage() {
             </div>
             
             ${userRole === "FAMILLE" && patient ? `
-            <!-- Section Patient -->
+            <!-- Section Patient enrichie -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-6">
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="font-black text-slate-800">Dossier de votre proche</h4>
-                    <p class="text-[10px] text-slate-400 mt-1">Informations du patient</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Informations personnelles et médicales</p>
                 </div>
                 
-                <div class="p-6 space-y-5">
-                    <div class="flex items-center gap-4">
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center gap-4 mb-4">
                         <div class="relative">
                             <div id="patient-photo-container" 
                                  class="w-16 h-16 rounded-xl ${themeBgClass} border-2 border-white shadow-md flex items-center justify-center cursor-pointer overflow-hidden"
@@ -136,49 +145,105 @@ export async function renderProfilePage() {
                             <input type="file" id="patient-photo-input" accept="image/*" class="hidden" onchange="window.updatePatientPhoto(this.files[0])">
                         </div>
                         <div>
-                            <p class="font-black text-slate-800">${escapeHtml(patient.nom_complet)}</p>
+                            <p class="font-black text-slate-800">${escapeHtml(patient.prenom || '')} ${escapeHtml(patient.nom || '')}</p>
                             <p class="text-[10px] text-slate-400">${patient.formule || 'Standard'}</p>
                         </div>
                     </div>
                     
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Prénom</label>
+                            <input type="text" id="patient-prenom" value="${escapeHtml(patient.prenom || '')}" 
+                                   class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Nom</label>
+                            <input type="text" id="patient-nom" value="${escapeHtml(patient.nom || '')}" 
+                                   class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Âge</label>
+                            <input type="number" id="patient-age" value="${patient.age || ''}" 
+                                   class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Sexe</label>
+                            <select id="patient-sexe" class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Homme" ${patient.sexe === 'Homme' ? 'selected' : ''}>Homme</option>
+                                <option value="Femme" ${patient.sexe === 'Femme' ? 'selected' : ''}>Femme</option>
+                            </select>
+                        </div>
+                    </div>
+                    
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-location-dot mr-1"></i> Adresse
-                        </label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Téléphone</label>
+                        <input type="tel" id="patient-tel" value="${escapeHtml(patient.telephone || '')}" 
+                               class="w-full p-3 bg-slate-50 rounded-xl text-sm">
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Adresse</label>
                         <input type="text" id="patient-adresse" value="${escapeHtml(patient.adresse || '')}" 
-                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300">
+                               class="w-full p-3 bg-slate-50 rounded-xl text-sm">
                     </div>
                     
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-notes-medical mr-1"></i> Notes médicales
-                        </label>
-                        <textarea id="patient-notes" rows="3" 
-                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
-                                  placeholder="Allergies, traitements, précautions...">${escapeHtml(patient.notes_medicales || '')}</textarea>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Contact urgence</label>
+                        <input type="text" id="patient-urgence" value="${escapeHtml(patient.contact_urgence || '')}" 
+                               class="w-full p-3 bg-slate-50 rounded-xl text-sm">
                     </div>
                     
-                    <button onclick="window.updatePatientInfo()" 
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Traitements en cours</label>
+                        <textarea id="patient-traitements" rows="2" 
+                                  class="w-full p-3 bg-slate-50 rounded-xl text-sm"
+                                  placeholder="Médicaments, posologies...">${escapeHtml(patient.traitements || '')}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Allergies</label>
+                        <textarea id="patient-allergies" rows="2" 
+                                  class="w-full p-3 bg-slate-50 rounded-xl text-sm"
+                                  placeholder="Médicaments, aliments...">${escapeHtml(patient.allergies || '')}</textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Notes médicales</label>
+                        <textarea id="patient-notes" rows="3" 
+                                  class="w-full p-3 bg-slate-50 rounded-xl text-sm"
+                                  placeholder="Mobilité, précautions...">${escapeHtml(patient.notes_medicales || '')}</textarea>
+                    </div>
+                    
+                    <button onclick="window.updatePatientFullInfo()" 
                             class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
-                        <i class="fa-solid fa-save mr-2"></i> Enregistrer
+                        <i class="fa-solid fa-save mr-2"></i> Enregistrer toutes les infos
                     </button>
                 </div>
             </div>
             ` : ''}
             
             ${userRole === "AIDANT" ? `
-            <!-- Section Aidant -->
+            <!-- Section Aidant enrichie -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-6">
                 <div class="p-6 border-b border-slate-100">
-                    <h4 class="font-black text-slate-800">Compétences & Disponibilités</h4>
-                    <p class="text-[10px] text-slate-400 mt-1">Informations professionnelles</p>
+                    <h4 class="font-black text-slate-800">Informations professionnelles</h4>
+                    <p class="text-[10px] text-slate-400 mt-1">Compétences et disponibilités</p>
                 </div>
                 
-                <div class="p-6 space-y-5">
+                <div class="p-6 space-y-4">
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-stethoscope mr-1"></i> Compétences
-                        </label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Adresse</label>
+                        <input type="text" id="aidant-adresse" value="${escapeHtml(profile?.adresse || '')}" 
+                               class="w-full p-3 bg-slate-50 rounded-xl text-sm"
+                               placeholder="Votre adresse">
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Compétences</label>
                         <div class="flex flex-wrap gap-2">
                             ${['Soins de base', 'Aide à la mobilité', 'Préparation repas', 'Accompagnement', 'Premiers secours'].map(skill => `
                                 <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs">
@@ -190,15 +255,13 @@ export async function renderProfilePage() {
                     </div>
                     
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-calendar mr-1"></i> Disponibilités
-                        </label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">Disponibilités</label>
                         <textarea id="aidant-disponibilites" rows="2" 
-                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                                  class="w-full p-3 bg-slate-50 rounded-xl text-sm"
                                   placeholder="Lundis et mercredis après-midi, week-ends...">${escapeHtml(profile?.disponibilites || '')}</textarea>
                     </div>
                     
-                    <button onclick="window.updateAidantInfo()" 
+                    <button onclick="window.updateAidantFullInfo()" 
                             class="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
                         <i class="fa-solid fa-save mr-2"></i> Enregistrer
                     </button>
@@ -230,6 +293,89 @@ export async function renderProfilePage() {
     
     loadUserStats(userRole, userId);
 }
+
+/**
+ * 💾 Mettre à jour le profil complet (avec prénom, nom, adresse)
+ */
+window.updateProfileFull = async () => {
+    const prenom = document.getElementById("profile-prenom")?.value;
+    const nom = document.getElementById("profile-nom")?.value;
+    const email = document.getElementById("profile-email")?.value;
+    const telephone = document.getElementById("profile-telephone")?.value;
+    const adresse = document.getElementById("profile-adresse")?.value;
+    
+    Swal.fire({ title: "Mise à jour...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        await secureFetch("/auth/update-profile-full", {
+            method: "PUT",
+            body: JSON.stringify({ prenom, nom, email, telephone, adresse })
+        });
+        
+        localStorage.setItem("user_name", `${prenom} ${nom}`.trim());
+        UI.success("Profil mis à jour");
+        Swal.close();
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+        UI.error(err.message);
+    }
+};
+
+/**
+ * 💾 Mettre à jour toutes les infos du patient
+ */
+window.updatePatientFullInfo = async () => {
+    const data = {
+        prenom: document.getElementById("patient-prenom")?.value,
+        nom: document.getElementById("patient-nom")?.value,
+        age: document.getElementById("patient-age")?.value,
+        sexe: document.getElementById("patient-sexe")?.value,
+        telephone: document.getElementById("patient-tel")?.value,
+        adresse: document.getElementById("patient-adresse")?.value,
+        contact_urgence: document.getElementById("patient-urgence")?.value,
+        traitements: document.getElementById("patient-traitements")?.value,
+        allergies: document.getElementById("patient-allergies")?.value,
+        notes_medicales: document.getElementById("patient-notes")?.value
+    };
+    
+    Swal.fire({ title: "Mise à jour...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        await secureFetch("/patients/update-full-info", {
+            method: "PUT",
+            body: JSON.stringify(data)
+        });
+        
+        UI.success("Informations patient mises à jour");
+        Swal.close();
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+        UI.error(err.message);
+    }
+};
+
+/**
+ * 💾 Mettre à jour toutes les infos aidant
+ */
+window.updateAidantFullInfo = async () => {
+    const competences = Array.from(document.querySelectorAll('.skill-check:checked')).map(cb => cb.value);
+    const disponibilites = document.getElementById("aidant-disponibilites")?.value;
+    const adresse = document.getElementById("aidant-adresse")?.value;
+    
+    Swal.fire({ title: "Mise à jour...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        await secureFetch("/auth/update-aidant-full-info", {
+            method: "PUT",
+            body: JSON.stringify({ competences, disponibilites, adresse })
+        });
+        
+        UI.success("Informations professionnelles mises à jour");
+        Swal.close();
+    } catch (err) {
+        UI.error(err.message);
+    }
+};
 
 /**
  * 📊 Charger les statistiques utilisateur
