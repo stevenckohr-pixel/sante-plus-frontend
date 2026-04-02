@@ -12,6 +12,8 @@ import { UI } from "./core/utils.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
+import { setThemeColor } from "./modules/auth.js";
+
 
 
 
