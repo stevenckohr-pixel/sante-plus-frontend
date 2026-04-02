@@ -329,3 +329,53 @@ export function setSoundsEnabled(enabled) {
 export function getSoundsEnabled() {
     return soundsEnabled;
 }
+
+
+
+/**
+ * 🔘 AJOUTER DES FEEDBACK À TOUS LES ÉLÉMENTS CLIQUABLES
+ */
+export function initMicroInteractions() {
+    // Ajouter le feedback haptique à tous les boutons et cartes
+    const clickableElements = document.querySelectorAll('button, .menu-tile, .patient-card, .nav-btn, .sidebar-link, [onclick]');
+    
+    clickableElements.forEach(el => {
+        // Éviter les doublons
+        if (el.hasAttribute('data-haptic-initialized')) return;
+        el.setAttribute('data-haptic-initialized', 'true');
+        
+        el.addEventListener('click', (e) => {
+            // Éviter les doubles feedbacks sur les éléments enfants
+            if (e.defaultPrevented) return;
+            
+            // Vibration légère
+            haptic('click');
+            
+            // Son optionnel
+            if (soundsEnabled) {
+                playSound('click');
+            }
+        });
+        
+        // Ajouter la classe de feedback visuel
+        el.classList.add('haptic-feedback');
+    });
+}
+
+/**
+ * 🔄 REINITIALISER LES MICRO-INTERACTIONS (après chargement dynamique)
+ */
+export function refreshMicroInteractions() {
+    const clickableElements = document.querySelectorAll('button, .menu-tile, .patient-card, .nav-btn, .sidebar-link, [onclick]');
+    
+    clickableElements.forEach(el => {
+        if (el.hasAttribute('data-haptic-initialized')) return;
+        el.setAttribute('data-haptic-initialized', 'true');
+        
+        el.addEventListener('click', () => {
+            haptic('click');
+            if (soundsEnabled) playSound('click');
+        });
+        el.classList.add('haptic-feedback');
+    });
+}
