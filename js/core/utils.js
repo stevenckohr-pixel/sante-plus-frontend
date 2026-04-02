@@ -33,7 +33,10 @@ export const UI = {
 };
 
 // Compression d'image avant envoi au serveur (pour économiser la bande passante au Bénin)
-export async function compressImage(file, maxWidth = 800) {
+/**
+ * 📸 Compression d'image ULTRA LÉGÈRE pour petits RAM
+ */
+export async function compressImage(file, maxWidth = 600) { // Réduit de 800 à 600
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -52,13 +55,45 @@ export async function compressImage(file, maxWidth = 800) {
             resolve(blob);
           },
           "image/jpeg",
-          0.7,
+          0.6 // Réduit de 0.7 à 0.6
         );
       };
     };
   });
 }
 
+/**
+ * 📦 Cache simplifié (plus léger)
+ */
+const apiCache = new Map();
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes au lieu de 5
+
+export async function cachedFetch(url, options = {}, ttl = CACHE_DURATION) {
+    const cacheKey = url;
+    const cached = apiCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < ttl) {
+        return cached.data;
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        
+        // Ne pas cacher les grosses réponses
+        if (JSON.stringify(data).length < 50000) { // Moins de 50KB
+            apiCache.set(cacheKey, {
+                data: data,
+                timestamp: Date.now()
+            });
+        }
+        
+        return data;
+    } catch (err) {
+        if (cached) return cached.data;
+        throw err;
+    }
+}
 
 
 /**
@@ -478,33 +513,6 @@ export function hideLocalLoader(container) {
 }
 
 
-
-/**
- * 📦 CACHE POUR LES DONNÉES API
- */
-const apiCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-export async function cachedFetch(url, options = {}, ttl = CACHE_DURATION) {
-    const cacheKey = `${url}_${JSON.stringify(options)}`;
-    const cached = apiCache.get(cacheKey);
-    
-    if (cached && Date.now() - cached.timestamp < ttl) {
-        console.log(`📦 Cache hit: ${url}`);
-        return cached.data;
-    }
-    
-    console.log(`🌐 Cache miss: ${url}`);
-    const response = await fetch(url, options);
-    const data = await response.json();
-    
-    apiCache.set(cacheKey, {
-        data: data,
-        timestamp: Date.now()
-    });
-    
-    return data;
-}
 
 /**
  * 🖼️ LAZY LOADING DES IMAGES
