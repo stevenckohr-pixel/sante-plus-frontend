@@ -1,6 +1,8 @@
 import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI, compressImage } from "../core/utils.js";
+import { showSkeleton } from "../core/utils.js";
+
 
 let geoWatchId = null;
 
