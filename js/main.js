@@ -501,10 +501,14 @@ async function submitRegistration() {
 /**
  * 📱 HUB DE NAVIGATION MOBILE (Interface par Blocs)
  */
+
 function renderMobileHub() {
     const userRole = localStorage.getItem("user_role");
     const userName = localStorage.getItem("user_name");
     const container = document.getElementById("view-container");
+    
+    // Pour savoir si c'est une famille Maman (on peut détecter via le rôle ou stocker en local)
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
     
     const menuItems = [
         { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
@@ -521,14 +525,38 @@ function renderMobileHub() {
 
     container.innerHTML = `
         <div class="animate-fadeIn pb-32">
-            <!-- Header -->
-            <div class="mb-6">
-                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Bienvenue</p>
-                <h2 class="text-xl font-black text-slate-900">${userName?.split(' ')[0] || 'Utilisateur'} 👋</h2>
+            <!-- ============================================ -->
+            <!-- BANNIÈRE DE BIENVENUE COLORÉE (AJOUTÉE ICI) -->
+            <!-- ============================================ -->
+            <div class="${isMaman ? 'maman-banner' : 'premium-banner'} p-5 rounded-2xl mb-8 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-wider opacity-80">
+                            ${isMaman ? '👶 Programme Maman & Bébé' : '⭐ Programme Premium'}
+                        </p>
+                        <p class="text-lg font-black mt-1 ${isMaman ? 'text-rose-primary' : 'text-slate-deep'}">
+                            ${userName?.split(' ')[0] || 'Utilisateur'} 👋
+                        </p>
+                        <p class="text-[10px] font-medium opacity-70 mt-0.5">
+                            ${isMaman ? 'Accompagnement personnalisé' : 'Accès prioritaire aux soins'}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-crown'} text-xl text-white"></i>
+                    </div>
+                </div>
             </div>
 
-            <!-- Grille de menus stylée -->
-            <div class="grid grid-cols-2 gap-4">
+            <!-- Barre de recherche -->
+            <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
+                <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
+                <input type="text" placeholder="Rechercher un dossier..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
+            </div>
+
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4 ml-1">Menu Principal</h4>
+
+            <!-- GRILLE DE BLOCS -->
+            <div class="menu-grid">
                 ${filteredMenu.map(item => `
                     <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer">
                         <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center">
@@ -544,6 +572,8 @@ function renderMobileHub() {
         </div>
     `;
 }
+
+
 /**
  * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
  */
