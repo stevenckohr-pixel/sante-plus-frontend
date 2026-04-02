@@ -374,6 +374,7 @@ window.unassignPatient = async (assignmentId, aidantNom, patientNom) => {
 
 /**
  * 📊 PAGE : TABLEAU DE BORD RH (Coordinateur)
+ * Design cohérent : Blanc, Noir, Rose, Or
  */
 export async function renderRHDashboard() {
     const container = document.getElementById("view-container");
@@ -381,55 +382,66 @@ export async function renderRHDashboard() {
     container.innerHTML = `
         <div class="animate-fadeIn pb-32">
             <!-- Header -->
-            <div class="flex justify-between items-center mb-8">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
                 <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">👥 Équipe & Assignations</h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion complète des aidants et patients</p>
+                    <h3 class="font-black text-2xl text-slate-900 tracking-tight">👥 Gestion de l'équipe</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Aidants • Patients • Assignations</p>
                 </div>
-                <button onclick="window.openAssignModal()" class="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase shadow-lg active:scale-95">
-                    <i class="fa-solid fa-plus"></i> Nouvelle assignation
+                <button onclick="window.openAssignModal()" 
+                        class="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">
+                    <i class="fa-solid fa-plus text-xs"></i> Nouvelle assignation
                 </button>
             </div>
 
-            <!-- Statistiques rapides -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div id="stat-aidants" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Aidants</p>
-                    <h3 class="text-2xl font-black text-slate-800">-</h3>
+            <!-- Cartes stats (design épuré) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Aidants</p>
+                        <i class="fa-solid fa-user-nurse text-slate-300 text-sm"></i>
+                    </div>
+                    <h3 id="stat-aidants" class="text-2xl font-black text-slate-900 mt-1">-</h3>
                 </div>
-                <div id="stat-patients" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
-                    <h3 class="text-2xl font-black text-slate-800">-</h3>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Patients</p>
+                        <i class="fa-solid fa-hospital-user text-slate-300 text-sm"></i>
+                    </div>
+                    <h3 id="stat-patients" class="text-2xl font-black text-slate-900 mt-1">-</h3>
                 </div>
-                <div id="stat-assignments" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Assignations</p>
-                    <h3 class="text-2xl font-black text-slate-800">-</h3>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Assignations</p>
+                        <i class="fa-solid fa-link text-slate-300 text-sm"></i>
+                    </div>
+                    <h3 id="stat-assignments" class="text-2xl font-black text-emerald-600 mt-1">-</h3>
                 </div>
-                <div id="stat-non-assignes" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Non assignés</p>
-                    <h3 class="text-2xl font-black text-amber-600">-</h3>
+                <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Non assignés</p>
+                        <i class="fa-solid fa-user-slash text-slate-300 text-sm"></i>
+                    </div>
+                    <h3 id="stat-non-assignes" class="text-2xl font-black text-amber-600 mt-1">-</h3>
                 </div>
             </div>
 
-            <!-- TABS : Aidants / Patients -->
-            <div class="bg-slate-100/50 p-1.5 rounded-2xl flex items-center gap-1 mb-8 max-w-md">
-                <button id="tab-aidants" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-white text-slate-900 shadow-sm">
+            <!-- Switcher de vues (style iOS) -->
+            <div class="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 mb-6 max-w-xs mx-auto sm:mx-0">
+                <button id="tab-aidants" class="flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all bg-white text-slate-900 shadow-sm">
                     👨‍⚕️ Aidants
                 </button>
-                <button id="tab-patients" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400">
+                <button id="tab-patients" class="flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all text-slate-400">
                     📋 Patients
                 </button>
             </div>
 
-            <!-- CONTENEUR DES LISTES -->
+            <!-- Contenu dynamique -->
             <div id="rh-content"></div>
         </div>
     `;
 
-    // Charger les données
     await loadRHDashboardData();
 
-    // Gérer les onglets
     document.getElementById("tab-aidants").onclick = () => showRHTab('aidants');
     document.getElementById("tab-patients").onclick = () => showRHTab('patients');
 }
@@ -438,24 +450,35 @@ let rhData = null;
 let currentRHTab = 'aidants';
 
 async function loadRHDashboardData() {
+    const contentDiv = document.getElementById("rh-content");
+    contentDiv.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20">
+            <div class="relative">
+                <div class="w-10 h-10 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+            </div>
+            <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-4">Chargement...</p>
+        </div>
+    `;
+
     try {
         const res = await secureFetch("/assignments/full-dashboard");
         rhData = await res.json();
 
-        // Mettre à jour les stats
-        document.getElementById("stat-aidants").querySelector("h3").innerText = rhData.total_aidants || 0;
-        document.getElementById("stat-patients").querySelector("h3").innerText = rhData.total_patients || 0;
-        document.getElementById("stat-assignments").querySelector("h3").innerText = rhData.total_assignments || 0;
-        document.getElementById("stat-non-assignes").querySelector("h3").innerText = rhData.patients_non_assignes || 0;
+        document.getElementById("stat-aidants").innerText = rhData.total_aidants || 0;
+        document.getElementById("stat-patients").innerText = rhData.total_patients || 0;
+        document.getElementById("stat-assignments").innerText = rhData.total_assignments || 0;
+        document.getElementById("stat-non-assignes").innerText = rhData.patients_non_assignes || 0;
 
-        // Afficher le premier onglet
         showRHTab('aidants');
 
     } catch (err) {
-        console.error("Erreur chargement RH:", err);
-        document.getElementById("rh-content").innerHTML = `
-            <div class="bg-white rounded-2xl p-10 text-center text-rose-500">
-                Erreur de chargement: ${err.message}
+        contentDiv.innerHTML = `
+            <div class="bg-white rounded-2xl p-10 text-center border border-rose-100">
+                <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+                <button onclick="renderRHDashboard()" class="mt-4 px-5 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
             </div>
         `;
     }
@@ -464,7 +487,6 @@ async function loadRHDashboardData() {
 function showRHTab(tab) {
     currentRHTab = tab;
     
-    // Mettre à jour l'apparence des onglets
     const tabAidants = document.getElementById("tab-aidants");
     const tabPatients = document.getElementById("tab-patients");
     
@@ -486,39 +508,58 @@ function showRHTab(tab) {
 function renderAidantsList() {
     const container = document.getElementById("rh-content");
     
-    if (!rhData || !rhData.aidants || rhData.aidants.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-2xl p-10 text-center text-slate-400">Aucun aidant trouvé</div>`;
+    if (!rhData?.aidants?.length) {
+        container.innerHTML = `
+            <div class="bg-white rounded-2xl p-10 text-center border border-slate-100">
+                <i class="fa-solid fa-user-slash text-slate-300 text-4xl mb-3"></i>
+                <p class="text-sm font-bold text-slate-500">Aucun aidant trouvé</p>
+                <p class="text-[10px] text-slate-400 mt-1">Commencez par ajouter un aidant</p>
+            </div>
+        `;
         return;
     }
 
     container.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-4">
             ${rhData.aidants.map(aidant => `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <!-- En-tête aidant -->
-                    <div class="p-6 bg-gradient-to-r from-slate-800 to-slate-900 text-white">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-black text-lg">${aidant.nom}</h4>
-                                <p class="text-xs text-slate-300 mt-1">${aidant.email || ''}</p>
-                                <p class="text-xs text-slate-300">📞 ${aidant.telephone || 'Non renseigné'}</p>
+                    <!-- En-tête avec dégradé noir -->
+                    <div class="px-5 py-4 bg-gradient-to-r from-slate-800 to-slate-900">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-user-nurse text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-white text-base">${aidant.nom}</h4>
+                                    <p class="text-[10px] text-slate-300 mt-0.5">📧 ${aidant.email || 'Non renseigné'}</p>
+                                </div>
                             </div>
-                            <div class="bg-emerald-500/20 px-3 py-1 rounded-full">
-                                <span class="text-[10px] font-black">${aidant.nb_patients} patient${aidant.nb_patients > 1 ? 's' : ''}</span>
+                            <div class="flex items-center gap-3">
+                                <span class="bg-emerald-500/20 px-3 py-1 rounded-full">
+                                    <span class="text-[10px] font-black text-emerald-300">${aidant.nb_patients} patient${aidant.nb_patients > 1 ? 's' : ''}</span>
+                                </span>
+                                ${aidant.telephone ? `
+                                    <a href="tel:${aidant.telephone}" class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+                                        <i class="fa-solid fa-phone text-white text-xs"></i>
+                                    </a>
+                                ` : ''}
                             </div>
                         </div>
                     </div>
                     
-                    <!-- Liste des patients assignés -->
+                    <!-- Corps de la carte -->
                     <div class="p-4">
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3 px-2">
-                            Patients assignés :
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-users text-[8px]"></i> Patients assignés
                         </p>
+                        
                         ${aidant.patients_assignes.length === 0 ? `
-                            <div class="text-center py-6 text-slate-400 text-sm">
-                                <i class="fa-solid fa-user-slash text-2xl mb-2 opacity-30"></i>
-                                <p class="text-xs">Aucun patient assigné</p>
-                                <button onclick="window.openAssignModalWithAidant('${aidant.id}')" class="mt-3 text-[10px] text-emerald-600 font-black uppercase">
+                            <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
+                                <i class="fa-solid fa-user-plus text-slate-300 text-2xl mb-2"></i>
+                                <p class="text-xs text-slate-400">Aucun patient assigné</p>
+                                <button onclick="window.openAssignModalWithAidant('${aidant.id}')" 
+                                        class="mt-3 text-[10px] text-emerald-600 font-black uppercase hover:text-emerald-700 transition">
                                     + Assigner un patient
                                 </button>
                             </div>
@@ -528,17 +569,19 @@ function renderAidantsList() {
                                     const patient = rhData.patients.find(p => p.id === assign.patient_id);
                                     return `
                                         <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                            <div>
-                                                <p class="font-bold text-slate-800 text-sm">${patient?.nom_complet || 'Inconnu'}</p>
-                                                <p class="text-[10px] text-slate-400">${patient?.formule || 'Standard'}</p>
+                                            <div class="flex-1">
+                                                <p class="font-bold text-slate-800 text-sm">${patient?.nom_complet || 'Patient inconnu'}</p>
+                                                <div class="flex items-center gap-3 mt-1">
+                                                    <span class="text-[9px] font-bold ${patient?.formule === 'Premium' ? 'text-gold-primary' : 'text-emerald-600'}">
+                                                        ${patient?.formule || 'Standard'}
+                                                    </span>
+                                                    <span class="text-[9px] text-slate-400">📅 ${assign.date_prevue || 'Date non définie'}</span>
+                                                </div>
                                             </div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="w-2 h-2 rounded-full ${assign.statut === 'Planifié' ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
-                                                <button onclick="window.unassignPatient('${assign.assignment_id}', '${aidant.nom}', '${patient?.nom_complet || ''}')" 
-                                                        class="text-rose-400 hover:text-rose-600 transition-colors">
-                                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                                </button>
-                                            </div>
+                                            <button onclick="window.unassignPatient('${assign.assignment_id}', '${aidant.nom}', '${patient?.nom_complet || ''}')" 
+                                                    class="w-8 h-8 rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-100 hover:text-rose-600 transition-colors flex items-center justify-center">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
                                         </div>
                                     `;
                                 }).join('')}
@@ -554,24 +597,40 @@ function renderAidantsList() {
 function renderPatientsList() {
     const container = document.getElementById("rh-content");
     
-    if (!rhData || !rhData.patients || rhData.patients.length === 0) {
-        container.innerHTML = `<div class="bg-white rounded-2xl p-10 text-center text-slate-400">Aucun patient trouvé</div>`;
+    if (!rhData?.patients?.length) {
+        container.innerHTML = `
+            <div class="bg-white rounded-2xl p-10 text-center border border-slate-100">
+                <i class="fa-solid fa-hospital-user text-slate-300 text-4xl mb-3"></i>
+                <p class="text-sm font-bold text-slate-500">Aucun patient trouvé</p>
+                <p class="text-[10px] text-slate-400 mt-1">Ajoutez des patients pour commencer</p>
+            </div>
+        `;
         return;
     }
 
     container.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-4">
             ${rhData.patients.map(patient => `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                    <div class="p-6 ${patient.aidant_assigne ? 'bg-gradient-to-r from-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-slate-600 to-slate-700'} text-white">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-black text-lg">${patient.nom_complet}</h4>
-                                <p class="text-xs text-white/70 mt-1">📌 ${patient.adresse || 'Adresse non renseignée'}</p>
-                                <p class="text-xs text-white/70">🎁 ${patient.formule || 'Standard'}</p>
+                    <!-- En-tête avec code couleur (vert si assigné, orange si non) -->
+                    <div class="px-5 py-4 ${patient.aidant_assigne ? 'bg-gradient-to-r from-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-slate-600 to-slate-700'}">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-user text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-black text-white text-base">${patient.nom_complet}</h4>
+                                    <div class="flex flex-wrap items-center gap-2 mt-0.5">
+                                        <span class="text-[9px] text-white/70">📌 ${patient.adresse?.substring(0, 30) || 'Adresse non renseignée'}</span>
+                                        <span class="text-[9px] font-bold ${patient.formule === 'Premium' ? 'text-gold-primary' : 'text-emerald-300'}">
+                                            ${patient.formule || 'Standard'}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="${patient.aidant_assigne ? 'bg-emerald-500/30' : 'bg-amber-500/30'} px-3 py-1 rounded-full">
-                                <span class="text-[9px] font-black">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 rounded-full ${patient.aidant_assigne ? 'bg-emerald-500/30 text-emerald-100' : 'bg-amber-500/30 text-amber-100'} text-[9px] font-bold">
                                     ${patient.aidant_assigne ? '✅ Assigné' : '⚠️ Non assigné'}
                                 </span>
                             </div>
@@ -580,34 +639,42 @@ function renderPatientsList() {
                     
                     <div class="p-4">
                         ${patient.aidant_assigne ? `
-                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                <div>
-                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Aidant assigné</p>
-                                    <p class="font-bold text-slate-800 text-sm mt-1">${patient.aidant_assigne.nom}</p>
-                                    <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
+                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                        <i class="fa-solid fa-user-nurse text-emerald-600 text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Aidant assigné</p>
+                                        <p class="font-bold text-slate-800 text-sm">${patient.aidant_assigne.nom}</p>
+                                        <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
+                                    </div>
                                 </div>
                                 <button onclick="window.unassignPatientFromPatient('${patient.id}')" 
-                                        class="text-rose-500 hover:text-rose-700 transition-colors text-sm">
+                                        class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
                                     <i class="fa-solid fa-link-slash"></i> Délier
                                 </button>
                             </div>
                         ` : `
-                            <div class="text-center py-6">
-                                <i class="fa-solid fa-user-plus text-3xl text-slate-300 mb-3"></i>
+                            <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
+                                <i class="fa-solid fa-user-plus text-slate-300 text-2xl mb-2"></i>
                                 <p class="text-xs text-slate-400 mb-3">Aucun aidant assigné</p>
-                                <button onclick="window.openAssignModalWithPatient('${patient.id}', '${patient.nom_complet}')" 
-                                        class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase">
+                                <button onclick="window.openAssignModalWithPatient('${patient.id}', '${patient.nom_complet.replace(/'/g, "\\'")}')" 
+                                        class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition">
                                     + Assigner un aidant
                                 </button>
                             </div>
                         `}
                         
-                        <!-- Infos famille -->
+                        <!-- Infos famille (style plus élégant) -->
                         ${patient.famille ? `
-                            <div class="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
-                                <p class="text-[9px] font-black text-blue-600 uppercase tracking-wider">Famille / Payeur</p>
-                                <p class="font-bold text-slate-700 text-sm mt-1">${patient.famille.nom || 'Inconnu'}</p>
-                                <p class="text-[10px] text-slate-500">📧 ${patient.famille.email || ''}</p>
+                            <div class="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <i class="fa-solid fa-family text-blue-500 text-xs"></i>
+                                    <p class="text-[9px] font-black text-blue-600 uppercase tracking-wider">Famille / Payeur</p>
+                                </div>
+                                <p class="font-bold text-slate-800 text-sm">${patient.famille.nom || 'Inconnu'}</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">📧 ${patient.famille.email || ''}</p>
                             </div>
                         ` : ''}
                     </div>
@@ -623,44 +690,44 @@ window.openAssignModalWithAidant = (aidantId) => {
     window.openAssignModal();
 };
 
-// Helper pour ouvrir la modale avec un patient pré-sélectionné
 window.openAssignModalWithPatient = (patientId, patientNom) => {
     localStorage.setItem("pre_selected_patient", patientId);
     window.openAssignModal();
 };
 
-// Délier un patient d'un aidant (depuis la vue patient)
+// Délier depuis la vue patient
 window.unassignPatientFromPatient = async (patientId) => {
-    // Trouver l'assignation
     const assignment = rhData?.assignments?.find(a => a.patient_id === patientId);
     if (!assignment) {
-        Swal.fire("Erreur", "Assignation introuvable", "error");
+        Swal.fire({ title: "Erreur", text: "Assignation introuvable", icon: "error", customClass: { popup: 'rounded-2xl' } });
         return;
     }
     
     const aidant = rhData?.aidants?.find(a => a.id === assignment.aidant_id);
     
-    const { value: raison } = await Swal.fire({
+    const result = await Swal.fire({
         title: "Délier le patient",
-        text: `Retirer ce patient de ${aidant?.nom || "l'aidant"} ?`,
+        text: `Retirer ${patientId} de ${aidant?.nom || "l'aidant"} ?`,
         input: "textarea",
         inputPlaceholder: "Raison (optionnel)",
         showCancelButton: true,
         confirmButtonText: "Oui, délier",
-        confirmButtonColor: "#F43F5E"
+        confirmButtonColor: "#F43F5E",
+        cancelButtonText: "Annuler",
+        customClass: { popup: 'rounded-2xl', input: 'rounded-xl' }
     });
 
-    if (raison !== undefined) {
-        Swal.fire({ title: "Traitement...", didOpen: () => Swal.showLoading() });
+    if (result.isConfirmed) {
+        Swal.fire({ title: "Traitement...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         try {
             await secureFetch("/assignments/unassign", {
                 method: "POST",
-                body: JSON.stringify({ assignment_id: assignment.id, raison: raison || "" })
+                body: JSON.stringify({ assignment_id: assignment.id, raison: result.value || "" })
             });
-            Swal.fire("Succès", "Patient délié avec succès", "success");
-            loadRHDashboardData(); // Recharger
+            Swal.fire({ icon: "success", title: "Succès", text: "Patient délié avec succès", timer: 2000, showConfirmButton: false });
+            renderRHDashboard(); // Recharger
         } catch (err) {
-            Swal.fire("Erreur", err.message, "error");
+            Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
         }
     }
 };
