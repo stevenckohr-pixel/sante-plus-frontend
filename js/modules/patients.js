@@ -39,14 +39,14 @@ export function renderPatients() {
 
   if (AppState.patients.length === 0) {
     container.innerHTML = `
-            <div class="text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
+            <div class="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-100 animate-fadeIn">
                 <i class="fa-solid fa-users-slash text-slate-100 text-5xl mb-4"></i>
                 <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Aucun dossier actif</p>
             </div>`;
     return;
   }
 
-  container.innerHTML = AppState.patients.map((p) => {
+  container.innerHTML = AppState.patients.map((p, index) => {
     // --- 🧠 LOGIQUE DE THÉMATISATION (DEMANDE CLIENTE) ---
     const isMaman = p.categorie_service === 'MAMAN_BEBE';
     const isPremium = p.formule === 'Premium';
@@ -65,8 +65,11 @@ export function renderPatients() {
     const hasGps = p.lat && p.lng;
     const canManageGps = (userRole === 'COORDINATEUR' || userRole === 'AIDANT');
 
+    // 🎨 Animation en cascade : délai basé sur l'index
+    const animationDelay = `${index * 0.05}s`;
+
     return `
-        <div class="patient-card animate-fadeIn group ${premiumCardClass}">
+        <div class="patient-card animate-fadeIn group ${premiumCardClass}" style="animation-delay: ${animationDelay}; animation-duration: 0.3s;">
             <div class="flex items-start justify-between mb-6">
                 <div class="flex items-center gap-4">
                     <!-- Avatar avec indicateur GPS et thème dynamique -->
@@ -130,7 +133,6 @@ export function renderPatients() {
     `;
   }).join("");
 }
-
 
 /**
  * 📄 VUE : PAGE D'AJOUT D'UN PATIENT
