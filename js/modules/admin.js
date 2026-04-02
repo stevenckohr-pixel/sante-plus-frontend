@@ -273,7 +273,7 @@ async function loadAssignments() {
 
 // Modale d'assignation
 window.openAssignModal = async () => {
-    // Charger les aidants et patients non assignés
+    // Charger les données
     const [aidantsRes, patientsRes] = await Promise.all([
         secureFetch("/assignments/available-aidants"),
         secureFetch("/assignments/unassigned-patients")
@@ -281,65 +281,167 @@ window.openAssignModal = async () => {
     
     const aidants = await aidantsRes.json();
     const patients = await patientsRes.json();
-
-    const { value: formValues } = await Swal.fire({
-        title: "Assigner un patient",
-        html: `
-            <div class="space-y-4 text-left">
+    
+    const preSelectedAidant = localStorage.getItem("pre_selected_aidant");
+    const preSelectedPatient = localStorage.getItem("pre_selected_patient");
+    
+    if (preSelectedAidant) localStorage.removeItem("pre_selected_aidant");
+    if (preSelectedPatient) localStorage.removeItem("pre_selected_patient");
+    
+    let selectedAidant = preSelectedAidant ? aidants.find(a => a.id === preSelectedAidant) : null;
+    let selectedPatient = preSelectedPatient ? patients.find(p => p.id === preSelectedPatient) : null;
+    
+    // Fonction pour re-rendre la modale
+    const renderModal = () => {
+        return `
+            <div class="space-y-5">
+                <!-- Sélection Aidant -->
                 <div>
-                    <label class="text-xs font-bold text-slate-600">Aidant</label>
-                    <select id="assign-aidant" class="w-full p-3 rounded-xl border border-slate-200 mt-1">
-                        <option value="">-- Choisir un aidant --</option>
-                        ${aidants.map(a => `<option value="${a.id}">${a.nom}</option>`).join('')}
-                    </select>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        <i class="fa-solid fa-user-nurse mr-1"></i> Aidant
+                    </label>
+                    <div onclick="window.showAidantSelector()" 
+                         class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer active:bg-slate-100 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-user-nurse text-emerald-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p id="selected-aidant-name" class="font-bold text-slate-800 text-sm">
+                                    ${selectedAidant ? selectedAidant.nom : 'Choisir un aidant'}
+                                </p>
+                                <p id="selected-aidant-email" class="text-[10px] text-slate-400">
+                                    ${selectedAidant?.email || ''}
+                                </p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-slate-300 text-xs"></i>
+                    </div>
                 </div>
+                
+                <!-- Sélection Patient -->
                 <div>
-                    <label class="text-xs font-bold text-slate-600">Patient</label>
-                    <select id="assign-patient" class="w-full p-3 rounded-xl border border-slate-200 mt-1">
-                        <option value="">-- Choisir un patient --</option>
-                        ${patients.map(p => `<option value="${p.id}">${p.nom_complet}</option>`).join('')}
-                    </select>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        <i class="fa-solid fa-hospital-user mr-1"></i> Patient
+                    </label>
+                    <div onclick="window.showPatientSelector()" 
+                         class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer active:bg-slate-100 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <i class="fa-solid fa-user text-blue-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p id="selected-patient-name" class="font-bold text-slate-800 text-sm">
+                                    ${selectedPatient ? selectedPatient.nom_complet : 'Choisir un patient'}
+                                </p>
+                                <p id="selected-patient-formule" class="text-[10px] text-slate-400">
+                                    ${selectedPatient?.formule || ''}
+                                </p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down text-slate-300 text-xs"></i>
+                    </div>
                 </div>
+                
+                <!-- Notes -->
                 <div>
-                    <label class="text-xs font-bold text-slate-600">Notes (optionnel)</label>
-                    <textarea id="assign-notes" class="w-full p-3 rounded-xl border border-slate-200 mt-1" rows="2" placeholder="Instructions pour l'aidant..."></textarea>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        <i class="fa-solid fa-pen mr-1"></i> Instructions (optionnel)
+                    </label>
+                    <textarea id="assign-notes" rows="2" 
+                              class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-emerald-300 transition"
+                              placeholder="Notes pour l'aidant..."></textarea>
+                </div>
+                
+                <!-- Date (optionnelle) -->
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        <i class="fa-regular fa-calendar mr-1"></i> Date de début (optionnel)
+                    </label>
+                    <input type="date" id="assign-date" 
+                           class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-emerald-300 transition"
+                           value="${new Date().toISOString().split('T')[0]}">
                 </div>
             </div>
-        `,
+        `;
+    };
+    
+    // Sauvegarder les références
+    window._assignModalData = { aidants, patients, selectedAidant, selectedPatient, renderModal };
+    
+    // Définir les sélecteurs
+    window.showAidantSelector = async () => {
+        const result = await openModernSelector(
+            aidants.map(a => ({ id: a.id, name: a.nom, extra: a.email })),
+            "Sélectionner un aidant",
+            "Rechercher un aidant..."
+        );
+        if (result) {
+            window._assignModalData.selectedAidant = result;
+            // Re-rendre la modale
+            Swal.update({ html: renderModal() });
+        }
+    };
+    
+    window.showPatientSelector = async () => {
+        const result = await openModernSelector(
+            patients.map(p => ({ id: p.id, name: p.nom_complet, extra: p.formule })),
+            "Sélectionner un patient",
+            "Rechercher un patient..."
+        );
+        if (result) {
+            window._assignModalData.selectedPatient = result;
+            Swal.update({ html: renderModal() });
+        }
+    };
+    
+    const result = await Swal.fire({
+        title: '<span class="text-base font-black text-slate-800">➕ Nouvelle assignation</span>',
+        html: renderModal(),
         showCancelButton: true,
         confirmButtonText: "Assigner",
         confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler",
+        cancelButtonColor: "#94A3B8",
+        customClass: {
+            popup: 'rounded-2xl p-6',
+            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
+            cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
+        },
         preConfirm: () => {
-            const aidant_id = document.getElementById("assign-aidant").value;
-            const patient_id = document.getElementById("assign-patient").value;
-            const notes = document.getElementById("assign-notes").value;
-            
-            if (!aidant_id || !patient_id) {
-                Swal.showValidationMessage("Veuillez sélectionner un aidant et un patient");
+            const data = window._assignModalData;
+            if (!data.selectedAidant) {
+                Swal.showValidationMessage("Veuillez sélectionner un aidant");
                 return false;
             }
-            return { aidant_id, patient_id, notes };
+            if (!data.selectedPatient) {
+                Swal.showValidationMessage("Veuillez sélectionner un patient");
+                return false;
+            }
+            return {
+                aidant_id: data.selectedAidant.id,
+                patient_id: data.selectedPatient.id,
+                notes: document.getElementById("assign-notes")?.value || "",
+                date_prevue: document.getElementById("assign-date")?.value || null
+            };
         }
     });
-
-    if (formValues) {
-        Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading() });
+    
+    if (result.isConfirmed && result.value) {
+        Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         try {
             await secureFetch("/assignments/assign", {
                 method: "POST",
-                body: JSON.stringify({
-                    patient_id: formValues.patient_id,
-                    aidant_id: formValues.aidant_id,
-                    notes: formValues.notes
-                })
+                body: JSON.stringify(result.value)
             });
-            Swal.fire("Succès", "Patient assigné avec succès", "success");
-            renderAssignmentsPage();
+            Swal.fire({ icon: "success", title: "Succès", text: "Patient assigné avec succès", timer: 2000, showConfirmButton: false });
+            renderRHDashboard();
         } catch (err) {
-            Swal.fire("Erreur", err.message, "error");
+            Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
         }
     }
 };
+
 
 // Désassignation
 window.unassignPatient = async (assignmentId, aidantNom, patientNom) => {
