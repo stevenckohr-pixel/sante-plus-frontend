@@ -21,6 +21,7 @@ export async function handleLogin() {
     });
 
     const data = await response.json();
+    console.log("📦 Données reçues du backend :", data);
     if (!response.ok) throw new Error(data.error || "Erreur de connexion");
 
     // 🔴 2FA POUR COORDINATEUR (Redirection vers la vue In-Card au lieu d'une Popup)
