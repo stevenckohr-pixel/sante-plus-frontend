@@ -1,6 +1,7 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
+
 /**
  * 📥 CHARGER LE PLANNING (Vue liste)
  */
@@ -454,3 +455,6 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+
+export { openAssignPage };
