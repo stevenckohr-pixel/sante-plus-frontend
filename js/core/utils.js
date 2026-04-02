@@ -476,3 +476,96 @@ export function hideLocalLoader(container) {
         delete container.dataset.originalContent;
     }
 }
+
+
+
+/**
+ * 📦 CACHE POUR LES DONNÉES API
+ */
+const apiCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+export async function cachedFetch(url, options = {}, ttl = CACHE_DURATION) {
+    const cacheKey = `${url}_${JSON.stringify(options)}`;
+    const cached = apiCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < ttl) {
+        console.log(`📦 Cache hit: ${url}`);
+        return cached.data;
+    }
+    
+    console.log(`🌐 Cache miss: ${url}`);
+    const response = await fetch(url, options);
+    const data = await response.json();
+    
+    apiCache.set(cacheKey, {
+        data: data,
+        timestamp: Date.now()
+    });
+    
+    return data;
+}
+
+/**
+ * 🖼️ LAZY LOADING DES IMAGES
+ */
+export function initLazyLoading() {
+    const images = document.querySelectorAll('img[data-src]');
+    
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+                observer.unobserve(img);
+            }
+        });
+    }, {
+        rootMargin: '50px',
+        threshold: 0.01
+    });
+    
+    images.forEach(img => imageObserver.observe(img));
+}
+
+/**
+ * 📊 NETTOYER LE CACHE (si besoin)
+ */
+export function clearApiCache() {
+    apiCache.clear();
+    console.log('🗑️ Cache API vidé');
+}
+
+/**
+ * ⚡ VERSION OPTIMISÉE DE secureFetch AVEC CACHE
+ */
+export async function secureFetchWithCache(endpoint, options = {}, useCache = true) {
+    const token = localStorage.getItem("token");
+    const headers = {
+        "Content-Type": "application/json",
+        ...options.headers,
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    
+    const fetchOptions = { ...options, headers };
+    
+    if (useCache && (!options.method || options.method === 'GET')) {
+        return cachedFetch(`${window.CONFIG.API_URL}${endpoint}`, fetchOptions);
+    }
+    
+    const response = await fetch(`${window.CONFIG.API_URL}${endpoint}`, fetchOptions);
+    
+    if (response.status === 401) {
+        localStorage.removeItem("token");
+        window.location.reload();
+        throw new Error("Session expirée");
+    }
+    
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Erreur serveur");
+    }
+    
+    return response.json();
+}
