@@ -569,3 +569,160 @@ export async function secureFetchWithCache(endpoint, options = {}, useCache = tr
     
     return response.json();
 }
+
+
+
+/**
+ * 🔒 VÉRIFICATION DES DROITS D'ACCÈS (Période de grâce + Paiement)
+ * @returns {Object} { hasAccess, reason, daysUntilBlock }
+ */
+export function checkAccessRights() {
+    const userRole = localStorage.getItem("user_role");
+    const paymentStatus = localStorage.getItem("payment_status");
+    const lastPaymentDate = localStorage.getItem("last_payment_date");
+    
+    // Les coordinateurs et aidants ont toujours accès
+    if (userRole === "COORDINATEUR" || userRole === "AIDANT") {
+        return { hasAccess: true, reason: null };
+    }
+    
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // 📅 Période de grâce : 1er au 5 du mois
+    const isGracePeriod = currentDay <= 5;
+    
+    // ✅ Si paiement à jour, accès total
+    if (paymentStatus === "A jour") {
+        return { hasAccess: true, reason: null };
+    }
+    
+    // ⚠️ Période de grâce : accès temporaire même si impayé
+    if (isGracePeriod && paymentStatus === "En retard") {
+        const daysUntilBlock = 6 - currentDay;
+        return { 
+            hasAccess: true, 
+            reason: "period_grace",
+            message: `⚠️ Période de grâce jusqu'au 5. Pensez à régulariser votre paiement (plus que ${daysUntilBlock} jour(s)).`,
+            daysUntilBlock
+        };
+    }
+    
+    // 🔒 Hors période de grâce ET impayé = accès bloqué
+    if (!isGracePeriod && paymentStatus === "En retard") {
+        // Calculer le prochain déblocage (1er du mois prochain)
+        const nextMonth = new Date(currentYear, currentMonth + 1, 1);
+        const daysUntilNextMonth = Math.ceil((nextMonth - today) / (1000 * 60 * 60 * 24));
+        
+        return {
+            hasAccess: false,
+            reason: "payment_required",
+            message: `🔒 Accès suspendu. Veuillez régulariser votre paiement pour accéder au suivi de votre proche.`,
+            daysUntilNextMonth
+        };
+    }
+    
+    return { hasAccess: true, reason: null };
+}
+
+/**
+ * 🚪 VÉRIFICATION AVEC REDIRECTION AUTOMATIQUE
+ * @param {string} viewName - Nom de la vue demandée
+ * @returns {boolean} - true si autorisé, false sinon (avec redirection)
+ */
+export function requireAccess(viewName) {
+    const restrictedViews = ["feed", "visits", "commandes", "map"];
+    
+    if (!restrictedViews.includes(viewName)) {
+        return true;
+    }
+    
+    const { hasAccess, reason, message, daysUntilBlock } = checkAccessRights();
+    
+    if (hasAccess) {
+        // Afficher un avertissement subtil si période de grâce
+        if (reason === "period_grace" && daysUntilBlock <= 2) {
+            setTimeout(() => {
+                showWarningToast(`⚠️ Période de grâce: plus que ${daysUntilBlock} jour(s) pour payer`, 5000);
+            }, 1000);
+        }
+        return true;
+    }
+    
+    // Bloquer et rediriger vers facturation
+    UI.vibrate("error");
+    Swal.fire({
+        icon: "warning",
+        title: `<span class="text-rose-600 font-black">Accès Suspendu</span>`,
+        html: `
+            <div class="text-center">
+                <i class="fa-solid fa-lock text-rose-400 text-4xl mb-3"></i>
+                <p class="text-sm text-slate-600 mb-4">${message}</p>
+                <div class="bg-amber-50 p-3 rounded-xl text-left">
+                    <p class="text-[10px] font-black text-amber-600 uppercase tracking-wider">📅 Prochain déblocage automatique</p>
+                    <p class="text-sm font-bold text-amber-700">Le 1er du mois prochain</p>
+                </div>
+            </div>
+        `,
+        confirmButtonText: "💳 RÉGULARISER MON PAIEMENT",
+        confirmButtonColor: "#0F172A",
+        cancelButtonText: "Annuler",
+        showCancelButton: true,
+        cancelButtonColor: "#94A3B8",
+        customClass: { popup: 'rounded-2xl' }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.switchView("billing");
+        }
+    });
+    
+    return false;
+}
+
+
+
+
+/**
+ * 📅 CALCULER LA DATE DE FIN D'ABONNEMENT
+ * @param {Date} paymentDate - Date du paiement
+ * @returns {Date} Date de fin (1 mois + 5 jours)
+ */
+function calculateSubscriptionEndDate(paymentDate) {
+    const endDate = new Date(paymentDate);
+    endDate.setMonth(endDate.getMonth() + 1); // +1 mois
+    endDate.setDate(endDate.getDate() + 5);   // +5 jours
+    return endDate;
+}
+
+/**
+ * 🔒 VÉRIFIER SI L'ABONNEMENT EST VALIDE
+ * @param {string} lastPaymentDate - Dernière date de paiement
+ * @returns {boolean} true si valide
+ */
+function isSubscriptionValid(lastPaymentDate) {
+    if (!lastPaymentDate) return false;
+    
+    const paymentDate = new Date(lastPaymentDate);
+    const endDate = calculateSubscriptionEndDate(paymentDate);
+    const today = new Date();
+    
+    return today <= endDate;
+}
+
+/**
+ * 📊 CALCULER LES JOURS RESTANTS
+ */
+function getDaysRemaining(lastPaymentDate) {
+    if (!lastPaymentDate) return 0;
+    
+    const paymentDate = new Date(lastPaymentDate);
+    const endDate = calculateSubscriptionEndDate(paymentDate);
+    const today = new Date();
+    
+    const diffTime = endDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays > 0 ? diffDays : 0;
+}
