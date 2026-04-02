@@ -145,7 +145,6 @@ export async function renderSubscriptionPage() {
     if (userRole === "FAMILLE") {
         try {
             const res = await secureFetch("/patients");
-            const patients = await res;
             if (patients && patients.length > 0) {
                 currentPatient = patients[0];
             }
@@ -365,7 +364,6 @@ window.selectSubscriptionPack = async (packId, price) => {
         if (userRole === "FAMILLE") {
             // Récupérer le patient existant
             const patientsRes = await secureFetch("/patients");
-            const patients = await patientsRes;
             
             if (patients && patients.length > 0) {
                 const patient = patients[0];
