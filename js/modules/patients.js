@@ -127,39 +127,71 @@ export async function renderAddPatientView() {
                 </button>
                 <div>
                     <h3 class="font-black text-2xl text-slate-800 tracking-tight">Nouveau Patient</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Création de dossier</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Création de dossier médical</p>
                 </div>
             </div>
 
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-                <div class="space-y-5">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Nom complet</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="form-pat-nom" class="app-input !pl-11" placeholder="Ex: Jean Gnonlonfoun">
+                <div class="space-y-4">
+                    <!-- Identité -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Prénom</label>
+                            <input id="form-pat-prenom" class="app-input !py-3 !text-sm" placeholder="Prénom">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Nom</label>
+                            <input id="form-pat-nom" class="app-input !py-3 !text-sm" placeholder="Nom">
                         </div>
                     </div>
 
+                    <!-- Âge et sexe -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Âge</label>
+                            <input id="form-pat-age" type="number" class="app-input !py-3 !text-sm" placeholder="Âge">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Sexe</label>
+                            <select id="form-pat-sex" class="app-input !py-3 !text-sm">
+                                <option value="">Sélectionner</option>
+                                <option value="Homme">Homme</option>
+                                <option value="Femme">Femme</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Contact -->
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Téléphone</label>
                         <div class="relative">
                             <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="form-pat-tel" class="app-input !pl-11" placeholder="+229 XX XXX XXX">
+                            <input id="form-pat-tel" class="app-input !pl-11 !py-3" placeholder="+229 XX XXX XXX">
                         </div>
                     </div>
 
+                    <!-- Adresse -->
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Adresse</label>
                         <div class="relative">
                             <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="form-pat-addr" class="app-input !pl-11" placeholder="Quartier, Rue, Repères...">
+                            <input id="form-pat-addr" class="app-input !pl-11 !py-3" placeholder="Quartier, rue, repères...">
                         </div>
                     </div>
 
+                    <!-- Contact urgence -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Formule</label>
-                        <div id="formule-selector-trigger" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer active:scale-98 transition-all">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Contact urgence</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-address-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                            <input id="form-pat-urgence" class="app-input !pl-11 !py-3" placeholder="Nom et téléphone">
+                        </div>
+                    </div>
+
+                    <!-- Formule -->
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Formule d'accompagnement</label>
+                        <div id="formule-selector-trigger" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
                                     <i class="fa-solid fa-box text-emerald-600 text-base"></i>
@@ -175,7 +207,7 @@ export async function renderAddPatientView() {
                     </div>
 
                     <button id="submit-patient-btn" class="w-full bg-slate-800 text-white py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 mt-4">
-                        <i class="fa-solid fa-check"></i> Enregistrer
+                        <i class="fa-solid fa-check"></i> Enregistrer le patient
                     </button>
                 </div>
             </div>
@@ -184,6 +216,49 @@ export async function renderAddPatientView() {
 
     document.getElementById("formule-selector-trigger").onclick = () => openFormuleSelector();
     document.getElementById("submit-patient-btn").onclick = () => submitAddPatient();
+}
+
+async function submitAddPatient() {
+    const prenom = document.getElementById("form-pat-prenom")?.value;
+    const nom = document.getElementById("form-pat-nom")?.value;
+    const nomComplet = `${prenom} ${nom}`.trim();
+    const age = document.getElementById("form-pat-age")?.value;
+    const sexe = document.getElementById("form-pat-sex")?.value;
+    const tel = document.getElementById("form-pat-tel")?.value;
+    const addr = document.getElementById("form-pat-addr")?.value;
+    const contactUrgence = document.getElementById("form-pat-urgence")?.value;
+    const formule = document.getElementById("form-pat-formule")?.value;
+
+    if (!nomComplet) {
+        UI.vibrate('error');
+        Swal.fire({ title: "Champ manquant", text: "Le nom est requis", icon: "warning" });
+        return;
+    }
+    if (!formule) {
+        UI.vibrate('error');
+        Swal.fire({ title: "Formule manquante", text: "Sélectionnez une formule", icon: "warning" });
+        return;
+    }
+
+    Swal.fire({ title: 'Création...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    try {
+        await secureFetch("/patients/add", {
+            method: "POST",
+            body: JSON.stringify({ 
+                nom_complet: nomComplet, 
+                age, 
+                sexe,
+                telephone: tel, 
+                adresse: addr, 
+                contact_urgence: contactUrgence,
+                formule 
+            })
+        });
+        UI.success("Patient ajouté");
+        window.switchView("patients");
+    } catch (err) {
+        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
+    }
 }
 
 const FORMULES = [
@@ -242,35 +317,6 @@ async function openFormuleSelector() {
     });
 }
 
-window.submitAddPatient = async () => {
-    const nom = document.getElementById("form-pat-nom")?.value;
-    const tel = document.getElementById("form-pat-tel")?.value;
-    const addr = document.getElementById("form-pat-addr")?.value;
-    const formule = document.getElementById("form-pat-formule")?.value;
-
-    if (!nom) {
-        UI.vibrate('error');
-        Swal.fire({ title: "Champ manquant", text: "Le nom est requis", icon: "warning", customClass: { popup: 'rounded-2xl' } });
-        return;
-    }
-    if (!formule) {
-        UI.vibrate('error');
-        Swal.fire({ title: "Formule manquante", text: "Sélectionnez une formule", icon: "warning", customClass: { popup: 'rounded-2xl' } });
-        return;
-    }
-
-    Swal.fire({ title: 'Création...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-    try {
-        await secureFetch("/patients/add", {
-            method: "POST",
-            body: JSON.stringify({ nom_complet: nom, telephone: tel, adresse: addr, formule })
-        });
-        UI.success("Patient ajouté");
-        window.switchView("patients");
-    } catch (err) {
-        Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
-    }
-};
 
 /**
  * 📄 VUE : FICHE PATIENT (Aidant)
