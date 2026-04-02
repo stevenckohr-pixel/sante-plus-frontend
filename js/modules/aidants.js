@@ -1,9 +1,13 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
+import { showSkeleton } from "../core/utils.js";
+
 
 /**
  * 📋 CHARGER LA LISTE DES COLLABORATEURS
  */
+import { showSkeleton } from "../core/utils.js";
+
 export async function loadAidants() {
     const container = document.getElementById('view-container');
     const userRole = localStorage.getItem('user_role');
@@ -21,10 +25,13 @@ export async function loadAidants() {
                 </button>
             ` : ''}
         </div>
-        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24">
-             <div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-        </div>
+        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-24"></div>
     `;
+
+    const list = document.getElementById('aidants-list');
+    
+    // 🎯 AFFICHER LE SQUELETTE PENDANT LE CHARGEMENT
+    showSkeleton(list, 'aidant-card');
 
     try {
         // On récupère les Aidants
@@ -36,9 +43,8 @@ export async function loadAidants() {
         const coords = await resCoord.json();
         members = [...coords, ...members];
 
-        const list = document.getElementById('aidants-list');
         if (members.length === 0) {
-            list.innerHTML = `<div class="col-span-full p-10 text-center bg-white rounded-[2.5rem] border border-slate-100 shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase">Aucun membre trouvé.</p></div>`;
+            list.innerHTML = `<div class="col-span-full p-10 text-center bg-white rounded-2xl border border-slate-100 shadow-sm"><p class="text-xs font-bold text-slate-400 uppercase">Aucun membre trouvé.</p></div>`;
             return;
         }
 
@@ -61,10 +67,10 @@ export async function loadAidants() {
             }
 
             return `
-                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-lg transition-shadow group animate-fadeIn">
+                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-shadow group animate-fadeIn">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-[1.5rem] bg-gradient-to-br ${m.role === 'COORDINATEUR' ? 'from-slate-800 to-slate-900' : 'from-blue-500 to-cyan-400'} flex items-center justify-center text-white font-black text-xl shadow-lg">
+                            <div class="w-14 h-14 rounded-xl bg-gradient-to-br ${m.role === 'COORDINATEUR' ? 'from-slate-800 to-slate-900' : 'from-blue-500 to-cyan-400'} flex items-center justify-center text-white font-black text-xl shadow-lg">
                                 ${m.nom.charAt(0).toUpperCase()}
                             </div>
                             <div>
@@ -83,7 +89,8 @@ export async function loadAidants() {
 
         list.innerHTML = cards.join('');
     } catch (err) {
-        document.getElementById('aidants-list').innerHTML = `<p class="text-rose-500 text-center col-span-full">Erreur de chargement</p>`;
+        console.error("Erreur chargement aidants:", err);
+        list.innerHTML = `<p class="text-rose-500 text-center col-span-full p-10">Erreur de chargement</p>`;
     }
 }
 
