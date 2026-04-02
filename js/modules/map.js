@@ -2,8 +2,7 @@ import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 import supabase from "../core/supabaseClient.js"; 
 
-let map = null;
-let markers = {}; 
+
 let paths = {}; 
 
 
