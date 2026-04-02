@@ -1167,11 +1167,12 @@ function getNavLinks(role, mode) {
 // ============================================
 // TRANSITION FLUIDE ENTRE LES VUES
 // ============================================
-// Transition fluide avec loader
+
 let isTransitioning = false;
 let pendingView = null;
 
 window.switchView = async function(viewName) {
+    // Évite les doubles transitions
     if (isTransitioning) {
         pendingView = viewName;
         return;
@@ -1179,40 +1180,43 @@ window.switchView = async function(viewName) {
     
     isTransitioning = true;
     
-    // AFFICHE LE LOADER
-    showGlobalLoader();
-    hideGlobalLoaderWithDelay(); // Sécurité
-    
+    // Récupérer les éléments
     const container = document.getElementById("view-container");
+    const mainContent = document.querySelector("main");
     
-    // Petite animation de sortie rapide
+    // 1. Animation de sortie (très rapide)
     if (container) {
-        container.style.transition = "opacity 0.1s ease";
+        container.style.transition = "opacity 0.12s ease, transform 0.12s ease";
         container.style.opacity = "0";
-        await new Promise(r => setTimeout(r, 50));
+        container.style.transform = "translateY(6px)";
+        await new Promise(r => setTimeout(r, 80));
     }
     
+    // 2. Afficher le loader global
+    showGlobalLoader();
+    
     try {
-        // Exécute le changement de vue
+        // 3. Exécuter le changement de vue
         await performViewSwitch(viewName);
         
-        // Petite animation d'entrée
+        // 4. Animation d'entrée
         if (container) {
             container.style.opacity = "1";
-            await new Promise(r => setTimeout(r, 50));
-            container.style.transition = "";
+            container.style.transform = "translateY(0)";
+            setTimeout(() => {
+                if (container) container.style.transition = "";
+            }, 150);
         }
         
-        // CACHE LE LOADER UNE FOIS QUE TOUT EST CHARGÉ
+        // 5. Cacher le loader
         hideGlobalLoader();
         
     } catch (err) {
-        console.error("Erreur lors du chargement:", err);
+        console.error("❌ Erreur switchView:", err);
         hideGlobalLoader();
-        
         if (container) {
             container.innerHTML = `
-                <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm">
+                <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
                     <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
                     <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
                     <p class="text-xs text-slate-500 mt-2">${err.message}</p>
@@ -1223,12 +1227,14 @@ window.switchView = async function(viewName) {
     
     isTransitioning = false;
     
+    // 6. Traiter la vue en attente s'il y en a une
     if (pendingView) {
         const next = pendingView;
         pendingView = null;
         window.switchView(next);
     }
 };
+
 // ============================================
 //  :
 // ============================================
