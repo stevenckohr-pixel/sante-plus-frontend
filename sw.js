@@ -1,29 +1,48 @@
-
-const CACHE_NAME = 'sps-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'sps-v2';
+const urlsToCache = [
   './',
   './index.html',
   './style.css',
   './js/main.js',
+  './manifest.json',
   'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+  'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap'
 ];
 
-// 1. Installation : Mise en cache des fichiers de base
+// Installation
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())
   );
 });
 
-// 2. Stratégie de Network First (On prend le web, si pas de réseau on prend le cache)
+// Activation
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+// Stratégie : Network First puis Cache
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request)
+      .catch(() => caches.match(event.request))
   );
 });
 
-// 3. Notifications Push (Ton code existant)
+// Notifications Push
 self.addEventListener("push", function (event) {
   const data = event.data.json();
   const options = {
