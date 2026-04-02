@@ -728,4 +728,3 @@ function getDaysRemaining(lastPaymentDate) {
 }
 
 
-export { calculateSubscriptionEndDate, isSubscriptionValid, getDaysRemaining };
