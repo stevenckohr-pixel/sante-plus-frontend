@@ -1,5 +1,3 @@
-billing : 
-
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
