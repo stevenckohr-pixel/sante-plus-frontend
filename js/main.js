@@ -670,29 +670,25 @@ function renderLayout() {
             </main>
 
             <!-- 📱 NAVIGATION MOBILE : Design "Floating Hub" Premium -->
-            <footer class="lg:hidden h-24 bg-white/80 backdrop-blur-2xl border-t border-slate-100 px-10 py-2 fixed bottom-0 left-0 right-0 z-50 flex justify-between items-center shadow-[0_-15px_40px_rgba(0,0,0,0.04)]">
+            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
                 
-                <!-- BOUTON HOME (Retour à la grille de blocs) -->
-                <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-1.5 transition-all active:scale-90">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center">
-                        <i class="fa-solid fa-house-chimney text-xl"></i>
-                    </div>
-                    <span class="text-[8px] font-black uppercase tracking-widest">Accueil</span>
+                <!-- BOUTON HOME -->
+                <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
+                    <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
                 </button>
-
-                <!-- BOUTON ACTION CENTRAL (Flottant) -->
-                <button onclick="window.openAddPatient()" class="w-16 h-16 bg-slate-900 text-white rounded-[1.8rem] flex items-center justify-center shadow-[0_15px_35px_rgba(15,23,42,0.3)] -mt-14 border-4 border-[#F8FAFC] active:scale-95 transition-all duration-300">
-                    <i class="fa-solid fa-plus text-2xl"></i>
+            
+                <!-- BOUTON ACTION CENTRAL -->
+                <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                    <i class="fa-solid fa-plus text-xl"></i>
                 </button>
-
-                <!-- BOUTON RADAR (Accès rapide Map) -->
-                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-1.5 transition-all active:scale-90">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center">
-                        <i class="fa-solid fa-location-dot text-xl"></i>
-                    </div>
-                    <span class="text-[8px] font-black uppercase tracking-widest">Radar</span>
+            
+                <!-- BOUTON RADAR -->
+                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
+                    <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
                 </button>
-
+            
             </footer>
         </div>
     </div>`;
