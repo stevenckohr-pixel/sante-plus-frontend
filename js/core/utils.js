@@ -442,3 +442,38 @@ export function showWarningToast(message, duration = 3000) {
 export function showInfoToast(message, duration = 2000) {
     showToast(message, 'info', duration);
 }
+
+
+
+/**
+ * 🌀 LOADER LOCAL (Uniquement dans le conteneur)
+ * @param {HTMLElement} container - L'élément qui va afficher le loader
+ * @param {string} message - Message optionnel
+ */
+export function showLocalLoader(container, message = 'Chargement...') {
+    if (!container) return;
+    
+    // Sauvegarder le contenu original si ce n'est pas déjà fait
+    if (!container.dataset.originalContent) {
+        container.dataset.originalContent = container.innerHTML;
+    }
+    
+    container.innerHTML = `
+        <div class="local-loader flex flex-col items-center justify-center py-20 min-h-[200px]">
+            <div class="relative w-12 h-12">
+                <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
+                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-3">${message}</p>
+        </div>
+    `;
+}
+
+export function hideLocalLoader(container) {
+    if (!container) return;
+    if (container.dataset.originalContent) {
+        container.innerHTML = container.dataset.originalContent;
+        delete container.dataset.originalContent;
+    }
+}
