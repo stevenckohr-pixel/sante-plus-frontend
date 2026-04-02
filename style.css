@@ -1,9 +1,10 @@
-/* --- 🎨 DESIGN SYSTEM & VARIABLES --- */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+/* === FONT INTER (Design Moderne) === */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap');
 
+/* === DESIGN SYSTEM & VARIABLES === */
 :root {
     /* Couleurs de base & Structure */
-    --sidebar-bg: #0F172A;      /* Bleu nuit pro (SaaS) */
+    --sidebar-bg: #0F172A;
     --slate-50: #F8FAFC;
     --slate-100: #F1F5F9;
     --slate-200: #E2E8F0;
@@ -11,14 +12,14 @@
     --slate-900: #0F172A;
     --white-pure: #FFFFFF;
     
-    /* Branding Santé Plus (Demande Cliente) */
-    --accent-green: #10B981;    /* Vert émeraude doux */
+    /* Branding Santé Plus */
+    --accent-green: #10B981;
     --green-soft: #16a34a;
     --accent-blue: #3B82F6;
     --rose-500: #F43F5E;
-    --gold-premium: #D4AF37;    /* Or (Gold) pour le côté Élite */
+    --gold-premium: #D4AF37;
     
-    /* Couleurs spécifiques Maman & Bébé */
+    /* Maman & Bébé */
     --pink-soft: #FDF2F8;
     --pink-text: #DB2777;
     --blue-baby: #EFF6FF;
@@ -28,39 +29,44 @@
     --radius-lg: 1.5rem;
 }
 
-/* --- 🧊 STRUCTURE GLOBALE & VIEWPORT --- */
+/* === GLOBAL === */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Le scroll est géré à l'intérieur de <main> */
+    overflow: hidden;
     background-color: var(--slate-50);
     color: var(--slate-900);
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
 }
 
 #app {
     height: 100vh;
-    height: 100dvh; /* Dynamic Viewport pour mobile */
+    height: 100dvh;
     width: 100%;
     display: flex;
-    flex-direction: column; 
+    flex-direction: column;
     position: relative;
     z-index: 10;
 }
 
-/* Basculement en ligne uniquement pour le Dashboard PC */
+/* === SIDEBAR DESKTOP === */
 @media (min-width: 1024px) {
     #app:has(aside) {
         flex-direction: row;
     }
 }
 
-/* --- 🖥️ SIDEBAR DESKTOP --- */
 aside {
-    width: 280px; 
+    width: 280px;
     height: 100%;
     flex-shrink: 0;
     background-color: var(--sidebar-bg);
@@ -77,6 +83,7 @@ aside {
     padding: 1rem 0;
     scrollbar-width: none;
 }
+
 #nav-desktop::-webkit-scrollbar { display: none; }
 
 .sidebar-link {
@@ -100,7 +107,7 @@ aside {
     box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.3);
 }
 
-/* --- 💎 AUTHENTIFICATION (Login & Admission) --- */
+/* === AUTHENTIFICATION === */
 .auth-container {
     flex: 1;
     display: flex;
@@ -119,14 +126,14 @@ aside {
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     border-radius: 4rem;
-    box-shadow: 0 30px 100px -20px rgba(0,0,0,0.15);
+    box-shadow: 0 30px 100px -20px rgba(0, 0, 0, 0.15);
     border: 1px solid white;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
-/* --- 🚀 ZONE DE CONTENU PRINCIPAL --- */
+/* === ZONE DE CONTENU PRINCIPAL === */
 .main-wrapper {
     flex: 1;
     display: flex;
@@ -143,7 +150,6 @@ main {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Zone spécifique pour le scroll interne de la carte Admission */
 .form-scroll-area {
     flex: 1;
     overflow-y: auto;
@@ -152,7 +158,7 @@ main {
 
 .custom-scroll::-webkit-scrollbar { width: 0; background: transparent; }
 
-/* --- 📱 NAVIGATION MOBILE (FOOTER) --- */
+/* === NAVIGATION MOBILE === */
 @media (max-width: 1023px) {
     aside { display: none !important; }
     main { padding-bottom: 100px; padding: 1.25rem; }
@@ -162,15 +168,43 @@ main {
         bottom: 0;
         left: 0;
         right: 0;
-        height: 80px;
+        height: 64px !important;
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(0,0,0,0.05);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
         display: flex;
         justify-content: space-around;
         align-items: center;
         z-index: 1000;
+    }
+    
+    footer .nav-btn i {
+        font-size: 1.25rem !important;
+    }
+    
+    footer .nav-btn span {
+        font-size: 9px !important;
+    }
+    
+    footer button.w-16.h-16 {
+        width: 56px !important;
+        height: 56px !important;
+        margin-top: -28px !important;
+    }
+    
+    header {
+        height: 56px !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    main {
+        padding-bottom: 80px !important;
+    }
+    
+    .pb-32, .pb-24 {
+        padding-bottom: 100px !important;
     }
 }
 
@@ -178,14 +212,18 @@ main {
     color: #94a3b8;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .nav-btn.active {
     color: var(--green-soft);
     transform: translateY(-4px);
 }
-.nav-btn.active i { filter: drop-shadow(0 10px 8px rgba(22, 163, 74, 0.2)); }
 
-/* --- 📦 COMPOSANTS UI (HYPE & BENTO) --- */
-.bento-card, .patient-card, .menu-tile {
+.nav-btn.active i {
+    filter: drop-shadow(0 10px 8px rgba(22, 163, 74, 0.2));
+}
+
+/* === COMPOSANTS UI === */
+.bento-card {
     background: white;
     border-radius: 2rem;
     padding: 1.5rem;
@@ -194,25 +232,69 @@ main {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.bento-card:hover, .patient-card:hover {
+.bento-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.07);
     border-color: var(--accent-green);
 }
 
-/* Style pour les cartes "Premium" avec bordure dorée */
+/* Cartes patients modernisées */
+.patient-card {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid #F1F5F9;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.patient-card:active {
+    transform: scale(0.98);
+    background-color: #FAFAFA;
+}
+
 .patient-card.premium {
     border: 2px solid var(--gold-premium);
     background: linear-gradient(to bottom right, #ffffff, #fffdfa);
 }
 
-/* Badge spécifique Maman & Bébé */
-.badge-maman {
-    background-color: var(--pink-soft);
-    color: var(--pink-text);
-    border: 1px solid #FCE7F3;
+/* Menu tiles */
+.menu-tile {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid #F1F5F9;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
+.menu-tile:active {
+    transform: scale(0.96);
+    background: #F8FAFC;
+}
+
+.menu-tile i {
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    background: #F8FAFC;
+}
+
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+    padding: 1rem 0;
+}
+
+/* === FORMULAIRES & INPUTS === */
 .app-input {
     width: 100%;
     padding: 1.15rem 1.5rem;
@@ -220,7 +302,7 @@ main {
     border: 1.5px solid transparent;
     border-radius: var(--radius-lg);
     outline: none;
-    font-size: 16px !important; /* Pas de zoom forcé sur Mobile */
+    font-size: 16px !important;
     font-weight: 500;
     transition: all 0.3s ease;
 }
@@ -240,31 +322,34 @@ main {
     letter-spacing: 0.5px;
 }
 
-/* --- 📱 MOBILE MENU HUB (LES BLOCS) --- */
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-    padding: 1rem 0;
+/* === BADGES COLORÉS === */
+.badge-pink {
+    background: #FDF2F8;
+    color: #DB2777;
+    border: 1px solid #FCE7F3;
 }
 
-.menu-tile {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-between;
-    min-height: 160px;
-    position: relative;
-    overflow: hidden;
+.badge-gold {
+    background: #FFFBEB;
+    color: #D4AF37;
+    border: 1px solid #FDE68A;
 }
 
-.menu-tile:active { transform: scale(0.95); background-color: var(--slate-100); }
-.menu-tile i { font-size: 1.8rem; margin-bottom: 1rem; }
-.menu-tile .tile-label { font-weight: 800; font-size: 13px; color: var(--slate-900); text-transform: uppercase; }
-.menu-tile .tile-desc { font-size: 9px; font-weight: 600; color: var(--slate-400); margin-top: 4px; }
-.menu-tile::after { content: ''; position: absolute; right: -10%; bottom: -10%; width: 80px; height: 80px; background: currentColor; opacity: 0.05; border-radius: 50%; }
+.badge-success {
+    background: #ECFDF5;
+    color: #10B981;
+    border: 1px solid #D1FAE5;
+}
 
-/* --- 📸 JOURNAL DE SOINS (FEED) --- */
+.bg-premium-gold { background-color: #D4AF37 !important; }
+.text-premium-gold { color: #D4AF37 !important; }
+.border-premium-gold { border-color: #D4AF37 !important; }
+
+.bg-maman-pink { background-color: #FDF2F8 !important; }
+.text-maman-pink { color: #DB2777 !important; }
+.border-maman-pink { border-color: #DB2777 !important; }
+
+/* === JOURNAL DE SOINS === */
 .feed-card {
     background: white;
     border-radius: 2.5rem;
@@ -280,10 +365,10 @@ main {
     object-fit: cover;
     aspect-ratio: 4/3;
     border: 4px solid white;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* --- 🌍 MAPS & RADAR --- */
+/* === MAPS & RADAR === */
 #map {
     height: 100%;
     width: 100%;
@@ -291,10 +376,17 @@ main {
     background-color: #f8fafc;
 }
 
-.leaflet-container { border-radius: 2.5rem; font-family: inherit; }
-.leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
+.leaflet-container {
+    border-radius: 2.5rem;
+    font-family: inherit;
+}
 
-/* --- 🚶 ONBOARDING PREMIUM --- */
+.leaflet-control-attribution,
+.leaflet-control-zoom {
+    display: none !important;
+}
+
+/* === ONBOARDING === */
 .onboarding-overlay {
     position: fixed;
     inset: 0;
@@ -314,7 +406,11 @@ main {
     text-align: center;
     padding: 3rem;
 }
-.onboarding-slide.active { display: flex; animation: slideInCustom 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.onboarding-slide.active {
+    display: flex;
+    animation: slideInCustom 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
 .onboarding-image-container {
     width: 100%;
@@ -324,28 +420,94 @@ main {
     overflow: hidden;
     border-radius: 0 0 4rem 4rem;
 }
-.onboarding-img { width: 100%; height: 100%; object-fit: cover; mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
-.onboarding-image-blur { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, white 100%); }
-.onboarding-dot { width: 6px; height: 6px; border-radius: 10px; background: #E2E8F0; transition: all 0.3s; }
-.onboarding-dot.active { width: 24px; background: var(--accent-green); }
 
-/* --- ✨ ANIMATIONS & DÉCORS --- */
-.animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.2, 1, 0.2, 1) forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.onboarding-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+}
 
-@keyframes slideInCustom { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+.onboarding-image-blur {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, white 100%);
+}
+
+.onboarding-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 10px;
+    background: #E2E8F0;
+    transition: all 0.3s;
+}
+
+.onboarding-dot.active {
+    width: 24px;
+    background: var(--accent-green);
+}
+
+/* === ANIMATIONS === */
+.animate-fadeIn {
+    animation: fadeIn 0.4s cubic-bezier(0.2, 1, 0.2, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slideIn {
+    animation: slideIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes slideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInCustom {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
 
 .animate-blob {
     pointer-events: none !important;
     z-index: -1;
     animation: blob 8s infinite alternate-reverse;
 }
+
 @keyframes blob {
-    0% { border-radius: 50%; transform: scale(1) translate(0, 0); }
-    100% { border-radius: 30% 60% 70% 40%; transform: scale(1.2) translate(10px, -20px); }
+    0% {
+        border-radius: 50%;
+        transform: scale(1) translate(0, 0);
+    }
+    100% {
+        border-radius: 30% 60% 70% 40%;
+        transform: scale(1.2) translate(10px, -20px);
+    }
 }
 
-/* --- 🛠️ ÉLÉMENTS TECHNIQUES --- */
+/* === TECHNIQUE === */
 .glass-header {
     background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(15px);
@@ -353,117 +515,100 @@ main {
     flex-shrink: 0;
 }
 
-#initial-loader { position: fixed; inset: 0; z-index: 9999; background: white; }
-#initial-loader.hidden { display: none !important; }
-
-/* Custom SweetAlert */
-.swal2-popup { border-radius: 3.5rem !important; padding: 3rem !important; }
-.swal2-confirm { border-radius: 1.5rem !important; background: var(--slate-900) !important; font-weight: 800 !important; }
-
-
-
-/* --- ✨ ANIMATIONS AVANCÉES (Transitions de pages) --- */
-
-.animate-fadeIn { 
-    animation: fadeIn 0.4s cubic-bezier(0.2, 1, 0.2, 1) forwards; 
-}
-@keyframes fadeIn { 
-    from { opacity: 0; transform: translateY(10px); } 
-    to { opacity: 1; transform: translateY(0); } 
+#initial-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: white;
 }
 
-/* La nouvelle animation "iOS Style" */
-.animate-slideIn {
-    animation: slideIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    opacity: 0; /* Commence caché */
-}
-@keyframes slideIn {
-    0% {
-        opacity: 0;
-        transform: translateX(30px); /* Arrive de la droite */
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0); /* Se pose à sa place */
-    }
+#initial-loader.hidden {
+    display: none !important;
 }
 
-
-
-/* === OPTIMISATIONS MOBILE PRIORITAIRES === */
-
-/* Réduction de la hauteur du footer mobile */
-@media (max-width: 1023px) {
-    footer {
-        height: 64px !important; /* h-16 */
-    }
-    
-    footer .nav-btn i {
-        font-size: 1.25rem !important; /* text-lg */
-    }
-    
-    footer .nav-btn span {
-        font-size: 9px !important;
-    }
-    
-    /* Bouton central flottant réduit */
-    footer button.w-16.h-16 {
-        width: 56px !important;
-        height: 56px !important;
-        margin-top: -28px !important;
-    }
-    
-    /* Header réduit */
-    header {
-        height: 56px !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-    
-    /* Padding bottom du contenu principal pour éviter le cache du footer */
-    main {
-        padding-bottom: 80px !important;
-    }
-    
-    /* Dernier élément toujours visible */
-    .pb-32, .pb-24 {
-        padding-bottom: 100px !important;
-    }
+/* === SWEETALERT OPTIMISÉ === */
+.swal2-popup {
+    border-radius: 1.25rem !important;
+    padding: 1.25rem !important;
+    width: 90% !important;
+    max-width: 320px !important;
 }
 
-/* Tailles de police adaptées au mobile */
+.swal2-title {
+    font-size: 1.125rem !important;
+    font-weight: 800 !important;
+    padding: 0 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.swal2-html-container {
+    font-size: 0.75rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.swal2-confirm,
+.swal2-cancel {
+    padding: 0.625rem 1rem !important;
+    font-size: 0.6875rem !important;
+    border-radius: 0.75rem !important;
+    font-weight: 700 !important;
+}
+
+.swal2-actions {
+    margin-top: 1rem !important;
+    gap: 0.5rem !important;
+}
+
+.swal2-loader {
+    border-width: 3px !important;
+}
+
+/* === RESPONSIVE TYPOGRAPHIE & ESPACEMENTS === */
 @media (max-width: 640px) {
-    .text-2xl {
-        font-size: 1.25rem !important; /* 20px */
+    /* Typographie */
+    h1, .title-large, .font-black.text-2xl {
+        font-size: 1.25rem !important;
+        line-height: 1.3 !important;
+        letter-spacing: -0.02em !important;
     }
     
-    .text-xl {
-        font-size: 1.125rem !important; /* 18px */
+    h2, .title-medium, .font-black.text-xl {
+        font-size: 1rem !important;
+        line-height: 1.35 !important;
     }
     
-    .text-lg {
-        font-size: 1rem !important; /* 16px */
+    p, .text-base {
+        font-size: 0.8125rem !important;
+        line-height: 1.45 !important;
     }
     
-    .text-base {
-        font-size: 0.875rem !important; /* 14px */
+    label, .text-xs, .text-sm {
+        font-size: 0.6875rem !important;
+        letter-spacing: 0.02em !important;
     }
     
-    .text-sm {
-        font-size: 0.75rem !important; /* 12px */
+    /* Tracking */
+    .tracking-widest, .tracking-\[0\.2em\], .tracking-\[0\.3em\] {
+        letter-spacing: 0.08em !important;
     }
     
-    .text-xs {
-        font-size: 0.7rem !important; /* 11px */
-    }
+    /* Espacements */
+    .space-y-8 { row-gap: 1.25rem !important; }
+    .space-y-6 { row-gap: 1rem !important; }
+    .space-y-4 { row-gap: 0.75rem !important; }
+    .gap-4 { gap: 0.75rem !important; }
+    .mb-8 { margin-bottom: 1.25rem !important; }
+    .mb-6 { margin-bottom: 1rem !important; }
+    .mb-4 { margin-bottom: 0.75rem !important; }
     
     /* Arrondis réduits */
     .rounded-\[2rem\], .rounded-\[2\.5rem\], .rounded-\[3rem\] {
-        border-radius: 1rem !important; /* rounded-xl */
+        border-radius: 1rem !important;
     }
     
     .rounded-\[1\.5rem\], .rounded-\[1\.8rem\] {
-        border-radius: 0.75rem !important; /* rounded-lg */
+        border-radius: 0.75rem !important;
     }
     
     /* Padding réduit sur les cartes */
@@ -471,142 +616,36 @@ main {
         padding: 1rem !important;
     }
     
-    /* Espacement réduit entre les éléments */
-    .space-y-6 {
-        row-gap: 1rem !important;
-    }
-    
-    .space-y-4 {
-        row-gap: 0.75rem !important;
-    }
-    
-    .gap-4 {
-        gap: 0.75rem !important;
-    }
-}
-
-/* Couleurs spécifiques */
-.bg-premium-gold {
-    background-color: #D4AF37 !important;
-}
-.text-premium-gold {
-    color: #D4AF37 !important;
-}
-.border-premium-gold {
-    border-color: #D4AF37 !important;
-}
-
-.bg-maman-pink {
-    background-color: #FDF2F8 !important;
-}
-.text-maman-pink {
-    color: #DB2777 !important;
-}
-.border-maman-pink {
-    border-color: #DB2777 !important;
-}
-
-
-
-/* === TYPOGRAPHIE RESPONSIVE === */
-
-@media (max-width: 640px) {
-    /* Titres principaux */
-    h1, .title-large, .font-black.text-2xl {
-        font-size: 1.25rem !important; /* 20px */
-        line-height: 1.3 !important;
-        letter-spacing: -0.02em !important;
-    }
-    
-    /* Sous-titres */
-    h2, .title-medium, .font-black.text-xl {
-        font-size: 1rem !important; /* 16px */
-        line-height: 1.35 !important;
-    }
-    
-    /* Corps de texte */
-    p, .text-base {
-        font-size: 0.8125rem !important; /* 13px */
-        line-height: 1.45 !important;
-    }
-    
-    /* Labels et petits textes */
-    label, .text-xs, .text-sm {
-        font-size: 0.6875rem !important; /* 11px */
-        letter-spacing: 0.02em !important;
-    }
-    
-    /* Uppercase tracking */
-    .tracking-widest, .tracking-\[0\.2em\], .tracking-\[0\.3em\] {
-        letter-spacing: 0.08em !important;
-    }
-    
-    /* Meilleure aération verticale */
-    .space-y-8 {
-        row-gap: 1.25rem !important;
-    }
-    
-    .space-y-6 {
-        row-gap: 1rem !important;
-    }
-    
-    .space-y-4 {
-        row-gap: 0.75rem !important;
-    }
-    
-    .mb-8 {
-        margin-bottom: 1.25rem !important;
-    }
-    
-    .mb-6 {
-        margin-bottom: 1rem !important;
-    }
-    
-    .mb-4 {
-        margin-bottom: 0.75rem !important;
-    }
-}
-
-
-
-
-/* === FORMULAIRES & INPUTS OPTIMISÉS === */
-
-@media (max-width: 640px) {
-    /* Inputs plus compacts et modernes */
+    /* Inputs optimisés mobile */
     .app-input {
-        padding: 0.875rem 1rem !important; /* py-3.5 px-4 */
-        border-radius: 0.75rem !important; /* rounded-xl */
+        padding: 0.875rem 1rem !important;
+        border-radius: 0.75rem !important;
         font-size: 0.875rem !important;
         background-color: #F8FAFC !important;
         border: 1px solid #E2E8F0 !important;
-        transition: all 0.2s ease;
     }
     
     .app-input:focus {
         background-color: #FFFFFF !important;
-        border-color: #D4AF37 !important; /* Or au focus */
+        border-color: #D4AF37 !important;
         box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1) !important;
     }
     
-    /* Icônes dans les inputs plus discrètes */
-    .app-input + i, 
+    .app-input + i,
     .relative i.fa-solid,
     .relative i.fa-regular {
         font-size: 0.875rem !important;
         opacity: 0.6 !important;
     }
     
-    /* Labels plus légers */
     label, .block.text-\[10px\] {
-        font-size: 0.625rem !important; /* 10px */
+        font-size: 0.625rem !important;
         margin-bottom: 0.375rem !important;
         font-weight: 700 !important;
         color: #64748B !important;
     }
     
-    /* Boutons de formulaire */
-    button[type="submit"], 
+    button[type="submit"],
     .btn-primary,
     .bg-slate-900.py-5 {
         padding-top: 0.875rem !important;
@@ -616,7 +655,6 @@ main {
         letter-spacing: 0.1em !important;
     }
     
-    /* Select personnalisé */
     select.app-input {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
         background-position: right 1rem center;
@@ -626,12 +664,6 @@ main {
         -webkit-appearance: none;
     }
     
-    /* Espacement entre les champs */
-    .space-y-6 {
-        row-gap: 1rem !important;
-    }
-    
-    /* Champs obligatoires */
     .required:after {
         content: "*";
         color: #F43F5E;
