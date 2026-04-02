@@ -226,8 +226,6 @@ export async function submitEndVisit() {
 /**
  * 📥 CHARGER LES VISITES
  */
-import { showSkeleton } from "../core/utils.js";
-
 export async function loadVisits() {
     const container = document.getElementById("visits-list");
     if (!container) return;
