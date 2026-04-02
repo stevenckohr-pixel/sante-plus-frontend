@@ -32,11 +32,8 @@ export const UI = {
     },
 };
 
-// Compression d'image avant envoi au serveur (pour économiser la bande passante au Bénin)
-/**
- * 📸 Compression d'image ULTRA LÉGÈRE pour petits RAM
- */
-export async function compressImage(file, maxWidth = 600) { // Réduit de 800 à 600
+// Compression d'image avant envoi au serveur 
+export async function compressImage(file, maxWidth = 800) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -55,7 +52,7 @@ export async function compressImage(file, maxWidth = 600) { // Réduit de 800 à
             resolve(blob);
           },
           "image/jpeg",
-          0.6 // Réduit de 0.7 à 0.6
+          0.7
         );
       };
     };
