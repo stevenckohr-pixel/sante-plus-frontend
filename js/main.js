@@ -397,131 +397,66 @@ function getStepHTML() {
                 <textarea id="p-notes" class="app-input !py-3 !text-sm h-28" placeholder="Observations (Allergies, mobilité, habitudes...)">${registrationData.notes_medicales || ''}</textarea>
             </div>`;
 
-            case 4: return `
-                <div class="text-center mb-6">
-                    <h3 class="text-base font-black text-slate-800">Type de Service</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Sélectionnez la catégorie</p>
+           case 4: return `
+    <div class="text-center mb-6">
+        <h3 class="text-base font-black text-slate-800">Type de Service</h3>
+        <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Sélectionnez la catégorie</p>
+    </div>
+    
+    <!-- Plus de overflow, plus de scrollbar -->
+    <div id="category-selector" class="space-y-3">
+        <div onclick="window.openCategorySelector('SENIOR')" 
+             class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-emerald-200">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl">👴</div>
+                <div class="flex-1">
+                    <h4 class="font-black text-slate-800 text-base">Personne Âgée</h4>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Maintien à domicile</p>
                 </div>
-                
-                <!-- Sélecteur moderne pour catégorie -->
-                <div id="category-selector" class="space-y-3">
-                    <!-- Carte Sénior -->
-                    <div onclick="window.openCategorySelector('SENIOR')" 
-                         class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-emerald-200">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl">
-                                👴
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="font-black text-slate-800 text-base">Personne Âgée</h4>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Maintien à domicile</p>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300"></i>
-                        </div>
-                    </div>
-                    
-                    <!-- Carte Maman & Bébé -->
-                    <div onclick="window.openCategorySelector('MAMAN_BEBE')" 
-                         class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-pink-200">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">
-                                👶
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="font-black text-slate-800 text-base">Maman & Bébé</h4>
-                                <p class="text-[10px] text-pink-500 font-bold uppercase mt-0.5">Sortie de maternité</p>
-                            </div>
-                            <i class="fa-solid fa-chevron-right text-slate-300"></i>
-                        </div>
-                    </div>
+                <i class="fa-solid fa-chevron-right text-slate-300"></i>
+            </div>
+        </div>
+        
+        <div onclick="window.openCategorySelector('MAMAN_BEBE')" 
+             class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-pink-200">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">👶</div>
+                <div class="flex-1">
+                    <h4 class="font-black text-slate-800 text-base">Maman & Bébé</h4>
+                    <p class="text-[10px] text-pink-500 font-bold uppercase mt-0.5">Sortie de maternité</p>
                 </div>
-                
-                <!-- Indicateur de sélection (caché au début) -->
-                <div id="selected-category-display" class="mt-4 hidden">
-                    <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                        <div class="flex items-center gap-2">
-                            <i id="selected-category-icon" class="fa-solid fa-check-circle text-emerald-500"></i>
-                            <span id="selected-category-text" class="text-xs font-bold text-emerald-700"></span>
-                        </div>
-                        <button onclick="window.clearCategorySelection()" class="text-[10px] text-emerald-500 underline">Modifier</button>
-                    </div>
-                </div>
-            `;
+                <i class="fa-solid fa-chevron-right text-slate-300"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div id="selected-category-display" class="mt-4 hidden">
+        <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+            <div class="flex items-center gap-2">
+                <i id="selected-category-icon" class="fa-solid fa-check-circle text-emerald-500"></i>
+                <span id="selected-category-text" class="text-xs font-bold text-emerald-700"></span>
+            </div>
+            <button onclick="window.clearCategorySelection()" class="text-[10px] text-emerald-500 underline">Modifier</button>
+        </div>
+    </div>
+`;
 
             
-
 case 5: 
     const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
     const themeColor = isMamanFlow ? 'pink' : 'emerald';
     const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
     const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
     
-    // Définition des packs selon la catégorie
     const packs = isMamanFlow ? [
-        { 
-            id: 'ESSENTIEL', 
-            name: 'Pack Essentiel', 
-            desc: '2 visites / semaine', 
-            price: '50.000', 
-            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'],
-            icon: 'fa-seedling',
-            popular: false
-        },
-        { 
-            id: 'CONFORT', 
-            name: 'Pack Confort', 
-            desc: '3 à 4 visites / semaine', 
-            price: '85.000', 
-            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'],
-            icon: 'fa-chart-line',
-            popular: true
-        },
-        { 
-            id: 'SERENITE', 
-            name: 'Pack Sérénité', 
-            desc: 'Présence quasi quotidienne', 
-            price: '150.000', 
-            features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'],
-            icon: 'fa-crown',
-            popular: false
-        },
-        { 
-            id: 'MATERNITE', 
-            name: 'Spécial Sortie Maternité', 
-            desc: 'Suivi intensif sur 2 semaines', 
-            price: '70.000', 
-            features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'],
-            icon: 'fa-baby-carriage',
-            popular: false
-        }
+        { id: 'ESSENTIEL', name: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'], icon: 'fa-seedling', popular: false },
+        { id: 'CONFORT', name: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'], icon: 'fa-chart-line', popular: true },
+        { id: 'SERENITE', name: 'Pack Sérénité', desc: 'Présence quasi quotidienne', price: '150.000', features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'], icon: 'fa-crown', popular: false },
+        { id: 'MATERNITE', name: 'Spécial Sortie Maternité', desc: 'Suivi intensif sur 2 semaines', price: '70.000', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'], icon: 'fa-baby-carriage', popular: false }
     ] : [
-        { 
-            id: 'PONCTUEL', 
-            name: 'Intervention Ponctuelle', 
-            desc: 'Rdv médical, besoin urgent', 
-            price: '10.000', 
-            features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'],
-            icon: 'fa-clock',
-            popular: false
-        },
-        { 
-            id: 'REGULIER', 
-            name: 'Suivi Régulier', 
-            desc: '2 à 3 visites / semaine', 
-            price: '60.000', 
-            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'],
-            icon: 'fa-calendar-week',
-            popular: true
-        },
-        { 
-            id: 'COMPLET', 
-            name: 'Accompagnement Complet', 
-            desc: 'Présence soutenue', 
-            price: '150.000', 
-            features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'],
-            icon: 'fa-star',
-            popular: false
-        }
+        { id: 'PONCTUEL', name: 'Intervention Ponctuelle', desc: 'Rdv médical, besoin urgent', price: '10.000', features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'], icon: 'fa-clock', popular: false },
+        { id: 'REGULIER', name: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000', features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'], icon: 'fa-calendar-week', popular: true },
+        { id: 'COMPLET', name: 'Accompagnement Complet', desc: 'Présence soutenue', price: '150.000', features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'], icon: 'fa-star', popular: false }
     ];
     
     return `
@@ -530,7 +465,8 @@ case 5:
             <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Tarifs mensuels en CFA</p>
         </div>
         
-        <div id="pack-selector" class="space-y-3 max-h-96 overflow-y-auto custom-scroll pr-1">
+        <!-- Plus de max-h et overflow-y-auto -->
+        <div id="pack-selector" class="space-y-3">
             ${packs.map(pack => `
                 <div onclick="window.selectPack('${pack.id}', '${pack.price}')" 
                      class="pack-card p-4 bg-white rounded-xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-${themeColor}-300 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 ${themeBgClass}` : ''}"
