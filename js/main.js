@@ -141,7 +141,9 @@ async function initApp() {
     const loader = document.getElementById("initial-loader");
     const token = localStorage.getItem("token");
 
-
+    const onboardingSeen = localStorage.getItem("onboarding_seen");
+    console.log("📝 Onboarding vu ?", onboardingSeen);
+    
     // Initialiser les micro-interactions
     initMicroInteractions();
     initLazyLoading();
@@ -164,8 +166,8 @@ async function initApp() {
     try {
         if (token) {
             // Check de l'onboarding
-            if (!localStorage.getItem("onboarding_seen")) {
-                hideLoader(); // On cache le loader avant de lancer l'onboarding
+            if (!onboardingSeen && !window._onboardingCompleted) {
+                hideLoader();
                 window.startOnboarding();
                 return; 
             }
