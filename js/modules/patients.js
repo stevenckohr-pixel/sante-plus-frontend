@@ -9,7 +9,7 @@ import { showSkeleton } from "../core/utils.js";
 /**
  * 📥 1. CHARGER LA LISTE DES PATIENTS
  */
-import { showSkeleton } from "../core/utils.js";
+
 
 export async function loadPatients() {
     const container = document.getElementById("patients-list");
