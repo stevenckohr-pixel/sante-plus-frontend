@@ -1,6 +1,10 @@
 import { secureFetch } from "../core/api.js";
+import { CONFIG } from "../core/config.js";
 import { UI, compressImage } from "../core/utils.js";
 
+/**
+ * 📋 CHARGER LA LISTE DES COMMANDES
+ */
 export async function loadCommandes() {
   const listContainer = document.getElementById("commandes-list");
   if (!listContainer) return;
@@ -10,64 +14,64 @@ export async function loadCommandes() {
     const data = await res.json();
     renderCommandes(data);
   } catch (err) {
-    listContainer.innerHTML = `<p class="text-red-500 text-center">Erreur : ${err.message}</p>`;
+    console.error("Erreur chargement commandes:", err);
+    listContainer.innerHTML = `<p class="text-rose-500 text-center p-10">Erreur : ${err.message}</p>`;
   }
 }
 
+/**
+ * 🎨 AFFICHER LES COMMANDES
+ */
 function renderCommandes(list) {
   const container = document.getElementById("commandes-list");
   const role = localStorage.getItem("user_role");
 
-  if (list.length === 0) {
-    container.innerHTML = `<div class="text-center py-20 opacity-20"><i class="fa-solid fa-box-open text-5xl"></i><p class="text-xs font-black uppercase mt-2">Aucune commande</p></div>`;
+  if (!list.length) {
+    container.innerHTML = `<div class="text-center py-20 opacity-50"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">Aucune commande</p></div>`;
     return;
   }
 
   container.innerHTML = list
     .map((c) => {
-      const isPending = c.statut === "En attente";
       const isConfirmed = c.statut === "Confirmée";
+      const isDelivered = c.statut === "Livrée";
+      
+      let statusColor = "bg-blue-100 text-blue-700";
+      if (isDelivered) statusColor = "bg-emerald-100 text-emerald-700";
+      if (c.statut === "En attente") statusColor = "bg-amber-100 text-amber-700";
 
       return `
-            <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm animate-fadeIn">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">ID: ${c.id.substring(0, 5)}</span>
-                        <h4 class="font-black text-slate-800 text-sm mt-1 uppercase">${c.patient.nom_complet}</h4>
-                    </div>
-                    <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase ${c.statut === "Livrée" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}">${c.statut}</span>
-                </div>
-
-                <div class="p-4 bg-slate-50 rounded-2xl mb-4">
-                    <p class="text-xs font-bold text-slate-600 italic">"${c.liste_medocs}"</p>
-                    ${c.prix_total > 0 ? `<p class="mt-2 text-xs font-black text-green-600">Total: ${UI.formatMoney(c.prix_total)}</p>` : ""}
-                </div>
-
-                ${
-                  isConfirmed && role === "AIDANT"
-                    ? `
-                    <button onclick="window.markAsDelivered('${c.id}')" class="w-full py-4 bg-green-600 text-white rounded-2xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-                        📸 Confirmer la Livraison
-                    </button>
-                `
-                    : ""
-                }
-
-                ${
-                  c.photo_livraison
-                    ? `
-                    <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-2xl border" onclick="window.open('${c.photo_livraison}')">
-                `
-                    : ""
-                }
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">ID: ${c.id?.substring(0, 5) || '???'}</span>
+              <h4 class="font-black text-slate-800 text-sm mt-1 uppercase">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
             </div>
-        `;
+            <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase ${statusColor}">${c.statut || 'En attente'}</span>
+          </div>
+
+          <div class="p-4 bg-slate-50 rounded-xl mb-4">
+            <p class="text-xs font-bold text-slate-600 italic">"${c.liste_medocs || 'Aucune description'}"</p>
+            ${c.prix_total > 0 ? `<p class="mt-2 text-xs font-black text-emerald-600">Total: ${UI.formatMoney(c.prix_total)}</p>` : ''}
+          </div>
+
+          ${isConfirmed && role === "AIDANT" && !isDelivered ? `
+            <button onclick="window.markAsDelivered('${c.id}')" class="w-full py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+              📸 Confirmer la Livraison
+            </button>
+          ` : ''}
+
+          ${c.photo_livraison ? `
+            <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-xl mt-3 border cursor-pointer" onclick="window.open('${c.photo_livraison}')">
+          ` : ''}
+        </div>
+      `;
     })
     .join("");
 }
 
 /**
- * 📦 Confirmer la livraison (Aidant)
+ * 📦 CONFIRMER LA LIVRAISON (Aidant)
  */
 window.markAsDelivered = async (commandeId) => {
   const { value: file } = await Swal.fire({
@@ -76,71 +80,106 @@ window.markAsDelivered = async (commandeId) => {
     input: "file",
     inputAttributes: { accept: "image/*", capture: "camera" },
     confirmButtonText: "VALIDER LA LIVRAISON",
-    confirmButtonColor: "#16a34a",
+    confirmButtonColor: "#10B981",
     showCancelButton: true,
+    cancelButtonText: "Annuler",
+    customClass: { popup: 'rounded-2xl' }
   });
 
-  if (file) {
-    try {
-      Swal.fire({
-        title: "Envoi de la preuve...",
-        didOpen: () => Swal.showLoading(),
-      });
+  if (!file) return;
 
-      const compressed = await compressImage(file);
-      const fd = new FormData();
-      fd.append("commande_id", commandeId);
-      fd.append("photo_livraison", compressed);
+  try {
+    Swal.fire({
+      title: "Envoi de la preuve...",
+      didOpen: () => Swal.showLoading(),
+      allowOutsideClick: false,
+      customClass: { popup: 'rounded-2xl' }
+    });
 
-      await fetch(`${window.CONFIG.API_URL}/commandes/deliver`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: fd,
-      });
+    const compressed = await compressImage(file);
+    const fd = new FormData();
+    fd.append("commande_id", commandeId);
+    fd.append("photo_livraison", compressed);
 
-      UI.vibrate("success");
-      Swal.fire(
-        "Livré !",
-        "La famille a été notifiée de la livraison.",
-        "success",
-      );
-      loadCommandes();
-    } catch (err) {
-      Swal.fire("Erreur", err.message, "error");
-    }
+    const response = await fetch(`${CONFIG.API_URL}/commandes/deliver`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      body: fd,
+    });
+
+    if (!response.ok) throw new Error("Erreur lors de l'envoi");
+
+    UI.success("Livraison confirmée !");
+    Swal.fire({
+      icon: "success",
+      title: "Livré !",
+      text: "La famille a été notifiée de la livraison.",
+      timer: 2000,
+      showConfirmButton: false,
+      customClass: { popup: 'rounded-2xl' }
+    });
+    loadCommandes();
+  } catch (err) {
+    UI.error(err.message);
+    Swal.fire({
+      title: "Erreur",
+      text: err.message,
+      icon: "error",
+      customClass: { popup: 'rounded-2xl' }
+    });
   }
 };
 
-
-
-
 /**
- * 💊 OUVRIR LA MODALE DE COMMANDE
+ * 💊 OUVRIR LA MODALE DE COMMANDE (Famille)
  */
 export async function openOrderModal() { 
   const { value: text } = await Swal.fire({
     title: "Commander des médicaments",
     input: "textarea",
-    inputPlaceholder: "Listez les médicaments et les quantités...",
+    inputPlaceholder: "Listez les médicaments et les quantités...\nEx: Paracétamol 500mg x 2 boîtes",
     showCancelButton: true,
-    confirmButtonColor: "#16a34a",
-    customClass: { popup: 'rounded-[2.5rem]' }
+    confirmButtonText: "Envoyer la commande",
+    confirmButtonColor: "#10B981",
+    cancelButtonText: "Annuler",
+    customClass: { popup: 'rounded-2xl', input: 'rounded-xl' }
   });
 
-  if (text) {
-    try {
-        await secureFetch("/commandes/add", {
-            method: "POST",
-            body: JSON.stringify({
-                patient_id: window.AppState.currentPatient,
-                liste_medocs: text,
-            }),
-        });
-        UI.vibrate();
-        Swal.fire("Envoyé", "La commande a été transmise au coordinateur.", "success");
-        loadCommandes(); 
-    } catch(e) {
-        Swal.fire("Erreur", e.message, "error");
-    }
+  if (!text) return;
+
+  try {
+    Swal.fire({
+      title: "Envoi...",
+      didOpen: () => Swal.showLoading(),
+      allowOutsideClick: false,
+      customClass: { popup: 'rounded-2xl' }
+    });
+
+    await secureFetch("/commandes/add", {
+      method: "POST",
+      body: JSON.stringify({
+        patient_id: window.AppState?.currentPatient,
+        liste_medocs: text,
+      }),
+    });
+    
+    UI.success("Commande envoyée");
+    Swal.fire({
+      icon: "success",
+      title: "Envoyé !",
+      text: "La commande a été transmise au coordinateur.",
+      timer: 2000,
+      showConfirmButton: false,
+      customClass: { popup: 'rounded-2xl' }
+    });
+    loadCommandes();
+  } catch(e) {
+    UI.error(e.message);
+    Swal.fire({
+      title: "Erreur",
+      text: e.message,
+      icon: "error",
+      customClass: { popup: 'rounded-2xl' }
+    });
   }
 }
