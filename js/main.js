@@ -1633,5 +1633,7 @@ window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
 window.UI = UI;
+window.playSound = playSound;
+
 
 initApp();
