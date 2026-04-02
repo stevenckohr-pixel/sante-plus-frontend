@@ -448,14 +448,16 @@ main {
 }
 
 /* === ANIMATIONS === */
+
+/* Animation fadeIn plus rapide */
 .animate-fadeIn {
-    animation: fadeIn 0.4s cubic-bezier(0.2, 1, 0.2, 1) forwards;
+    animation: fadeIn 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
 }
 
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(8px);
     }
     to {
         opacity: 1;
@@ -463,26 +465,16 @@ main {
     }
 }
 
+/* SlideIn plus rapide */
 .animate-slideIn {
-    animation: slideIn 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: slideIn 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
     opacity: 0;
 }
 
 @keyframes slideIn {
-    0% {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes slideInCustom {
     from {
         opacity: 0;
-        transform: translateX(50px);
+        transform: translateX(20px);
     }
     to {
         opacity: 1;
@@ -490,20 +482,30 @@ main {
     }
 }
 
-.animate-blob {
-    pointer-events: none !important;
-    z-index: -1;
-    animation: blob 8s infinite alternate-reverse;
+/* Feedback au clic (tactile) */
+.btn-feedback, 
+button:active, 
+.nav-btn:active,
+.menu-tile:active,
+.patient-card:active {
+    transition: transform 0.05s ease !important;
+    transform: scale(0.97) !important;
 }
 
-@keyframes blob {
-    0% {
-        border-radius: 50%;
-        transform: scale(1) translate(0, 0);
+/* Scroll fluide */
+main, .custom-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Désactiver les animations inutiles sur mobile pour les perfs */
+@media (max-width: 640px) {
+    .animate-fadeIn, .animate-slideIn {
+        animation-duration: 0.15s !important;
     }
-    100% {
-        border-radius: 30% 60% 70% 40%;
-        transform: scale(1.2) translate(10px, -20px);
+    
+    .bento-card:hover, .patient-card:hover {
+        transform: none !important;
     }
 }
 
@@ -668,5 +670,49 @@ main {
         content: "*";
         color: #F43F5E;
         margin-left: 0.25rem;
+    }
+}
+
+
+
+
+/* === SCROLL FLUIDE & PERFORMANT === */
+
+/* Amélioration du scroll sur mobile */
+main {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* Cache le scrollbar mais garde la fonctionnalité */
+.custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 #F1F5F9;
+}
+
+.custom-scroll::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+    background: #F1F5F9;
+    border-radius: 10px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
+}
+
+/* Supprimer les animations lourdes sur mobile */
+@media (max-width: 640px) {
+    .animate-blob {
+        display: none !important;
+    }
+    
+    .blob-background {
+        display: none;
     }
 }
