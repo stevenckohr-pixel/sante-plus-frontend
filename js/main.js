@@ -711,195 +711,226 @@ function getNavLinks(role, mode) {
     }).join('');
 }
 
-window.switchView = async (viewName) => {
-  const container = document.getElementById("view-container");
-  const titleElement = document.getElementById("view-title");
-  if (!container) return;
+// ============================================
+// TRANSITION FLUIDE ENTRE LES VUES
+// ============================================
 
-  const userRole = localStorage.getItem("user_role");
-  const paymentStatus = localStorage.getItem("payment_status");
+let isTransitioning = false;
+let pendingView = null;
 
-  // 🛡️ SÉCURITÉ PAIEMENT
-  const restrictedViews = ["feed", "visits", "commandes"];
-  if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
-    UI.vibrate("error");
-    return Swal.fire({
-      icon: "warning",
-      title: `<span class="text-rose-600 font-black">Accès Suspendu</span>`,
-      html: `<p class="text-sm text-slate-500">Merci de régulariser votre abonnement pour accéder au suivi en direct de votre proche.</p>`,
-      confirmButtonText: "VOIR MA FACTURE",
-      confirmButtonColor: "#0F172A",
-      customClass: { popup: 'rounded-[2.5rem]' }
-    }).then(() => window.switchView("billing"));
-  }
-
-  // 🎨 MISE À JOUR DE L'INTERFACE (ACTIVE TABS)
-  document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
-    const isActive = btn.dataset.view === viewName;
-    if (btn.classList.contains('sidebar-link')) {
-        btn.classList.toggle("active", isActive);
-        btn.classList.toggle("text-white", isActive);
-        btn.classList.toggle("text-slate-400", !isActive);
-    } else {
-        btn.classList.toggle("text-green-600", isActive);
-        btn.classList.toggle("text-slate-400", !isActive);
+window.switchView = async function(viewName) {
+    // Évite les doubles clics pendant la transition
+    if (isTransitioning) {
+        pendingView = viewName;
+        return;
     }
-  });
-
-  const viewTitles = {
-    dashboard: "Aperçu Analytique", map: "Radar Terrain Live", patients: "Gestion des Dossiers",
-    visits: "Suivi des Interventions", feed: "Journal de Soins Live", billing: "Centre de Facturation",
-    aidants: "Gestion de l'Équipe", commandes: "Pharmacie & Logistique"
-  };
-  if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
-
-  localStorage.setItem("last_view", viewName);
-  AppState.currentView = viewName;
-
-  // 🌀 AFFICHER LE LOADER PENDANT LA TRANSITION
-  container.innerHTML = `<div class="flex flex-col items-center justify-center h-64 animate-pulse"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i></div>`;
-
-  try {
-      switch (viewName) {
-        case "dashboard": 
-            container.innerHTML = document.getElementById("template-dashboard").innerHTML;
-            await Dashboard.loadAdminDashboard(); 
-            break;
-
-        case "map": 
-            // MapModule gère lui-même son innerHTML dans sa fonction initLiveMap, on l'appelle directement
-            await MapModule.initLiveMap(); 
-            break;
-
-        case "patients": 
-            container.innerHTML = `
-                <div class="animate-slideIn pb-32">
-                    <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
-                        </div>
-                        ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
-                    </div>
-                    <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                </div>`;
-            await Patients.loadPatients(); 
-                if (localStorage.getItem("active_visit_id")) {
-                    // Si une visite est en cours, force la mise à jour visuelle du bouton
-                    if (typeof Visites.refreshAidantUI === 'function') {
-                        Visites.refreshAidantUI(AppState.currentPatient);
-                    }
-                }
-            break;
-
-        case "visits": 
-            // 🚨 FIX : Injecter le template AVANT de charger les données
-            container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
-            await Visites.loadVisits(); 
-            break;
-
-        case "feed": 
-            if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
-            // Messages.loadFeed s'occupe de l'injection HTML, on l'appelle direct
-            await Messages.loadFeed(); 
-            break;
-
-        case "billing": 
-            // 🚨 FIX : Injecter le template AVANT de charger les données
-            container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
-            await Billing.loadBilling(); 
-            break;
-
-        case "aidants": 
-            // La vue aidants n'a pas de template, on doit gérer son HTML ici
-            container.innerHTML = `
-                <div class="animate-slideIn pb-32">
-                     <div class="flex justify-between items-center mb-8">
-                        <div>
-                            <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
-                            <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
-                        </div>
-                        ${userRole === 'COORDINATEUR' ? `
-                            <button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center">
-                                <i class="fa-solid fa-user-plus text-lg"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                    <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                         <div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-                    </div>
-                </div>`;
-            await Aidants.loadAidants(); 
-            break;
-
-
-case "planning":
-    container.innerHTML = `
-        <div class="animate-slideIn pb-32">
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
-                </div>
-                <!-- 🚀 BOUTON POUR L'ADMIN : Assigner une mission -->
-                ${userRole === "COORDINATEUR" ? `
-                    <button onclick="window.openAssignModal()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                    </button>` : ""}
-            </div>
-            <div id="planning-list" class="space-y-4">
-                 <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-            </div>
-        </div>`;
-    await Planning.loadPlanning(); // Appelle la fonction de chargement
-    break;
-
-case "commandes":
-    container.innerHTML = `
-        <div class="animate-slideIn pb-32">
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
-                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Commandes et Livraisons</p>
-                </div>
-                <!-- 🚀 BOUTON POUR LA FAMILLE : Passer commande -->
-                ${userRole === "FAMILLE" ? `
-                    <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>` : ""}
-            </div>
-            <div id="commandes-list" class="space-y-4">
-                 <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-            </div>
-        </div>`;
-    await Commandes.loadCommandes(); 
-    break;
-        case "add-patient": await Patients.renderAddPatientView(); break;
-        case "link-family": await Patients.renderLinkFamilyView(); break;
-        case "add-aidant": await Aidants.renderAddAidantView(); break;
-        case "end-visit": await Visites.renderEndVisitView(); break;
-        case "start-visit":
-        await Visites.renderStartVisitView(AppState.currentPatient);
-        break;
-        case "home": 
-             // On s'assure que le contenu du hub mobile s'affiche bien
-             container.innerHTML = document.getElementById("template-home").innerHTML;
-             renderMobileHub(); 
-             break;
-
-        
-      }
-  } catch (err) {
-      console.error("DEBUG VIEW ERROR:", err);
-      container.innerHTML = `
-        <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
-            <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
-            <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-            <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
-            <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
-        </div>`;
-  }
+    
+    isTransitioning = true;
+    const container = document.getElementById("view-container");
+    
+    // 1. Animation de sortie (très rapide)
+    if (container) {
+        container.style.transition = "opacity 0.1s ease, transform 0.1s ease";
+        container.style.opacity = "0";
+        container.style.transform = "translateX(8px)";
+        await new Promise(r => setTimeout(r, 80)); // 80ms
+    }
+    
+    // 2. Exécuter le vrai changement de vue (ton code existant)
+    await performViewSwitch(viewName);
+    
+    // 3. Animation d'entrée
+    if (container) {
+        container.style.opacity = "1";
+        container.style.transform = "translateX(0)";
+        await new Promise(r => setTimeout(r, 50));
+        container.style.transition = "";
+    }
+    
+    isTransitioning = false;
+    
+    // 4. S'il y avait une vue en attente, on l'exécute
+    if (pendingView) {
+        const next = pendingView;
+        pendingView = null;
+        window.switchView(next);
+    }
 };
+
+// ============================================
+//  :
+// ============================================
+
+async function performViewSwitch(viewName) {
+    // 👇 TOUT LE CODE QUE TU AVAIS DANS switchView VA ICI
+    // (le contenu de ton ancienne fonction switchView)
+    
+    const container = document.getElementById("view-container");
+    const titleElement = document.getElementById("view-title");
+    if (!container) return;
+
+    const userRole = localStorage.getItem("user_role");
+    const paymentStatus = localStorage.getItem("payment_status");
+
+    // 🛡️ SÉCURITÉ PAIEMENT
+    const restrictedViews = ["feed", "visits", "commandes"];
+    if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
+        UI.vibrate("error");
+        Swal.fire({
+            icon: "warning",
+            title: `<span class="text-rose-600 font-black">Accès Suspendu</span>`,
+            html: `<p class="text-sm text-slate-500">Merci de régulariser votre abonnement pour accéder au suivi en direct de votre proche.</p>`,
+            confirmButtonText: "VOIR MA FACTURE",
+            confirmButtonColor: "#0F172A",
+            customClass: { popup: 'rounded-[2.5rem]' }
+        }).then(() => window.switchView("billing"));
+        return;
+    }
+
+    // 🎨 MISE À JOUR DE L'INTERFACE (ACTIVE TABS)
+    document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
+        const isActive = btn.dataset.view === viewName;
+        if (btn.classList.contains('sidebar-link')) {
+            btn.classList.toggle("active", isActive);
+            btn.classList.toggle("text-white", isActive);
+            btn.classList.toggle("text-slate-400", !isActive);
+        } else {
+            btn.classList.toggle("text-green-600", isActive);
+            btn.classList.toggle("text-slate-400", !isActive);
+        }
+    });
+
+    const viewTitles = {
+        dashboard: "Aperçu Analytique", map: "Radar Terrain Live", patients: "Gestion des Dossiers",
+        visits: "Suivi des Interventions", feed: "Journal de Soins Live", billing: "Centre de Facturation",
+        aidants: "Gestion de l'Équipe", commandes: "Pharmacie & Logistique"
+    };
+    if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
+
+    localStorage.setItem("last_view", viewName);
+    AppState.currentView = viewName;
+
+    // 🌀 AFFICHER LE LOADER PENDANT LA TRANSITION
+    container.innerHTML = `<div class="flex flex-col items-center justify-center h-64 animate-pulse"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i></div>`;
+
+    try {
+        switch (viewName) {
+            case "dashboard": 
+                container.innerHTML = document.getElementById("template-dashboard").innerHTML;
+                await Dashboard.loadAdminDashboard(); 
+                break;
+            case "map": 
+                await MapModule.initLiveMap(); 
+                break;
+            case "patients": 
+                container.innerHTML = `
+                    <div class="animate-slideIn pb-32">
+                        <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
+                            </div>
+                            ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
+                        </div>
+                        <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    </div>`;
+                await Patients.loadPatients(); 
+                break;
+            case "visits": 
+                container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
+                await Visites.loadVisits(); 
+                break;
+            case "feed": 
+                if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
+                await Messages.loadFeed(); 
+                break;
+            case "billing": 
+                container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
+                await Billing.loadBilling(); 
+                break;
+            case "aidants": 
+                container.innerHTML = `
+                    <div class="animate-slideIn pb-32">
+                         <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
+                            </div>
+                            ${userRole === 'COORDINATEUR' ? `
+                                <button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center">
+                                    <i class="fa-solid fa-user-plus text-lg"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+                        </div>
+                    </div>`;
+                await Aidants.loadAidants(); 
+                break;
+            case "planning":
+                container.innerHTML = `
+                    <div class="animate-slideIn pb-32">
+                        <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
+                            </div>
+                            ${userRole === "COORDINATEUR" ? `
+                                <button onclick="window.openAssignModal()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                                    <i class="fa-solid fa-calendar-plus"></i>
+                                </button>` : ""}
+                        </div>
+                        <div id="planning-list" class="space-y-4">
+                             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+                        </div>
+                    </div>`;
+                await Planning.loadPlanning();
+                break;
+            case "commandes":
+                container.innerHTML = `
+                    <div class="animate-slideIn pb-32">
+                        <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Commandes et Livraisons</p>
+                            </div>
+                            ${userRole === "FAMILLE" ? `
+                                <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>` : ""}
+                        </div>
+                        <div id="commandes-list" class="space-y-4">
+                             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
+                        </div>
+                    </div>`;
+                await Commandes.loadCommandes(); 
+                break;
+            case "add-patient": await Patients.renderAddPatientView(); break;
+            case "link-family": await Patients.renderLinkFamilyView(); break;
+            case "add-aidant": await Aidants.renderAddAidantView(); break;
+            case "end-visit": await Visites.renderEndVisitView(); break;
+            case "start-visit":
+                await Visites.renderStartVisitView(AppState.currentPatient);
+                break;
+            case "home": 
+                container.innerHTML = document.getElementById("template-home").innerHTML;
+                renderMobileHub(); 
+                break;
+        }
+    } catch (err) {
+        console.error("DEBUG VIEW ERROR:", err);
+        container.innerHTML = `
+            <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+                <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+                <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
+                <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+            </div>`;
+    }
+}
+
+
 
 window.openProfileMenu = () => {
     const userName = localStorage.getItem("user_name");
