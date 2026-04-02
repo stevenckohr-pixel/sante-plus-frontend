@@ -54,40 +54,35 @@ let onboardingStep = 0;
 
 let loaderTimeout = null;
 
-function showGlobalLoader() {
-    let loader = document.getElementById('global-loader');
+// ============================================
+// NOUVEAU LOADER LOCAL (UI uniquement)
+// ============================================
+
+function showLocalLoader(container) {
+    if (!container) return;
     
-    if (!loader) {
-        loader = document.createElement('div');
-        loader.id = 'global-loader';
-        loader.className = 'global-loader';
-        loader.innerHTML = `
-            <div class="relative mb-4">
-                <div class="loader-ring"></div>
-                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="loader-heart">
+    // Sauvegarder le contenu original si nécessaire
+    if (!container.dataset.originalContent) {
+        container.dataset.originalContent = container.innerHTML;
+    }
+    
+    container.innerHTML = `
+        <div class="local-loader flex flex-col items-center justify-center py-20">
+            <div class="relative w-12 h-12">
+                <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
+                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
             </div>
-            <p class="loader-text">Santé Plus Services</p>
-        `;
-        document.body.appendChild(loader);
-    }
-    
-    // Applique la couleur rose ou verte selon le contexte
-    const isMaman = localStorage.getItem('user_is_maman') === 'true';
-    if (isMaman) {
-        loader.classList.add('rose');
-    } else {
-        loader.classList.remove('rose');
-    }
-    
-    loader.classList.remove('hidden');
-    loader.style.opacity = '1';
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
+        </div>
+    `;
 }
 
-function hideGlobalLoader() {
-    const loader = document.getElementById('global-loader');
-    if (loader) {
-        loader.classList.add('hidden');
-        loader.style.opacity = '0';
+function hideLocalLoader(container) {
+    if (!container) return;
+    if (container.dataset.originalContent) {
+        container.innerHTML = container.dataset.originalContent;
+        delete container.dataset.originalContent;
     }
 }
 // Force la disparition du loader après un délai max (sécurité)
@@ -1186,11 +1181,11 @@ function getNavLinks(role, mode) {
 // TRANSITION FLUIDE ENTRE LES VUES
 // ============================================
 
+
 let isTransitioning = false;
 let pendingView = null;
 
 window.switchView = async function(viewName) {
-    // Évite les doubles transitions
     if (isTransitioning) {
         pendingView = viewName;
         return;
@@ -1198,54 +1193,56 @@ window.switchView = async function(viewName) {
     
     isTransitioning = true;
     
-    // Récupérer les éléments
     const container = document.getElementById("view-container");
     const mainContent = document.querySelector("main");
     
-    // 1. Animation de sortie (très rapide)
-    if (container) {
-        container.style.transition = "opacity 0.12s ease, transform 0.12s ease";
-        container.style.opacity = "0";
-        container.style.transform = "translateY(6px)";
-        await new Promise(r => setTimeout(r, 80));
+    if (!container) {
+        isTransitioning = false;
+        return;
     }
     
-    // 2. Afficher le loader global
-    showGlobalLoader();
+    // 1. Animation de sortie (très rapide)
+    container.style.transition = "opacity 0.15s ease, transform 0.15s ease";
+    container.style.opacity = "0";
+    container.style.transform = "translateY(8px)";
+    await new Promise(r => setTimeout(r, 100));
+    
+    // 2. Afficher le loader LOCAL (pas global)
+    showLocalLoader(container);
     
     try {
         // 3. Exécuter le changement de vue
         await performViewSwitch(viewName);
         
         // 4. Animation d'entrée
-        if (container) {
-            container.style.opacity = "1";
-            container.style.transform = "translateY(0)";
-            setTimeout(() => {
-                if (container) container.style.transition = "";
-            }, 150);
-        }
+        container.style.opacity = "1";
+        container.style.transform = "translateY(0)";
+        setTimeout(() => {
+            if (container) container.style.transition = "";
+        }, 150);
         
-        // 5. Cacher le loader
-        hideGlobalLoader();
+        // 5. Cacher le loader local
+        hideLocalLoader(container);
         
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        hideGlobalLoader();
+        hideLocalLoader(container);
         if (container) {
             container.innerHTML = `
                 <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
                     <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
                     <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
                     <p class="text-xs text-slate-500 mt-2">${err.message}</p>
-                    <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+                    <button onclick="window.switchView('${viewName}')" 
+                            class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
+                        Réessayer
+                    </button>
                 </div>`;
         }
     }
     
     isTransitioning = false;
     
-    // 6. Traiter la vue en attente s'il y en a une
     if (pendingView) {
         const next = pendingView;
         pendingView = null;
