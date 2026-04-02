@@ -133,7 +133,7 @@ export async function renderAddPatientView() {
     const container = document.getElementById("view-container");
     
     container.innerHTML = `
-        <div class="animate-fadeIn max-w-2xl mx-auto pb-24">
+        <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
             <!-- Header de Page -->
             <div class="flex items-center gap-4 mb-8">
                 <button onclick="window.switchView('patients')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors active:scale-95">
@@ -145,78 +145,205 @@ export async function renderAddPatientView() {
                 </div>
             </div>
 
-            <!-- Formulaire Native App -->
-            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
-                <div class="space-y-6">
+            <!-- Formulaire -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="space-y-5">
+                    <!-- Nom complet -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Nom complet</label>
-                        <div class="relative group">
-                            <i class="fa-solid fa-user absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                            <input id="form-pat-nom" class="app-input !pl-12" placeholder="Ex: Jean Gnonlonfoun">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">
+                            <i class="fa-solid fa-user mr-1"></i> Nom complet
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                            <input id="form-pat-nom" class="app-input !pl-11" placeholder="Ex: Jean Gnonlonfoun">
                         </div>
                     </div>
 
+                    <!-- Téléphone -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Téléphone au Bénin</label>
-                        <div class="relative group">
-                            <i class="fa-solid fa-phone absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                            <input id="form-pat-tel" class="app-input !pl-12" placeholder="+229 ...">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">
+                            <i class="fa-solid fa-phone mr-1"></i> Téléphone au Bénin
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                            <input id="form-pat-tel" class="app-input !pl-11" placeholder="+229 XX XXX XXX">
                         </div>
                     </div>
 
+                    <!-- Adresse -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Adresse exacte</label>
-                        <div class="relative group">
-                            <i class="fa-solid fa-map-location-dot absolute left-5 top-1/2 -translate-y-1/2 text-slate-300"></i>
-                            <input id="form-pat-addr" class="app-input !pl-12" placeholder="Quartier, Rue, Repères...">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">
+                            <i class="fa-solid fa-location-dot mr-1"></i> Adresse exacte
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                            <input id="form-pat-addr" class="app-input !pl-11" placeholder="Quartier, Rue, Repères...">
                         </div>
                     </div>
 
+                    <!-- Formule (SELECTEUR MODERNE) -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-2 block">Formule d'accompagnement</label>
-                        <select id="form-pat-formule" class="app-input cursor-pointer font-bold text-slate-700">
-                            <option value="Basic">Formule Basic (1 visite/sem) - 50k</option>
-                            <option value="Standard">Formule Standard (3 visites/sem) - 75k</option>
-                            <option value="Premium">Formule Premium (7j/7) - 100k</option>
-                        </select>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">
+                            <i class="fa-solid fa-gem mr-1"></i> Formule d'accompagnement
+                        </label>
+                        
+                        <!-- Clickeur moderne -->
+                        <div id="formule-selector-trigger" 
+                             class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer active:scale-98 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                                    <i class="fa-solid fa-box text-emerald-600 text-base"></i>
+                                </div>
+                                <div>
+                                    <p id="selected-formule-name" class="font-bold text-slate-800 text-sm">Choisir une formule</p>
+                                    <p id="selected-formule-desc" class="text-[10px] text-slate-400 mt-0.5">Sélectionnez le niveau d'accompagnement</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-300 text-xs"></i>
+                        </div>
+                        <input type="hidden" id="form-pat-formule" value="">
                     </div>
 
-                    <div class="pt-6 border-t border-slate-50 mt-8">
-                        <button onclick="window.submitAddPatient()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center gap-3">
-                            Enregistrer le dossier <i class="fa-solid fa-check"></i>
+                    <!-- Bouton validation -->
+                    <div class="pt-4 border-t border-slate-100 mt-6">
+                        <button id="submit-patient-btn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i> Enregistrer le dossier
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     `;
+
+    // Lier l'événement du sélecteur moderne
+    document.getElementById("formule-selector-trigger").onclick = () => openFormuleSelector();
+    document.getElementById("submit-patient-btn").onclick = () => submitAddPatient();
 }
 
-// L'action d'enregistrement
+// Liste des formules disponibles
+const FORMULES = [
+    { 
+        id: "Basic", 
+        name: "Formule Basic", 
+        desc: "1 visite par semaine", 
+        price: "50.000 CFA",
+        icon: "fa-seedling",
+        color: "text-emerald-600"
+    },
+    { 
+        id: "Standard", 
+        name: "Formule Standard", 
+        desc: "3 visites par semaine", 
+        price: "75.000 CFA",
+        icon: "fa-chart-line",
+        color: "text-blue-600"
+    },
+    { 
+        id: "Premium", 
+        name: "Formule Premium", 
+        desc: "7 jours sur 7", 
+        price: "100.000 CFA",
+        icon: "fa-crown",
+        color: "text-gold-primary"
+    }
+];
+
+// Ouvre le sélecteur de formule
+async function openFormuleSelector() {
+    const modalContent = `
+        <div class="space-y-2 max-h-[60vh] overflow-y-auto">
+            ${FORMULES.map(f => `
+                <div class="formule-item p-4 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer transition-all hover:border-emerald-200 active:scale-98" data-id="${f.id}">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                            <i class="fa-solid ${f.icon} ${f.color} text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <p class="font-black text-slate-800 text-sm">${f.name}</p>
+                                <p class="text-[11px] font-black text-emerald-600">${f.price}</p>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${f.desc}</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    const { value: selectedId } = await Swal.fire({
+        title: '<span class="text-base font-black text-slate-800">🎁 Choisir une formule</span>',
+        html: modalContent,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: "Fermer",
+        cancelButtonColor: "#94A3B8",
+        customClass: {
+            popup: 'rounded-2xl p-5',
+            cancelButton: 'rounded-xl px-5 py-2.5 text-[10px] font-black uppercase tracking-wider'
+        },
+        didOpen: () => {
+            document.querySelectorAll('.formule-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    Swal.close();
+                    const formule = FORMULES.find(f => f.id === el.dataset.id);
+                    if (formule) {
+                        // Mettre à jour l'affichage
+                        document.getElementById("selected-formule-name").innerText = formule.name;
+                        document.getElementById("selected-formule-desc").innerHTML = `${formule.desc} • ${formule.price}`;
+                        document.getElementById("form-pat-formule").value = formule.id;
+                        
+                        // Mettre à jour le style du déclencheur
+                        const trigger = document.getElementById("formule-selector-trigger");
+                        const iconContainer = trigger.querySelector('.w-10.h-10');
+                        const icon = iconContainer.querySelector('i');
+                        icon.className = `fa-solid ${formule.icon} ${formule.color} text-base`;
+                    }
+                });
+            });
+        }
+    });
+}
+
+// Soumission du formulaire (inchangée mais utilise la valeur cachée)
 window.submitAddPatient = async () => {
-    const nom = document.getElementById("form-pat-nom").value;
-    const tel = document.getElementById("form-pat-tel").value;
-    const addr = document.getElementById("form-pat-addr").value;
-    const formule = document.getElementById("form-pat-formule").value;
+    const nom = document.getElementById("form-pat-nom")?.value;
+    const tel = document.getElementById("form-pat-tel")?.value;
+    const addr = document.getElementById("form-pat-addr")?.value;
+    const formule = document.getElementById("form-pat-formule")?.value;
 
-    if (!nom) return UI.vibrate('error');
+    if (!nom) {
+        UI.vibrate('error');
+        Swal.fire({ title: "Champ manquant", text: "Le nom du patient est requis", icon: "warning", customClass: { popup: 'rounded-2xl' } });
+        return;
+    }
+    
+    if (!formule) {
+        UI.vibrate('error');
+        Swal.fire({ title: "Formule manquante", text: "Veuillez sélectionner une formule d'accompagnement", icon: "warning", customClass: { popup: 'rounded-2xl' } });
+        return;
+    }
 
-    Swal.fire({ title: 'Création...', didOpen: () => Swal.showLoading(), customClass: { popup: 'rounded-[2.5rem]' } });
+    Swal.fire({ title: 'Création...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, customClass: { popup: 'rounded-2xl' } });
 
     try {
         await secureFetch("/patients/add", {
             method: "POST",
-            body: JSON.stringify({ nom_complet: nom, telephone: tel, adresse: addr, formule })
+            body: JSON.stringify({ 
+                nom_complet: nom, 
+                telephone: tel, 
+                adresse: addr, 
+                formule: formule 
+            })
         });
         UI.vibrate("success");
-        Swal.close();
-        window.switchView("patients"); // Retour automatique à la liste
+        Swal.fire({ icon: "success", title: "Patient ajouté", text: "Le dossier a été créé avec succès", timer: 1500, showConfirmButton: false });
+        window.switchView("patients");
     } catch (err) {
-        Swal.fire("Erreur", err.message, "error");
+        Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
     }
 };
-
-
 
 
 
