@@ -346,7 +346,7 @@ window.submitAddPatient = async () => {
             })
         });
         UI.vibrate("success");
-        Swal.fire({ icon: "success", title: "Patient ajouté", text: "Le dossier a été créé avec succès", timer: 1500, showConfirmButton: false });
+        UI.success("Patient ajouté avec succès");
         window.switchView("patients");
     } catch (err) {
         Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
