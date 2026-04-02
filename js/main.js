@@ -880,9 +880,6 @@ window.switchView = async function(viewName) {
 // ============================================
 
 async function performViewSwitch(viewName) {
-    // 👇 TOUT LE CODE QUE TU AVAIS DANS switchView VA ICI
-    // (le contenu de ton ancienne fonction switchView)
-    
     const container = document.getElementById("view-container");
     const titleElement = document.getElementById("view-title");
     if (!container) return;
@@ -919,17 +916,23 @@ async function performViewSwitch(viewName) {
     });
 
     const viewTitles = {
-        dashboard: "Aperçu Analytique", map: "Radar Terrain Live", patients: "Gestion des Dossiers",
-        visits: "Suivi des Interventions", feed: "Journal de Soins Live", billing: "Centre de Facturation",
-        aidants: "Gestion de l'Équipe", commandes: "Pharmacie & Logistique"
+        dashboard: "Aperçu Analytique", 
+        map: "Radar Terrain Live", 
+        patients: "Gestion des Dossiers",
+        visits: "Suivi des Interventions", 
+        feed: "Journal de Soins Live", 
+        billing: "Centre de Facturation",
+        aidants: "Gestion de l'Équipe", 
+        commandes: "Pharmacie & Logistique",
+        planning: "Agenda des Soins"
     };
+    
     if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
 
     localStorage.setItem("last_view", viewName);
     AppState.currentView = viewName;
 
-    // 🌀 AFFICHER LE LOADER PENDANT LA TRANSITION
-    container.innerHTML = `<div class="flex flex-col items-center justify-center h-64 animate-pulse"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-4xl mb-4"></i></div>`;
+    // ⚠️ PLUS AUCUN LOADER MANUEL ICI - C'est le loader global qui gère
 
     try {
         switch (viewName) {
@@ -937,9 +940,11 @@ async function performViewSwitch(viewName) {
                 container.innerHTML = document.getElementById("template-dashboard").innerHTML;
                 await Dashboard.loadAdminDashboard(); 
                 break;
+                
             case "map": 
                 await MapModule.initLiveMap(); 
                 break;
+                
             case "patients": 
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
@@ -954,22 +959,29 @@ async function performViewSwitch(viewName) {
                     </div>`;
                 await Patients.loadPatients(); 
                 break;
+                
             case "visits": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
                 await Visites.loadVisits(); 
                 break;
+                
             case "feed": 
-                if (!AppState.currentPatient && userRole === "FAMILLE") return window.switchView("patients");
+                if (!AppState.currentPatient && userRole === "FAMILLE") {
+                    window.switchView("patients");
+                    return;
+                }
                 await Messages.loadFeed(); 
                 break;
+                
             case "billing": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
                 await Billing.loadBilling(); 
                 break;
+                
             case "aidants": 
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
-                         <div class="flex justify-between items-center mb-8">
+                        <div class="flex justify-between items-center mb-8">
                             <div>
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
                                 <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
@@ -980,12 +992,11 @@ async function performViewSwitch(viewName) {
                                 </button>
                             ` : ''}
                         </div>
-                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div class="col-span-full flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-                        </div>
+                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                     </div>`;
                 await Aidants.loadAidants(); 
                 break;
+                
             case "planning":
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
@@ -999,12 +1010,11 @@ async function performViewSwitch(viewName) {
                                     <i class="fa-solid fa-calendar-plus"></i>
                                 </button>` : ""}
                         </div>
-                        <div id="planning-list" class="space-y-4">
-                             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-                        </div>
+                        <div id="planning-list" class="space-y-4"></div>
                     </div>`;
                 await Planning.loadPlanning();
                 break;
+                
             case "commandes":
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
@@ -1018,19 +1028,31 @@ async function performViewSwitch(viewName) {
                                     <i class="fa-solid fa-plus"></i>
                                 </button>` : ""}
                         </div>
-                        <div id="commandes-list" class="space-y-4">
-                             <div class="flex justify-center py-20"><i class="fa-solid fa-circle-notch fa-spin text-slate-200 text-3xl"></i></div>
-                        </div>
+                        <div id="commandes-list" class="space-y-4"></div>
                     </div>`;
                 await Commandes.loadCommandes(); 
                 break;
-            case "add-patient": await Patients.renderAddPatientView(); break;
-            case "link-family": await Patients.renderLinkFamilyView(); break;
-            case "add-aidant": await Aidants.renderAddAidantView(); break;
-            case "end-visit": await Visites.renderEndVisitView(); break;
+                
+            case "add-patient": 
+                await Patients.renderAddPatientView(); 
+                break;
+                
+            case "link-family": 
+                await Patients.renderLinkFamilyView(); 
+                break;
+                
+            case "add-aidant": 
+                await Aidants.renderAddAidantView(); 
+                break;
+                
+            case "end-visit": 
+                await Visites.renderEndVisitView(); 
+                break;
+                
             case "start-visit":
                 await Visites.renderStartVisitView(AppState.currentPatient);
                 break;
+                
             case "home": 
                 container.innerHTML = document.getElementById("template-home").innerHTML;
                 renderMobileHub(); 
@@ -1042,7 +1064,7 @@ async function performViewSwitch(viewName) {
             <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
                 <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
                 <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-                <p class="text-xs text-slate-500 mt-2">Le serveur n'a pas pu répondre à cette requête.</p>
+                <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre à cette requête."}</p>
                 <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
             </div>`;
     }
@@ -1164,11 +1186,7 @@ window.viewPatientFeed = async (id) => {
         UI.vibrate();
         if (titleElement) titleElement.innerText = "Briefing Patient";
         
-        document.getElementById("view-container").innerHTML = `
-            <div class="flex justify-center p-20 animate-fadeIn">
-                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-slate-200"></i>
-            </div>`;
-        
+        // ⚠️ PLUS AUCUN LOADER MANUEL - Le loader global s'en charge
         await Patients.renderPatientDetailsView(id);
     } 
     // Si c'est une Famille ou Coordinateur, on va direct au journal
