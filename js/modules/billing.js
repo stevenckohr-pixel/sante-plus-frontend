@@ -103,12 +103,13 @@ export async function loadBilling() {
 /**
  * 💳 REDIRECTION VERS FEDAPAY (Paiement Mobile Money / Carte)
  */
+
 window.payWithFeda = async (abonnementId, montant) => {
   try {
     UI.vibrate();
 
-    Swal.fire({
-      title: '<i class="fa-solid fa-shield-halved fa-beat text-emerald-500 mb-3 text-4xl"></i><br><span class="text-xl font-black">Sécurisation...</span>',
+    const result = await Swal.fire({
+      title: '<i class="fa-solid fa-shield-halved fa-beat text-emerald-500 mb-3 text-4xl"></i><br><span class="text-xl font-black">Paiement sécurisé</span>',
       html: `
         <div class="text-center">
           <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-4">Connexion aux passerelles sécurisées</p>
@@ -116,11 +117,33 @@ window.payWithFeda = async (abonnementId, montant) => {
             <span class="text-[10px] font-black text-slate-400 uppercase">Montant :</span>
             <span class="text-sm font-black text-slate-900">${UI.formatMoney(montant)}</span>
           </div>
+          <div class="mt-4 flex justify-center gap-4">
+            <div class="flex items-center gap-2">
+              <i class="fa-brands fa-cc-visa text-slate-400 text-xl"></i>
+              <i class="fa-brands fa-cc-mastercard text-slate-400 text-xl"></i>
+              <i class="fa-solid fa-mobile-alt text-slate-400 text-xl"></i>
+            </div>
+          </div>
         </div>`,
+      showCancelButton: true,
+      confirmButtonText: "💰 Payer maintenant",
+      cancelButtonText: "Annuler",
+      confirmButtonColor: "#10B981",
+      cancelButtonColor: "#94A3B8",
+      customClass: { 
+        popup: 'rounded-2xl p-6',
+        confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
+        cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
+      }
+    });
+
+    if (!result.isConfirmed) return;
+
+    Swal.fire({
+      title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i><br><span class="text-base font-black">Préparation du paiement...</span>',
       allowOutsideClick: false,
       showConfirmButton: false,
-      customClass: { popup: 'rounded-2xl p-6' },
-      didOpen: () => Swal.showLoading(),
+      customClass: { popup: 'rounded-2xl p-6' }
     });
 
     const res = await secureFetch("/billing/generate-payment", {
@@ -135,6 +158,15 @@ window.payWithFeda = async (abonnementId, montant) => {
     const data = await res.json();
     
     if (!res.ok) throw new Error(data.error || "Échec de connexion FedaPay");
+
+    Swal.fire({
+      title: "Redirection...",
+      text: "Vous allez être redirigé vers la page de paiement sécurisée",
+      icon: "info",
+      timer: 1500,
+      showConfirmButton: false,
+      customClass: { popup: 'rounded-2xl' }
+    });
 
     setTimeout(() => {
       window.location.href = data.url;
@@ -151,7 +183,6 @@ window.payWithFeda = async (abonnementId, montant) => {
     });
   }
 };
-
 /**
  * ✅ VALIDATION MANUELLE (Coordinateur uniquement)
  */
