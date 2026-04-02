@@ -160,18 +160,21 @@ function renderStoryCard(msg) {
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 animate-fadeIn mb-6">
             <!-- Header -->
             <div class="flex justify-between items-center mb-5">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl ${avatarBg} text-white flex items-center justify-center text-sm font-black shadow-md">
-                        ${msg.sender_name?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-black text-slate-800">${msg.sender_name || 'Système'}</h4>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <p class="text-[9px] font-bold ${roleColorClass} uppercase tracking-wider">${msg.sender_role || 'COORDINATEUR'}</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl overflow-hidden ${avatarBg} flex items-center justify-center">
+                            ${msg.sender_photo ? 
+                                `<img src="${msg.sender_photo}" class="w-full h-full object-cover">` : 
+                                `<i class="fa-solid fa-user-nurse text-white text-sm"></i>`
+                            }
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-black text-slate-800">${msg.sender_name || 'Système'}</h4>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                <p class="text-[9px] font-bold ${roleColorClass} uppercase tracking-wider">${msg.sender_role || 'COORDINATEUR'}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <span class="text-[10px] font-black text-slate-400">${UI.formatDate(msg.created_at)}</span>
             </div>
 
