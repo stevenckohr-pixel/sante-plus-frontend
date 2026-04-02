@@ -449,4 +449,3 @@ function escapeHtml(str) {
 }
 
 
-export { openAssignPage };
