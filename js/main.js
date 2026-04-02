@@ -15,78 +15,6 @@ import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, show
 
 
 
-
-// Sélection d'un aidant (événement global)
-document.addEventListener('click', (e) => {
-    if (e.target.closest('.aidant-item')) {
-        const item = e.target.closest('.aidant-item');
-        const id = item.dataset.id;
-        const name = item.dataset.name;
-        const email = item.dataset.email;
-        
-        window._selectedAidant = { id, name, email };
-        
-        const nameEl = document.getElementById('selected-aidant-name');
-        const emailEl = document.getElementById('selected-aidant-email');
-        if (nameEl) nameEl.innerText = name;
-        if (emailEl) emailEl.innerHTML = email || '<span class="text-slate-400">Email non renseigné</span>';
-        
-        // Fermer le dropdown
-        const dropdown = document.getElementById('aidant-dropdown');
-        const chevron = document.getElementById('aidant-chevron');
-        if (dropdown) dropdown.classList.add('hidden');
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-        
-        // Retirer la sélection visuelle des autres
-        document.querySelectorAll('.aidant-item').forEach(el => el.classList.remove('bg-emerald-50'));
-        item.classList.add('bg-emerald-50');
-    }
-    
-    if (e.target.closest('.patient-item')) {
-        const item = e.target.closest('.patient-item');
-        const id = item.dataset.id;
-        const name = item.dataset.name;
-        const formule = item.dataset.formule;
-        
-        window._selectedPatient = { id, name, formule };
-        
-        const nameEl = document.getElementById('selected-patient-name');
-        const formuleEl = document.getElementById('selected-patient-formule');
-        if (nameEl) nameEl.innerText = name;
-        if (formuleEl) formuleEl.innerHTML = formule || 'Standard';
-        
-        // Fermer le dropdown
-        const dropdown = document.getElementById('patient-dropdown');
-        const chevron = document.getElementById('patient-chevron');
-        if (dropdown) dropdown.classList.add('hidden');
-        if (chevron) chevron.style.transform = 'rotate(0deg)';
-        
-        // Retirer la sélection visuelle des autres
-        document.querySelectorAll('.patient-item').forEach(el => el.classList.remove('bg-blue-50'));
-        item.classList.add('bg-blue-50');
-    }
-});
-
-// Fermer les dropdowns en cliquant ailleurs
-document.addEventListener('click', (e) => {
-    if (!e.target.closest('#aidant-selector')) {
-        const dropdown = document.getElementById('aidant-dropdown');
-        const chevron = document.getElementById('aidant-chevron');
-        if (dropdown && !dropdown.classList.contains('hidden')) {
-            dropdown.classList.add('hidden');
-            if (chevron) chevron.style.transform = 'rotate(0deg)';
-        }
-    }
-    if (!e.target.closest('#patient-selector')) {
-        const dropdown = document.getElementById('patient-dropdown');
-        const chevron = document.getElementById('patient-chevron');
-        if (dropdown && !dropdown.classList.contains('hidden')) {
-            dropdown.classList.add('hidden');
-            if (chevron) chevron.style.transform = 'rotate(0deg)';
-        }
-    }
-});
-
 /* --- DONNÉES ONBOARDING PREMIUM AVEC IMAGES --- */
 const ONBOARDING_STEPS =[
     {
@@ -1445,23 +1373,23 @@ async function performViewSwitch(viewName) {
                 await Aidants.loadAidants(); 
                 break;
                 
-            case "planning":
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
-                        <div class="flex justify-between items-center mb-8">
-                            <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
+                case "planning":
+                    container.innerHTML = `
+                        <div class="animate-slideIn pb-32">
+                            <div class="flex justify-between items-center mb-8">
+                                <div>
+                                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
+                                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
+                                </div>
+                                ${userRole === "COORDINATEUR" ? `
+                                    <button onclick="window.openAssignPage()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
+                                        <i class="fa-solid fa-calendar-plus"></i>
+                                    </button>` : ""}
                             </div>
-                            ${userRole === "COORDINATEUR" ? `
-                                <button onclick="window.openAssignModal()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                                    <i class="fa-solid fa-calendar-plus"></i>
-                                </button>` : ""}
-                        </div>
-                        <div id="planning-list" class="space-y-4"></div>
-                    </div>`;
-                await Planning.loadPlanning();
-                break;
+                            <div id="planning-list" class="space-y-4"></div>
+                        </div>`;
+                    await Planning.loadPlanning();
+                    break;
                 
             case "commandes":
                 container.innerHTML = `
@@ -1725,5 +1653,83 @@ window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
 
+// ============================================
+// ÉVÉNEMENTS POUR LA PAGE D'ASSIGNATION
+// ============================================
+
+// Sélection d'un aidant
+document.addEventListener('click', (e) => {
+    const aidantItem = e.target.closest('.aidant-item');
+    if (aidantItem) {
+        const id = aidantItem.dataset.id;
+        const name = aidantItem.dataset.name;
+        const email = aidantItem.dataset.email;
+        
+        window._selectedAidant = { id, name, email };
+        
+        const nameEl = document.getElementById('selected-aidant-name');
+        const emailEl = document.getElementById('selected-aidant-email');
+        if (nameEl) nameEl.innerText = name;
+        if (emailEl) emailEl.innerHTML = email || '<span class="text-slate-400">Email non renseigné</span>';
+        
+        // Fermer le dropdown
+        const dropdown = document.getElementById('aidant-dropdown');
+        const chevron = document.getElementById('aidant-chevron');
+        if (dropdown) dropdown.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        
+        // Retirer la sélection visuelle des autres
+        document.querySelectorAll('.aidant-item').forEach(el => el.classList.remove('bg-emerald-50'));
+        aidantItem.classList.add('bg-emerald-50');
+        
+        UI.vibrate('click');
+    }
+    
+    const patientItem = e.target.closest('.patient-item');
+    if (patientItem) {
+        const id = patientItem.dataset.id;
+        const name = patientItem.dataset.name;
+        const formule = patientItem.dataset.formule;
+        
+        window._selectedPatient = { id, name, formule };
+        
+        const nameEl = document.getElementById('selected-patient-name');
+        const formuleEl = document.getElementById('selected-patient-formule');
+        if (nameEl) nameEl.innerText = name;
+        if (formuleEl) formuleEl.innerHTML = formule || 'Standard';
+        
+        // Fermer le dropdown
+        const dropdown = document.getElementById('patient-dropdown');
+        const chevron = document.getElementById('patient-chevron');
+        if (dropdown) dropdown.classList.add('hidden');
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        
+        // Retirer la sélection visuelle des autres
+        document.querySelectorAll('.patient-item').forEach(el => el.classList.remove('bg-blue-50'));
+        patientItem.classList.add('bg-blue-50');
+        
+        UI.vibrate('click');
+    }
+});
+
+// Fermer les dropdowns en cliquant ailleurs
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#aidant-selector')) {
+        const dropdown = document.getElementById('aidant-dropdown');
+        const chevron = document.getElementById('aidant-chevron');
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+    if (!e.target.closest('#patient-selector')) {
+        const dropdown = document.getElementById('patient-dropdown');
+        const chevron = document.getElementById('patient-chevron');
+        if (dropdown && !dropdown.classList.contains('hidden')) {
+            dropdown.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    }
+});
 
 initApp();
