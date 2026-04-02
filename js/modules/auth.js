@@ -30,28 +30,31 @@ export async function handleLogin() {
         return;
     }
 
-    // 🟢 CONNEXION NORMALE (Aidant / Famille)
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user_role", data.role);
-    localStorage.setItem("user_name", data.nom);
-    localStorage.setItem("user_email", email);
+   // 🟢 CONNEXION NORMALE (Aidant / Famille)
+localStorage.setItem("token", data.token);
+localStorage.setItem("user_role", data.role);
+localStorage.setItem("user_name", data.nom);
+localStorage.setItem("user_email", email);
+
+// ============================================
+// 🎨 APPLIQUER LA COULEUR DE THÈME
+// ============================================
+if (data.role === 'FAMILLE') {
+    // Récupère la catégorie stockée lors de l'inscription
+    const userCategorie = localStorage.getItem("user_categorie");
+    const isMaman = userCategorie === 'MAMAN_BEBE';
     
-    // ============================================
-    // 🎨 APPLIQUER LA COULEUR DE THÈME SELON LE RÔLE
-    // ============================================
-    if (data.role === 'FAMILLE') {
-        // Par défaut, on met la couleur or pour les familles Premium
-        // Tu peux adapter ici si ton backend renvoie data.categorie
-        const isMaman = data.categorie === 'MAMAN_BEBE';
-        const themeColor = isMaman ? '#DB2777' : '#D4AF37';
-        setThemeColor(themeColor);
+    if (isMaman) {
+        setThemeColor('#DB2777'); // Rose pour Maman
     } else {
-        // Pour Coordinateur et Aidant : noir/ardoise
-        setThemeColor('#0F172A');
+        setThemeColor('#D4AF37'); // Or pour les autres familles
     }
-    
-    UI.vibrate("success");
-    window.location.reload();
+} else {
+    setThemeColor('#0F172A'); // Noir pour Coordinateur/Aidant
+}
+
+UI.vibrate("success");
+window.location.reload();
 
   } catch (err) {
     UI.vibrate("error");
