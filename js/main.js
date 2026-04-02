@@ -128,10 +128,19 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     currentStep = typeof stepSource === 'number' ? stepSource : 1; 
     const otpEmail = mode === 'otp' ? stepSource : null;
 
+    // ============================================
+    // 🎨 COULEURS DYNAMIQUES SELON LA CATÉGORIE
+    // ============================================
+    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
+    const accentBgClass = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
+    const accentHoverClass = isMamanFlow ? 'hover:bg-rose-600' : 'hover:bg-amber-500';
+    const accentShadowClass = isMamanFlow ? 'shadow-rose-200' : 'shadow-amber-200';
+    const progressColor = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
+
     let dynamicContent = "";
     let stepTitle = mode === 'login' ? "Espace Sécurisé" : (mode === 'otp' ? "Sécurité Avancée" : `Étape ${currentStep} / 6`);
 
-    // 1. MODE CONNEXION (Centré verticalement, sans scroll)
+    // 1. MODE CONNEXION
     if (mode === 'login') {
         dynamicContent = `
             <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
@@ -148,7 +157,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 </button>
             </div>`;
     } 
-    // 2. MODE ADMISSION (Scrollable uniquement si nécessaire, bouton en bas)
+    // 2. MODE ADMISSION (avec couleurs dynamiques)
     else if (mode === 'register') {
         dynamicContent = `
             <div class="px-8 pb-6 animate-fadeIn flex flex-col h-full">
@@ -157,17 +166,17 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 </div>
                 <div class="flex gap-3 pt-4 border-t border-slate-50 shrink-0 mt-auto">
                     ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-[1.25rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all hover:bg-slate-200"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
-                    <button onclick="window.nextAuthStep()" class="flex-1 bg-emerald-500 text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg shadow-emerald-200 active:scale-95 transition-all hover:bg-emerald-600">
+                    <button onclick="window.nextAuthStep()" class="flex-1 ${accentBgClass} ${accentHoverClass} text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg ${accentShadowClass} active:scale-95 transition-all">
                         ${currentStep === 6 ? 'Valider le dossier' : 'Étape Suivante'}
                     </button>
                 </div>
             </div>`;
     }
-    // 3. 🔒 MODE OTP (Centré, sans scroll)
+    // 3. MODE OTP
     else if (mode === 'otp') {
         dynamicContent = `
             <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
-                <div class="w-16 h-16 mx-auto bg-amber-50 border-4 border-white shadow-xl text-amber-500 rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
+                <div class="w-16 h-16 mx-auto ${isMamanFlow ? 'bg-rose-soft text-rose-primary' : 'bg-amber-50 text-amber-500'} border-4 border-white shadow-xl rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div>
@@ -176,7 +185,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                 </div>
                 
                 <div class="pt-2">
-                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:border-amber-400 transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
+                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:${isMamanFlow ? 'border-rose-primary' : 'border-amber-400'} transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
                 </div>
                 
                 <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-2 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-800">
@@ -189,15 +198,12 @@ function renderAuthView(mode = 'login', stepSource = 1) {
             </div>`;
     }
 
-    // 🚀 INJECTION DU CONTENEUR UNIQUEMENT SI NÉCESSAIRE (Évite le flash)
-    // On vérifie si la carte d'auth existe déjà pour ne remplacer QUE l'intérieur
+    // INJECTION DU CONTENEUR
     const existingCard = document.getElementById("auth-card-content");
 
     if (existingCard) {
-        // La carte est déjà là, on met juste à jour le contenu (Transition fluide)
         document.getElementById("auth-step-title").innerText = stepTitle;
         
-        // Mise à jour des boutons de l'onglet
         const tabContainer = document.getElementById("auth-tabs");
         if (tabContainer && mode !== 'otp') {
             tabContainer.style.display = "block";
@@ -214,35 +220,30 @@ function renderAuthView(mode = 'login', stepSource = 1) {
             tabContainer.style.display = "none";
         }
 
-        // Mise à jour de la jauge
         const progressContainer = document.getElementById("auth-progress");
         if (progressContainer) {
             if (mode === 'register') {
                 progressContainer.style.display = "block";
                 progressContainer.innerHTML = `
                     <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
+                        <div class="h-full ${progressColor} transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
                     </div>`;
             } else {
                 progressContainer.style.display = "none";
             }
         }
 
-        // Injection du nouveau formulaire
         existingCard.innerHTML = dynamicContent;
     } else {
-        // Premier chargement de la page : on construit toute la structure
+        // Premier chargement (code inchangé pour la structure de base)
         app.innerHTML = `
         <div class="fixed inset-0 w-full h-[100dvh] flex items-center justify-center bg-[#F8FAFC] p-4 lg:p-8 z-50">
             
-            <!-- Blobs animés en fond -->
             <div class="absolute -top-20 -left-20 w-96 h-96 bg-emerald-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
             <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
 
-            <!-- 💎 LA CARTE FIXE (Hauteur définie pour éviter les sauts) -->
             <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
                 
-                <!-- HEADER FIXE -->
                 <div class="shrink-0 text-center pt-8 pb-4">
                     <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
                         <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-8 h-8 object-contain invert">
@@ -251,7 +252,6 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
                 </div>
 
-                <!-- TABS DE BASCULE -->
                 <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
                     <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
                         <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
@@ -263,14 +263,12 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     </div>
                 </div>
 
-                <!-- JAUGE DE PROGRESSION -->
                 <div id="auth-progress" class="shrink-0 px-8 mb-2" style="display: ${mode === 'register' ? 'block' : 'none'}">
                     <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-emerald-500 transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
+                        <div class="h-full ${progressColor} transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
                     </div>
                 </div>
 
-                <!-- 🔄 ZONE DE CONTENU DYNAMIQUE -->
                 <div id="auth-card-content" class="flex-1 flex flex-col relative overflow-hidden">
                     ${dynamicContent}
                 </div>
@@ -281,10 +279,22 @@ function renderAuthView(mode = 'login', stepSource = 1) {
 }
 
 
+// ============================================
+// CHANGER LA COULEUR DE LA BARRE D'ÉTAT (THEME COLOR)
+// ============================================
+function setThemeColor(color) {
+    const metaTheme = document.getElementById('theme-color');
+    if (metaTheme) {
+        metaTheme.setAttribute('content', color);
+    }
+    // Pour les navigateurs modernes (Chrome Android)
+    if (document.querySelector('meta[name="theme-color"]')) {
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', color);
+    }
+}
 
-/**
- * 📦 MINI-VUES DE L'INSCRIPTION IN-CARD
- */
+
+
 /**
  * 📦 MINI-VUES DYNAMIQUES (Alignées sur le PDF)
  */
@@ -478,9 +488,10 @@ async function submitRegistration() {
 
         const data = await res.json(); 
 
-        if (!res.ok) {
-            throw new Error(data.error || "Une erreur est survenue");
-        }
+            if (res.ok) {
+                localStorage.setItem("user_categorie", registrationData.categorie);
+                localStorage.setItem("user_is_maman", registrationData.categorie === 'MAMAN_BEBE');
+            }
 
         Swal.fire({
             icon: "success",
