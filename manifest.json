@@ -2,6 +2,12 @@
   "short_name": "SPS Elite",
   "name": "Santé Plus Services - Elite Management",
   "description": "Accompagnement humain et coordination de soins au Bénin.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#0F172A",
+  "background_color": "#F8FAFC",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
@@ -12,12 +18,8 @@
     {
       "src": "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "./index.html",
-  "display": "standalone",
-  "theme_color": "#0F172A",
-  "background_color": "#F8FAFC",
-  "orientation": "portrait"
+  ]
 }
