@@ -566,3 +566,75 @@ main {
         margin-bottom: 0.75rem !important;
     }
 }
+
+
+
+
+/* === FORMULAIRES & INPUTS OPTIMISÉS === */
+
+@media (max-width: 640px) {
+    /* Inputs plus compacts et modernes */
+    .app-input {
+        padding: 0.875rem 1rem !important; /* py-3.5 px-4 */
+        border-radius: 0.75rem !important; /* rounded-xl */
+        font-size: 0.875rem !important;
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        transition: all 0.2s ease;
+    }
+    
+    .app-input:focus {
+        background-color: #FFFFFF !important;
+        border-color: #D4AF37 !important; /* Or au focus */
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1) !important;
+    }
+    
+    /* Icônes dans les inputs plus discrètes */
+    .app-input + i, 
+    .relative i.fa-solid,
+    .relative i.fa-regular {
+        font-size: 0.875rem !important;
+        opacity: 0.6 !important;
+    }
+    
+    /* Labels plus légers */
+    label, .block.text-\[10px\] {
+        font-size: 0.625rem !important; /* 10px */
+        margin-bottom: 0.375rem !important;
+        font-weight: 700 !important;
+        color: #64748B !important;
+    }
+    
+    /* Boutons de formulaire */
+    button[type="submit"], 
+    .btn-primary,
+    .bg-slate-900.py-5 {
+        padding-top: 0.875rem !important;
+        padding-bottom: 0.875rem !important;
+        border-radius: 0.75rem !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.1em !important;
+    }
+    
+    /* Select personnalisé */
+    select.app-input {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-position: right 1rem center;
+        background-repeat: no-repeat;
+        background-size: 1rem;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    
+    /* Espacement entre les champs */
+    .space-y-6 {
+        row-gap: 1rem !important;
+    }
+    
+    /* Champs obligatoires */
+    .required:after {
+        content: "*";
+        color: #F43F5E;
+        margin-left: 0.25rem;
+    }
+}
