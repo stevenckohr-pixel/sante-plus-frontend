@@ -15,6 +15,7 @@ import * as Admin from "./modules/admin.js";
 import { openModernSelector } from "./core/utils.js";
 import { initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions } from "./core/utils.js";
 import { refreshMicroInteractions } from "./core/utils.js";
+import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast } from "./core/utils.js";
 
 
 
@@ -1634,12 +1635,7 @@ window.processValidation = Admin.processValidation;
 window.confirmStartVisit = Visites.startVisit; 
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
-
-
-
-
-
-
-
+window.showToast = showToast;
+window.UI = UI;
 
 initApp();
