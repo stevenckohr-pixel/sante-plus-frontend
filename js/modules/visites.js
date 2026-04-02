@@ -41,34 +41,24 @@ export function refreshAidantUI(patientId) {
     const activeVisitId = localStorage.getItem("active_visit_id");
 
     if (!activeVisitId) {
+        // État : Prêt à travailler
         container.innerHTML = `
-            <button onclick="window.startVisit('${patientId}')" class="w-full py-6 bg-emerald-500 text-white rounded-3xl font-black text-lg shadow-xl shadow-emerald-500/30 active:scale-95 transition-all flex flex-col items-center gap-2">
-                <i class="fa-solid fa-play text-3xl mb-1"></i>
-                DÉMARRER LA VISITE
-            </button>
-            <p class="text-center text-[10px] text-slate-400 mt-4 uppercase font-black tracking-[0.2em] flex items-center justify-center gap-2">
-                <i class="fa-solid fa-location-crosshairs text-emerald-500 animate-pulse"></i> Sécurisé par GPS
-            </p>
+            <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
+                <button onclick="window.startVisit('${patientId}')" 
+                        class="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-play"></i> Démarrer la visite
+                </button>
+            </div>
         `;
     } else {
+        // État : Mission en cours (Alerte Visuelle + Bouton d'action)
         container.innerHTML = `
-            <div class="bg-amber-50 border border-amber-100 rounded-3xl p-6 mb-4 text-center animate-pulse relative overflow-hidden">
-                <div class="absolute -right-4 -top-4 text-amber-500/10 text-6xl"><i class="fa-solid fa-satellite-dish"></i></div>
-                <div class="flex justify-center mb-3">
-                    <span class="relative flex h-4 w-4">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-4 w-4 bg-amber-500"></span>
-                    </span>
-                </div>
-                <p class="text-amber-700 font-black text-sm uppercase tracking-widest relative z-10">Intervention en cours</p>
-                <p class="text-amber-500/80 text-[10px] font-bold uppercase mt-1 relative z-10">Tracking actif</p>
+            <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
+                <button onclick="window.openEndVisit()" 
+                        class="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-camera"></i> Clôturer & Photo
+                </button>
             </div>
-            
-            <!-- 👇 LE BOUTON OUVRE MAINTENANT NOTRE NOUVELLE PAGE PLEIN ÉCRAN 👇 -->
-            <button onclick="window.openEndVisit()" class="w-full py-6 bg-slate-900 text-white rounded-3xl font-black text-lg shadow-2xl active:scale-95 transition-all flex flex-col items-center gap-2">
-                <i class="fa-solid fa-camera text-3xl text-white mb-1"></i>
-                CLÔTURER & PRENDRE PHOTO
-            </button>
         `;
     }
 }
@@ -502,3 +492,42 @@ window.savePatientHomeGPS = async (patientId) => {
         }
     }
 };
+
+
+
+export async function renderStartVisitView(patientId) {
+    const container = document.getElementById("view-container");
+    const res = await secureFetch(`/patients/${patientId}`);
+    const p = await res.json();
+
+    container.innerHTML = `
+        <div class="animate-slideIn max-w-lg mx-auto pb-32">
+            <!-- Header avec bouton Retour -->
+            <div class="flex items-center gap-4 mb-8">
+                <button onclick="window.switchView('patients')" class="w-12 h-12 bg-white rounded-2xl border shadow-sm flex items-center justify-center text-slate-400">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Mission : ${p.nom_complet}</h3>
+                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Prêt pour l'intervention ?</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
+                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Localisation</p>
+                    <p class="text-xs font-bold text-slate-800">${p.adresse}</p>
+                </div>
+
+                <div class="p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                    <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1">Instructions</p>
+                    <p class="text-xs font-medium text-slate-700 leading-relaxed italic">"${p.notes_medicales || 'Aucune consigne.'}"</p>
+                </div>
+
+                <button onclick="window.confirmStartVisit('${p.id}')" class="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-600 transition-all active:scale-95">
+                    DÉMARRER LA VISITE (GPS)
+                </button>
+            </div>
+        </div>
+    `;
+}
