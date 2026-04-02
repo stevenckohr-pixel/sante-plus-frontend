@@ -177,7 +177,7 @@ window.markAsPaid = async (id, montant) => {
         method: "POST",
         body: JSON.stringify({ abonnement_id: id, montant: montant }),
       });
-      Swal.fire("Enregistré", "Le paiement a été validé.", "success");
+      UI.success("Paiement validé");
       loadBilling(); // Rafraîchir
     } catch (err) {
       alert(err.message);
