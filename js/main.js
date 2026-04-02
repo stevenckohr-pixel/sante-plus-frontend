@@ -13,6 +13,7 @@ import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
 import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader, initLazyLoading, secureFetchWithCache } from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
+import * as Profile from "./modules/profile.js";
 
 
 let deferredPrompt = null;
@@ -814,7 +815,8 @@ function renderMobileHub() {
         { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Nos formules', icon: 'fa-ticket', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['FAMILLE'] },
         { id: 'aidants', label: 'Équipe', desc: 'Ressources', icon: 'fa-user-nurse', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] }
+        { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
+        { id: 'profile', label: 'Profil', desc: 'Mes infos', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
@@ -1382,6 +1384,10 @@ async function performViewSwitch(viewName) {
 
             case "rh-dashboard":
                 await Admin.renderRHDashboard();
+                break;
+
+            case "profile":
+                await Profile.renderProfilePage();
                 break;
         }
         
