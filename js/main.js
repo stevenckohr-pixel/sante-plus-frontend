@@ -56,7 +56,6 @@ let onboardingStep = 0;
 let loaderTimeout = null;
 
 function showGlobalLoader() {
-    // Vérifie si le loader existe déjà
     let loader = document.getElementById('global-loader');
     
     if (!loader) {
@@ -64,21 +63,21 @@ function showGlobalLoader() {
         loader.id = 'global-loader';
         loader.className = 'global-loader';
         loader.innerHTML = `
-            <div class="loader-spinner"></div>
-            <p class="loader-text">Chargement...</p>
+            <div class="relative mb-4">
+                <div class="loader-ring"></div>
+                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="loader-heart">
+            </div>
+            <p class="loader-text">Santé Plus Services</p>
         `;
         document.body.appendChild(loader);
     }
     
-    // Applique la couleur rose ou or selon le contexte
+    // Applique la couleur rose ou verte selon le contexte
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
-    const spinner = loader.querySelector('.loader-spinner');
-    if (spinner) {
-        if (isMaman) {
-            spinner.classList.add('rose');
-        } else {
-            spinner.classList.remove('rose');
-        }
+    if (isMaman) {
+        loader.classList.add('rose');
+    } else {
+        loader.classList.remove('rose');
     }
     
     loader.classList.remove('hidden');
@@ -92,7 +91,6 @@ function hideGlobalLoader() {
         loader.style.opacity = '0';
     }
 }
-
 // Force la disparition du loader après un délai max (sécurité)
 function hideGlobalLoaderWithDelay() {
     if (loaderTimeout) clearTimeout(loaderTimeout);
