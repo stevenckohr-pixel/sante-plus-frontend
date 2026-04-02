@@ -14,6 +14,8 @@ import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
 import { openModernSelector } from "./core/utils.js";
 import { initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions } from "./core/utils.js";
+import { refreshMicroInteractions } from "./core/utils.js";
+
 
 
 
@@ -1328,7 +1330,8 @@ async function performViewSwitch(viewName) {
                         </div>
                         <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                     </div>`;
-                await Patients.loadPatients(); 
+                await Patients.loadPatients();
+                refreshMicroInteractions();
                 break;
                 
             case "visits": 
@@ -1450,17 +1453,48 @@ async function performViewSwitch(viewName) {
 window.openProfileMenu = () => {
     const userName = localStorage.getItem("user_name");
     const userRole = localStorage.getItem("user_role");
+    const soundsEnabled = localStorage.getItem('sounds_enabled') === 'true';
+    
     Swal.fire({
         title: `<div class="text-sm font-black uppercase text-slate-400 tracking-widest mb-1">Mon Compte</div><div class="text-xl font-black text-slate-800">${userName}</div>`,
         html: `
             <div class="text-center p-4">
                 <div class="inline-block px-4 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase mb-6">${userRole}</div>
                 <div class="space-y-3">
-                    <button onclick="window.logout()" class="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold text-sm active:scale-95 transition-transform">Déconnexion</button>
+                    <!-- Option Sons -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-volume-high text-slate-400"></i>
+                            <span class="text-xs font-bold text-slate-700">Effets sonores</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="sound-toggle" class="sr-only peer" ${soundsEnabled ? 'checked' : ''}>
+                            <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <button onclick="window.logout()" class="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold text-sm active:scale-95 transition-transform">
+                        Déconnexion
+                    </button>
                 </div>
             </div>`,
         showConfirmButton: false,
-        customClass: { popup: 'rounded-[3rem] p-6' }
+        customClass: { popup: 'rounded-3xl p-6' },
+        didOpen: () => {
+            const soundToggle = document.getElementById('sound-toggle');
+            if (soundToggle) {
+                soundToggle.addEventListener('change', (e) => {
+                    const enabled = e.target.checked;
+                    setSoundsEnabled(enabled);
+                    // Jouer un son test si activé
+                    if (enabled) {
+                        playSound('success');
+                        showToast("Sons activés", "success", 1500);
+                    } else {
+                        showToast("Sons désactivés", "info", 1500);
+                    }
+                });
+            }
+        }
     });
 };
 
