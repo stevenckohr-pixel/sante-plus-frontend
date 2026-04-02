@@ -1128,6 +1128,8 @@ window.openOrderModal = Commandes.openOrderModal;
 window.openActivationPage = Admin.openActivationPage;
 window.processValidation = Admin.processValidation;
 window.confirmStartVisit = Visites.startVisit; 
+window.setThemeColor = setThemeColor;
+
 
 
 
