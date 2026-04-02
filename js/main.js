@@ -1183,7 +1183,7 @@ function getNavLinks(role, mode) {
 }
 
 // ============================================
-// TRANSITION FLUIDE ENTRE LES VUES
+// TRANSITION FLUIDE AVEC LOADER LOCAL
 // ============================================
 
 let isTransitioning = false;
@@ -1198,54 +1198,56 @@ window.switchView = async function(viewName) {
     
     isTransitioning = true;
     
-    // Récupérer les éléments
     const container = document.getElementById("view-container");
-    const mainContent = document.querySelector("main");
     
-    // 1. Animation de sortie (très rapide)
-    if (container) {
-        container.style.transition = "opacity 0.12s ease, transform 0.12s ease";
-        container.style.opacity = "0";
-        container.style.transform = "translateY(6px)";
-        await new Promise(r => setTimeout(r, 80));
+    if (!container) {
+        isTransitioning = false;
+        return;
     }
     
-    // 2. Afficher le loader global
-    showGlobalLoader();
+    // 1. Animation de sortie (rapide)
+    container.style.transition = "opacity 0.12s ease, transform 0.12s ease";
+    container.style.opacity = "0";
+    container.style.transform = "translateY(6px)";
+    await new Promise(r => setTimeout(r, 80));
+    
+    // 2. Afficher le loader LOCAL (pas global)
+    showLocalLoader(container, `Chargement de ${viewName}...`);
     
     try {
         // 3. Exécuter le changement de vue
         await performViewSwitch(viewName);
         
         // 4. Animation d'entrée
-        if (container) {
-            container.style.opacity = "1";
-            container.style.transform = "translateY(0)";
-            setTimeout(() => {
-                if (container) container.style.transition = "";
-            }, 150);
-        }
+        container.style.opacity = "1";
+        container.style.transform = "translateY(0)";
+        setTimeout(() => {
+            if (container) container.style.transition = "";
+        }, 150);
         
-        // 5. Cacher le loader
-        hideGlobalLoader();
+        // 5. Cacher le loader local
+        hideLocalLoader(container);
         
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        hideGlobalLoader();
+        hideLocalLoader(container);
         if (container) {
             container.innerHTML = `
                 <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
                     <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
                     <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-                    <p class="text-xs text-slate-500 mt-2">${err.message}</p>
-                    <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+                    <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
+                    <button onclick="window.switchView('${viewName}')" 
+                            class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
+                        Réessayer
+                    </button>
                 </div>`;
         }
     }
     
     isTransitioning = false;
     
-    // 6. Traiter la vue en attente s'il y en a une
+    // Traiter la vue en attente
     if (pendingView) {
         const next = pendingView;
         pendingView = null;
