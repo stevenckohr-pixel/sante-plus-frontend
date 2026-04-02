@@ -3,40 +3,31 @@
  */
 
 export const UI = {
-  // Vibration haptique pour mobile
-  vibrate: (type = "success") => {
-    if (!("vibrate" in navigator)) return;
-    if (type === "success") navigator.vibrate([30]);
-    if (type === "error") navigator.vibrate([100, 50, 100]);
-  },
-
-  // Formater les dates proprement (ex: Aujourd'hui à 14:30)
-  formatDate: (dateStr) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  },
-
-  // Formater l'argent (CFA)
-  formatMoney: (amount) => {
-    return new Intl.NumberFormat("fr-FR").format(amount) + " CFA";
-  },
-
-  // Générer des initiales pour les avatars si pas de photo
-  getInitials: (name) => {
-    return name
-      ? name
-          .split(" ")
-          .map((n) => n[0])
-          .join("")
-          .toUpperCase()
-          .substring(0, 2)
-      : "??";
-  },
+    vibrate: (type = "success") => {
+        haptic(type === "error" ? "error" : "success");
+    },
+    toast: showToast,
+    success: showSuccessToast,
+    error: showErrorToast,
+    warning: showWarningToast,
+    info: showInfoToast,
+    formatDate: (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("fr-FR", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    },
+    formatMoney: (amount) => {
+        return new Intl.NumberFormat("fr-FR").format(amount) + " CFA";
+    },
+    getInitials: (name) => {
+        return name
+            ? name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)
+            : "??";
+    },
 };
 
 // Compression d'image avant envoi au serveur (pour économiser la bande passante au Bénin)
@@ -378,4 +369,74 @@ export function refreshMicroInteractions() {
         });
         el.classList.add('haptic-feedback');
     });
+}
+
+
+
+/**
+ * 🍞 TOAST DE NOTIFICATION UNIFIÉ
+ * @param {string} message - Message à afficher
+ * @param {string} type - Type ('success', 'error', 'warning', 'info')
+ * @param {number} duration - Durée d'affichage (ms)
+ */
+export function showToast(message, type = 'info', duration = 3000) {
+    // Supprimer les toasts existants
+    const existingToast = document.querySelector('.toast-notification');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast-notification ${type}`;
+    
+    // Icône selon le type
+    const icons = {
+        success: '<i class="fa-solid fa-check-circle"></i>',
+        error: '<i class="fa-solid fa-circle-exclamation"></i>',
+        warning: '<i class="fa-solid fa-triangle-exclamation"></i>',
+        info: '<i class="fa-solid fa-info-circle"></i>'
+    };
+    
+    toast.innerHTML = `${icons[type] || icons.info} <span>${message}</span>`;
+    document.body.appendChild(toast);
+    
+    // Animation d'entrée
+    setTimeout(() => toast.classList.add('show'), 10);
+    
+    // Animation de sortie
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+/**
+ * 🍞 TOAST DE SUCCÈS
+ */
+export function showSuccessToast(message, duration = 2500) {
+    showToast(message, 'success', duration);
+    haptic('success');
+}
+
+/**
+ * 🍞 TOAST D'ERREUR
+ */
+export function showErrorToast(message, duration = 3000) {
+    showToast(message, 'error', duration);
+    haptic('error');
+}
+
+/**
+ * 🍞 TOAST D'AVERTISSEMENT
+ */
+export function showWarningToast(message, duration = 3000) {
+    showToast(message, 'warning', duration);
+    haptic('warning');
+}
+
+/**
+ * 🍞 TOAST D'INFORMATION
+ */
+export function showInfoToast(message, duration = 2000) {
+    showToast(message, 'info', duration);
 }
