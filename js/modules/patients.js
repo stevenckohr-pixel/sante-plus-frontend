@@ -2,6 +2,8 @@ import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI } from "../core/utils.js";
 import * as Visites from "./visites.js"; 
+import { showSkeleton } from "../core/utils.js";
+
 
 
 /**
