@@ -1,137 +1,6 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
-
-
-// Packs avec durées variables
-const packs = [
-    // Packs mensuels
-    { 
-        id: 'MENSUEL_ESSENTIEL', 
-        name: 'Essentiel', 
-        desc: '2 visites / semaine', 
-        price: 50000,
-        priceDisplay: '50.000 CFA',
-        duration: 1, // mois
-        durationText: '1 mois',
-        features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'],
-        icon: 'fa-seedling',
-        color: 'text-emerald-600',
-        bg: 'bg-emerald-50',
-        popular: false
-    },
-    { 
-        id: 'MENSUEL_CONFORT', 
-        name: 'Confort', 
-        desc: '3 à 4 visites / semaine', 
-        price: 85000,
-        priceDisplay: '85.000 CFA',
-        duration: 1,
-        durationText: '1 mois',
-        features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'],
-        icon: 'fa-chart-line',
-        color: 'text-blue-600',
-        bg: 'bg-blue-50',
-        popular: true
-    },
-    { 
-        id: 'MENSUEL_SERENITE', 
-        name: 'Sérénité', 
-        desc: 'Présence quasi quotidienne', 
-        price: 150000,
-        priceDisplay: '150.000 CFA',
-        duration: 1,
-        durationText: '1 mois',
-        features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'],
-        icon: 'fa-crown',
-        color: 'text-gold-primary',
-        bg: 'bg-amber-50',
-        popular: false
-    },
-    // Packs trimestriels (3 mois) - économie de 5%
-    { 
-        id: 'TRIMESTRIEL_ESSENTIEL', 
-        name: 'Essentiel 3 mois', 
-        desc: '2 visites / semaine', 
-        price: 142500,
-        priceDisplay: '142.500 CFA',
-        originalPrice: 150000,
-        duration: 3,
-        durationText: '3 mois',
-        features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 5%'],
-        icon: 'fa-calendar-alt',
-        color: 'text-emerald-600',
-        bg: 'bg-emerald-50',
-        popular: false,
-        badge: '-5%'
-    },
-    { 
-        id: 'TRIMESTRIEL_CONFORT', 
-        name: 'Confort 3 mois', 
-        desc: '3 à 4 visites / semaine', 
-        price: 242250,
-        priceDisplay: '242.250 CFA',
-        originalPrice: 255000,
-        duration: 3,
-        durationText: '3 mois',
-        features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 5%'],
-        icon: 'fa-calendar-alt',
-        color: 'text-blue-600',
-        bg: 'bg-blue-50',
-        popular: false,
-        badge: '-5%'
-    },
-    // Packs annuels (12 mois) - économie de 15%
-    { 
-        id: 'ANNUEL_ESSENTIEL', 
-        name: 'Essentiel 1 an', 
-        desc: '2 visites / semaine', 
-        price: 510000,
-        priceDisplay: '510.000 CFA',
-        originalPrice: 600000,
-        duration: 12,
-        durationText: '12 mois',
-        features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 15%', 'Paiement unique'],
-        icon: 'fa-calendar-year',
-        color: 'text-emerald-600',
-        bg: 'bg-emerald-50',
-        popular: false,
-        badge: '-15%'
-    },
-    { 
-        id: 'ANNUEL_CONFORT', 
-        name: 'Confort 1 an', 
-        desc: '3 à 4 visites / semaine', 
-        price: 867000,
-        priceDisplay: '867.000 CFA',
-        originalPrice: 1020000,
-        duration: 12,
-        durationText: '12 mois',
-        features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'],
-        icon: 'fa-calendar-year',
-        color: 'text-blue-600',
-        bg: 'bg-blue-50',
-        popular: true,
-        badge: '-15%'
-    },
-    { 
-        id: 'ANNUEL_SERENITE', 
-        name: 'Sérénité 1 an', 
-        desc: 'Présence quasi quotidienne', 
-        price: 1530000,
-        priceDisplay: '1.530.000 CFA',
-        originalPrice: 1800000,
-        duration: 12,
-        durationText: '12 mois',
-        features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel', 'Économie 15%', 'Paiement unique'],
-        icon: 'fa-calendar-year',
-        color: 'text-gold-primary',
-        bg: 'bg-amber-50',
-        popular: false,
-        badge: '-15%'
-    }
-];
-
 /**
  * 📋 PAGE D'ABONNEMENT (Choix du pack)
  */
@@ -144,7 +13,7 @@ export async function renderSubscriptionPage() {
     let currentPatient = null;
     if (userRole === "FAMILLE") {
         try {
-            const res = await secureFetch("/patients");
+            const patients = await secureFetch("/patients");
             if (patients && patients.length > 0) {
                 currentPatient = patients[0];
             }
@@ -153,14 +22,17 @@ export async function renderSubscriptionPage() {
         }
     }
     
-    // Packs selon la catégorie
+    // Packs selon la catégorie (avec durées et réductions)
     const packs = isMaman ? [
+        // Packs mensuels Maman
         { 
-            id: 'ESSENTIEL', 
-            name: 'Pack Essentiel', 
+            id: 'MENSUEL_ESSENTIEL', 
+            name: 'Essentiel', 
             desc: '2 visites / semaine', 
             price: 50000,
             priceDisplay: '50.000 CFA',
+            duration: 1,
+            durationText: '1 mois',
             features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'],
             icon: 'fa-seedling',
             color: 'text-emerald-600',
@@ -168,11 +40,13 @@ export async function renderSubscriptionPage() {
             popular: false
         },
         { 
-            id: 'CONFORT', 
-            name: 'Pack Confort', 
+            id: 'MENSUEL_CONFORT', 
+            name: 'Confort', 
             desc: '3 à 4 visites / semaine', 
             price: 85000,
             priceDisplay: '85.000 CFA',
+            duration: 1,
+            durationText: '1 mois',
             features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'],
             icon: 'fa-chart-line',
             color: 'text-blue-600',
@@ -180,16 +54,84 @@ export async function renderSubscriptionPage() {
             popular: true
         },
         { 
-            id: 'SERENITE', 
-            name: 'Pack Sérénité', 
+            id: 'MENSUEL_SERENITE', 
+            name: 'Sérénité', 
             desc: 'Présence quasi quotidienne', 
             price: 150000,
             priceDisplay: '150.000 CFA',
+            duration: 1,
+            durationText: '1 mois',
             features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'],
             icon: 'fa-crown',
             color: 'text-gold-primary',
             bg: 'bg-amber-50',
             popular: false
+        },
+        // Packs trimestriels Maman (3 mois) - économie 5%
+        { 
+            id: 'TRIMESTRIEL_ESSENTIEL', 
+            name: 'Essentiel 3 mois', 
+            desc: '2 visites / semaine', 
+            price: 142500,
+            priceDisplay: '142.500 CFA',
+            originalPrice: 150000,
+            duration: 3,
+            durationText: '3 mois',
+            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 5%'],
+            icon: 'fa-calendar-alt',
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            popular: false,
+            badge: '-5%'
+        },
+        { 
+            id: 'TRIMESTRIEL_CONFORT', 
+            name: 'Confort 3 mois', 
+            desc: '3 à 4 visites / semaine', 
+            price: 242250,
+            priceDisplay: '242.250 CFA',
+            originalPrice: 255000,
+            duration: 3,
+            durationText: '3 mois',
+            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 5%'],
+            icon: 'fa-calendar-alt',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            popular: false,
+            badge: '-5%'
+        },
+        // Packs annuels Maman (12 mois) - économie 15%
+        { 
+            id: 'ANNUEL_ESSENTIEL', 
+            name: 'Essentiel 1 an', 
+            desc: '2 visites / semaine', 
+            price: 510000,
+            priceDisplay: '510.000 CFA',
+            originalPrice: 600000,
+            duration: 12,
+            durationText: '12 mois',
+            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 15%', 'Paiement unique'],
+            icon: 'fa-calendar-year',
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            popular: false,
+            badge: '-15%'
+        },
+        { 
+            id: 'ANNUEL_CONFORT', 
+            name: 'Confort 1 an', 
+            desc: '3 à 4 visites / semaine', 
+            price: 867000,
+            priceDisplay: '867.000 CFA',
+            originalPrice: 1020000,
+            duration: 12,
+            durationText: '12 mois',
+            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'],
+            icon: 'fa-calendar-year',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            popular: true,
+            badge: '-15%'
         },
         { 
             id: 'MATERNITE', 
@@ -197,6 +139,8 @@ export async function renderSubscriptionPage() {
             desc: 'Suivi intensif sur 2 semaines', 
             price: 70000,
             priceDisplay: '70.000 CFA',
+            duration: 0.5,
+            durationText: '2 semaines',
             features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'],
             icon: 'fa-baby-carriage',
             color: 'text-pink-600',
@@ -204,12 +148,15 @@ export async function renderSubscriptionPage() {
             popular: false
         }
     ] : [
+        // Packs mensuels Sénior
         { 
-            id: 'PONCTUEL', 
-            name: 'Intervention Ponctuelle', 
-            desc: 'Rdv médical, besoin urgent', 
+            id: 'MENSUEL_PONCTUEL', 
+            name: 'Ponctuel', 
+            desc: 'Intervention à la demande', 
             price: 10000,
             priceDisplay: '10.000 CFA',
+            duration: 1,
+            durationText: '1 mois',
             features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'],
             icon: 'fa-clock',
             color: 'text-slate-600',
@@ -217,11 +164,13 @@ export async function renderSubscriptionPage() {
             popular: false
         },
         { 
-            id: 'REGULIER', 
-            name: 'Suivi Régulier', 
+            id: 'MENSUEL_REGULIER', 
+            name: 'Régulier', 
             desc: '2 à 3 visites / semaine', 
             price: 60000,
             priceDisplay: '60.000 CFA',
+            duration: 1,
+            durationText: '1 mois',
             features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'],
             icon: 'fa-calendar-week',
             color: 'text-emerald-600',
@@ -229,22 +178,73 @@ export async function renderSubscriptionPage() {
             popular: true
         },
         { 
-            id: 'COMPLET', 
-            name: 'Accompagnement Complet', 
+            id: 'MENSUEL_COMPLET', 
+            name: 'Complet', 
             desc: 'Présence soutenue', 
             price: 150000,
             priceDisplay: '150.000 CFA',
+            duration: 1,
+            durationText: '1 mois',
             features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'],
             icon: 'fa-star',
             color: 'text-gold-primary',
             bg: 'bg-amber-50',
             popular: false
+        },
+        // Packs trimestriels Sénior (3 mois) - économie 5%
+        { 
+            id: 'TRIMESTRIEL_REGULIER', 
+            name: 'Régulier 3 mois', 
+            desc: '2 à 3 visites / semaine', 
+            price: 171000,
+            priceDisplay: '171.000 CFA',
+            originalPrice: 180000,
+            duration: 3,
+            durationText: '3 mois',
+            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé', 'Économie 5%'],
+            icon: 'fa-calendar-alt',
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            popular: false,
+            badge: '-5%'
+        },
+        // Packs annuels Sénior (12 mois) - économie 15%
+        { 
+            id: 'ANNUEL_REGULIER', 
+            name: 'Régulier 1 an', 
+            desc: '2 à 3 visites / semaine', 
+            price: 612000,
+            priceDisplay: '612.000 CFA',
+            originalPrice: 720000,
+            duration: 12,
+            durationText: '12 mois',
+            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'],
+            icon: 'fa-calendar-year',
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50',
+            popular: true,
+            badge: '-15%'
+        },
+        { 
+            id: 'ANNUEL_COMPLET', 
+            name: 'Complet 1 an', 
+            desc: 'Présence soutenue', 
+            price: 1530000,
+            priceDisplay: '1.530.000 CFA',
+            originalPrice: 1800000,
+            duration: 12,
+            durationText: '12 mois',
+            features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel', 'Économie 15%', 'Paiement unique'],
+            icon: 'fa-calendar-year',
+            color: 'text-gold-primary',
+            bg: 'bg-amber-50',
+            popular: false,
+            badge: '-15%'
         }
     ];
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
-            <!-- Header -->
             <div class="flex items-center gap-4 mb-8">
                 <button onclick="window.switchView('home')" 
                         class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95">
@@ -256,12 +256,11 @@ export async function renderSubscriptionPage() {
                 </div>
             </div>
             
-            <!-- Bannière patient -->
             ${currentPatient ? `
                 <div class="bg-slate-100 p-4 rounded-2xl mb-6 flex items-center justify-between">
                     <div>
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Pour le dossier</p>
-                        <p class="font-black text-slate-800">${currentPatient.nom_complet}</p>
+                        <p class="font-black text-slate-800">${escapeHtml(currentPatient.nom_complet)}</p>
                     </div>
                     <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
                         <i class="fa-solid fa-user text-emerald-600"></i>
@@ -269,12 +268,10 @@ export async function renderSubscriptionPage() {
                 </div>
             ` : ''}
             
-            <!-- Liste des packs -->
             <div class="space-y-4">
                 ${packs.map(pack => `
-                    <div onclick="window.selectSubscriptionPack('${pack.id}', ${pack.price})" 
-                         class="pack-card bg-white rounded-2xl border-2 border-slate-100 p-5 cursor-pointer transition-all active:scale-98 hover:border-emerald-300"
-                         data-pack-id="${pack.id}">
+                    <div onclick="window.selectSubscriptionPack('${pack.id}', ${pack.price}, ${pack.duration})" 
+                         class="pack-card bg-white rounded-2xl border-2 border-slate-100 p-5 cursor-pointer transition-all active:scale-98 hover:border-emerald-300">
                         <div class="flex items-start gap-4">
                             <div class="w-14 h-14 rounded-xl ${pack.bg} flex items-center justify-center shrink-0">
                                 <i class="fa-solid ${pack.icon} ${pack.color} text-2xl"></i>
@@ -284,10 +281,14 @@ export async function renderSubscriptionPage() {
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-black text-slate-800 text-lg">${pack.name}</h4>
                                         ${pack.popular ? '<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[8px] font-black uppercase">Populaire</span>' : ''}
+                                        ${pack.badge ? `<span class="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[8px] font-black uppercase">${pack.badge}</span>` : ''}
                                     </div>
-                                    <p class="text-xl font-black text-emerald-600">${pack.priceDisplay}</p>
+                                    <div class="text-right">
+                                        ${pack.originalPrice ? `<span class="text-[10px] text-slate-400 line-through mr-2">${pack.originalPrice.toLocaleString()} CFA</span>` : ''}
+                                        <p class="text-xl font-black text-emerald-600">${pack.priceDisplay}</p>
+                                    </div>
                                 </div>
-                                <p class="text-xs text-slate-400 mt-1">${pack.desc}</p>
+                                <p class="text-xs text-slate-500 mt-1">${pack.desc} • ${pack.durationText}</p>
                                 <div class="flex flex-wrap gap-2 mt-3">
                                     ${pack.features.map(f => `<span class="text-[9px] text-slate-500 bg-slate-50 px-2 py-1 rounded-full">✓ ${f}</span>`).join('')}
                                 </div>
@@ -302,7 +303,6 @@ export async function renderSubscriptionPage() {
                 `).join('')}
             </div>
             
-            <!-- Informations supplémentaires -->
             <div class="mt-8 p-5 bg-slate-50 rounded-2xl border border-slate-100">
                 <div class="flex items-center gap-3 mb-3">
                     <i class="fa-solid fa-shield-heart text-emerald-500 text-xl"></i>
@@ -313,6 +313,7 @@ export async function renderSubscriptionPage() {
                     <li class="flex items-center gap-2">✓ Intervenants qualifiés et formés</li>
                     <li class="flex items-center gap-2">✓ Rapport détaillé après chaque visite</li>
                     <li class="flex items-center gap-2">✓ Assistance téléphonique prioritaire</li>
+                    <li class="flex items-center gap-2">✓ Paiement sécurisé via FedaPay</li>
                 </ul>
             </div>
         </div>
@@ -322,15 +323,15 @@ export async function renderSubscriptionPage() {
 /**
  * 💳 SÉLECTION D'UN PACK ET PAIEMENT
  */
-window.selectSubscriptionPack = async (packId, price) => {
-    // Confirmation avant paiement
+window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const result = await Swal.fire({
         title: '<span class="text-xl font-black">Confirmer l\'abonnement</span>',
         html: `
             <div class="text-center">
-                <div class="text-4xl mb-3">${packId === 'CONFORT' || packId === 'REGULIER' ? '⭐' : '💎'}</div>
-                <p class="text-sm font-bold text-slate-800">Pack ${packId}</p>
+                <div class="text-4xl mb-3">${packId.includes('CONFORT') || packId.includes('REGULIER') ? '⭐' : '💎'}</div>
+                <p class="text-sm font-bold text-slate-800">${packId.replace(/_/g, ' ')}</p>
                 <p class="text-2xl font-black text-emerald-600 mt-2">${price.toLocaleString()} CFA</p>
+                <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
                 <p class="text-xs text-slate-400 mt-3">Paiement sécurisé via FedaPay</p>
             </div>
         `,
@@ -349,7 +350,6 @@ window.selectSubscriptionPack = async (packId, price) => {
     
     if (!result.isConfirmed) return;
     
-    // Créer l'abonnement et rediriger vers paiement
     Swal.fire({
         title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i><br><span class="text-base font-black">Préparation de votre abonnement...</span>',
         allowOutsideClick: false,
@@ -358,36 +358,34 @@ window.selectSubscriptionPack = async (packId, price) => {
     });
     
     try {
-        // 1. Créer/mettre à jour le patient avec le pack choisi
         const userRole = localStorage.getItem("user_role");
         
         if (userRole === "FAMILLE") {
-            // Récupérer le patient existant
-            const patientsRes = await secureFetch("/patients");
+            const patients = await secureFetch("/patients");
             
             if (patients && patients.length > 0) {
                 const patient = patients[0];
                 
-                // Mettre à jour le pack du patient
                 await secureFetch(`/patients/${patient.id}/update-pack`, {
                     method: "PUT",
-                    body: JSON.stringify({ type_pack: packId, montant_prevu: price })
+                    body: JSON.stringify({ 
+                        type_pack: packId, 
+                        montant_prevu: price,
+                        duree_abonnement_mois: durationMonths
+                    })
                 });
                 
-                // 2. Générer la facture
-                const billRes = await secureFetch("/billing/generate", {
+                const bill = await secureFetch("/billing/generate", {
                     method: "POST",
                     body: JSON.stringify({
                         patient_id: patient.id,
                         montant: price,
-                        pack: packId
+                        pack: packId,
+                        duree_mois: durationMonths
                     })
                 });
                 
-                const bill = await billRes;
-                
-                // 3. Rediriger vers paiement
-                const paymentRes = await secureFetch("/billing/generate-payment", {
+                const payment = await secureFetch("/billing/generate-payment", {
                     method: "POST",
                     body: JSON.stringify({
                         abonnement_id: bill.id,
@@ -395,8 +393,6 @@ window.selectSubscriptionPack = async (packId, price) => {
                         email_client: localStorage.getItem("user_email")
                     })
                 });
-                
-                const payment = await paymentRes;
                 
                 Swal.fire({
                     title: "Redirection...",
@@ -414,7 +410,6 @@ window.selectSubscriptionPack = async (packId, price) => {
                 throw new Error("Aucun dossier patient trouvé");
             }
         } else {
-            // Pour les nouveaux utilisateurs, rediriger vers l'inscription
             Swal.fire({
                 title: "Création de compte",
                 text: "Vous devez d'abord créer un compte famille",
@@ -436,3 +431,19 @@ window.selectSubscriptionPack = async (packId, price) => {
         });
     }
 };
+
+/**
+ * 🔧 Échapper les caractères HTML
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// ✅ Export
+export { renderSubscriptionPage };
