@@ -830,3 +830,34 @@ main {
         opacity: 0.8; 
     }
 }
+
+
+
+
+
+/* === AMÉLIORATION DES ICÔNES SUR MOBILE === */
+@media (max-width: 640px) {
+    /* Menu tiles - plus d'espace */
+    .menu-grid {
+        gap: 0.75rem !important;
+    }
+    
+    .menu-tile {
+        padding: 0.875rem !important;
+        min-height: auto !important;
+    }
+    
+    .menu-tile i {
+        font-size: 1.25rem !important;
+        width: 2rem !important;
+        height: 2rem !important;
+    }
+    
+    .menu-tile .tile-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .menu-tile .tile-desc {
+        font-size: 0.6rem !important;
+    }
+}
