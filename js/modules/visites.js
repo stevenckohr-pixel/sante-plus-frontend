@@ -217,6 +217,71 @@ export async function submitEndVisit() {
     }
 }
 
+
+
+/**
+ * ⭐ NOTATION DE LA VISITE (Famille)
+ */
+window.rateVisit = async (visiteId) => {
+    const { value: rating } = await Swal.fire({
+        title: 'Noter l\'intervention',
+        html: `
+            <div class="text-center">
+                <p class="text-sm text-slate-600 mb-3">Comment s'est passée la visite ?</p>
+                <div class="flex justify-center gap-2 text-3xl" id="star-rating">
+                    ${[1,2,3,4,5].map(i => `<i class="fa-regular fa-star text-slate-300 cursor-pointer hover:text-amber-400 transition" data-rating="${i}"></i>`).join('')}
+                </div>
+                <textarea id="rating-comment" class="w-full mt-4 p-3 bg-slate-50 rounded-xl text-sm" rows="2" placeholder="Votre commentaire (optionnel)..."></textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '✓ Envoyer',
+        cancelButtonText: 'Plus tard',
+        confirmButtonColor: '#10B981',
+        didOpen: () => {
+            let selectedRating = 0;
+            document.querySelectorAll('#star-rating i').forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedRating = parseInt(star.dataset.rating);
+                    document.querySelectorAll('#star-rating i').forEach((s, idx) => {
+                        if (idx < selectedRating) {
+                            s.className = 'fa-solid fa-star text-amber-400';
+                        } else {
+                            s.className = 'fa-regular fa-star text-slate-300';
+                        }
+                    });
+                });
+            });
+            window.selectedRating = () => selectedRating;
+        },
+        preConfirm: () => {
+            const rating = window.selectedRating ? window.selectedRating() : 0;
+            if (rating === 0) {
+                Swal.showValidationMessage('Veuillez sélectionner une note');
+                return false;
+            }
+            const comment = document.getElementById('rating-comment')?.value || '';
+            return { rating, comment };
+        }
+    });
+    
+    if (rating && rating.rating) {
+        try {
+            await secureFetch("/visites/rate", {
+                method: "POST",
+                body: JSON.stringify({
+                    visite_id: visiteId,
+                    note: rating.rating,
+                    commentaire: rating.comment
+                })
+            });
+            UI.success("Merci pour votre évaluation !");
+        } catch (err) {
+            UI.error(err.message);
+        }
+    }
+};
+
 /**
  * 📥 CHARGER LES VISITES
  */
