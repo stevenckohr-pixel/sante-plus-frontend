@@ -1184,15 +1184,11 @@ function getNavLinks(role, mode) {
 // ============================================
 // TRANSITION FLUIDE AVEC LOADER LOCAL
 // ============================================
-// ============================================
-// TRANSITION FLUIDE (VERSION CORRIGÉE)
-// ============================================
 
 let isTransitioning = false;
 let pendingView = null;
 
 window.switchView = async function(viewName) {
-    // Évite les doubles transitions
     if (isTransitioning) {
         pendingView = viewName;
         return;
@@ -1212,7 +1208,7 @@ window.switchView = async function(viewName) {
     container.style.opacity = "0";
     await new Promise(r => setTimeout(r, 80));
     
-    // 2. Afficher un loader simple (pas besoin de fonction externe)
+    // 2. Afficher le loader ✅
     container.innerHTML = `
         <div class="flex flex-col items-center justify-center py-20 min-h-[200px]">
             <div class="relative w-12 h-12">
@@ -1225,33 +1221,19 @@ window.switchView = async function(viewName) {
     `;
     
     try {
-        // 3. Exécuter le changement de vue
         await performViewSwitch(viewName);
-        
-        // 4. Animation d'entrée
         container.style.opacity = "1";
         setTimeout(() => {
             if (container) container.style.transition = "";
         }, 100);
-        
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        container.innerHTML = `
-            <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
-                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
-                <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-                <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
-                <button onclick="window.switchView('${viewName}')" 
-                        class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
-                    Réessayer
-                </button>
-            </div>`;
+        container.innerHTML = `...`;
         container.style.opacity = "1";
     }
     
     isTransitioning = false;
     
-    // Traiter la vue en attente
     if (pendingView) {
         const next = pendingView;
         pendingView = null;
@@ -1323,17 +1305,8 @@ async function performViewSwitch(viewName) {
     localStorage.setItem("last_view", viewName);
     AppState.currentView = viewName;
 
-    // 📍 AFFICHAGE DU LOADER LOCAL
-    container.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-20 min-h-[300px]">
-            <div class="relative w-12 h-12">
-                <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
-                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
-            </div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-4">Chargement ${viewTitles[viewName] || viewName}...</p>
-        </div>
-    `;
+    // 🔴 PLUS AUCUN LOADER ICI - Le loader est déjà dans switchView
+    // 🔴 Le contenu va être chargé directement par les cas ci-dessous
 
     try {
         switch (viewName) {
@@ -1490,7 +1463,6 @@ async function performViewSwitch(viewName) {
         container.style.opacity = "1";
     }
 }
-
 
 window.openProfileMenu = () => {
     const userName = localStorage.getItem("user_name");
