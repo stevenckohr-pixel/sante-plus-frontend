@@ -18,12 +18,12 @@ export async function renderProfilePage() {
     
     try {
         const profileRes = await secureFetch(`/auth/profile/${userId}`);
-        profile = await profileRes;
+        profile = profileRes;
         
         if (userRole === "FAMILLE") {
-            const patientsRes = await secureFetch("/patients");
-            if (patientsRes && patientsRes.length > 0) {
-                patient = patientsRes[0];
+            const patients = await secureFetch("/patients");
+            if (patients && patients.length > 0) {
+                patient = patients[0];
             }
         }
     } catch (e) {
@@ -66,11 +66,11 @@ export async function renderProfilePage() {
                     </button>
                     <input type="file" id="profile-photo-input" accept="image/*" class="hidden" onchange="window.updateProfilePhoto(this.files[0])">
                 </div>
-                <h2 class="text-xl font-black text-slate-800 mt-4">${profile?.nom || userName}</h2>
+                <h2 class="text-xl font-black text-slate-800 mt-4">${escapeHtml(profile?.nom || userName)}</h2>
                 <p class="text-xs font-bold ${themeTextClass} uppercase tracking-wider mt-1">${userRole}</p>
             </div>
             
-            <!-- UN SEUL BLOC Informations personnelles -->
+            <!-- UN SEUL BLOC - Informations personnelles -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-100">
                     <h4 class="font-black text-slate-800">Informations personnelles</h4>
@@ -90,7 +90,7 @@ export async function renderProfilePage() {
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
                             <i class="fa-solid fa-envelope mr-1"></i> Email
                         </label>
-                        <input type="email" id="profile-email" value="${profile?.email || userEmail}" 
+                        <input type="email" id="profile-email" value="${escapeHtml(profile?.email || userEmail)}" 
                                class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300">
                     </div>
                     
@@ -98,7 +98,7 @@ export async function renderProfilePage() {
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
                             <i class="fa-solid fa-phone mr-1"></i> Téléphone
                         </label>
-                        <input type="tel" id="profile-telephone" value="${profile?.telephone || ''}" 
+                        <input type="tel" id="profile-telephone" value="${escapeHtml(profile?.telephone || '')}" 
                                class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
                                placeholder="+229 XX XXX XXX">
                     </div>
@@ -117,7 +117,52 @@ export async function renderProfilePage() {
                     <h4 class="font-black text-slate-800">Dossier de votre proche</h4>
                     <p class="text-[10px] text-slate-400 mt-1">Informations du patient</p>
                 </div>
-                <!-- ... contenu patient ... -->
+                
+                <div class="p-6 space-y-5">
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div id="patient-photo-container" 
+                                 class="w-16 h-16 rounded-xl ${themeBgClass} border-2 border-white shadow-md flex items-center justify-center cursor-pointer overflow-hidden"
+                                 onclick="document.getElementById('patient-photo-input').click()">
+                                ${patient?.photo_url ? 
+                                    `<img src="${patient.photo_url}" class="w-full h-full object-cover">` : 
+                                    `<i class="fa-solid fa-user text-2xl ${themeTextClass}"></i>`
+                                }
+                            </div>
+                            <button onclick="document.getElementById('patient-photo-input').click()" 
+                                    class="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-lg">
+                                <i class="fa-solid fa-pen text-[8px]"></i>
+                            </button>
+                            <input type="file" id="patient-photo-input" accept="image/*" class="hidden" onchange="window.updatePatientPhoto(this.files[0])">
+                        </div>
+                        <div>
+                            <p class="font-black text-slate-800">${escapeHtml(patient.nom_complet)}</p>
+                            <p class="text-[10px] text-slate-400">${patient.formule || 'Standard'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <i class="fa-solid fa-location-dot mr-1"></i> Adresse
+                        </label>
+                        <input type="text" id="patient-adresse" value="${escapeHtml(patient.adresse || '')}" 
+                               class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300">
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <i class="fa-solid fa-notes-medical mr-1"></i> Notes médicales
+                        </label>
+                        <textarea id="patient-notes" rows="3" 
+                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                                  placeholder="Allergies, traitements, précautions...">${escapeHtml(patient.notes_medicales || '')}</textarea>
+                    </div>
+                    
+                    <button onclick="window.updatePatientInfo()" 
+                            class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
+                        <i class="fa-solid fa-save mr-2"></i> Enregistrer
+                    </button>
+                </div>
             </div>
             ` : ''}
             
@@ -128,7 +173,36 @@ export async function renderProfilePage() {
                     <h4 class="font-black text-slate-800">Compétences & Disponibilités</h4>
                     <p class="text-[10px] text-slate-400 mt-1">Informations professionnelles</p>
                 </div>
-                <!-- ... contenu aidant ... -->
+                
+                <div class="p-6 space-y-5">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <i class="fa-solid fa-stethoscope mr-1"></i> Compétences
+                        </label>
+                        <div class="flex flex-wrap gap-2">
+                            ${['Soins de base', 'Aide à la mobilité', 'Préparation repas', 'Accompagnement', 'Premiers secours'].map(skill => `
+                                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs">
+                                    <input type="checkbox" class="skill-check" value="${skill}" ${profile?.competences?.includes(skill) ? 'checked' : ''}>
+                                    ${skill}
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <i class="fa-solid fa-calendar mr-1"></i> Disponibilités
+                        </label>
+                        <textarea id="aidant-disponibilites" rows="2" 
+                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                                  placeholder="Lundis et mercredis après-midi, week-ends...">${escapeHtml(profile?.disponibilites || '')}</textarea>
+                    </div>
+                    
+                    <button onclick="window.updateAidantInfo()" 
+                            class="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-wider shadow-md active:scale-95 transition-all">
+                        <i class="fa-solid fa-save mr-2"></i> Enregistrer
+                    </button>
+                </div>
             </div>
             ` : ''}
             
@@ -179,10 +253,6 @@ async function loadUserStats(role, userId) {
 /**
  * 📸 Mettre à jour la photo de profil
  */
-
-/**
- * 📸 Mettre à jour la photo de profil
- */
 window.updateProfilePhoto = async (file) => {
     if (!file) return;
     
@@ -196,66 +266,20 @@ window.updateProfilePhoto = async (file) => {
         const result = await secureFetch("/auth/update-photo", {
             method: "POST",
             body: formData,
-            headers: {} // Pas de Content-Type pour FormData
+            headers: {}
         });
         
         if (result.photo_url) {
-            // ✅ 1. Mettre à jour l'affichage dans la page
             const container = document.getElementById("profile-photo-container");
             container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
-            
-            // ✅ 2. STOCKER DANS LOCALSTORAGE (c'est l'étape importante !)
             localStorage.setItem("user_photo", result.photo_url);
-            
-            // ✅ 3. Mettre à jour l'avatar dans le header (sans recharger la page)
-            updateHeaderPhoto(result.photo_url);
-            
             UI.success("Photo mise à jour");
         }
     } catch (err) {
         UI.error(err.message);
-    } finally {
-        Swal.close();
     }
 };
 
-/**
- * 🔄 Mettre à jour la photo dans le header (sans recharger)
- */
-function updateHeaderPhoto(photoUrl) {
-    // Mettre à jour dans la sidebar desktop
-    const desktopAvatar = document.querySelector('aside .rounded-full img');
-    if (desktopAvatar) {
-        desktopAvatar.src = photoUrl;
-    } else {
-        const desktopDiv = document.querySelector('aside .rounded-full');
-        if (desktopDiv) {
-            desktopDiv.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
-        }
-    }
-    
-    // Mettre à jour dans le header (bouton profil)
-    const headerAvatar = document.querySelector('header .rounded-xl img');
-    if (headerAvatar) {
-        headerAvatar.src = photoUrl;
-    } else {
-        const headerDiv = document.querySelector('header .rounded-xl');
-        if (headerDiv && headerDiv.classList.contains('overflow-hidden')) {
-            headerDiv.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
-        }
-    }
-    
-    // Mettre à jour dans le footer mobile
-    const mobileAvatar = document.querySelector('footer .rounded-full img');
-    if (mobileAvatar) {
-        mobileAvatar.src = photoUrl;
-    } else {
-        const mobileDiv = document.querySelector('footer .rounded-full');
-        if (mobileDiv) {
-            mobileDiv.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
-        }
-    }
-}
 /**
  * 📸 Mettre à jour la photo du patient
  */
@@ -366,3 +390,4 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
+export { renderProfilePage };
