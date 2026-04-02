@@ -240,3 +240,92 @@ export function showSkeleton(container, type = 'default') {
     if (!container) return;
     container.innerHTML = getSkeletonHTML(type);
 }
+
+
+
+/**
+ * 📳 CONFIGURATION DES MICRO-INTERACTIONS
+ */
+const HAPTIC_CONFIG = {
+    light: [10],
+    medium: [30],
+    heavy: [50, 30, 50],
+    success: [30],
+    error: [100, 50, 100],
+    warning: [50, 30, 50, 30, 50],
+    click: [5],
+    long: [50]
+};
+
+/**
+ * 📳 VIBRATION HAPTIQUE
+ * @param {string} type - Type de vibration ('light', 'medium', 'heavy', 'success', 'error', 'warning', 'click')
+ */
+export function haptic(type = 'light') {
+    if (!("vibrate" in navigator)) return;
+    const pattern = HAPTIC_CONFIG[type] || HAPTIC_CONFIG.light;
+    navigator.vibrate(pattern);
+}
+
+/**
+ * 🔊 JOUER UN SON (optionnel, désactivé par défaut)
+ * @param {string} type - Type de son ('click', 'success', 'error', 'notification')
+ */
+let soundsEnabled = false;
+
+export function playSound(type = 'click') {
+    if (!soundsEnabled) return;
+    
+    // Sons courts en Web Audio (plus légers que des fichiers audio)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    switch(type) {
+        case 'click':
+            oscillator.frequency.value = 800;
+            gainNode.gain.value = 0.1;
+            oscillator.type = 'sine';
+            break;
+        case 'success':
+            oscillator.frequency.value = 1200;
+            gainNode.gain.value = 0.15;
+            oscillator.type = 'sine';
+            break;
+        case 'error':
+            oscillator.frequency.value = 400;
+            gainNode.gain.value = 0.15;
+            oscillator.type = 'sawtooth';
+            break;
+        case 'notification':
+            oscillator.frequency.value = 880;
+            gainNode.gain.value = 0.12;
+            oscillator.type = 'sine';
+            break;
+        default:
+            oscillator.frequency.value = 600;
+            gainNode.gain.value = 0.08;
+    }
+    
+    oscillator.start();
+    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.3);
+    oscillator.stop(audioContext.currentTime + 0.2);
+}
+
+/**
+ * 🎵 ACTIVER/DÉSACTIVER LES SONS
+ */
+export function setSoundsEnabled(enabled) {
+    soundsEnabled = enabled;
+    localStorage.setItem('sounds_enabled', enabled);
+}
+
+/**
+ * 🎵 RÉCUPÉRER L'ÉTAT DES SONS
+ */
+export function getSoundsEnabled() {
+    return soundsEnabled;
+}
