@@ -93,7 +93,7 @@ function hideGlobalLoader() {
 function hideGlobalLoaderWithDelay() {
     if (loaderTimeout) clearTimeout(loaderTimeout);
     loaderTimeout = setTimeout(() => {
-        hideGlobalLoader();
+     hideGlobalLoader();
     }, 5000); // 5 secondes max
 }
 
