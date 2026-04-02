@@ -443,8 +443,127 @@ function getStepHTML() {
 
             
 
-        case 5: return renderPricingPacks(); 
-
+case 5: 
+    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
+    const themeColor = isMamanFlow ? 'pink' : 'emerald';
+    const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
+    const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
+    
+    // Définition des packs selon la catégorie
+    const packs = isMamanFlow ? [
+        { 
+            id: 'ESSENTIEL', 
+            name: 'Pack Essentiel', 
+            desc: '2 visites / semaine', 
+            price: '50.000', 
+            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'],
+            icon: 'fa-seedling',
+            popular: false
+        },
+        { 
+            id: 'CONFORT', 
+            name: 'Pack Confort', 
+            desc: '3 à 4 visites / semaine', 
+            price: '85.000', 
+            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'],
+            icon: 'fa-chart-line',
+            popular: true
+        },
+        { 
+            id: 'SERENITE', 
+            name: 'Pack Sérénité', 
+            desc: 'Présence quasi quotidienne', 
+            price: '150.000', 
+            features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'],
+            icon: 'fa-crown',
+            popular: false
+        },
+        { 
+            id: 'MATERNITE', 
+            name: 'Spécial Sortie Maternité', 
+            desc: 'Suivi intensif sur 2 semaines', 
+            price: '70.000', 
+            features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'],
+            icon: 'fa-baby-carriage',
+            popular: false
+        }
+    ] : [
+        { 
+            id: 'PONCTUEL', 
+            name: 'Intervention Ponctuelle', 
+            desc: 'Rdv médical, besoin urgent', 
+            price: '10.000', 
+            features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'],
+            icon: 'fa-clock',
+            popular: false
+        },
+        { 
+            id: 'REGULIER', 
+            name: 'Suivi Régulier', 
+            desc: '2 à 3 visites / semaine', 
+            price: '60.000', 
+            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'],
+            icon: 'fa-calendar-week',
+            popular: true
+        },
+        { 
+            id: 'COMPLET', 
+            name: 'Accompagnement Complet', 
+            desc: 'Présence soutenue', 
+            price: '150.000', 
+            features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'],
+            icon: 'fa-star',
+            popular: false
+        }
+    ];
+    
+    return `
+        <div class="text-center mb-6">
+            <h3 class="text-base font-black text-slate-800">Choisissez votre formule</h3>
+            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Tarifs mensuels en CFA</p>
+        </div>
+        
+        <div id="pack-selector" class="space-y-3 max-h-96 overflow-y-auto custom-scroll pr-1">
+            ${packs.map(pack => `
+                <div onclick="window.selectPack('${pack.id}', '${pack.price}')" 
+                     class="pack-card p-4 bg-white rounded-xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-${themeColor}-300 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 ${themeBgClass}` : ''}"
+                     data-pack-id="${pack.id}">
+                    <div class="flex items-start gap-3">
+                        <div class="w-12 h-12 rounded-xl ${registrationData.type_pack === pack.id ? themeBgClass : 'bg-slate-50'} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${pack.icon} ${registrationData.type_pack === pack.id ? themeColorClass : 'text-slate-400'} text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <p class="font-black text-slate-800 text-sm">${pack.name}</p>
+                                    ${pack.popular ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[8px] font-black uppercase">Populaire</span>` : ''}
+                                </div>
+                                <p class="text-base font-black ${themeColorClass}">${pack.price} F</p>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${pack.desc}</p>
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                ${pack.features.map(f => `<span class="text-[8px] text-slate-500 bg-slate-50 px-2 py-1 rounded-full">✓ ${f}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="shrink-0">
+                            <div class="w-5 h-5 rounded-full border-2 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 bg-${themeColor}-500` : 'border-slate-300'} flex items-center justify-center">
+                                ${registrationData.type_pack === pack.id ? '<i class="fa-solid fa-check text-white text-[8px]"></i>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="mt-6">
+            <button onclick="window.nextAuthStep()" 
+                    id="pack-continue-btn"
+                    class="w-full py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${registrationData.type_pack ? (isMamanFlow ? 'bg-pink-500 hover:bg-pink-600' : 'bg-emerald-500 hover:bg-emerald-600') : 'bg-slate-200 text-slate-400 cursor-not-allowed'}"
+                    ${!registrationData.type_pack ? 'disabled' : ''}>
+                Continuer <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    `;
         case 6: return `
             <div class="text-center mb-4">
                 <h3 class="text-base font-black text-slate-800">Engagement Élite</h3>
@@ -616,19 +735,46 @@ window.setElitePlan = (packId, price) => {
 };
 
 window.nextAuthStep = () => {
+    // Validation spécifique pour l'étape 5 (pack)
+    if (currentStep === 5 && !registrationData.type_pack) {
+        UI.vibrate('error');
+        Swal.fire({
+            title: "Sélection requise",
+            text: "Veuillez choisir une formule d'accompagnement",
+            icon: "warning",
+            confirmButtonText: "OK",
+            customClass: { popup: 'rounded-2xl' }
+        });
+        return;
+    }
+    
     if (currentStep === 1) {
-        registrationData.nom_famille = document.getElementById('f-nom').value;
-        registrationData.email = document.getElementById('f-email').value;
-        registrationData.password = document.getElementById('f-pass').value;
+        registrationData.nom_famille = document.getElementById('f-nom')?.value;
+        registrationData.email = document.getElementById('f-email')?.value;
+        registrationData.password = document.getElementById('f-pass')?.value;
         registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
     }
     if (currentStep === 2) {
-        registrationData.nom_patient = document.getElementById('p-nom').value;
-        registrationData.adresse_patient = document.getElementById('p-addr').value;
-        registrationData.contact_urgence = document.getElementById('p-urgence').value;
+        registrationData.nom_patient = document.getElementById('p-nom')?.value;
+        registrationData.adresse_patient = document.getElementById('p-addr')?.value;
+        registrationData.contact_urgence = document.getElementById('p-urgence')?.value;
+    }
+    if (currentStep === 3) {
+        const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+        registrationData.pathologies = meds;
+        registrationData.notes_medicales = document.getElementById('p-notes')?.value;
     }
     if (currentStep === 6) { 
-        if(!document.getElementById('legal-check').checked) return UI.vibrate('error');
+        if(!document.getElementById('legal-check')?.checked) {
+            UI.vibrate('error');
+            Swal.fire({
+                title: "Confirmation requise",
+                text: "Veuillez accepter les conditions d'engagement",
+                icon: "warning",
+                customClass: { popup: 'rounded-2xl' }
+            });
+            return;
+        }
         registrationData.engagement_non_medical = true;
         submitRegistration();
         return;
@@ -637,7 +783,6 @@ window.nextAuthStep = () => {
     currentStep++;
     renderAuthView('register', currentStep);
 };
-
 
 
 
@@ -908,6 +1053,82 @@ function renderLayout() {
         </div>
     </div>`;
 }
+
+
+window.selectPack = (packId, price) => {
+    registrationData.type_pack = packId;
+    registrationData.montant_prevu = price;
+    
+    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
+    const themeColor = isMamanFlow ? 'pink' : 'emerald';
+    const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
+    const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
+    
+    // Mettre à jour l'apparence des cartes
+    document.querySelectorAll('.pack-card').forEach(card => {
+        const cardPackId = card.dataset.packId;
+        if (cardPackId === packId) {
+            card.classList.add(`border-${themeColor}-500`, themeBgClass);
+            card.classList.remove('border-slate-100');
+            
+            // Mettre à jour l'icône
+            const iconDiv = card.querySelector('.w-12.h-12');
+            if (iconDiv) {
+                iconDiv.classList.add(themeBgClass);
+                iconDiv.classList.remove('bg-slate-50');
+                const icon = iconDiv.querySelector('i');
+                if (icon) {
+                    icon.classList.add(themeColorClass);
+                    icon.classList.remove('text-slate-400');
+                }
+            }
+            
+            // Mettre à jour le radio button
+            const radioDiv = card.querySelector('.w-5.h-5');
+            if (radioDiv) {
+                radioDiv.classList.add(`border-${themeColor}-500`, `bg-${themeColor}-500`);
+                radioDiv.classList.remove('border-slate-300', 'bg-transparent');
+                radioDiv.innerHTML = '<i class="fa-solid fa-check text-white text-[8px]"></i>';
+            }
+        } else {
+            card.classList.remove(`border-${themeColor}-500`, themeBgClass);
+            card.classList.add('border-slate-100');
+            
+            // Réinitialiser l'icône
+            const iconDiv = card.querySelector('.w-12.h-12');
+            if (iconDiv) {
+                iconDiv.classList.remove(themeBgClass);
+                iconDiv.classList.add('bg-slate-50');
+                const icon = iconDiv.querySelector('i');
+                if (icon) {
+                    icon.classList.remove(themeColorClass);
+                    icon.classList.add('text-slate-400');
+                }
+            }
+            
+            // Réinitialiser le radio button
+            const radioDiv = card.querySelector('.w-5.h-5');
+            if (radioDiv) {
+                radioDiv.classList.remove(`border-${themeColor}-500`, `bg-${themeColor}-500`);
+                radioDiv.classList.add('border-slate-300');
+                radioDiv.innerHTML = '';
+            }
+        }
+    });
+    
+    // Activer le bouton continuer
+    const continueBtn = document.getElementById('pack-continue-btn');
+    if (continueBtn) {
+        continueBtn.disabled = false;
+        continueBtn.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
+        continueBtn.classList.add(isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500');
+        continueBtn.classList.add(isMamanFlow ? 'hover:bg-pink-600' : 'hover:bg-emerald-600');
+    }
+    
+    UI.vibrate('success');
+};
+
+
 
 function getNavLinks(role, mode) {
     const isMobile = mode === 'mobile';
