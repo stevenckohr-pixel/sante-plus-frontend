@@ -1184,6 +1184,9 @@ function getNavLinks(role, mode) {
 // ============================================
 // TRANSITION FLUIDE AVEC LOADER LOCAL
 // ============================================
+// ============================================
+// TRANSITION FLUIDE (VERSION CORRIGÉE)
+// ============================================
 
 let isTransitioning = false;
 let pendingView = null;
@@ -1204,14 +1207,22 @@ window.switchView = async function(viewName) {
         return;
     }
     
-    // 1. Animation de sortie (rapide)
-    container.style.transition = "opacity 0.12s ease, transform 0.12s ease";
+    // 1. Animation de sortie
+    container.style.transition = "opacity 0.1s ease";
     container.style.opacity = "0";
-    container.style.transform = "translateY(6px)";
     await new Promise(r => setTimeout(r, 80));
     
-    // 2. Afficher le loader LOCAL (pas global)
-    showLocalLoader(container, `Chargement de ${viewName}...`);
+    // 2. Afficher un loader simple (pas besoin de fonction externe)
+    container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 min-h-[200px]">
+            <div class="relative w-12 h-12">
+                <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
+                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
+        </div>
+    `;
     
     try {
         // 3. Exécuter le changement de vue
@@ -1219,29 +1230,23 @@ window.switchView = async function(viewName) {
         
         // 4. Animation d'entrée
         container.style.opacity = "1";
-        container.style.transform = "translateY(0)";
         setTimeout(() => {
             if (container) container.style.transition = "";
-        }, 150);
-        
-        // 5. Cacher le loader local
-        hideLocalLoader(container);
+        }, 100);
         
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        hideLocalLoader(container);
-        if (container) {
-            container.innerHTML = `
-                <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
-                    <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
-                    <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-                    <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
-                    <button onclick="window.switchView('${viewName}')" 
-                            class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
-                        Réessayer
-                    </button>
-                </div>`;
-        }
+        container.innerHTML = `
+            <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+                <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+                <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
+                <button onclick="window.switchView('${viewName}')" 
+                        class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
+                    Réessayer
+                </button>
+            </div>`;
+        container.style.opacity = "1";
     }
     
     isTransitioning = false;
@@ -1303,7 +1308,14 @@ async function performViewSwitch(viewName) {
         billing: "Centre de Facturation",
         aidants: "Gestion de l'Équipe", 
         commandes: "Pharmacie & Logistique",
-        planning: "Agenda des Soins"
+        planning: "Agenda des Soins",
+        home: "Accueil",
+        "rh-dashboard": "RH & Assignations",
+        "add-patient": "Nouveau Patient",
+        "link-family": "Lier une Famille",
+        "add-aidant": "Nouvel Aidant",
+        "end-visit": "Clôturer la visite",
+        "start-visit": "Démarrer la visite"
     };
     
     if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
@@ -1311,7 +1323,17 @@ async function performViewSwitch(viewName) {
     localStorage.setItem("last_view", viewName);
     AppState.currentView = viewName;
 
-    // ⚠️ PLUS AUCUN LOADER MANUEL ICI - C'est le loader global qui gère
+    // 📍 AFFICHAGE DU LOADER LOCAL
+    container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-20 min-h-[300px]">
+            <div class="relative w-12 h-12">
+                <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
+                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-4">Chargement ${viewTitles[viewName] || viewName}...</p>
+        </div>
+    `;
 
     try {
         switch (viewName) {
@@ -1442,6 +1464,20 @@ async function performViewSwitch(viewName) {
                 await Admin.renderRHDashboard();
                 break;
         }
+        
+        // Animation d'entrée après chargement réussi
+        container.style.opacity = "0";
+        container.style.transform = "translateY(8px)";
+        container.style.transition = "opacity 0.15s ease, transform 0.15s ease";
+        
+        setTimeout(() => {
+            container.style.opacity = "1";
+            container.style.transform = "translateY(0)";
+            setTimeout(() => {
+                if (container) container.style.transition = "";
+            }, 150);
+        }, 10);
+        
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
         container.innerHTML = `
@@ -1451,9 +1487,9 @@ async function performViewSwitch(viewName) {
                 <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre à cette requête."}</p>
                 <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
             </div>`;
+        container.style.opacity = "1";
     }
 }
-
 
 
 window.openProfileMenu = () => {
