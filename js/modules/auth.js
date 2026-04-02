@@ -54,7 +54,7 @@ if (data.role === 'FAMILLE') {
     setThemeColor('#0F172A'); // Noir pour Coordinateur/Aidant
 }
 
-UI.vibrate("success");
+UI.success("Connexion réussie");
 window.location.reload();
 
   } catch (err) {
@@ -99,7 +99,7 @@ export async function verifyOTP(email) {
         localStorage.setItem("user_role", verifyData.role);
         localStorage.setItem("user_name", verifyData.nom);
         localStorage.setItem("user_email", email);
-        UI.vibrate("success");
+        UI.success("Connexion réussie");
         window.location.reload();
 
     } catch (err) {
