@@ -11,8 +11,7 @@ import * as Messages from "./modules/message.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
-import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound } from "./core/utils.js";
-
+import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader } from "./core/utils.js";
 
 
 /* --- DONNÉES ONBOARDING PREMIUM AVEC IMAGES --- */
