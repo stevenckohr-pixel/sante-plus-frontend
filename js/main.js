@@ -1588,6 +1588,9 @@ window.openModernSelector = openModernSelector;
 window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
+window.openAssignPage = Planning.openAssignPage;
+
+
 
 // ============================================
 // ÉVÉNEMENTS POUR LA PAGE D'ASSIGNATION
