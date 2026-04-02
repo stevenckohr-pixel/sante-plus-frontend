@@ -4,13 +4,10 @@ const urlsToCache = [
   './index.html',
   './style.css',
   './js/main.js',
-  './manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700;800&display=swap'
+  './manifest.json'
+  // Ne plus mettre les URLs externes (tailwind, fontawesome, etc.)
 ];
 
-// Installation
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -19,7 +16,6 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Activation
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -34,15 +30,23 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Stratégie : Network First puis Cache
+// Stratégie : Network First pour les ressources internes, mais on ignore les CDN externes
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Ne pas intercepter les requêtes vers les CDN externes (tailwind, fontawesome, google fonts, etc.)
+  if (url.origin !== self.location.origin) {
+    // Laisser le navigateur gérer normalement
+    return;
+  }
+  
   event.respondWith(
     fetch(event.request)
       .catch(() => caches.match(event.request))
   );
 });
 
-// Notifications Push
+// Notifications Push (inchangé)
 self.addEventListener("push", function (event) {
   const data = event.data.json();
   const options = {
