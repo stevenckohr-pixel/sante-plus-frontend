@@ -915,3 +915,60 @@ main {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
 }
+
+
+
+
+/* === TRANSITIONS DE PAGES AVANCÉES === */
+
+/* Transition de page principale */
+.page-transition-enter {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1),
+                transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+.page-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.page-transition-exit-active {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.15s ease,
+                transform 0.15s ease;
+}
+
+/* Transition pour les cartes qui apparaissent */
+.card-enter {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.card-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.25s ease,
+                transform 0.25s ease;
+}
+
+/* Animation de focus sur les éléments cliquables */
+.haptic-feedback {
+    transition: transform 0.05s ease;
+}
+
+.haptic-feedback:active {
+    transform: scale(0.97);
+}
+
+/* Transition fluide du conteneur principal */
+#view-container {
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
