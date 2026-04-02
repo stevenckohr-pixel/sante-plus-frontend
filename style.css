@@ -505,3 +505,64 @@ main {
 .border-maman-pink {
     border-color: #DB2777 !important;
 }
+
+
+
+/* === TYPOGRAPHIE RESPONSIVE === */
+
+@media (max-width: 640px) {
+    /* Titres principaux */
+    h1, .title-large, .font-black.text-2xl {
+        font-size: 1.25rem !important; /* 20px */
+        line-height: 1.3 !important;
+        letter-spacing: -0.02em !important;
+    }
+    
+    /* Sous-titres */
+    h2, .title-medium, .font-black.text-xl {
+        font-size: 1rem !important; /* 16px */
+        line-height: 1.35 !important;
+    }
+    
+    /* Corps de texte */
+    p, .text-base {
+        font-size: 0.8125rem !important; /* 13px */
+        line-height: 1.45 !important;
+    }
+    
+    /* Labels et petits textes */
+    label, .text-xs, .text-sm {
+        font-size: 0.6875rem !important; /* 11px */
+        letter-spacing: 0.02em !important;
+    }
+    
+    /* Uppercase tracking */
+    .tracking-widest, .tracking-\[0\.2em\], .tracking-\[0\.3em\] {
+        letter-spacing: 0.08em !important;
+    }
+    
+    /* Meilleure aération verticale */
+    .space-y-8 {
+        row-gap: 1.25rem !important;
+    }
+    
+    .space-y-6 {
+        row-gap: 1rem !important;
+    }
+    
+    .space-y-4 {
+        row-gap: 0.75rem !important;
+    }
+    
+    .mb-8 {
+        margin-bottom: 1.25rem !important;
+    }
+    
+    .mb-6 {
+        margin-bottom: 1rem !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 0.75rem !important;
+    }
+}
