@@ -314,7 +314,27 @@ window.startVisit = async (patientId) => {
   try {
     UI.vibrate();
     
-    // UI Pro : Loader stylisé "SaaS"
+    // Vérifier si une visite est déjà en cours
+    const existingVisit = localStorage.getItem("active_visit_id");
+    if (existingVisit) {
+      const confirm = await Swal.fire({
+        title: "Visite en cours",
+        text: "Une visite est déjà active. Voulez-vous la terminer avant d'en démarrer une nouvelle ?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Terminer la visite",
+        cancelButtonText: "Annuler",
+        customClass: { popup: 'rounded-[2.5rem]' }
+      });
+      if (confirm.isConfirmed) {
+        // Rediriger vers la page de fin de visite
+        window.switchView("end-visit");
+        return;
+      }
+      throw new Error("Une visite est déjà en cours");
+    }
+
+    // UI Pro : Loader stylisé
     Swal.fire({
       title: '<i class="fa-solid fa-satellite-dish fa-beat text-emerald-500 mb-2"></i><br><span class="text-xl font-black">Initialisation du Suivi</span>',
       html: '<p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Couplage GPS et vérification du périmètre de sécurité...</p>',
@@ -342,10 +362,22 @@ window.startVisit = async (patientId) => {
 
     // 3. Stockage des identifiants de session
     localStorage.setItem("active_visit_id", data.visite_id);
+    localStorage.setItem("active_patient_id", patientId);
 
-    // 🚀 LANCEMENT DU TRACKER LIVE (Le Watcher)
-    // Cela envoie la position au Coordinateur dès que l'aidant bouge de 1 mètre
+    // 4. LANCEMENT DU TRACKER GPS
     startBackgroundTracking(data.visite_id);
+
+    // 5. Notification à la famille
+    try {
+      await fetch(`${CONFIG.API_URL}/visites/notify-family`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ patient_id: patientId })
+      });
+    } catch(e) { console.warn("Notification non envoyée"); }
 
     Swal.fire({
       icon: "success",
@@ -353,16 +385,17 @@ window.startVisit = async (patientId) => {
       html: `
         <div class="text-left bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-4">
             <p class="text-[10px] text-slate-400 font-black uppercase mb-1">Système de sécurité</p>
-            <p class="text-xs font-bold text-slate-600 leading-relaxed">Tracking GPS Live : <span class="text-emerald-500">ACTIF</span><br>Rapport automatique : <span class="text-emerald-500">EN COURS</span></p>
+            <p class="text-xs font-bold text-slate-600 leading-relaxed">📍 Position de départ: ${coords.lat.toFixed(6)}, ${coords.lon.toFixed(6)}<br>🛰️ Tracking GPS Live : <span class="text-emerald-500">ACTIF</span><br>📡 Rapport automatique : <span class="text-emerald-500">EN COURS</span></p>
         </div>`,
-      timer: 3000,
+      timer: 4000,
       showConfirmButton: false,
       customClass: { popup: 'rounded-[2.5rem]' }
     });
 
+    // Rediriger vers la page de visite en cours
     window.switchView("visits");
 
-} catch (err) {
+  } catch (err) {
     UI.vibrate("error");
     Swal.fire({
         title: "Erreur Visite",
@@ -378,47 +411,126 @@ window.startVisit = async (patientId) => {
 
 
 
+
 /**
  * 📡 MOTEUR DE SURVEILLANCE LIVE
  * Envoie des signaux "ping" au serveur avec la position actuelle
  */
+let geoWatchId = null;
+let lastSentPosition = null;
+let trackingInterval = null;
+
 function startBackgroundTracking(visiteId) {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+        console.warn("⚠️ GPS non supporté sur ce navigateur");
+        return;
+    }
 
-    if (geoWatchId) navigator.geolocation.clearWatch(geoWatchId);
+    // Nettoyer l'ancien watcher s'il existe
+    if (geoWatchId) {
+        navigator.geolocation.clearWatch(geoWatchId);
+        geoWatchId = null;
+    }
 
+    // Envoyer la position toutes les 10 secondes même sans mouvement
+    if (trackingInterval) clearInterval(trackingInterval);
+    
+    trackingInterval = setInterval(async () => {
+        if (!localStorage.getItem("active_visit_id")) {
+            clearInterval(trackingInterval);
+            return;
+        }
+        
+        // Demander une position à jour
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    await sendPosition(position, visiteId);
+                },
+                (err) => console.warn("⚠️ Erreur position périodique:", err.message),
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+    }, 10000); // Toutes les 10 secondes
+
+    // Watcher en continu pour les mouvements
     geoWatchId = navigator.geolocation.watchPosition(
         async (position) => {
-            const { latitude, longitude, accuracy } = position.coords;
-            
-            // 🛡️ FILTRE DE PRÉCISION ÉLITE
-            // Si la précision est supérieure à 60 mètres, on ignore le point (trop imprécis)
-            if (accuracy > 60) {
-                console.warn(`🛰️ [GPS] Point ignoré : précision trop faible (${Math.round(accuracy)}m)`);
-                return;
-            }
-
-            console.log(`🛰️ [GPS] Point certifié : ${latitude}, ${longitude} (Précision: ${Math.round(accuracy)}m)`);
-
-            fetch(`${window.CONFIG.API_URL}/visites/track`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ visite_id: visiteId, lat: latitude, lng: longitude })
-            }).catch(e => {});
+            await sendPosition(position, visiteId);
         },
-        (error) => console.error("Erreur Watcher GPS:", error),
+        (error) => {
+            console.error("❌ Erreur Watcher GPS:", error.message);
+            if (error.code === 1) {
+                // Permission refusée
+                Swal.fire({
+                    title: "GPS requis",
+                    text: "Veuillez autoriser la localisation pour le suivi des visites",
+                    icon: "warning",
+                    confirmButtonColor: "#0F172A"
+                });
+            }
+        },
         { 
             enableHighAccuracy: true, 
-            maximumAge: 0, 
-            timeout: 10000 
+            maximumAge: 5000, // 5 secondes max
+            timeout: 15000 
         }
     );
 
     localStorage.setItem("geo_watch_id", geoWatchId);
+    console.log("🛰️ [GPS] Tracking démarré avec ID:", geoWatchId);
 }
+
+// Fonction helper pour envoyer une position
+async function sendPosition(position, visiteId) {
+    const { latitude, longitude, accuracy } = position.coords;
+    
+    // Vérifier si la position a changé de façon significative (> 5m)
+    if (lastSentPosition) {
+        const lastLat = lastSentPosition.lat;
+        const lastLng = lastSentPosition.lng;
+        const distance = Math.sqrt(
+            Math.pow(latitude - lastLat, 2) + 
+            Math.pow(longitude - lastLng, 2)
+        ) * 111000; // Conversion en mètres (approximative)
+        
+        if (distance < 5) {
+            // Position trop proche de la précédente, on ignore
+            return;
+        }
+    }
+    
+    // Vérifier la précision
+    if (accuracy > 100) {
+        console.warn(`🛰️ [GPS] Point ignoré : précision trop faible (${Math.round(accuracy)}m)`);
+        return;
+    }
+
+    console.log(`🛰️ [GPS] Point envoyé : ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (Précision: ${Math.round(accuracy)}m)`);
+    
+    // Mettre à jour la dernière position envoyée
+    lastSentPosition = { lat: latitude, lng: longitude };
+
+    try {
+        await fetch(`${window.CONFIG.API_URL}/visites/track`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ 
+                visite_id: visiteId, 
+                lat: latitude, 
+                lng: longitude,
+                accuracy: accuracy 
+            })
+        });
+    } catch(e) {
+        console.warn("❌ Erreur envoi position:", e);
+    }
+}
+
+
 
 
 /**
