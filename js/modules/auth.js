@@ -35,6 +35,21 @@ export async function handleLogin() {
     localStorage.setItem("user_role", data.role);
     localStorage.setItem("user_name", data.nom);
     localStorage.setItem("user_email", email);
+    
+    // ============================================
+    // 🎨 APPLIQUER LA COULEUR DE THÈME SELON LE RÔLE
+    // ============================================
+    if (data.role === 'FAMILLE') {
+        // Par défaut, on met la couleur or pour les familles Premium
+        // Tu peux adapter ici si ton backend renvoie data.categorie
+        const isMaman = data.categorie === 'MAMAN_BEBE';
+        const themeColor = isMaman ? '#DB2777' : '#D4AF37';
+        setThemeColor(themeColor);
+    } else {
+        // Pour Coordinateur et Aidant : noir/ardoise
+        setThemeColor('#0F172A');
+    }
+    
     UI.vibrate("success");
     window.location.reload();
 
@@ -51,6 +66,7 @@ export async function handleLogin() {
     btn.innerHTML = 'Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>';
   }
 }
+
 
 /**
  * 🔒 VÉRIFICATION DU CODE OTP (Appelé depuis la vue OTP)
