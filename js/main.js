@@ -507,51 +507,36 @@ function renderMobileHub() {
     const container = document.getElementById("view-container");
     
     const menuItems = [
-        { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', roles: ['COORDINATEUR'] },
-        { id: 'patients', label: 'Dossiers', desc: 'Gestion Clients', icon: 'fa-hospital-user', color: 'text-emerald-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        { id: 'planning', label: 'Planning', desc: 'Mon Agenda', icon: 'fa-calendar-days', color: 'text-purple-500', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'commandes', label: 'Pharmacie', desc: 'Médicaments', icon: 'fa-pills', color: 'text-cyan-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-
-        { id: 'visits', label: 'Visites', desc: 'Interventions', icon: 'fa-calendar-check', color: 'text-blue-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: 'Journal', desc: 'Live Feed', icon: 'fa-rss', color: 'text-orange-500', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'aidants', label: 'Équipe', desc: 'Ressources Humaines', icon: 'fa-user-nurse', color: 'text-slate-600', roles: ['COORDINATEUR'] }
+        { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
+        { id: 'patients', label: 'Dossiers', desc: 'Gestion Clients', icon: 'fa-hospital-user', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'planning', label: 'Planning', desc: 'Mon Agenda', icon: 'fa-calendar-days', color: 'text-purple-500', bg: 'bg-purple-50', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'commandes', label: 'Pharmacie', desc: 'Médicaments', icon: 'fa-pills', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', label: 'Visites', desc: 'Interventions', icon: 'fa-calendar-check', color: 'text-blue-500', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: 'Journal', desc: 'Live Feed', icon: 'fa-rss', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'aidants', label: 'Équipe', desc: 'Ressources', icon: 'fa-user-nurse', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR'] }
     ];
 
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     container.innerHTML = `
-        <div class="animate-fadeIn pb-10">
-            <!-- Header de bienvenue style Pinterest -->
-            <div class="flex items-center justify-between mb-8">
-                <div>
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bienvenue sur SPS</p>
-                    <h3 class="text-2xl font-[900] text-slate-900 tracking-tight">Bonjour, ${userName.split(' ')[0]} 👋</h3>
-                </div>
-                <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200">
-                    <i class="fa-solid fa- fingerprint"></i>
-                </div>
+        <div class="animate-fadeIn pb-32">
+            <!-- Header -->
+            <div class="mb-6">
+                <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Bienvenue</p>
+                <h2 class="text-xl font-black text-slate-900">${userName?.split(' ')[0] || 'Utilisateur'} 👋</h2>
             </div>
 
-            <!-- Barre de recherche stylisée -->
-            <div class="bg-white border border-slate-100 p-4 rounded-[1.5rem] flex items-center gap-3 mb-8 shadow-sm">
-                <i class="fa-solid fa-magnifying-glass text-slate-300"></i>
-                <input type="text" placeholder="Rechercher un dossier..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
-            </div>
-
-            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 ml-1">Menu Principal</h4>
-
-            <!-- GRILLE DE BLOCS -->
-            <div class="menu-grid">
+            <!-- Grille de menus stylée -->
+            <div class="grid grid-cols-2 gap-4">
                 ${filteredMenu.map(item => `
-                    <div onclick="window.switchView('${item.id}')" class="menu-tile ${item.color}">
-                        <div class="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-xl">
-                            <i class="fa-solid ${item.icon}"></i>
+                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer">
+                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
                         </div>
                         <div>
-                            <p class="tile-label">${item.label}</p>
-                            <p class="tile-desc">${item.desc}</p>
+                            <p class="font-black text-slate-800 text-sm">${item.label}</p>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
                         </div>
                     </div>
                 `).join('')}
@@ -559,7 +544,6 @@ function renderMobileHub() {
         </div>
     `;
 }
-
 /**
  * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
  */
