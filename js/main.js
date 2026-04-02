@@ -45,6 +45,63 @@ const ONBOARDING_STEPS =[
 ];
 let onboardingStep = 0;
 
+
+
+
+
+// ============================================
+// LOADER GLOBAL
+// ============================================
+
+let loaderTimeout = null;
+
+function showGlobalLoader() {
+    // Vérifie si le loader existe déjà
+    let loader = document.getElementById('global-loader');
+    
+    if (!loader) {
+        loader = document.createElement('div');
+        loader.id = 'global-loader';
+        loader.className = 'global-loader';
+        loader.innerHTML = `
+            <div class="loader-spinner"></div>
+            <p class="loader-text">Chargement...</p>
+        `;
+        document.body.appendChild(loader);
+    }
+    
+    // Applique la couleur rose ou or selon le contexte
+    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    const spinner = loader.querySelector('.loader-spinner');
+    if (spinner) {
+        if (isMaman) {
+            spinner.classList.add('rose');
+        } else {
+            spinner.classList.remove('rose');
+        }
+    }
+    
+    loader.classList.remove('hidden');
+    loader.style.opacity = '1';
+}
+
+function hideGlobalLoader() {
+    const loader = document.getElementById('global-loader');
+    if (loader) {
+        loader.classList.add('hidden');
+        loader.style.opacity = '0';
+    }
+}
+
+// Force la disparition du loader après un délai max (sécurité)
+function hideGlobalLoaderWithDelay() {
+    if (loaderTimeout) clearTimeout(loaderTimeout);
+    loaderTimeout = setTimeout(() => {
+        hideGlobalLoader();
+    }, 5000); // 5 secondes max
+}
+
+
 /* --- CONFIGURATION SWEETALERT PREMIUM --- */
 const Toast = Swal.mixin({
   toast: true,
@@ -756,49 +813,68 @@ function getNavLinks(role, mode) {
 // ============================================
 // TRANSITION FLUIDE ENTRE LES VUES
 // ============================================
-
+// Transition fluide avec loader
 let isTransitioning = false;
 let pendingView = null;
 
 window.switchView = async function(viewName) {
-    // Évite les doubles clics pendant la transition
     if (isTransitioning) {
         pendingView = viewName;
         return;
     }
     
     isTransitioning = true;
+    
+    // AFFICHE LE LOADER
+    showGlobalLoader();
+    hideGlobalLoaderWithDelay(); // Sécurité
+    
     const container = document.getElementById("view-container");
     
-    // 1. Animation de sortie (très rapide)
+    // Petite animation de sortie rapide
     if (container) {
-        container.style.transition = "opacity 0.1s ease, transform 0.1s ease";
+        container.style.transition = "opacity 0.1s ease";
         container.style.opacity = "0";
-        container.style.transform = "translateX(8px)";
-        await new Promise(r => setTimeout(r, 80)); // 80ms
+        await new Promise(r => setTimeout(r, 50));
     }
     
-    // 2. Exécuter le vrai changement de vue (ton code existant)
-    await performViewSwitch(viewName);
-    
-    // 3. Animation d'entrée
-    if (container) {
-        container.style.opacity = "1";
-        container.style.transform = "translateX(0)";
-        await new Promise(r => setTimeout(r, 50));
-        container.style.transition = "";
+    try {
+        // Exécute le changement de vue
+        await performViewSwitch(viewName);
+        
+        // Petite animation d'entrée
+        if (container) {
+            container.style.opacity = "1";
+            await new Promise(r => setTimeout(r, 50));
+            container.style.transition = "";
+        }
+        
+        // CACHE LE LOADER UNE FOIS QUE TOUT EST CHARGÉ
+        hideGlobalLoader();
+        
+    } catch (err) {
+        console.error("Erreur lors du chargement:", err);
+        hideGlobalLoader();
+        
+        if (container) {
+            container.innerHTML = `
+                <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm">
+                    <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+                    <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+                    <p class="text-xs text-slate-500 mt-2">${err.message}</p>
+                    <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+                </div>`;
+        }
     }
     
     isTransitioning = false;
     
-    // 4. S'il y avait une vue en attente, on l'exécute
     if (pendingView) {
         const next = pendingView;
         pendingView = null;
         window.switchView(next);
     }
 };
-
 // ============================================
 //  :
 // ============================================
