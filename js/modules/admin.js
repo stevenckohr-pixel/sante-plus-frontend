@@ -367,3 +367,300 @@ window.unassignPatient = async (assignmentId, aidantNom, patientNom) => {
         }
     }
 };
+
+
+
+
+
+/**
+ * 📊 PAGE : TABLEAU DE BORD RH (Coordinateur)
+ */
+export async function renderRHDashboard() {
+    const container = document.getElementById("view-container");
+    
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-32">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">👥 Équipe & Assignations</h3>
+                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion complète des aidants et patients</p>
+                </div>
+                <button onclick="window.openAssignModal()" class="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase shadow-lg active:scale-95">
+                    <i class="fa-solid fa-plus"></i> Nouvelle assignation
+                </button>
+            </div>
+
+            <!-- Statistiques rapides -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div id="stat-aidants" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Aidants</p>
+                    <h3 class="text-2xl font-black text-slate-800">-</h3>
+                </div>
+                <div id="stat-patients" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
+                    <h3 class="text-2xl font-black text-slate-800">-</h3>
+                </div>
+                <div id="stat-assignments" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Assignations</p>
+                    <h3 class="text-2xl font-black text-slate-800">-</h3>
+                </div>
+                <div id="stat-non-assignes" class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Non assignés</p>
+                    <h3 class="text-2xl font-black text-amber-600">-</h3>
+                </div>
+            </div>
+
+            <!-- TABS : Aidants / Patients -->
+            <div class="bg-slate-100/50 p-1.5 rounded-2xl flex items-center gap-1 mb-8 max-w-md">
+                <button id="tab-aidants" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-white text-slate-900 shadow-sm">
+                    👨‍⚕️ Aidants
+                </button>
+                <button id="tab-patients" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400">
+                    📋 Patients
+                </button>
+            </div>
+
+            <!-- CONTENEUR DES LISTES -->
+            <div id="rh-content"></div>
+        </div>
+    `;
+
+    // Charger les données
+    await loadRHDashboardData();
+
+    // Gérer les onglets
+    document.getElementById("tab-aidants").onclick = () => showRHTab('aidants');
+    document.getElementById("tab-patients").onclick = () => showRHTab('patients');
+}
+
+let rhData = null;
+let currentRHTab = 'aidants';
+
+async function loadRHDashboardData() {
+    try {
+        const res = await secureFetch("/assignments/full-dashboard");
+        rhData = await res.json();
+
+        // Mettre à jour les stats
+        document.getElementById("stat-aidants").querySelector("h3").innerText = rhData.total_aidants || 0;
+        document.getElementById("stat-patients").querySelector("h3").innerText = rhData.total_patients || 0;
+        document.getElementById("stat-assignments").querySelector("h3").innerText = rhData.total_assignments || 0;
+        document.getElementById("stat-non-assignes").querySelector("h3").innerText = rhData.patients_non_assignes || 0;
+
+        // Afficher le premier onglet
+        showRHTab('aidants');
+
+    } catch (err) {
+        console.error("Erreur chargement RH:", err);
+        document.getElementById("rh-content").innerHTML = `
+            <div class="bg-white rounded-2xl p-10 text-center text-rose-500">
+                Erreur de chargement: ${err.message}
+            </div>
+        `;
+    }
+}
+
+function showRHTab(tab) {
+    currentRHTab = tab;
+    
+    // Mettre à jour l'apparence des onglets
+    const tabAidants = document.getElementById("tab-aidants");
+    const tabPatients = document.getElementById("tab-patients");
+    
+    if (tab === 'aidants') {
+        tabAidants.classList.add("bg-white", "text-slate-900", "shadow-sm");
+        tabAidants.classList.remove("text-slate-400");
+        tabPatients.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+        tabPatients.classList.add("text-slate-400");
+        renderAidantsList();
+    } else {
+        tabPatients.classList.add("bg-white", "text-slate-900", "shadow-sm");
+        tabPatients.classList.remove("text-slate-400");
+        tabAidants.classList.remove("bg-white", "text-slate-900", "shadow-sm");
+        tabAidants.classList.add("text-slate-400");
+        renderPatientsList();
+    }
+}
+
+function renderAidantsList() {
+    const container = document.getElementById("rh-content");
+    
+    if (!rhData || !rhData.aidants || rhData.aidants.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl p-10 text-center text-slate-400">Aucun aidant trouvé</div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            ${rhData.aidants.map(aidant => `
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <!-- En-tête aidant -->
+                    <div class="p-6 bg-gradient-to-r from-slate-800 to-slate-900 text-white">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-black text-lg">${aidant.nom}</h4>
+                                <p class="text-xs text-slate-300 mt-1">${aidant.email || ''}</p>
+                                <p class="text-xs text-slate-300">📞 ${aidant.telephone || 'Non renseigné'}</p>
+                            </div>
+                            <div class="bg-emerald-500/20 px-3 py-1 rounded-full">
+                                <span class="text-[10px] font-black">${aidant.nb_patients} patient${aidant.nb_patients > 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Liste des patients assignés -->
+                    <div class="p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3 px-2">
+                            Patients assignés :
+                        </p>
+                        ${aidant.patients_assignes.length === 0 ? `
+                            <div class="text-center py-6 text-slate-400 text-sm">
+                                <i class="fa-solid fa-user-slash text-2xl mb-2 opacity-30"></i>
+                                <p class="text-xs">Aucun patient assigné</p>
+                                <button onclick="window.openAssignModalWithAidant('${aidant.id}')" class="mt-3 text-[10px] text-emerald-600 font-black uppercase">
+                                    + Assigner un patient
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="space-y-2">
+                                ${aidant.patients_assignes.map(assign => {
+                                    const patient = rhData.patients.find(p => p.id === assign.patient_id);
+                                    return `
+                                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                            <div>
+                                                <p class="font-bold text-slate-800 text-sm">${patient?.nom_complet || 'Inconnu'}</p>
+                                                <p class="text-[10px] text-slate-400">${patient?.formule || 'Standard'}</p>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full ${assign.statut === 'Planifié' ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
+                                                <button onclick="window.unassignPatient('${assign.assignment_id}', '${aidant.nom}', '${patient?.nom_complet || ''}')" 
+                                                        class="text-rose-400 hover:text-rose-600 transition-colors">
+                                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function renderPatientsList() {
+    const container = document.getElementById("rh-content");
+    
+    if (!rhData || !rhData.patients || rhData.patients.length === 0) {
+        container.innerHTML = `<div class="bg-white rounded-2xl p-10 text-center text-slate-400">Aucun patient trouvé</div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            ${rhData.patients.map(patient => `
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div class="p-6 ${patient.aidant_assigne ? 'bg-gradient-to-r from-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-slate-600 to-slate-700'} text-white">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-black text-lg">${patient.nom_complet}</h4>
+                                <p class="text-xs text-white/70 mt-1">📌 ${patient.adresse || 'Adresse non renseignée'}</p>
+                                <p class="text-xs text-white/70">🎁 ${patient.formule || 'Standard'}</p>
+                            </div>
+                            <div class="${patient.aidant_assigne ? 'bg-emerald-500/30' : 'bg-amber-500/30'} px-3 py-1 rounded-full">
+                                <span class="text-[9px] font-black">
+                                    ${patient.aidant_assigne ? '✅ Assigné' : '⚠️ Non assigné'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4">
+                        ${patient.aidant_assigne ? `
+                            <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                <div>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Aidant assigné</p>
+                                    <p class="font-bold text-slate-800 text-sm mt-1">${patient.aidant_assigne.nom}</p>
+                                    <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
+                                </div>
+                                <button onclick="window.unassignPatientFromPatient('${patient.id}')" 
+                                        class="text-rose-500 hover:text-rose-700 transition-colors text-sm">
+                                    <i class="fa-solid fa-link-slash"></i> Délier
+                                </button>
+                            </div>
+                        ` : `
+                            <div class="text-center py-6">
+                                <i class="fa-solid fa-user-plus text-3xl text-slate-300 mb-3"></i>
+                                <p class="text-xs text-slate-400 mb-3">Aucun aidant assigné</p>
+                                <button onclick="window.openAssignModalWithPatient('${patient.id}', '${patient.nom_complet}')" 
+                                        class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase">
+                                    + Assigner un aidant
+                                </button>
+                            </div>
+                        `}
+                        
+                        <!-- Infos famille -->
+                        ${patient.famille ? `
+                            <div class="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                <p class="text-[9px] font-black text-blue-600 uppercase tracking-wider">Famille / Payeur</p>
+                                <p class="font-bold text-slate-700 text-sm mt-1">${patient.famille.nom || 'Inconnu'}</p>
+                                <p class="text-[10px] text-slate-500">📧 ${patient.famille.email || ''}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Helper pour ouvrir la modale avec un aidant pré-sélectionné
+window.openAssignModalWithAidant = (aidantId) => {
+    localStorage.setItem("pre_selected_aidant", aidantId);
+    window.openAssignModal();
+};
+
+// Helper pour ouvrir la modale avec un patient pré-sélectionné
+window.openAssignModalWithPatient = (patientId, patientNom) => {
+    localStorage.setItem("pre_selected_patient", patientId);
+    window.openAssignModal();
+};
+
+// Délier un patient d'un aidant (depuis la vue patient)
+window.unassignPatientFromPatient = async (patientId) => {
+    // Trouver l'assignation
+    const assignment = rhData?.assignments?.find(a => a.patient_id === patientId);
+    if (!assignment) {
+        Swal.fire("Erreur", "Assignation introuvable", "error");
+        return;
+    }
+    
+    const aidant = rhData?.aidants?.find(a => a.id === assignment.aidant_id);
+    
+    const { value: raison } = await Swal.fire({
+        title: "Délier le patient",
+        text: `Retirer ce patient de ${aidant?.nom || "l'aidant"} ?`,
+        input: "textarea",
+        inputPlaceholder: "Raison (optionnel)",
+        showCancelButton: true,
+        confirmButtonText: "Oui, délier",
+        confirmButtonColor: "#F43F5E"
+    });
+
+    if (raison !== undefined) {
+        Swal.fire({ title: "Traitement...", didOpen: () => Swal.showLoading() });
+        try {
+            await secureFetch("/assignments/unassign", {
+                method: "POST",
+                body: JSON.stringify({ assignment_id: assignment.id, raison: raison || "" })
+            });
+            Swal.fire("Succès", "Patient délié avec succès", "success");
+            loadRHDashboardData(); // Recharger
+        } catch (err) {
+            Swal.fire("Erreur", err.message, "error");
+        }
+    }
+};
