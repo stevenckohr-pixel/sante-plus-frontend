@@ -15,11 +15,12 @@ export async function loadPatients() {
     showSkeleton(container, 'patient-card');
 
     try {
-        const response = await secureFetchWithCache("/patients");
-        const data = await response.json();
-        AppState.patients = data;
+        // ✅ Correction : secureFetch retourne déjà les données JSON
+        const patients = await secureFetch("/patients");
+        AppState.patients = patients;
         renderPatients();
     } catch (err) {
+        console.error("Erreur loadPatients:", err);
         container.innerHTML = `<p class="text-rose-500 text-center p-10 font-bold">Erreur: ${err.message}</p>`;
         throw err;
     }
