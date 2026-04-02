@@ -1010,3 +1010,87 @@ main {
         max-width: 85%;
     }
 }
+
+
+
+/* === FOND AMÉLIORÉ AVEC EFFET 3D === */
+
+/* Fond principal avec dégradé très léger */
+body {
+    background: linear-gradient(135deg, #e8f4f0 0%, #d9efe8 100%);
+    position: relative;
+}
+
+/* Effet de profondeur pour le conteneur principal */
+#app {
+    background: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 80%);
+}
+
+/* Cartes avec effet 3D subtil */
+.bg-white, 
+.patient-card, 
+.menu-tile,
+.bento-card,
+.bg-white.rounded-2xl,
+.bg-white.rounded-3xl {
+    box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.05),
+                0 1px 2px -1px rgba(0, 0, 0, 0.02),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Effet au survol (sur desktop) */
+@media (min-width: 768px) {
+    .patient-card:hover, 
+    .menu-tile:hover,
+    .bento-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+}
+
+/* Effet au clic (tactile) */
+.patient-card:active, 
+.menu-tile:active,
+.bento-card:active {
+    transform: translateY(2px);
+    transition: transform 0.05s ease;
+}
+
+/* Header avec fond légèrement transparent */
+header {
+    background: rgba(255, 255, 255, 0.85) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+/* Footer mobile */
+footer {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+/* Sidebar avec un peu de profondeur */
+aside {
+    background: linear-gradient(180deg, #0F172A 0%, #1a1f2e 100%);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Cartes de statistiques dans le dashboard */
+.bg-white.p-5.rounded-2xl {
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-white.p-5.rounded-2xl::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10B981, #34D399, #10B981);
+    opacity: 0.6;
+}
