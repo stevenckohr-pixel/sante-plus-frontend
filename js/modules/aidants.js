@@ -6,7 +6,6 @@ import { showSkeleton } from "../core/utils.js";
 /**
  * 📋 CHARGER LA LISTE DES COLLABORATEURS
  */
-import { showSkeleton } from "../core/utils.js";
 
 export async function loadAidants() {
     const container = document.getElementById('view-container');
