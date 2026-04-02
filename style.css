@@ -716,3 +716,40 @@ main {
         display: none;
     }
 }
+
+
+
+/* === COULEURS FINALES === */
+
+/* Blanc */
+.bg-white-pure { background-color: #FFFFFF; }
+.text-white-pure { color: #FFFFFF; }
+
+/* Noir / Ardoise */
+.bg-slate-deep { background-color: #0F172A; }
+.text-slate-deep { color: #0F172A; }
+.border-slate-deep { border-color: #0F172A; }
+
+/* Rose Maman */
+.bg-rose-soft { background-color: #FDF2F8; }
+.bg-rose-primary { background-color: #DB2777; }
+.text-rose-primary { color: #DB2777; }
+.border-rose-primary { border-color: #DB2777; }
+
+/* Or Premium */
+.bg-gold-soft { background-color: #FFFBEB; }
+.bg-gold-primary { background-color: #D4AF37; }
+.text-gold-primary { color: #D4AF37; }
+.border-gold-primary { border-color: #D4AF37; }
+
+/* Bannière Premium */
+.premium-banner {
+    background: linear-gradient(135deg, #D4AF37 0%, #FDE68A 50%, #D4AF37 100%);
+    color: #0F172A;
+}
+
+/* Bannière Maman */
+.maman-banner {
+    background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+    color: #DB2777;
+}
