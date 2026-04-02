@@ -13,6 +13,7 @@ import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
 import { openModernSelector } from "./core/utils.js";
+import { initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions } from "./core/utils.js";
 
 
 
@@ -138,6 +139,16 @@ let currentStep = 1;
 async function initApp() {
     const loader = document.getElementById("initial-loader");
     const token = localStorage.getItem("token");
+
+
+    // Initialiser les micro-interactions
+    initMicroInteractions();
+    
+    // Récupérer la préférence utilisateur pour les sons
+    const savedSoundPref = localStorage.getItem('sounds_enabled');
+    if (savedSoundPref !== null) {
+        setSoundsEnabled(savedSoundPref === 'true');
+    }
 
     // On prépare la disparition du loader
     const hideLoader = () => {
