@@ -1,8 +1,12 @@
 import { secureFetch } from "../core/api.js";
+import { CONFIG } from "../core/config.js";
 import { AppState } from "../core/state.js";
-import { UI, compressImage } from "../core/utils.js";
-import { showSkeleton } from "../core/utils.js";
+import { UI, compressImage, showSkeleton } from "../core/utils.js";
 
+// Variables globales pour le tracking GPS
+let geoWatchId = null;
+let lastSentPosition = null;
+let trackingInterval = null;
 
 // DANS frontend/js/modules/visites.js
 
@@ -176,7 +180,7 @@ export async function submitEndVisit() {
         fd.append("gps_end", gpsEnd);
         fd.append("photo_visite", compressedPhoto);
 
-        const response = await fetch(`${window.CONFIG.API_URL}/visites/end`, {
+        const response = await fetch(`${CONFIG.API_URL}/visites/end`, {
             method: "POST",
             headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             body: fd,
@@ -213,12 +217,6 @@ export async function submitEndVisit() {
     }
 }
 
-
-
-
-/**
- * Charge les visites (Historique pour l'aidant ou le coordinateur)
- */
 /**
  * 📥 CHARGER LES VISITES
  */
@@ -245,7 +243,6 @@ export async function loadVisits() {
         throw err;
     }
 }
-
 
 /**
  * Affiche les visites sous forme de Timeline
@@ -292,9 +289,6 @@ export function renderVisits() {
     })
     .join("");
 }
-
-
-
 
 /**
  * ▶️ DÉMARRER UNE VISITE (Version Élite avec Surveillance Live)
@@ -396,19 +390,10 @@ window.startVisit = async (patientId) => {
   }
 };
 
-
-
-
-
-
 /**
  * 📡 MOTEUR DE SURVEILLANCE LIVE
  * Envoie des signaux "ping" au serveur avec la position actuelle
  */
-let geoWatchId = null;
-let lastSentPosition = null;
-let trackingInterval = null;
-
 function startBackgroundTracking(visiteId) {
     if (!navigator.geolocation) {
         console.warn("⚠️ GPS non supporté sur ce navigateur");
@@ -501,7 +486,7 @@ async function sendPosition(position, visiteId) {
     lastSentPosition = { lat: latitude, lng: longitude };
 
     try {
-        await fetch(`${window.CONFIG.API_URL}/visites/track`, {
+        await fetch(`${CONFIG.API_URL}/visites/track`, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
@@ -518,9 +503,6 @@ async function sendPosition(position, visiteId) {
         console.warn("❌ Erreur envoi position:", e);
     }
 }
-
-
-
 
 /**
  * 📍 UTILITAIRE : RÉCUPÉRER LA POSITION GPS ACTUELLE
@@ -552,9 +534,6 @@ export function resumeTrackingIfActive() {
         startBackgroundTracking(activeVisitId);
     }
 }
-
-
-
 
 /**
  * 🏠 FIXER LE DOMICILE DU PATIENT (Elite Feature)
@@ -593,8 +572,6 @@ window.savePatientHomeGPS = async (patientId) => {
         }
     }
 };
-
-
 
 export async function renderStartVisitView(patientId) {
     const container = document.getElementById("view-container");
