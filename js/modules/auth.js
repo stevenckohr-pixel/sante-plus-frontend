@@ -41,6 +41,18 @@ export async function handleLogin() {
     localStorage.setItem("user_role", data.role);
     localStorage.setItem("user_name", data.nom);
     localStorage.setItem("user_email", email);
+    
+    // ✅ AJOUT DE LA PHOTO DANS LOCALSTORAGE
+    if (data.photo_url) {
+      localStorage.setItem("user_photo", data.photo_url);
+    } else {
+      localStorage.setItem("user_photo", "");
+    }
+    
+    // Stocker aussi l'ID utilisateur si disponible
+    if (data.user_id) {
+      localStorage.setItem("user_id", data.user_id);
+    }
 
     // 🎨 APPLIQUER LA COULEUR DE THÈME
     if (data.role === 'FAMILLE') {
@@ -99,11 +111,23 @@ export async function verifyOTP(email) {
     
     if (!verifyRes.ok) throw new Error(verifyData.message || "Code invalide");
     
-    // Connexion réussie
+    // ✅ CONNEXION RÉUSSIE AVEC 2FA
     localStorage.setItem("token", verifyData.token);
     localStorage.setItem("user_role", verifyData.role);
     localStorage.setItem("user_name", verifyData.nom);
     localStorage.setItem("user_email", email);
+    
+    // ✅ AJOUT DE LA PHOTO DANS LOCALSTORAGE
+    if (verifyData.photo_url) {
+      localStorage.setItem("user_photo", verifyData.photo_url);
+    } else {
+      localStorage.setItem("user_photo", "");
+    }
+    
+    // Stocker aussi l'ID utilisateur si disponible
+    if (verifyData.user_id) {
+      localStorage.setItem("user_id", verifyData.user_id);
+    }
     
     UI.success("Connexion réussie");
     window.location.reload();
