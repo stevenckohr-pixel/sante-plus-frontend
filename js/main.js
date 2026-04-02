@@ -14,6 +14,8 @@ import * as Admin from "./modules/admin.js";
 import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader, initLazyLoading, secureFetchWithCache } from "./core/utils.js";
 
 
+let deferredPrompt = null;
+
 
 
 /* --- DONNÉES ONBOARDING PREMIUM AVEC IMAGES --- */
@@ -1426,6 +1428,16 @@ window.openProfileMenu = () => {
                             <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                         </label>
                     </div>
+                    <!-- Option Installation PWA -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-download text-slate-400"></i>
+                            <span class="text-xs font-bold text-slate-700">Installer l'application</span>
+                        </div>
+                        <button onclick="window.installPWA(); Swal.close();" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">
+                            Installer
+                        </button>
+                    </div>
                     <button onclick="window.logout()" class="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold text-sm active:scale-95 transition-transform">
                         Déconnexion
                     </button>
@@ -1439,7 +1451,6 @@ window.openProfileMenu = () => {
                 soundToggle.addEventListener('change', (e) => {
                     const enabled = e.target.checked;
                     setSoundsEnabled(enabled);
-                    // Jouer un son test si activé
                     if (enabled) {
                         playSound('success');
                         showToast("Sons activés", "success", 1500);
@@ -1452,6 +1463,20 @@ window.openProfileMenu = () => {
     });
 };
 
+// Fonction d'installation PWA
+window.installPWA = () => {
+    if (window.deferredPrompt) {
+        window.deferredPrompt.prompt();
+        window.deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                showToast("Application installée !", "success");
+            }
+            window.deferredPrompt = null;
+        });
+    } else {
+        showToast("L'installation est déjà disponible ou non supportée", "info");
+    }
+};
 
 
 
@@ -1672,6 +1697,13 @@ document.addEventListener('click', (e) => {
             if (chevron) chevron.style.transform = 'rotate(0deg)';
         }
     }
+});
+
+// Ajoute ceci vers la fin du fichier, avant initApp()
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window.deferredPrompt = e;
+    console.log('📱 PWA installable détectée');
 });
 
 initApp();
