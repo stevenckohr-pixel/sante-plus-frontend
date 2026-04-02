@@ -1070,18 +1070,24 @@ window.selectPack = (packId, price) => {
     const themeColor = isMamanFlow ? 'pink' : 'emerald';
     const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
     const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
+    const borderColorClass = isMamanFlow ? 'border-pink-500' : 'border-emerald-500';
+    const bgColorClass = isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500';
     
     // Mettre à jour l'apparence des cartes
     document.querySelectorAll('.pack-card').forEach(card => {
         const cardPackId = card.dataset.packId;
         if (cardPackId === packId) {
-            card.classList.add(`border-${themeColor}-500`, themeBgClass);
+            // Ajouter les classes une par une
+            card.classList.add(borderColorClass);
+            card.classList.add(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+            card.classList.add(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
             card.classList.remove('border-slate-100');
             
             // Mettre à jour l'icône
             const iconDiv = card.querySelector('.w-12.h-12');
             if (iconDiv) {
-                iconDiv.classList.add(themeBgClass);
+                iconDiv.classList.add(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+                iconDiv.classList.add(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
                 iconDiv.classList.remove('bg-slate-50');
                 const icon = iconDiv.querySelector('i');
                 if (icon) {
@@ -1093,18 +1099,23 @@ window.selectPack = (packId, price) => {
             // Mettre à jour le radio button
             const radioDiv = card.querySelector('.w-5.h-5');
             if (radioDiv) {
-                radioDiv.classList.add(`border-${themeColor}-500`, `bg-${themeColor}-500`);
+                radioDiv.classList.add(borderColorClass);
+                radioDiv.classList.add(bgColorClass);
                 radioDiv.classList.remove('border-slate-300', 'bg-transparent');
                 radioDiv.innerHTML = '<i class="fa-solid fa-check text-white text-[8px]"></i>';
             }
         } else {
-            card.classList.remove(`border-${themeColor}-500`, themeBgClass);
+            // Supprimer les classes une par une
+            card.classList.remove(borderColorClass);
+            card.classList.remove(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+            card.classList.remove(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
             card.classList.add('border-slate-100');
             
             // Réinitialiser l'icône
             const iconDiv = card.querySelector('.w-12.h-12');
             if (iconDiv) {
-                iconDiv.classList.remove(themeBgClass);
+                iconDiv.classList.remove(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+                iconDiv.classList.remove(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
                 iconDiv.classList.add('bg-slate-50');
                 const icon = iconDiv.querySelector('i');
                 if (icon) {
@@ -1116,7 +1127,8 @@ window.selectPack = (packId, price) => {
             // Réinitialiser le radio button
             const radioDiv = card.querySelector('.w-5.h-5');
             if (radioDiv) {
-                radioDiv.classList.remove(`border-${themeColor}-500`, `bg-${themeColor}-500`);
+                radioDiv.classList.remove(borderColorClass);
+                radioDiv.classList.remove(bgColorClass);
                 radioDiv.classList.add('border-slate-300');
                 radioDiv.innerHTML = '';
             }
@@ -1134,7 +1146,6 @@ window.selectPack = (packId, price) => {
     
     UI.vibrate('success');
 };
-
 
 
 function getNavLinks(role, mode) {
