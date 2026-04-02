@@ -373,246 +373,255 @@ function setThemeColor(color) {
  * 📦 MINI-VUES DYNAMIQUES (Alignées sur le PDF)
  */
 function getStepHTML() {
-    switch(currentStep) {
-        case 1: return `
-    <div class="text-center mb-4">
-        <h3 class="text-base font-black text-slate-800">Identité du Payeur</h3>
-        <p class="text-[9px] text-slate-400">Responsable financier du dossier</p>
-    </div>
-    <div class="space-y-3">
-        <div class="relative">
-            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="f-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du responsable" value="${registrationData.nom_famille || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <select id="f-lien" class="app-input !pl-11 !py-3 !text-sm">
-                <option value="">Lien de parenté avec le patient</option>
-                <option value="Fils/Fille">👨‍👧 Fils / Fille</option>
-                <option value="Frère/Soeur">👫 Frère / Soeur</option>
-                <option value="Conjoint">💑 Conjoint(e)</option>
-                <option value="Parent">👴👵 Parent</option>
-                <option value="Neveu/Nièce">👦👧 Neveu / Nièce</option>
-                <option value="Cousin/Cousine">👥 Cousin / Cousine</option>
-                <option value="Ami">🤝 Ami proche</option>
-            </select>
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="f-email" type="email" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse email" value="${registrationData.email || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="f-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone (ex: +229 XX XXX XXX)" value="${registrationData.tel_famille || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="f-pass" type="password" class="app-input !pl-11 !py-3 !text-sm" placeholder="Créer un mot de passe (minimum 6 caractères)">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="f-ville" class="app-input !pl-11 !py-3 !text-sm" placeholder="Ville / Pays (ex: Cotonou, Bénin)" value="${registrationData.ville_payeur || ''}">
-        </div>
-    </div>`;
-        
-      case 2: return `
-    <div class="text-center mb-4">
-        <h3 class="text-base font-black text-slate-800">Le Proche au Bénin</h3>
-        <p class="text-[9px] text-slate-400">Personne âgée ou patient à domicile</p>
-    </div>
-    <div class="space-y-3">
-        <div class="relative">
-            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="p-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="p-age" type="number" class="app-input !pl-11 !py-3 !text-sm" placeholder="Âge du patient" value="${registrationData.age_patient || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <select id="p-sex" class="app-input !pl-11 !py-3 !text-sm">
-                <option value="">Sexe</option>
-                <option value="Homme">👨 Homme</option>
-                <option value="Femme">👩 Femme</option>
-            </select>
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="p-addr" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse complète (quartier, rue, repères)" value="${registrationData.adresse_patient || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="p-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone du patient (si disponible)" value="${registrationData.tel_patient || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-address-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="p-urgence" class="app-input !pl-11 !py-3 !text-sm" placeholder="Contact urgence local (voisin/famille proche)" value="${registrationData.contact_urgence || ''}">
-        </div>
-        <div class="relative">
-            <i class="fa-solid fa-phone-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-            <input id="p-urgence-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone urgence" value="${registrationData.contact_urgence_tel || ''}">
-        </div>
-    </div>`;
-
-      case 3: return `
-    <div class="text-center mb-4">
-        <h3 class="text-base font-black text-slate-800">Profil de Santé</h3>
-        <p class="text-[9px] text-slate-400">Informations médicales importantes</p>
-    </div>
-    <div class="space-y-4">
-        <div>
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Pathologies connues</label>
-            <div class="flex flex-wrap gap-2">
-                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Diabète"> Diabète</label>
-                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Hypertension"> Hypertension</label>
-                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Arthrose"> Arthrose</label>
-                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Alzheimer"> Alzheimer</label>
-                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Parkinson"> Parkinson</label>
-                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="AVC"> Antécédent AVC</label>
-            </div>
-        </div>
-        <div>
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Traitements en cours</label>
-            <textarea id="p-traitements" class="app-input !py-3 !text-sm h-24" placeholder="Médicaments, posologies...">${registrationData.traitements || ''}</textarea>
-        </div>
-        <div>
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Allergies</label>
-            <textarea id="p-allergies" class="app-input !py-3 !text-sm h-20" placeholder="Médicaments, aliments, autres...">${registrationData.allergies || ''}</textarea>
-        </div>
-        <div>
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Observations générales</label>
-            <textarea id="p-notes" class="app-input !py-3 !text-sm h-24" placeholder="Mobilité, habitudes, précautions...">${registrationData.notes_medicales || ''}</textarea>
-        </div>
-    </div>`;
-
-           case 4: return `
-    <div class="text-center mb-6">
-        <h3 class="text-base font-black text-slate-800">Type de Service</h3>
-        <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Sélectionnez la catégorie</p>
-    </div>
-    
-    <!-- Plus de overflow, plus de scrollbar -->
-    <div id="category-selector" class="space-y-3">
-        <div onclick="window.openCategorySelector('SENIOR')" 
-             class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-emerald-200">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl">👴</div>
-                <div class="flex-1">
-                    <h4 class="font-black text-slate-800 text-base">Personne Âgée</h4>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Maintien à domicile</p>
-                </div>
-                <i class="fa-solid fa-chevron-right text-slate-300"></i>
-            </div>
-        </div>
-        
-        <div onclick="window.openCategorySelector('MAMAN_BEBE')" 
-             class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-pink-200">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-2xl">👶</div>
-                <div class="flex-1">
-                    <h4 class="font-black text-slate-800 text-base">Maman & Bébé</h4>
-                    <p class="text-[10px] text-pink-500 font-bold uppercase mt-0.5">Sortie de maternité</p>
-                </div>
-                <i class="fa-solid fa-chevron-right text-slate-300"></i>
-            </div>
-        </div>
-    </div>
-    
-    <div id="selected-category-display" class="mt-4 hidden">
-        <div class="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-            <div class="flex items-center gap-2">
-                <i id="selected-category-icon" class="fa-solid fa-check-circle text-emerald-500"></i>
-                <span id="selected-category-text" class="text-xs font-bold text-emerald-700"></span>
-            </div>
-            <button onclick="window.clearCategorySelection()" class="text-[10px] text-emerald-500 underline">Modifier</button>
-        </div>
-    </div>
-`;
-
-            
-case 5: 
     const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
     const themeColor = isMamanFlow ? 'pink' : 'emerald';
-    const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
-    const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
+    const themeBgClass = isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50';
+    const themeBorderClass = isMamanFlow ? 'border-pink-200' : 'border-emerald-200';
+    const themeTextClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
     
-    const packs = isMamanFlow ? [
-        { id: 'ESSENTIEL', name: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'], icon: 'fa-seedling', popular: false },
-        { id: 'CONFORT', name: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'], icon: 'fa-chart-line', popular: true },
-        { id: 'SERENITE', name: 'Pack Sérénité', desc: 'Présence quasi quotidienne', price: '150.000', features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'], icon: 'fa-crown', popular: false },
-        { id: 'MATERNITE', name: 'Spécial Sortie Maternité', desc: 'Suivi intensif sur 2 semaines', price: '70.000', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'], icon: 'fa-baby-carriage', popular: false }
-    ] : [
-        { id: 'PONCTUEL', name: 'Intervention Ponctuelle', desc: 'Rdv médical, besoin urgent', price: '10.000', features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'], icon: 'fa-clock', popular: false },
-        { id: 'REGULIER', name: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000', features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'], icon: 'fa-calendar-week', popular: true },
-        { id: 'COMPLET', name: 'Accompagnement Complet', desc: 'Présence soutenue', price: '150.000', features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'], icon: 'fa-star', popular: false }
-    ];
-    
-    return `
-        <div class="text-center mb-6">
-            <h3 class="text-base font-black text-slate-800">Choisissez votre formule</h3>
-            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Tarifs mensuels en CFA</p>
-        </div>
+    switch(currentStep) {
+        case 1: return `
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fa-solid fa-user-plus text-2xl ${themeTextClass}"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-800">Identité du Payeur</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Qui paie l'accompagnement ?</p>
+            </div>
+            <div class="space-y-4">
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="f-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du responsable" value="${registrationData.nom_famille || ''}">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="f-email" type="email" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse email" value="${registrationData.email || ''}">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="f-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone" value="${registrationData.tel_famille || ''}">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <select id="f-lien" class="app-input !pl-11 !py-3 !text-sm">
+                        <option value="">Lien de parenté</option>
+                        <option value="Fils/Fille">👨‍👧 Fils / Fille</option>
+                        <option value="Frère/Soeur">👫 Frère / Soeur</option>
+                        <option value="Conjoint">💑 Conjoint(e)</option>
+                        <option value="Parent">👴👵 Parent</option>
+                    </select>
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="f-pass" type="password" class="app-input !pl-11 !py-3 !text-sm" placeholder="Créer un mot de passe (6 caractères min.)">
+                </div>
+            </div>
+        `;
         
-        <!-- Plus de max-h et overflow-y-auto -->
-        <div id="pack-selector" class="space-y-3">
-            ${packs.map(pack => `
-                <div onclick="window.selectPack('${pack.id}', '${pack.price}')" 
-                     class="pack-card p-4 bg-white rounded-xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-${themeColor}-300 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 ${themeBgClass}` : ''}"
-                     data-pack-id="${pack.id}">
-                    <div class="flex items-start gap-3">
-                        <div class="w-12 h-12 rounded-xl ${registrationData.type_pack === pack.id ? themeBgClass : 'bg-slate-50'} flex items-center justify-center shrink-0">
-                            <i class="fa-solid ${pack.icon} ${registrationData.type_pack === pack.id ? themeColorClass : 'text-slate-400'} text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                                <div class="flex items-center gap-2">
-                                    <p class="font-black text-slate-800 text-sm">${pack.name}</p>
-                                    ${pack.popular ? `<span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[8px] font-black uppercase">Populaire</span>` : ''}
-                                </div>
-                                <p class="text-base font-black ${themeColorClass}">${pack.price} F</p>
-                            </div>
-                            <p class="text-[10px] text-slate-400 mt-0.5">${pack.desc}</p>
-                            <div class="flex flex-wrap gap-2 mt-2">
-                                ${pack.features.map(f => `<span class="text-[8px] text-slate-500 bg-slate-50 px-2 py-1 rounded-full">✓ ${f}</span>`).join('')}
-                            </div>
-                        </div>
-                        <div class="shrink-0">
-                            <div class="w-5 h-5 rounded-full border-2 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 bg-${themeColor}-500` : 'border-slate-300'} flex items-center justify-center">
-                                ${registrationData.type_pack === pack.id ? '<i class="fa-solid fa-check text-white text-[8px]"></i>' : ''}
-                            </div>
-                        </div>
+        case 2: return `
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fa-solid fa-hospital-user text-2xl ${themeTextClass}"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-800">Votre Proche au Bénin</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">La personne accompagnée</p>
+            </div>
+            <div class="space-y-4">
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="p-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="relative">
+                        <i class="fa-solid fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                        <input id="p-age" type="number" class="app-input !pl-11 !py-3 !text-sm" placeholder="Âge">
+                    </div>
+                    <div class="relative">
+                        <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                        <select id="p-sex" class="app-input !pl-11 !py-3 !text-sm">
+                            <option value="">Sexe</option>
+                            <option value="Homme">👨 Homme</option>
+                            <option value="Femme">👩 Femme</option>
+                        </select>
                     </div>
                 </div>
-            `).join('')}
-        </div>
-        
-        <div class="mt-6">
-            <button onclick="window.nextAuthStep()" 
-                    id="pack-continue-btn"
-                    class="w-full py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${registrationData.type_pack ? (isMamanFlow ? 'bg-pink-500 hover:bg-pink-600' : 'bg-emerald-500 hover:bg-emerald-600') : 'bg-slate-200 text-slate-400 cursor-not-allowed'}"
-                    ${!registrationData.type_pack ? 'disabled' : ''}>
-                Continuer <i class="fa-solid fa-arrow-right"></i>
-            </button>
-        </div>
-    `;
-        case 6: return `
-            <div class="text-center mb-4">
-                <h3 class="text-base font-black text-slate-800">Engagement Élite</h3>
+                <div class="relative">
+                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="p-addr" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse complète (quartier, rue, repères)" value="${registrationData.adresse_patient || ''}">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="p-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone du patient (optionnel)">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-address-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="p-urgence" class="app-input !pl-11 !py-3 !text-sm" placeholder="Contact urgence (voisin/famille proche)" value="${registrationData.contact_urgence || ''}">
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-phone-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                    <input id="p-urgence-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone urgence">
+                </div>
             </div>
-            <div class="bg-amber-50 p-5 rounded-3xl border border-amber-100 mb-6">
+        `;
+        
+        case 3: return `
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fa-solid fa-heartbeat text-2xl ${themeTextClass}"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-800">Profil de Santé</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Informations médicales importantes</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Pathologies connues</label>
+                    <div class="flex flex-wrap gap-2">
+                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Diabète"> Diabète</label>
+                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Hypertension"> Hypertension</label>
+                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Arthrose"> Arthrose</label>
+                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Alzheimer"> Alzheimer</label>
+                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Parkinson"> Parkinson</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Traitements en cours</label>
+                    <textarea id="p-traitements" class="app-input !py-3 !text-sm h-24" placeholder="Médicaments, posologies..."></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Allergies</label>
+                    <textarea id="p-allergies" class="app-input !py-3 !text-sm h-20" placeholder="Médicaments, aliments..."></textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Observations générales</label>
+                    <textarea id="p-notes" class="app-input !py-3 !text-sm h-24" placeholder="Mobilité, habitudes, précautions..."></textarea>
+                </div>
+            </div>
+        `;
+        
+        case 4: return `
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fa-solid fa-layer-group text-2xl ${themeTextClass}"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-800">Type de Service</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Sélectionnez la catégorie</p>
+            </div>
+            <div id="category-selector" class="space-y-3">
+                <div onclick="window.openCategorySelector('SENIOR')" 
+                     class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-emerald-200 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-3xl">👴</div>
+                        <div>
+                            <h4 class="font-black text-slate-800 text-base">Personne Âgée</h4>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Maintien à domicile</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                </div>
+                <div onclick="window.openCategorySelector('MAMAN_BEBE')" 
+                     class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-pink-200 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-3xl">👶</div>
+                        <div>
+                            <h4 class="font-black text-slate-800 text-base">Maman & Bébé</h4>
+                            <p class="text-[10px] text-pink-500 font-bold uppercase mt-0.5">Sortie de maternité</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300"></i>
+                </div>
+            </div>
+            <div id="selected-category-display" class="mt-4 hidden">
+                <div class="flex items-center justify-between p-3 ${themeBgClass} rounded-xl border ${themeBorderClass}">
+                    <div class="flex items-center gap-2">
+                        <i id="selected-category-icon" class="fa-solid fa-check-circle ${themeTextClass}"></i>
+                        <span id="selected-category-text" class="text-xs font-bold ${themeTextClass}"></span>
+                    </div>
+                    <button onclick="window.clearCategorySelection()" class="text-[10px] underline ${themeTextClass}">Modifier</button>
+                </div>
+            </div>
+        `;
+        
+        case 5: 
+            const packs = isMamanFlow ? [
+                { id: 'ESSENTIEL', name: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000', features: ['2 visites/semaine', 'Suivi de base', 'Rapport hebdomadaire'] },
+                { id: 'CONFORT', name: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000', features: ['3-4 visites/semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'] },
+                { id: 'SERENITE', name: 'Pack Sérénité', desc: 'Présence quasi quotidienne', price: '150.000', features: ['6-7 visites/semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport temps réel'] },
+                { id: 'MATERNITE', name: 'Spécial Sortie Maternité', desc: 'Suivi intensif 2 semaines', price: '70.000', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'] }
+            ] : [
+                { id: 'PONCTUEL', name: 'Intervention Ponctuelle', desc: 'Rdv médical, besoin urgent', price: '10.000', features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'] },
+                { id: 'REGULIER', name: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000', features: ['2-3 visites/semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'] },
+                { id: 'COMPLET', name: 'Accompagnement Complet', desc: 'Présence soutenue', price: '150.000', features: ['5-6 visites/semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport temps réel'] }
+            ];
+            
+            return `
+                <div class="text-center mb-6">
+                    <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                        <i class="fa-solid fa-gem text-2xl ${themeTextClass}"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-800">Choisissez votre formule</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Tarifs mensuels en CFA</p>
+                </div>
+                <div id="pack-selector" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                    ${packs.map(pack => `
+                        <div onclick="window.selectPack('${pack.id}', '${pack.price}')" 
+                             class="pack-card p-4 bg-white rounded-xl border-2 cursor-pointer transition-all ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 ${themeBgClass}` : 'border-slate-100'}"
+                             data-pack-id="${pack.id}">
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-xl ${registrationData.type_pack === pack.id ? themeBgClass : 'bg-slate-50'} flex items-center justify-center shrink-0">
+                                    <i class="fa-solid ${pack.id.includes('CONFORT') || pack.id.includes('REGULIER') ? 'fa-chart-line' : pack.id.includes('SERENITE') || pack.id.includes('COMPLET') ? 'fa-crown' : 'fa-seedling'} ${registrationData.type_pack === pack.id ? themeTextClass : 'text-slate-400'} text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <p class="font-black text-slate-800 text-sm">${pack.name}</p>
+                                        <p class="text-base font-black ${themeTextClass}">${pack.price} F</p>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">${pack.desc}</p>
+                                    <div class="flex flex-wrap gap-2 mt-2">
+                                        ${pack.features.map(f => `<span class="text-[8px] text-slate-500 bg-slate-50 px-2 py-1 rounded-full">✓ ${f}</span>`).join('')}
+                                    </div>
+                                </div>
+                                <div class="shrink-0">
+                                    <div class="w-5 h-5 rounded-full border-2 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 bg-${themeColor}-500` : 'border-slate-300'} flex items-center justify-center">
+                                        ${registrationData.type_pack === pack.id ? '<i class="fa-solid fa-check text-white text-[8px]"></i>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="mt-6">
+                    <button onclick="window.nextAuthStep()" 
+                            id="pack-continue-btn"
+                            class="w-full py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${registrationData.type_pack ? (isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500') : 'bg-slate-200 text-slate-400 cursor-not-allowed'}"
+                            ${!registrationData.type_pack ? 'disabled' : ''}>
+                        Continuer <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            `;
+            
+        case 6: return `
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 mx-auto bg-amber-50 rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                    <i class="fa-solid fa-file-signature text-2xl text-amber-600"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-800">Engagement Élite</h3>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Conditions d'accompagnement</p>
+            </div>
+            <div class="bg-amber-50 p-5 rounded-2xl border border-amber-100 mb-6">
                 <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
-                    <b>AVERTISSEMENT LÉGAL :</b> Santé Plus Services propose un accompagnement <b>humain et logistique</b>. Nos intervenants ne sont pas des médecins ou infirmiers. 
-                    <br><br>
-                    ❌ Pas d'injections<br>
-                    ❌ Pas de prescriptions médicales<br>
-                    ❌ Pas d'actes infirmiers
+                    <b>⚠️ AVERTISSEMENT LÉGAL :</b> Santé Plus Services propose un accompagnement <b>humain et logistique</b>. Nos intervenants ne sont pas des médecins ou infirmiers.
                 </p>
+                <div class="mt-3 space-y-1 text-[10px] text-amber-700">
+                    <p>❌ Pas d'injections</p>
+                    <p>❌ Pas de prescriptions médicales</p>
+                    <p>❌ Pas d'actes infirmiers</p>
+                </div>
             </div>
             <label class="flex items-start gap-3 p-4 bg-white rounded-2xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition-all">
                 <input type="checkbox" id="legal-check" class="mt-1 w-5 h-5 accent-emerald-500">
                 <span class="text-xs font-bold text-slate-700 leading-tight">Je certifie avoir compris que ce service est une assistance au quotidien, non-médicale.</span>
-            </label>`;
+            </label>
+        `;
     }
 }
 
