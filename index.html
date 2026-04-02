@@ -49,49 +49,64 @@
     <div id="view-templates" class="hidden">
 
         <!-- VUE : DASHBOARD (Coordinateur) -->
-        <section id="template-dashboard">
-            <!-- KPIs -->
-            <div class="grid grid-cols-2 gap-4 mb-8">
-                <div class="bg-white p-5 rounded-[2rem] shadow-sm border border-slate-100">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
-                    <h3 id="stat-patients" class="text-2xl font-black text-slate-800">0</h3>
-                </div>
-                <div class="bg-green-50 p-5 rounded-[2rem] border border-green-100">
-                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Visites Jour</p>
-                    <h3 id="stat-visits" class="text-2xl font-black text-green-700">0</h3>
-                </div>
-                <div class="bg-orange-50 p-5 rounded-[2rem] border border-orange-100">
-                    <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">À Valider</p>
-                    <h3 id="stat-pending" class="text-2xl font-black text-orange-700">0</h3>
-                </div>
-                <div class="bg-red-50 p-5 rounded-[2rem] border border-red-100">
-                    <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Retards</p>
-                    <h3 id="stat-late" class="text-2xl font-black text-red-700">0</h3>
-                </div>
-            </div>
+     <section id="template-dashboard">
+    <!-- KPIs -->
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
+            <h3 id="stat-patients" class="text-2xl font-black text-slate-800">0</h3>
+        </div>
+        <div class="bg-green-50 p-5 rounded-2xl border border-green-100">
+            <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Visites Jour</p>
+            <h3 id="stat-visits" class="text-2xl font-black text-green-700">0</h3>
+        </div>
+        <div class="bg-orange-50 p-5 rounded-2xl border border-orange-100">
+            <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">À Valider</p>
+            <h3 id="stat-pending" class="text-2xl font-black text-orange-700">0</h3>
+        </div>
+        <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
+            <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Retards</p>
+            <h3 id="stat-late" class="text-2xl font-black text-red-700">0</h3>
+        </div>
+    </div>
 
-            <!-- Inscriptions en attente -->
-            <div class="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden mt-8">
-                <div class="p-6 border-b border-slate-50">
-                    <h3 class="text-lg font-black text-slate-800">Inscriptions en attente</h3>
-                </div>
-                <table class="w-full text-left">
-                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <tr>
-                            <th class="p-4">Responsable</th>
-                            <th class="p-4">Email</th>
-                            <th class="p-4">Rôle</th>
-                            <th class="p-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pending-table-body" class="divide-y divide-slate-50 text-xs"></tbody>
-                </table>
-            </div>
+    <!-- ============================================ -->
+    <!-- INSCRIPTIONS EN ATTENTE - VERSION RESPONSIVE -->
+    <!-- ============================================ -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-8">
+        <div class="p-6 border-b border-slate-50">
+            <h3 class="text-lg font-black text-slate-800">Inscriptions en attente</h3>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Validation des accès & Activation Duo Pack</p>
+        </div>
 
-            <!-- Interventions à contrôler -->
-            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1 mt-8">Interventions à contrôler</h4>
-            <div id="pending-actions-list" class="space-y-3"></div>
-        </section>
+        <!-- VERSION DESKTOP (TABLEAU) - Visible uniquement sur PC -->
+        <div class="hidden lg:block overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <tr>
+                        <th class="px-6 py-4">Responsable</th>
+                        <th class="px-6 py-4">Type</th>
+                        <th class="px-6 py-4">Parent au Bénin</th>
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-table-body" class="divide-y divide-slate-50"></tbody>
+            </table>
+        </div>
+
+        <!-- VERSION MOBILE (CARTES) - Visible uniquement sur mobile -->
+        <div id="pending-mobile-list" class="lg:hidden divide-y divide-slate-100">
+            <!-- Les inscriptions seront injectées ici sous forme de cartes -->
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- INTERVENTIONS À CONTRÔLER -->
+    <!-- ============================================ -->
+    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1 mt-8">Interventions à contrôler</h4>
+    <div id="pending-actions-list" class="space-y-3"></div>
+</section>
 
         <!-- VUE : PATIENTS (Liste) -->
         <section id="template-patients">
