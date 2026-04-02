@@ -98,53 +98,78 @@ export async function loadAidants() {
     }
 }
 
-/**
- * 📄 VUE : PAGE DE RECRUTEMENT (Pleine page)
- */
+
 export async function renderAddAidantView() {
     const container = document.getElementById("view-container");
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
-            <!-- Header de Page -->
             <div class="flex items-center gap-4 mb-8">
                 <button onclick="window.switchView('aidants')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors active:scale-95">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Nouveau Profil</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Création d'un accès collaborateur</p>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Nouveau Collaborateur</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Création d'un compte aidant</p>
                 </div>
             </div>
 
-            <!-- Formulaire -->
-            <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
-                <div class="space-y-5">
-                    <!-- Nom complet -->
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Nom complet</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-user-tie absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="reg-nom" class="app-input !pl-11" placeholder="Ex: Chloé Dossou">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div class="space-y-4">
+                    <!-- Identité -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Prénom</label>
+                            <input id="reg-prenom" class="app-input !py-3 !text-sm" placeholder="Prénom">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Nom</label>
+                            <input id="reg-nom" class="app-input !py-3 !text-sm" placeholder="Nom">
                         </div>
                     </div>
 
-                    <!-- Email -->
+                    <!-- Contact -->
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Email professionnel</label>
                         <div class="relative">
                             <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="reg-email" type="email" class="app-input !pl-11" placeholder="chloe@santeplus.bj">
+                            <input id="reg-email" type="email" class="app-input !pl-11 !py-3" placeholder="aidant@santeplus.bj">
                         </div>
                     </div>
 
-                    <!-- Téléphone -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Téléphone mobile</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Téléphone</label>
                         <div class="relative">
                             <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="reg-tel" class="app-input !pl-11" placeholder="+229 XX XXX XXX">
+                            <input id="reg-tel" class="app-input !pl-11 !py-3" placeholder="+229 XX XXX XXX">
                         </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Adresse</label>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+                            <input id="reg-adresse" class="app-input !pl-11 !py-3" placeholder="Quartier, ville...">
+                        </div>
+                    </div>
+
+                    <!-- Compétences -->
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Compétences</label>
+                        <div class="flex flex-wrap gap-2">
+                            <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="skill-check" value="Soins de base"> Soins de base</label>
+                            <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="skill-check" value="Aide à la mobilité"> Aide mobilité</label>
+                            <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="skill-check" value="Préparation repas"> Préparation repas</label>
+                            <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="skill-check" value="Accompagnement"> Accompagnement</label>
+                            <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="skill-check" value="Premiers secours"> Premiers secours</label>
+                        </div>
+                    </div>
+
+                    <!-- Disponibilités -->
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Disponibilités</label>
+                        <textarea id="reg-dispo" rows="2" class="app-input !py-3 !text-sm" placeholder="Ex: Lundis et mercredis après-midi, week-ends..."></textarea>
                     </div>
 
                     <!-- Mot de passe -->
@@ -152,88 +177,68 @@ export async function renderAddAidantView() {
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Mot de passe temporaire</label>
                         <div class="relative">
                             <i class="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                            <input id="reg-pass" type="text" class="app-input !pl-11 font-mono" placeholder="Sera envoyé à l'aidant" value="SPS-${Math.floor(1000 + Math.random() * 9000)}!">
+                            <input id="reg-pass" type="text" class="app-input !pl-11 !py-3 font-mono" placeholder="Mot de passe" value="SPS-${Math.floor(1000 + Math.random() * 9000)}!">
                         </div>
                     </div>
 
                     <!-- Rôle -->
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Rôle assigné</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Rôle</label>
                         <select id="reg-role" class="app-input font-bold text-slate-800 cursor-pointer">
-                            <option value="AIDANT">Aidant Terrain (Intervenant)</option>
-                            <option value="COORDINATEUR">Coordinateur (Administrateur)</option>
+                            <option value="AIDANT">Aidant Terrain</option>
+                            <option value="COORDINATEUR">Coordinateur</option>
                         </select>
                     </div>
 
-                    <!-- Bouton validation -->
-                    <div class="pt-4 border-t border-slate-100 mt-6">
-                        <button id="submit-aidant-btn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-user-check"></i> Créer le collaborateur
-                        </button>
-                    </div>
+                    <button id="submit-aidant-btn" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 mt-4">
+                        <i class="fa-solid fa-user-plus"></i> Créer le collaborateur
+                    </button>
                 </div>
             </div>
         </div>
     `;
 
-    // Lier l'événement
     document.getElementById("submit-aidant-btn").onclick = () => submitAddAidant();
 }
 
-/**
- * 📤 SOUMISSION AU SERVEUR
- */
 export async function submitAddAidant() {
+    const prenom = document.getElementById('reg-prenom')?.value;
     const nom = document.getElementById('reg-nom')?.value;
+    const nomComplet = `${prenom} ${nom}`.trim();
     const email = document.getElementById('reg-email')?.value;
     const pass = document.getElementById('reg-pass')?.value;
     const tel = document.getElementById('reg-tel')?.value;
+    const adresse = document.getElementById('reg-adresse')?.value;
     const role = document.getElementById('reg-role')?.value;
+    const competences = Array.from(document.querySelectorAll('.skill-check:checked')).map(cb => cb.value);
+    const disponibilites = document.getElementById('reg-dispo')?.value;
 
-    if (!nom || !email || !pass) {
+    if (!nomComplet || !email || !pass) {
         UI.vibrate('error');
-        return Swal.fire({
-            title: "Données manquantes",
-            text: "Veuillez remplir tous les champs obligatoires",
-            icon: "warning",
-            customClass: { popup: 'rounded-2xl' }
-        });
+        return Swal.fire({ title: "Champs manquants", text: "Nom, email et mot de passe sont requis", icon: "warning" });
     }
 
-    Swal.fire({ 
-        title: 'Création du profil...', 
-        didOpen: () => Swal.showLoading(), 
-        allowOutsideClick: false, 
-        customClass: { popup: 'rounded-2xl' } 
-    });
+    Swal.fire({ title: 'Création...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
     try {
-        const res = await secureFetch('/auth/create-member', {
+        await secureFetch('/auth/create-member', {
             method: 'POST',
-            body: JSON.stringify({ nom, email, telephone: tel, password: pass, role })
+            body: JSON.stringify({ 
+                nom: nomComplet, 
+                email, 
+                telephone: tel, 
+                adresse,
+                competences,
+                disponibilites,
+                password: pass, 
+                role 
+            })
         });
-
-        if (res.ok) {
-            UI.success("Collaborateur créé avec succès");
-            Swal.fire({
-                icon: "success",
-                title: "Recrutement Validé",
-                text: "Le collaborateur peut maintenant se connecter à son espace.",
-                confirmButtonColor: "#10B981",
-                customClass: { popup: 'rounded-2xl' }
-            });
-            window.switchView("aidants");
-        } else {
-            const data = await res.json();
-            throw new Error(data.error || "Erreur de création");
-        }
+        
+        UI.success("Collaborateur créé");
+        Swal.fire({ icon: "success", title: "Succès", text: "Le collaborateur a été créé.", confirmButtonColor: "#10B981" });
+        window.switchView("aidants");
     } catch (err) {
         UI.error(err.message);
-        Swal.fire({
-            title: "Erreur",
-            text: err.message,
-            icon: "error",
-            customClass: { popup: 'rounded-2xl' }
-        });
     }
 }
