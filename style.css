@@ -673,9 +673,6 @@ main, .custom-scroll {
     }
 }
 
-
-
-
 /* === SCROLL FLUIDE & PERFORMANT === */
 
 /* Amélioration du scroll sur mobile */
@@ -717,8 +714,6 @@ main {
     }
 }
 
-
-
 /* === COULEURS FINALES === */
 
 /* Blanc */
@@ -753,10 +748,6 @@ main {
     background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
     color: #DB2777;
 }
-
-
-
-
 
 /* === LOADER GLOBAL PREMIUM (Version unifiée) === */
 .global-loader {
@@ -831,10 +822,6 @@ main {
     }
 }
 
-
-
-
-
 /* === AMÉLIORATION DES ICÔNES SUR MOBILE === */
 @media (max-width: 640px) {
     /* Menu tiles - plus d'espace */
@@ -861,9 +848,6 @@ main {
         font-size: 0.6rem !important;
     }
 }
-
-
-
 
 /* === SKELETON LOADERS === */
 .skeleton {
@@ -915,9 +899,6 @@ main {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
 }
-
-
-
 
 /* === TRANSITIONS DE PAGES AVANCÉES === */
 
@@ -972,9 +953,6 @@ main {
 #view-container {
     transition: opacity 0.15s ease, transform 0.15s ease;
 }
-
-
-
 
 /* === TOASTS UNIFORMISÉS === */
 .toast-notification {
@@ -1032,56 +1010,3 @@ main {
         max-width: 85%;
     }
 }
-
-
-/* Amélioration de l'icône Apple Touch */
-apple-touch-icon {
-    border-radius: 20%;
-    box-shadow: none;
-}
-
-/* Pour éviter le cadre noir sur l'écran de démarrage */
-body {
-    background-color: #0F172A;
-}
-
-/* Amélioration du splash screen iOS */
-@media (display-mode: standalone) {
-    body {
-        background-color: #0F172A;
-    }
-}
-
-/* ============================================ */
-/* OPTIMISATIONS LÉGÈRES (garder l'essentiel) */
-/* ============================================ */
-
-/* Limiter la mémoire GPU - utile pour tous */
-* {
-    -webkit-tap-highlight-color: transparent;
-}
-
-/* Éviter les repaints inutiles sur les images */
-img {
-    content-visibility: auto;
-}
-
-/* Amélioration de l'icône Apple Touch */
-apple-touch-icon {
-    border-radius: 20%;
-    box-shadow: none;
-}
-
-/* Pour éviter le cadre noir sur l'écran de démarrage */
-body {
-    background-color: #0F172A;
-}
-
-/* Amélioration du splash screen iOS */
-@media (display-mode: standalone) {
-    body {
-        background-color: #0F172A;
-    }
-}
-
-
