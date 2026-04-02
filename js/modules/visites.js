@@ -279,8 +279,11 @@ export function renderVisits() {
                 ${v.photo_url ? `<img src="${v.photo_url}" class="w-full h-32 object-cover rounded-2xl mb-3 shadow-inner">` : ""}
                 
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px]">
-                        <i class="fa-solid fa-user-nurse"></i>
+                    <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                        ${v.aidant?.photo_url ? 
+                            `<img src="${v.aidant.photo_url}" class="w-full h-full object-cover">` : 
+                            `<i class="fa-solid fa-user-nurse text-slate-400 text-xs"></i>`
+                        }
                     </div>
                     <p class="text-[11px] font-bold text-slate-600">${v.aidant.nom}</p>
                 </div>
