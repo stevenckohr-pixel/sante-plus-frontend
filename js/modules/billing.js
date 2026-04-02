@@ -229,5 +229,3 @@ window.markAsPaid = async (id, montant) => {
   }
 };
 
-// ✅ EXPORT
-export { loadBilling };
