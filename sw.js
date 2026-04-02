@@ -1,8 +1,12 @@
-const CACHE_NAME = 'sps-v3';
-const STATIC_CACHE = 'sps-static-v3';
-const IMAGE_CACHE = 'sps-images-v3';
+// ============================================
+// SERVICE WORKER OPTIMISÉ POUR PETITS RAM
+// ============================================
 
-// Fichiers statiques à mettre en cache
+const CACHE_NAME = 'sps-v4';
+const STATIC_CACHE = 'sps-static-v4';
+const IMAGE_CACHE = 'sps-images-v4';
+
+// Fichiers statiques essentiels uniquement
 const staticUrls = [
   './',
   './index.html',
@@ -13,24 +17,22 @@ const staticUrls = [
 
 // Installation
 self.addEventListener('install', (event) => {
-  console.log('🔧 Service Worker installation...');
+  console.log('🔧 SW installation...');
   event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE).then(cache => cache.addAll(staticUrls)),
-      caches.open(IMAGE_CACHE)
-    ]).then(() => self.skipWaiting())
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(staticUrls))
   );
+  self.skipWaiting();
 });
 
-// Activation - nettoyage des anciens caches
+// Activation
 self.addEventListener('activate', (event) => {
-  console.log('✨ Service Worker activation...');
+  console.log('✨ SW activation...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== STATIC_CACHE && cache !== IMAGE_CACHE && cache !== CACHE_NAME) {
-            console.log(`🗑️ Suppression ancien cache: ${cache}`);
+            console.log(`🗑️ Suppression: ${cache}`);
             return caches.delete(cache);
           }
         })
@@ -39,65 +41,48 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Stratégie : Network First avec fallback cache pour les API
+// Stratégie: Cache First avec timeout pour économiser la batterie
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // Images : Cache First
+  // API: Network First avec timeout (5 secondes max)
+  if (url.pathname.includes('/api/')) {
+    event.respondWith(
+      Promise.race([
+        fetch(event.request),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+      ])
+      .then(response => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  
+  // Images: Cache First (priorité cache pour économiser la data)
   if (event.request.destination === 'image') {
     event.respondWith(
-      caches.open(IMAGE_CACHE).then(cache => {
-        return cache.match(event.request).then(cached => {
-          if (cached) {
-            console.log(`📷 Image servie depuis cache: ${url.pathname}`);
-            return cached;
-          }
-          return fetch(event.request).then(network => {
-            cache.put(event.request, network.clone());
-            return network;
-          }).catch(() => {
-            // Image par défaut si hors ligne
-            return cache.match('/offline-image.png');
-          });
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(network => {
+          caches.open(IMAGE_CACHE).then(cache => cache.put(event.request, network.clone()));
+          return network;
         });
       })
     );
     return;
   }
   
-  // API : Network First avec fallback
-  if (url.pathname.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, clone);
-          });
-          return response;
-        })
-        .catch(() => {
-          console.log(`📡 API offline fallback: ${url.pathname}`);
-          return caches.match(event.request);
-        })
-    );
-    return;
-  }
-  
-  // Fichiers statiques : Cache First
+  // Fichiers statiques: Cache First
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => {
-        if (cached) {
-          console.log(`📄 Fichier statique servi depuis cache: ${url.pathname}`);
-          return cached;
-        }
-        return fetch(event.request);
-      })
+    caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });
 
-// Gestion des notifications push améliorée
+// Notifications push (allégées)
 self.addEventListener("push", function (event) {
   let data = {};
   try {
@@ -110,12 +95,8 @@ self.addEventListener("push", function (event) {
     body: data.message,
     icon: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
     badge: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
-    vibrate: [100, 50, 100],
-    data: { url: data.url || "/" },
-    actions: [
-      { action: "open", title: "Voir" },
-      { action: "close", title: "Fermer" }
-    ]
+    vibrate: [100],
+    data: { url: data.url || "/" }
   };
   
   event.waitUntil(self.registration.showNotification(data.title || "Santé Plus", options));
@@ -123,20 +104,7 @@ self.addEventListener("push", function (event) {
 
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
-  
-  if (event.action === 'close') return;
-  
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true })
-      .then(windowClients => {
-        for (let client of windowClients) {
-          if (client.url === event.notification.data.url && 'focus' in client) {
-            return client.focus();
-          }
-        }
-        if (clients.openWindow) {
-          return clients.openWindow(event.notification.data.url);
-        }
-      })
+    clients.openWindow(event.notification.data.url)
   );
 });
