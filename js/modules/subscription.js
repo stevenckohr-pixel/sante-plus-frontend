@@ -1,6 +1,137 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
+
+
+// Packs avec durées variables
+const packs = [
+    // Packs mensuels
+    { 
+        id: 'MENSUEL_ESSENTIEL', 
+        name: 'Essentiel', 
+        desc: '2 visites / semaine', 
+        price: 50000,
+        priceDisplay: '50.000 CFA',
+        duration: 1, // mois
+        durationText: '1 mois',
+        features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'],
+        icon: 'fa-seedling',
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-50',
+        popular: false
+    },
+    { 
+        id: 'MENSUEL_CONFORT', 
+        name: 'Confort', 
+        desc: '3 à 4 visites / semaine', 
+        price: 85000,
+        priceDisplay: '85.000 CFA',
+        duration: 1,
+        durationText: '1 mois',
+        features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'],
+        icon: 'fa-chart-line',
+        color: 'text-blue-600',
+        bg: 'bg-blue-50',
+        popular: true
+    },
+    { 
+        id: 'MENSUEL_SERENITE', 
+        name: 'Sérénité', 
+        desc: 'Présence quasi quotidienne', 
+        price: 150000,
+        priceDisplay: '150.000 CFA',
+        duration: 1,
+        durationText: '1 mois',
+        features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'],
+        icon: 'fa-crown',
+        color: 'text-gold-primary',
+        bg: 'bg-amber-50',
+        popular: false
+    },
+    // Packs trimestriels (3 mois) - économie de 5%
+    { 
+        id: 'TRIMESTRIEL_ESSENTIEL', 
+        name: 'Essentiel 3 mois', 
+        desc: '2 visites / semaine', 
+        price: 142500,
+        priceDisplay: '142.500 CFA',
+        originalPrice: 150000,
+        duration: 3,
+        durationText: '3 mois',
+        features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 5%'],
+        icon: 'fa-calendar-alt',
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-50',
+        popular: false,
+        badge: '-5%'
+    },
+    { 
+        id: 'TRIMESTRIEL_CONFORT', 
+        name: 'Confort 3 mois', 
+        desc: '3 à 4 visites / semaine', 
+        price: 242250,
+        priceDisplay: '242.250 CFA',
+        originalPrice: 255000,
+        duration: 3,
+        durationText: '3 mois',
+        features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 5%'],
+        icon: 'fa-calendar-alt',
+        color: 'text-blue-600',
+        bg: 'bg-blue-50',
+        popular: false,
+        badge: '-5%'
+    },
+    // Packs annuels (12 mois) - économie de 15%
+    { 
+        id: 'ANNUEL_ESSENTIEL', 
+        name: 'Essentiel 1 an', 
+        desc: '2 visites / semaine', 
+        price: 510000,
+        priceDisplay: '510.000 CFA',
+        originalPrice: 600000,
+        duration: 12,
+        durationText: '12 mois',
+        features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 15%', 'Paiement unique'],
+        icon: 'fa-calendar-year',
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-50',
+        popular: false,
+        badge: '-15%'
+    },
+    { 
+        id: 'ANNUEL_CONFORT', 
+        name: 'Confort 1 an', 
+        desc: '3 à 4 visites / semaine', 
+        price: 867000,
+        priceDisplay: '867.000 CFA',
+        originalPrice: 1020000,
+        duration: 12,
+        durationText: '12 mois',
+        features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'],
+        icon: 'fa-calendar-year',
+        color: 'text-blue-600',
+        bg: 'bg-blue-50',
+        popular: true,
+        badge: '-15%'
+    },
+    { 
+        id: 'ANNUEL_SERENITE', 
+        name: 'Sérénité 1 an', 
+        desc: 'Présence quasi quotidienne', 
+        price: 1530000,
+        priceDisplay: '1.530.000 CFA',
+        originalPrice: 1800000,
+        duration: 12,
+        durationText: '12 mois',
+        features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel', 'Économie 15%', 'Paiement unique'],
+        icon: 'fa-calendar-year',
+        color: 'text-gold-primary',
+        bg: 'bg-amber-50',
+        popular: false,
+        badge: '-15%'
+    }
+];
+
 /**
  * 📋 PAGE D'ABONNEMENT (Choix du pack)
  */
