@@ -22,9 +22,33 @@ export async function loadBilling() {
 
     console.log("✅ Données reçues Billing:", abonnements);
 
-    // Mise à jour du statut de paiement
-    const hasDebt = Array.isArray(abonnements) && abonnements.some((abo) => abo.statut === "En retard");
-    localStorage.setItem("payment_status", hasDebt ? "En retard" : "A jour");
+    // ============================================
+    // 📅 MISE À JOUR DU STATUT ET DES DATES D'ABONNEMENT
+    // ============================================
+    
+    // Vérifier si un abonnement est en retard ou expiré
+    const hasDebt = Array.isArray(abonnements) && abonnements.some((abo) => 
+      abo.statut === "En retard" || abo.statut === "Expiré"
+    );
+    localStorage.setItem("payment_status", hasDebt ? "Expiré" : "A jour");
+    
+    // Récupérer le dernier abonnement payé pour les dates
+    const paidAbonnement = Array.isArray(abonnements) 
+      ? abonnements.find(abo => abo.statut === "Payé" && abo.date_paiement)
+      : null;
+    
+    if (paidAbonnement) {
+      if (paidAbonnement.date_fin_abonnement) {
+        localStorage.setItem("subscription_end_date", paidAbonnement.date_fin_abonnement);
+      }
+      if (paidAbonnement.date_paiement) {
+        localStorage.setItem("last_payment_date", paidAbonnement.date_paiement);
+      }
+      console.log("📅 Dates abonnement mises à jour:", {
+        end_date: paidAbonnement.date_fin_abonnement,
+        last_payment: paidAbonnement.date_paiement
+      });
+    }
 
     let totalDue = 0, totalPaid = 0, totalLate = 0;
     table.innerHTML = "";
@@ -40,15 +64,17 @@ export async function loadBilling() {
           statusBadge = `<span class="badge-gold px-3 py-1 rounded-full text-[10px] font-bold">
             <i class="fa-solid fa-check-circle mr-1"></i> PAYÉ
           </span>`;
-        } else if (abo.statut === "En retard") {
-          statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 animate-pulse">⚠️ IMPAYÉ</span>`;
+        } else if (abo.statut === "En retard" || abo.statut === "Expiré") {
+          statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 animate-pulse">⚠️ ${abo.statut === "Expiré" ? "EXPIRÉ" : "IMPAYÉ"}</span>`;
         } else {
           statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-700 border border-amber-200">⏳ EN ATTENTE</span>`;
         }
 
         totalDue += abo.montant_du || 0;
         totalPaid += abo.montant_paye || 0;
-        if (abo.statut === "En retard") totalLate += (abo.montant_du - (abo.montant_paye || 0));
+        if (abo.statut === "En retard" || abo.statut === "Expiré") {
+          totalLate += (abo.montant_du - (abo.montant_paye || 0));
+        }
 
         if (userRole === "COORDINATEUR" && abo.statut !== "Payé") {
           actionButton = `<button onclick="window.markAsPaid('${abo.id}', ${abo.montant_du})" class="bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase">Valider Cash</button>`;
@@ -56,11 +82,16 @@ export async function loadBilling() {
           actionButton = `<button onclick="window.payWithFeda('${abo.id}', ${abo.montant_du})" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase shadow-lg">Payer Mobile</button>`;
         }
 
+        // Ajouter une info sur la date d'expiration si disponible
+        const expirationInfo = abo.date_fin_abonnement ? 
+          `<div class="text-[8px] text-slate-400 mt-1">Valable jusqu'au ${new Date(abo.date_fin_abonnement).toLocaleDateString('fr-FR')}</div>` : '';
+
         table.innerHTML += `
           <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
             <td class="p-4">
               <p class="font-black text-slate-800 text-xs uppercase">${abo.patient?.nom_complet || 'Inconnu'}</p>
               <p class="text-[9px] text-slate-400 font-bold">${abo.patient?.formule || '-'}</p>
+              ${expirationInfo}
             </td>
             <td class="p-4 text-[11px] font-bold text-slate-500">${abo.mois_annee}</td>
             <td class="p-4 text-right font-black text-slate-900 text-xs">${UI.formatMoney(abo.montant_du)}</td>
@@ -99,6 +130,7 @@ export async function loadBilling() {
     throw err;
   }
 }
+
 
 /**
  * 💳 REDIRECTION VERS FEDAPAY (Paiement Mobile Money / Carte)
