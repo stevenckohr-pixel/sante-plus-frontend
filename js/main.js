@@ -1579,6 +1579,7 @@ window.nextOnboarding = () => {
 
 window.finishOnboarding = () => {
     localStorage.setItem("onboarding_seen", "true");
+    console.log("✅ Onboarding marqué comme vu", localStorage.getItem("onboarding_seen"));
     window.location.reload(); 
 };
 
