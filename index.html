@@ -9,9 +9,31 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="SPS Elite">
+    <meta name="apple-mobile-web-app-title" content="SPS">
+    
+    <!-- Apple Touch Icons (multiples tailles pour éviter le cadre noir) -->
+    <link rel="apple-touch-icon" sizes="57x57" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    
+    <!-- Icône par défaut (fallback) -->
     <link rel="apple-touch-icon" href="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png">
+    
     <meta name="theme-color" id="theme-color" content="#0F172A">
+    
+    <!-- Préconnexion pour améliorer les performances -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
 
     <!-- Stylesheets -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,7 +42,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
 
-    <!-- Scripts -->
+    <!-- Scripts (déplacer vers la fin du body pour meilleures performances) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
