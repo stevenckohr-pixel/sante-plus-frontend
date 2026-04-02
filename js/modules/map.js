@@ -1,18 +1,14 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
-import supabase from "../core/supabaseClient.js"; 
 
-
-let paths = {}; 
-
+let map = null;
+let markers = {};
+let paths = {};
+let activeInterval = null;
 
 /**
  * 🛰️ INITIALISATION DU RADAR LIVE
  */
-let map = null;
-let markers = {};
-let activeInterval = null;
-
 export async function initLiveMap() {
     const container = document.getElementById('view-container');
     
@@ -32,6 +28,7 @@ export async function initLiveMap() {
             map.remove();
             map = null;
             markers = {};
+            paths = {};
         }
 
         // 3. Initialisation de la carte
@@ -67,7 +64,9 @@ export async function initLiveMap() {
     }, 300);
 }
 
-// Fonction pour rafraîchir toutes les positions
+/**
+ * 📥 RÉCUPÉRATION INITIALE ET MISE À JOUR DES POSITIONS
+ */
 async function refreshAllPositions() {
     if (!map) return;
     
@@ -86,91 +85,85 @@ async function refreshAllPositions() {
             }
         }
         
-        // Supprimer les anciens marqueurs
+        // Supprimer les anciens marqueurs et traces
         Object.keys(markers).forEach(key => {
             if (markers[key]) {
                 map.removeLayer(markers[key]);
                 delete markers[key];
             }
         });
-        
-        // Ajouter les nouveaux marqueurs
-        activeVisits.forEach(visit => {
-            if (!visit.lat || !visit.lng) return;
-            
-            const isInside = visit.is_inside !== false;
-            const color = isInside ? '#10B981' : '#F43F5E';
-            const statusText = isInside ? '✅ Dans le périmètre' : '⚠️ Hors zone';
-            
-            // Créer un marqueur personnalisé
-            const icon = L.divIcon({
-                html: `
-                    <div class="relative">
-                        <div class="w-4 h-4 rounded-full ${isInside ? 'bg-emerald-500' : 'bg-rose-500'} border-2 border-white shadow-lg animate-ping" style="animation-duration: 1.5s;"></div>
-                        <div class="w-3 h-3 rounded-full ${isInside ? 'bg-emerald-500' : 'bg-rose-500'} border border-white absolute top-0.5 left-0.5"></div>
-                    </div>
-                `,
-                iconSize: [16, 16],
-                className: 'custom-marker'
-            });
-            
-            const marker = L.marker([visit.lat, visit.lng], { icon }).addTo(map);
-            
-            // Popup avec informations
-            marker.bindPopup(`
-                <div class="text-center p-1">
-                    <p class="font-black text-slate-800 text-xs">👨‍⚕️ ${visit.aidant_nom || 'Aidant'}</p>
-                    <p class="text-[10px] text-slate-500">👤 ${visit.patient_nom || 'Patient'}</p>
-                    <p class="text-[10px] font-bold ${isInside ? 'text-emerald-600' : 'text-rose-600'} mt-1">${statusText}</p>
-                </div>
-            `);
-            
-            markers[visit.visite_id] = marker;
+        Object.keys(paths).forEach(key => {
+            if (paths[key]) {
+                map.removeLayer(paths[key]);
+                delete paths[key];
+            }
         });
         
-        // Centrer la carte sur le premier marqueur s'il y en a
-        if (activeVisits.length > 0 && activeVisits[0].lat) {
-            // Optionnel : centrer sur le premier aidant
-            // map.setView([activeVisits[0].lat, activeVisits[0].lng], 14);
+        // Pour chaque visite active, récupérer l'historique et dessiner
+        for (const visit of activeVisits) {
+            if (!visit.visite_id) continue;
+            
+            // Récupérer la trajectoire complète
+            const trajRes = await secureFetch(`/visites/trajectory/${visit.visite_id}`);
+            const history = await trajRes.json();
+            
+            if (history && history.length > 0) {
+                const points = history.map(p => [p.lat, p.lng]);
+                // Dessiner la ligne complète
+                paths[visit.visite_id] = L.polyline(points, {
+                    color: '#3B82F6',
+                    weight: 3,
+                    opacity: 0.4,
+                    dashArray: '5, 10',
+                    lineJoin: 'round'
+                }).addTo(map);
+                
+                // Dernier point connu
+                const lastPoint = history[history.length - 1];
+                const isInside = !visit.alerte_geofence;
+                const color = isInside ? '#10B981' : '#F43F5E';
+                const ripple = isInside ? '' : 'animate-ping';
+                
+                // Créer le marqueur
+                const icon = createCustomIcon(color, ripple);
+                const marker = L.marker([lastPoint.lat, lastPoint.lng], { icon }).addTo(map);
+                
+                // Popup
+                marker.bindPopup(`
+                    <div class="text-center p-1">
+                        <p class="font-black text-slate-800 text-xs">👨‍⚕️ ${visit.aidant_nom || 'Aidant'}</p>
+                        <p class="text-[10px] text-slate-500">👤 ${visit.patient_nom || 'Patient'}</p>
+                        <p class="text-[10px] font-bold ${isInside ? 'text-emerald-600' : 'text-rose-600'} mt-1">
+                            ${isInside ? '✅ Dans le périmètre' : '⚠️ Hors zone'}
+                        </p>
+                    </div>
+                `);
+                
+                markers[visit.visite_id] = marker;
+            } else {
+                // Pas d'historique, on affiche juste un marqueur avec la position actuelle si disponible
+                if (visit.lat && visit.lng) {
+                    const isInside = !visit.alerte_geofence;
+                    const color = isInside ? '#10B981' : '#F43F5E';
+                    const ripple = isInside ? '' : 'animate-ping';
+                    const icon = createCustomIcon(color, ripple);
+                    const marker = L.marker([visit.lat, visit.lng], { icon }).addTo(map);
+                    marker.bindPopup(`
+                        <div class="text-center p-1">
+                            <p class="font-black text-slate-800 text-xs">👨‍⚕️ ${visit.aidant_nom || 'Aidant'}</p>
+                            <p class="text-[10px] text-slate-500">👤 ${visit.patient_nom || 'Patient'}</p>
+                            <p class="text-[10px] font-bold ${isInside ? 'text-emerald-600' : 'text-rose-600'} mt-1">
+                                ${isInside ? '✅ Dans le périmètre' : '⚠️ Hors zone'}
+                            </p>
+                        </div>
+                    `);
+                    markers[visit.visite_id] = marker;
+                }
+            }
         }
         
     } catch (err) {
         console.error("❌ Erreur refresh positions:", err);
-    }
-}
-
-/**
- * 🔄 MOTEUR DE MOUVEMENT (Marker + Polyline)
- */
-async function updateMovement(data) {
-    const { lat, lng, visite_id, alerte_geofence } = data;
-    const point = [lat, lng];
-
-    // 1. GESTION DU MARQUEUR
-    const statusColor = alerte_geofence ? '#F43F5E' : '#10B981'; // Rouge si hors zone
-    const rippleEffect = alerte_geofence ? 'animate-ping' : '';
-
-    if (markers[visite_id]) {
-        markers[visite_id].setLatLng(point);
-        markers[visite_id].setIcon(createCustomIcon(statusColor, rippleEffect));
-    } else {
-        // Si le marqueur n'existe pas encore (nouvelle visite qui démarre)
-        markers[visite_id] = L.marker(point, { 
-            icon: createCustomIcon(statusColor, rippleEffect) 
-        }).addTo(map);
-    }
-
-    // 2. GESTION DU TRACÉ (Breadcrumbs)
-    if (!paths[visite_id]) {
-        paths[visite_id] = L.polyline([point], {
-            color: '#3B82F6',
-            weight: 3,
-            opacity: 0.4,
-            dashArray: '5, 10',
-            lineJoin: 'round'
-        }).addTo(map);
-    } else {
-        paths[visite_id].addLatLng(point); // On allonge la ligne en direct
     }
 }
 
@@ -182,51 +175,10 @@ function createCustomIcon(color, ripple) {
         className: 'custom-radar-icon',
         html: `
             <div class="relative flex items-center justify-center">
-                <div class="absolute w-12 h-12 rounded-full opacity-20 ${ripple}" style="background: ${color}"></div>
+                <div class="absolute w-12 h-12 rounded-full opacity-20 ${ripple}" style="background: ${color}; animation-duration: 1.5s;"></div>
                 <div class="w-5 h-5 rounded-full border-4 border-white shadow-xl" style="background: ${color}"></div>
             </div>`,
         iconSize: [40, 40],
         iconAnchor: [20, 20]
     });
-}
-
-/**
- * 📥 RÉCUPÉRATION INITIALE ET HISTORIQUE
- */
-async function refreshAllPositions() {
-    try {
-        // Récupère les aidants actuellement en visite
-        const res = await secureFetch('/visites/live-tracking');
-        const activeVisits = await res.json();
-
-        document.getElementById('active-count-badge').innerText = `${activeVisits.length} AIDANTS LIVE`;
-
-        for (const visit of activeVisits) {
-            // Pour chaque aidant, on va chercher son historique de points (sa trajectoire)
-            const trajRes = await secureFetch(`/visites/trajectory/${visit.visite_id}`);
-            const history = await trajRes.json();
-
-            if (history.length > 0) {
-                const points = history.map(p => [p.lat, p.lng]);
-                
-                // Dessiner la ligne complète
-                paths[visit.visite_id] = L.polyline(points, {
-                    color: '#3B82F6',
-                    weight: 3,
-                    opacity: 0.4,
-                    dashArray: '5, 10'
-                }).addTo(map);
-
-                // Placer le marqueur au dernier point connu
-                const lastPoint = history[history.length - 1];
-                updateMovement({
-                    ...lastPoint,
-                    visite_id: visit.visite_id,
-                    alerte_geofence: visit.is_inside === false
-                });
-            }
-        }
-    } catch (e) {
-        console.error("Erreur chargement Radar Initial :", e);
-    }
 }
