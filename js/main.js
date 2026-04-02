@@ -1784,24 +1784,5 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 
 
-/**
- * 📱 DÉTECTION DES PERFORMANCES
- */
-function isLowEndDevice() {
-    // Détecter la RAM (approximatif)
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isSlowConnection = navigator.connection && (navigator.connection.saveData || navigator.connection.effectiveType === '2g');
-    
-    // Marqueurs de téléphones entrée de gamme courants en Afrique
-    const lowEndBrands = /Tecno|Infinix|Itel|Xiaomi Redmi [0-9]A|Samsung A[0-2]|Realme [0-9]i/i.test(navigator.userAgent);
-    
-    return isMobile && (isSlowConnection || lowEndBrands);
-}
 
-// Dans initApp(), ajoute :
-if (isLowEndDevice()) {
-    document.body.classList.add('low-end-mode');
-    // Désactiver les fonctionnalités lourdes
-    localStorage.setItem('low_end_mode', 'true');
-}
 initApp();
