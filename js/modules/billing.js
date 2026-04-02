@@ -42,7 +42,9 @@ export async function loadBilling() {
           let actionButton = "";
 
           if (abo.statut === "Payé") {
-            statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-green-100 text-green-700 border border-green-200">✅ PAYÉ</span>`;
+          statusBadge = `<span class="badge-gold px-3 py-1 rounded-full text-[10px] font-bold">
+                                <i class="fa-solid fa-check-circle mr-1"></i> PAYÉ
+                            </span>`;
           } else if (abo.statut === "En retard") {
             statusBadge = `<span class="px-3 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700 border border-red-200 animate-pulse">⚠️ IMPAYÉ</span>`;
           } else {
