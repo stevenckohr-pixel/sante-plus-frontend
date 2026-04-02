@@ -253,6 +253,10 @@ async function loadUserStats(role, userId) {
 /**
  * 📸 Mettre à jour la photo de profil
  */
+
+/**
+ * 📸 Mettre à jour la photo de profil
+ */
 window.updateProfilePhoto = async (file) => {
     if (!file) return;
     
@@ -270,16 +274,62 @@ window.updateProfilePhoto = async (file) => {
         });
         
         if (result.photo_url) {
+            // ✅ 1. Mettre à jour l'affichage dans la page
             const container = document.getElementById("profile-photo-container");
             container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
+            
+            // ✅ 2. STOCKER DANS LOCALSTORAGE (c'est l'étape importante !)
             localStorage.setItem("user_photo", result.photo_url);
+            
+            // ✅ 3. Mettre à jour l'avatar dans le header (sans recharger la page)
+            updateHeaderPhoto(result.photo_url);
+            
             UI.success("Photo mise à jour");
         }
     } catch (err) {
         UI.error(err.message);
+    } finally {
+        Swal.close();
     }
 };
 
+/**
+ * 🔄 Mettre à jour la photo dans le header (sans recharger)
+ */
+function updateHeaderPhoto(photoUrl) {
+    // Mettre à jour dans la sidebar desktop
+    const desktopAvatar = document.querySelector('aside .rounded-full img');
+    if (desktopAvatar) {
+        desktopAvatar.src = photoUrl;
+    } else {
+        const desktopDiv = document.querySelector('aside .rounded-full');
+        if (desktopDiv) {
+            desktopDiv.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+        }
+    }
+    
+    // Mettre à jour dans le header (bouton profil)
+    const headerAvatar = document.querySelector('header .rounded-xl img');
+    if (headerAvatar) {
+        headerAvatar.src = photoUrl;
+    } else {
+        const headerDiv = document.querySelector('header .rounded-xl');
+        if (headerDiv && headerDiv.classList.contains('overflow-hidden')) {
+            headerDiv.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+        }
+    }
+    
+    // Mettre à jour dans le footer mobile
+    const mobileAvatar = document.querySelector('footer .rounded-full img');
+    if (mobileAvatar) {
+        mobileAvatar.src = photoUrl;
+    } else {
+        const mobileDiv = document.querySelector('footer .rounded-full');
+        if (mobileDiv) {
+            mobileDiv.innerHTML = `<img src="${photoUrl}" class="w-full h-full object-cover">`;
+        }
+    }
+}
 /**
  * 📸 Mettre à jour la photo du patient
  */
