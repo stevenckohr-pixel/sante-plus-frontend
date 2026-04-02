@@ -390,4 +390,3 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-export { renderProfilePage };
