@@ -4,10 +4,6 @@ import { UI, compressImage } from "../core/utils.js";
 import { showSkeleton } from "../core/utils.js";
 
 
-let geoWatchId = null;
-
-
-
 // DANS frontend/js/modules/visites.js
 
 function getChecklistHTML(category) {
