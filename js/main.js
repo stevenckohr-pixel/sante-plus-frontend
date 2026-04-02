@@ -907,14 +907,22 @@ async function initPushNotifications() {
 /**
  * 🏗️ STRUCTURE PRINCIPALE (LAYOUT)
  */
+/**
+ * 🏗️ STRUCTURE PRINCIPALE (LAYOUT) - Version avec photo profil
+ */
 function renderLayout() {
   const userRole = localStorage.getItem("user_role");
   const userName = localStorage.getItem("user_name");
+  const userPhoto = localStorage.getItem("user_photo");
+  const isMaman = localStorage.getItem("user_is_maman") === "true";
+  
+  // Couleur du thème pour le header
+  const themeColor = isMaman ? 'pink' : 'emerald';
 
   document.getElementById("app").innerHTML = `
     <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
         
-        <!-- 🖥️ SIDEBAR DESKTOP (Inchangée, garde le look SaaS Pro) -->
+        <!-- 🖥️ SIDEBAR DESKTOP -->
         <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
             <div class="flex items-center gap-4 mb-14 px-2">
                 <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
@@ -932,8 +940,11 @@ function renderLayout() {
 
             <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
                 <div class="flex items-center gap-4 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20">
-                        ${userName ? userName.charAt(0).toUpperCase() : 'S'}
+                    <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20 overflow-hidden">
+                        ${userPhoto ? 
+                            `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
+                            `<span>${userName ? userName.charAt(0).toUpperCase() : 'S'}</span>`
+                        }
                     </div>
                     <div class="overflow-hidden">
                         <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
@@ -949,29 +960,49 @@ function renderLayout() {
         <!-- 🚀 CONTENEUR DE CONTENU -->
         <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
             
-            <!-- HEADER GLOBAL (Glassmorphism) -->
-                        <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
-                            <div class="lg:hidden flex items-center">
-                                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                                    <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-6 h-6">
-                                </div>
+            <!-- HEADER GLOBAL AVEC PHOTO PROFIL -->
+            <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
+                
+                <!-- Logo mobile -->
+                <div class="lg:hidden flex items-center">
+                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+                        <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-6 h-6">
+                    </div>
+                </div>
+                
+                <!-- Titre de la vue -->
+                <div class="flex flex-col">
+                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
+                    <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
+                </div>
+            
+                <!-- Zone droite : Notifications + Profil -->
+                <div class="flex items-center gap-3">
+                    <!-- Bouton notifications -->
+                    <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-${themeColor}-600 transition-all shadow-sm group">
+                        <i class="fa-solid fa-bell text-sm"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                    </button>
+                    
+                    <!-- Bouton profil avec photo -->
+                    <button onclick="window.switchView('profile')" 
+                            class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
+                        <div class="flex flex-col items-end">
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider hidden lg:block">Mon compte</span>
+                            <span class="text-xs font-black text-slate-800 hidden lg:block">${userName?.split(' ')[0] || 'Profil'}</span>
+                        </div>
+                        <div class="relative">
+                            <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-${themeColor}-100 to-${themeColor}-200 flex items-center justify-center shadow-md">
+                                ${userPhoto ? 
+                                    `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
+                                    `<i class="fa-solid fa-user-${userRole === 'AIDANT' ? 'nurse' : userRole === 'FAMILLE' ? 'family' : 'tie'} text-${themeColor}-600 text-lg"></i>`
+                                }
                             </div>
-                            
-                            <div class="flex flex-col">
-                                <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
-                                <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
-                            </div>
-                        
-                            <div class="flex items-center gap-3">
-                                <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-green-600 transition-all shadow-sm group">
-                                    <i class="fa-solid fa-bell text-sm"></i>
-                                    <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
-                                </button>
-                                <button onclick="window.openProfileMenu()" class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200 active:scale-95 transition-all lg:ml-2">
-                                    <i class="fa-solid fa-user-gear text-sm"></i>
-                                </button>
-                            </div>
-                        </header>
+                            <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></div>
+                        </div>
+                    </button>
+                </div>
+            </header>
 
             <!-- ARRIÈRE-PLAN DÉCORATIF -->
             <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
@@ -982,24 +1013,26 @@ function renderLayout() {
                 <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
             </main>
 
-            <!-- 📱 NAVIGATION MOBILE : Design "Floating Hub" Premium -->
+            <!-- 📱 NAVIGATION MOBILE -->
             <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
                 
-                <!-- BOUTON HOME -->
                 <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
                     <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
                     <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
                 </button>
             
-                <!-- BOUTON ACTION CENTRAL -->
                 <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
                     <i class="fa-solid fa-plus text-xl"></i>
                 </button>
             
-                <!-- BOUTON RADAR -->
-                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
-                    <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
+                <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
+                    <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                        ${userPhoto ? 
+                            `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
+                            `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`
+                        }
+                    </div>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
                 </button>
             
             </footer>
