@@ -718,28 +718,28 @@ function renderLayout() {
         <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
             
             <!-- HEADER GLOBAL (Glassmorphism) -->
-            <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
-                <div class="lg:hidden flex items-center">
-                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                        <img src="https://cdn-icons-png.flaticon.com/512/8206/8206334.png" class="w-6 h-6">
-                    </div>
-                </div>
-                
-                <div class="flex flex-col">
-                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
-                    <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-green-600 transition-all shadow-sm group">
-                        <i class="fa-solid fa-bell text-sm"></i>
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
-                    </button>
-                    <button onclick="window.openProfileMenu()" class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200 active:scale-95 transition-all lg:ml-2">
-                        <i class="fa-solid fa-user-gear text-sm"></i>
-                    </button>
-                </div>
-            </header>
+                        <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-40">
+                            <div class="lg:hidden flex items-center">
+                                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+                                    <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-6 h-6">
+                                </div>
+                            </div>
+                            
+                            <div class="flex flex-col">
+                                <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
+                                <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
+                            </div>
+                        
+                            <div class="flex items-center gap-3">
+                                <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-green-600 transition-all shadow-sm group">
+                                    <i class="fa-solid fa-bell text-sm"></i>
+                                    <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                                </button>
+                                <button onclick="window.openProfileMenu()" class="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-xl shadow-slate-200 active:scale-95 transition-all lg:ml-2">
+                                    <i class="fa-solid fa-user-gear text-sm"></i>
+                                </button>
+                            </div>
+                        </header>
 
             <!-- ARRIÈRE-PLAN DÉCORATIF -->
             <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
