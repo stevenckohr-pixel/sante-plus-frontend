@@ -159,10 +159,9 @@ export async function openModernSelector(items, title, placeholder = "Rechercher
 
 
 
-
 /**
  * 💀 AFFICHER UN SQUELETTE DE CHARGEMENT
- * @param {string} type - Type de squelette ('patients', 'visits', 'aidants', 'dashboard')
+ * @param {string} type - Type de squelette ('patient-card', 'visit-card', 'aidant-card', 'default')
  * @returns {string} HTML du squelette
  */
 export function getSkeletonHTML(type = 'default') {
@@ -178,7 +177,7 @@ export function getSkeletonHTML(type = 'default') {
                 </div>
                 <div class="skeleton skeleton-text w-full"></div>
                 <div class="skeleton skeleton-text w-2/3 mt-2"></div>
-                <div class="flex justify-between mt-3">
+                <div class="flex gap-2 mt-3">
                     <div class="skeleton skeleton-button w-1/3"></div>
                     <div class="skeleton skeleton-button w-1/3"></div>
                 </div>
@@ -233,19 +232,11 @@ export function getSkeletonHTML(type = 'default') {
 }
 
 /**
- * 🌀 AFFICHER UN LOADER DANS UN CONTENEUR
+ * 🌀 AFFICHER LE SQUELETTE DANS UN CONTENEUR
  * @param {HTMLElement} container - Élément cible
  * @param {string} type - Type de squelette
  */
 export function showSkeleton(container, type = 'default') {
     if (!container) return;
     container.innerHTML = getSkeletonHTML(type);
-}
-
-/**
- * ✅ CACHER LE SQUELETTE (ne fait rien, juste pour cohérence)
- */
-export function hideSkeleton(container) {
-    if (!container) return;
-    // Le contenu réel sera chargé par la fonction appelante
 }
