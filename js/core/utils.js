@@ -156,3 +156,96 @@ export async function openModernSelector(items, title, placeholder = "Rechercher
         if (!confirmed) resolve(null);
     });
 }
+
+
+
+
+/**
+ * 💀 AFFICHER UN SQUELETTE DE CHARGEMENT
+ * @param {string} type - Type de squelette ('patients', 'visits', 'aidants', 'dashboard')
+ * @returns {string} HTML du squelette
+ */
+export function getSkeletonHTML(type = 'default') {
+    const skeletons = {
+        'patient-card': `
+            <div class="skeleton-card">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="skeleton skeleton-avatar"></div>
+                    <div class="flex-1">
+                        <div class="skeleton skeleton-text w-3/4"></div>
+                        <div class="skeleton skeleton-text w-1/2"></div>
+                    </div>
+                </div>
+                <div class="skeleton skeleton-text w-full"></div>
+                <div class="skeleton skeleton-text w-2/3 mt-2"></div>
+                <div class="flex justify-between mt-3">
+                    <div class="skeleton skeleton-button w-1/3"></div>
+                    <div class="skeleton skeleton-button w-1/3"></div>
+                </div>
+            </div>
+        `,
+        'visit-card': `
+            <div class="skeleton-card">
+                <div class="flex justify-between mb-3">
+                    <div class="skeleton skeleton-text w-1/3"></div>
+                    <div class="skeleton skeleton-text w-1/4"></div>
+                </div>
+                <div class="skeleton skeleton-text w-full"></div>
+                <div class="skeleton skeleton-text w-2/3 mt-2"></div>
+                <div class="flex items-center gap-2 mt-3">
+                    <div class="skeleton skeleton-avatar w-8 h-8"></div>
+                    <div class="skeleton skeleton-text w-1/2"></div>
+                </div>
+            </div>
+        `,
+        'aidant-card': `
+            <div class="skeleton-card">
+                <div class="flex items-center gap-3">
+                    <div class="skeleton skeleton-avatar"></div>
+                    <div class="flex-1">
+                        <div class="skeleton skeleton-text w-2/3"></div>
+                        <div class="skeleton skeleton-text w-1/2 mt-1"></div>
+                    </div>
+                </div>
+                <div class="flex gap-2 mt-3">
+                    <div class="skeleton skeleton-button w-1/2"></div>
+                    <div class="skeleton skeleton-button w-1/2"></div>
+                </div>
+            </div>
+        `,
+        'default': `
+            <div class="space-y-4">
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text w-3/4"></div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text"></div>
+                    <div class="skeleton skeleton-text w-3/4"></div>
+                </div>
+            </div>
+        `
+    };
+    
+    return skeletons[type] || skeletons.default;
+}
+
+/**
+ * 🌀 AFFICHER UN LOADER DANS UN CONTENEUR
+ * @param {HTMLElement} container - Élément cible
+ * @param {string} type - Type de squelette
+ */
+export function showSkeleton(container, type = 'default') {
+    if (!container) return;
+    container.innerHTML = getSkeletonHTML(type);
+}
+
+/**
+ * ✅ CACHER LE SQUELETTE (ne fait rien, juste pour cohérence)
+ */
+export function hideSkeleton(container) {
+    if (!container) return;
+    // Le contenu réel sera chargé par la fonction appelante
+}
