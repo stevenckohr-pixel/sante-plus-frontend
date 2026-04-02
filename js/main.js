@@ -375,36 +375,116 @@ function setThemeColor(color) {
 function getStepHTML() {
     switch(currentStep) {
         case 1: return `
-            <div class="text-center mb-4"><h3 class="text-base font-black text-slate-800">Identité du Payeur</h3></div>
-            <div class="space-y-3">
-                <input id="f-nom" class="app-input !py-3 !text-sm" placeholder="Nom complet" value="${registrationData.nom_famille || ''}">
-                <select id="f-lien" class="app-input !py-3 !text-sm">
-                    <option value="">Lien de parenté...</option>
-                    <option value="Fils/Fille">Fils / Fille</option>
-                    <option value="Frère/Soeur">Frère / Soeur</option>
-                    <option value="Conjoint">Conjoint(e)</option>
-                </select>
-                <input id="f-email" type="email" class="app-input !py-3 !text-sm" placeholder="Email" value="${registrationData.email || ''}">
-                <input id="f-pass" type="password" class="app-input !py-3 !text-sm" placeholder="Créer un mot de passe">
-            </div>`;
+    <div class="text-center mb-4">
+        <h3 class="text-base font-black text-slate-800">Identité du Payeur</h3>
+        <p class="text-[9px] text-slate-400">Responsable financier du dossier</p>
+    </div>
+    <div class="space-y-3">
+        <div class="relative">
+            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="f-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du responsable" value="${registrationData.nom_famille || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <select id="f-lien" class="app-input !pl-11 !py-3 !text-sm">
+                <option value="">Lien de parenté avec le patient</option>
+                <option value="Fils/Fille">👨‍👧 Fils / Fille</option>
+                <option value="Frère/Soeur">👫 Frère / Soeur</option>
+                <option value="Conjoint">💑 Conjoint(e)</option>
+                <option value="Parent">👴👵 Parent</option>
+                <option value="Neveu/Nièce">👦👧 Neveu / Nièce</option>
+                <option value="Cousin/Cousine">👥 Cousin / Cousine</option>
+                <option value="Ami">🤝 Ami proche</option>
+            </select>
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="f-email" type="email" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse email" value="${registrationData.email || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="f-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone (ex: +229 XX XXX XXX)" value="${registrationData.tel_famille || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="f-pass" type="password" class="app-input !pl-11 !py-3 !text-sm" placeholder="Créer un mot de passe (minimum 6 caractères)">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-map-pin absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="f-ville" class="app-input !pl-11 !py-3 !text-sm" placeholder="Ville / Pays (ex: Cotonou, Bénin)" value="${registrationData.ville_payeur || ''}">
+        </div>
+    </div>`;
         
-        case 2: return `
-            <div class="text-center mb-4"><h3 class="text-base font-black text-slate-800">Le Proche au Bénin</h3></div>
-            <div class="space-y-3">
-                <input id="p-nom" class="app-input !py-3 !text-sm" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
-                <input id="p-addr" class="app-input !py-3 !text-sm" placeholder="Adresse (Ville, Quartier)" value="${registrationData.adresse_patient || ''}">
-                <input id="p-urgence" class="app-input !py-3 !text-sm" placeholder="Urgence locale (Voisin/Proche)" value="${registrationData.contact_urgence || ''}">
-            </div>`;
+      case 2: return `
+    <div class="text-center mb-4">
+        <h3 class="text-base font-black text-slate-800">Le Proche au Bénin</h3>
+        <p class="text-[9px] text-slate-400">Personne âgée ou patient à domicile</p>
+    </div>
+    <div class="space-y-3">
+        <div class="relative">
+            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="p-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="p-age" type="number" class="app-input !pl-11 !py-3 !text-sm" placeholder="Âge du patient" value="${registrationData.age_patient || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <select id="p-sex" class="app-input !pl-11 !py-3 !text-sm">
+                <option value="">Sexe</option>
+                <option value="Homme">👨 Homme</option>
+                <option value="Femme">👩 Femme</option>
+            </select>
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="p-addr" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse complète (quartier, rue, repères)" value="${registrationData.adresse_patient || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="p-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone du patient (si disponible)" value="${registrationData.tel_patient || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-address-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="p-urgence" class="app-input !pl-11 !py-3 !text-sm" placeholder="Contact urgence local (voisin/famille proche)" value="${registrationData.contact_urgence || ''}">
+        </div>
+        <div class="relative">
+            <i class="fa-solid fa-phone-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
+            <input id="p-urgence-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone urgence" value="${registrationData.contact_urgence_tel || ''}">
+        </div>
+    </div>`;
 
-        case 3: return `
-            <div class="text-center mb-4"><h3 class="text-base font-black text-slate-800">Profil de Santé</h3></div>
-            <div class="space-y-4">
-                <div class="flex justify-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" class="med-hist accent-green-600" value="Diabète"> Diabète</label>
-                    <label class="flex items-center gap-2 text-xs font-bold text-slate-700"><input type="checkbox" class="med-hist accent-green-600" value="Tension"> Tension</label>
-                </div>
-                <textarea id="p-notes" class="app-input !py-3 !text-sm h-28" placeholder="Observations (Allergies, mobilité, habitudes...)">${registrationData.notes_medicales || ''}</textarea>
-            </div>`;
+      case 3: return `
+    <div class="text-center mb-4">
+        <h3 class="text-base font-black text-slate-800">Profil de Santé</h3>
+        <p class="text-[9px] text-slate-400">Informations médicales importantes</p>
+    </div>
+    <div class="space-y-4">
+        <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Pathologies connues</label>
+            <div class="flex flex-wrap gap-2">
+                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Diabète"> Diabète</label>
+                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Hypertension"> Hypertension</label>
+                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Arthrose"> Arthrose</label>
+                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Alzheimer"> Alzheimer</label>
+                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="Parkinson"> Parkinson</label>
+                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist accent-emerald-500" value="AVC"> Antécédent AVC</label>
+            </div>
+        </div>
+        <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Traitements en cours</label>
+            <textarea id="p-traitements" class="app-input !py-3 !text-sm h-24" placeholder="Médicaments, posologies...">${registrationData.traitements || ''}</textarea>
+        </div>
+        <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Allergies</label>
+            <textarea id="p-allergies" class="app-input !py-3 !text-sm h-20" placeholder="Médicaments, aliments, autres...">${registrationData.allergies || ''}</textarea>
+        </div>
+        <div>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 block">Observations générales</label>
+            <textarea id="p-notes" class="app-input !py-3 !text-sm h-24" placeholder="Mobilité, habitudes, précautions...">${registrationData.notes_medicales || ''}</textarea>
+        </div>
+    </div>`;
 
            case 4: return `
     <div class="text-center mb-6">
@@ -700,22 +780,30 @@ window.nextAuthStep = () => {
         return;
     }
     
-    if (currentStep === 1) {
-        registrationData.nom_famille = document.getElementById('f-nom')?.value;
-        registrationData.email = document.getElementById('f-email')?.value;
-        registrationData.password = document.getElementById('f-pass')?.value;
-        registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
-    }
-    if (currentStep === 2) {
-        registrationData.nom_patient = document.getElementById('p-nom')?.value;
-        registrationData.adresse_patient = document.getElementById('p-addr')?.value;
-        registrationData.contact_urgence = document.getElementById('p-urgence')?.value;
-    }
-    if (currentStep === 3) {
-        const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
-        registrationData.pathologies = meds;
-        registrationData.notes_medicales = document.getElementById('p-notes')?.value;
-    }
+   if (currentStep === 1) {
+    registrationData.nom_famille = document.getElementById('f-nom')?.value;
+    registrationData.email = document.getElementById('f-email')?.value;
+    registrationData.password = document.getElementById('f-pass')?.value;
+    registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
+    registrationData.lien_parente = document.getElementById('f-lien')?.value || "";
+    registrationData.ville_payeur = document.getElementById('f-ville')?.value || "";
+}
+if (currentStep === 2) {
+    registrationData.nom_patient = document.getElementById('p-nom')?.value;
+    registrationData.adresse_patient = document.getElementById('p-addr')?.value;
+    registrationData.contact_urgence = document.getElementById('p-urgence')?.value;
+    registrationData.age_patient = document.getElementById('p-age')?.value || "";
+    registrationData.sexe_patient = document.getElementById('p-sex')?.value || "";
+    registrationData.tel_patient = document.getElementById('p-tel')?.value || "";
+    registrationData.contact_urgence_tel = document.getElementById('p-urgence-tel')?.value || "";
+}
+if (currentStep === 3) {
+    const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+    registrationData.pathologies = meds;
+    registrationData.traitements = document.getElementById('p-traitements')?.value || "";
+    registrationData.allergies = document.getElementById('p-allergies')?.value || "";
+    registrationData.notes_medicales = document.getElementById('p-notes')?.value;
+}
     if (currentStep === 6) { 
         if(!document.getElementById('legal-check')?.checked) {
             UI.vibrate('error');
