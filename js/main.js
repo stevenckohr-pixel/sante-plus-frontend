@@ -816,7 +816,8 @@ function renderMobileHub() {
         { id: 'subscription', label: 'Abonnement', desc: 'Nos formules', icon: 'fa-ticket', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['FAMILLE'] },
         { id: 'aidants', label: 'Équipe', desc: 'Ressources', icon: 'fa-user-nurse', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR'] },
         { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
-        { id: 'profile', label: 'Profil', desc: 'Mes infos', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        { id: 'profile', label: 'Profil', desc: 'Mes infos', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'profile', label: 'Profil', desc: 'Mes informations', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
