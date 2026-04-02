@@ -2,6 +2,8 @@ import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI, showSkeleton } from "../core/utils.js";
 import * as Visites from "./visites.js";
+import { secureFetchWithCache } from "../core/utils.js";
+
 
 /**
  * 📥 1. CHARGER LA LISTE DES PATIENTS
@@ -13,7 +15,7 @@ export async function loadPatients() {
     showSkeleton(container, 'patient-card');
 
     try {
-        const response = await secureFetch("/patients");
+        const response = await secureFetchWithCache("/patients");
         const data = await response.json();
         AppState.patients = data;
         renderPatients();
