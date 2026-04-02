@@ -75,116 +75,358 @@ export async function loadPlanning() {
 /**
  * 🗓️ MODALE D'ASSIGNATION
  */
-export async function openAssignModal() {
+/**
+ * 🗓️ PAGE D'ASSIGNATION INDÉPENDANTE (Remplace la modale)
+ */
+export async function openAssignPage() {
+    // Afficher un loader temporaire
+    Swal.fire({ 
+        title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500"></i>',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        customClass: { popup: 'bg-transparent shadow-none' }
+    });
+    
     try {
-        UI.vibrate();
-        
-        Swal.fire({ 
-            title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500"></i>',
-            showConfirmButton: false,
-            allowOutsideClick: false,
-            customClass: { popup: 'bg-transparent shadow-none' }
-        });
-
-        const [resPatients, resAidants] = await Promise.all([
-            secureFetch('/patients'),
-            secureFetch('/auth/profiles?role=AIDANT')
+        const [aidantsRes, patientsRes] = await Promise.all([
+            secureFetch("/assignments/available-aidants"),
+            secureFetch("/assignments/unassigned-patients")
         ]);
         
-        const patients = await resPatients.json();
-        const aidants = await resAidants.json();
+        const aidants = await aidantsRes.json();
+        const patients = await patientsRes.json();
         Swal.close();
-
-        const { value: formValues } = await Swal.fire({
-            title: '<span class="text-xl font-black text-slate-800">➕ Nouvelle Mission</span>',
-            html: `
-                <div class="text-left space-y-5 max-h-[70vh] overflow-y-auto px-1">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">👤 Patient</label>
-                        <select id="swal-patient" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-emerald-300 outline-none">
-                            <option value="">-- Sélectionner --</option>
-                            ${patients.map(p => `<option value="${p.id}">${escapeHtml(p.nom_complet)}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">👨‍⚕️ Aidant</label>
-                        <select id="swal-aidant" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:border-emerald-300 outline-none">
-                            <option value="">-- Sélectionner --</option>
-                            ${aidants.map(a => `<option value="${a.id}">${escapeHtml(a.nom)}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">📅 Date</label>
-                            <input id="swal-date" type="date" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="${new Date().toISOString().split('T')[0]}">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">⏰ Heure</label>
-                            <input id="swal-heure" type="time" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" value="09:00">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">📝 Instructions</label>
-                        <textarea id="swal-notes" rows="3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="Consignes pour l'aidant..."></textarea>
-                    </div>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: "CONFIRMER",
-            confirmButtonColor: "#0F172A",
-            cancelButtonText: "Annuler",
-            cancelButtonColor: "#94A3B8",
-            customClass: {
-                popup: 'rounded-2xl p-6',
-                confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
-                cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
-            },
-            preConfirm: () => {
-                const patient_id = document.getElementById('swal-patient')?.value;
-                const aidant_id = document.getElementById('swal-aidant')?.value;
-                if (!patient_id || !aidant_id) {
-                    Swal.showValidationMessage('Veuillez sélectionner un patient et un aidant');
-                    return false;
-                }
-                return {
-                    patient_id,
-                    aidant_id,
-                    date_prevue: document.getElementById('swal-date')?.value,
-                    heure_prevue: document.getElementById('swal-heure')?.value,
-                    notes: document.getElementById('swal-notes')?.value || ''
-                };
-            }
-        });
-
-        if (formValues) {
-            Swal.fire({ title: 'Planification...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-            
-            const res = await secureFetch('/planning/add', {
-                method: 'POST',
-                body: JSON.stringify(formValues)
-            });
-            
-            if (res.ok) {
-                UI.success("Mission planifiée");
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Mission Enregistrée',
-                    text: "L'aidant recevra une notification",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                loadPlanning();
-            } else {
-                const err = await res.json();
-                throw new Error(err.error || "Erreur lors de la planification");
-            }
-        }
+        
+        // Sauvegarder les données globalement
+        window._assignData = { aidants, patients };
+        
+        // Naviguer vers la page d'assignation
+        await renderAssignPage();
+        
     } catch (err) {
+        Swal.close();
         UI.error(err.message);
-        Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
     }
 }
 
+/**
+ * 🎨 RENDU DE LA PAGE D'ASSIGNATION
+ */
+async function renderAssignPage() {
+    const container = document.getElementById("view-container");
+    const { aidants, patients } = window._assignData || { aidants: [], patients: [] };
+    
+    container.innerHTML = `
+        <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
+            <!-- Header -->
+            <div class="flex items-center gap-4 mb-8">
+                <button onclick="window.switchView('rh-dashboard')" 
+                        class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </button>
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Nouvelle Assignation</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Lier un aidant à un patient</p>
+                </div>
+            </div>
+
+            <!-- Formulaire moderne -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <!-- Sélecteur Aidant -->
+                <div class="p-6 border-b border-slate-100">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">
+                        <i class="fa-solid fa-user-nurse mr-2 text-emerald-500"></i> Aidant
+                    </label>
+                    <div id="aidant-selector" class="relative">
+                        <div onclick="window.toggleAidantDropdown()" 
+                             class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-emerald-300 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                                    <i class="fa-solid fa-user-nurse text-emerald-600"></i>
+                                </div>
+                                <div>
+                                    <p id="selected-aidant-name" class="font-bold text-slate-800 text-sm">Choisir un aidant</p>
+                                    <p id="selected-aidant-email" class="text-[10px] text-slate-400">Sélectionnez dans la liste</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="aidant-chevron"></i>
+                        </div>
+                        <div id="aidant-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                            <div class="p-2 border-b border-slate-100 sticky top-0 bg-white">
+                                <div class="relative">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                                    <input type="text" id="aidant-search" placeholder="Rechercher..." 
+                                           class="w-full pl-8 pr-3 py-2 bg-slate-50 rounded-lg text-sm outline-none focus:border-emerald-300">
+                                </div>
+                            </div>
+                            <div id="aidant-list" class="divide-y divide-slate-50">
+                                ${aidants.map(a => `
+                                    <div class="aidant-item p-3 hover:bg-slate-50 cursor-pointer transition-colors" data-id="${a.id}" data-name="${escapeHtml(a.nom)}" data-email="${a.email || ''}">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600">
+                                                ${(a.nom?.charAt(0) || '?').toUpperCase()}
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-bold text-slate-800 text-sm">${escapeHtml(a.nom)}</p>
+                                                <p class="text-[10px] text-slate-400">${a.email || 'Email non renseigné'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${aidants.length === 0 ? '<div class="p-6 text-center text-slate-400 text-xs">Aucun aidant disponible</div>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sélecteur Patient -->
+                <div class="p-6 border-b border-slate-100">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">
+                        <i class="fa-solid fa-hospital-user mr-2 text-blue-500"></i> Patient
+                    </label>
+                    <div id="patient-selector" class="relative">
+                        <div onclick="window.togglePatientDropdown()" 
+                             class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-emerald-300 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                                    <i class="fa-solid fa-user text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p id="selected-patient-name" class="font-bold text-slate-800 text-sm">Choisir un patient</p>
+                                    <p id="selected-patient-formule" class="text-[10px] text-slate-400">Sélectionnez dans la liste</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="patient-chevron"></i>
+                        </div>
+                        <div id="patient-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                            <div class="p-2 border-b border-slate-100 sticky top-0 bg-white">
+                                <div class="relative">
+                                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                                    <input type="text" id="patient-search" placeholder="Rechercher..." 
+                                           class="w-full pl-8 pr-3 py-2 bg-slate-50 rounded-lg text-sm outline-none focus:border-emerald-300">
+                                </div>
+                            </div>
+                            <div id="patient-list" class="divide-y divide-slate-50">
+                                ${patients.map(p => `
+                                    <div class="patient-item p-3 hover:bg-slate-50 cursor-pointer transition-colors" data-id="${p.id}" data-name="${escapeHtml(p.nom_complet)}" data-formule="${p.formule || 'Standard'}">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600">
+                                                ${(p.nom_complet?.charAt(0) || '?').toUpperCase()}
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="font-bold text-slate-800 text-sm">${escapeHtml(p.nom_complet)}</p>
+                                                <div class="flex items-center gap-2 mt-0.5">
+                                                    <span class="text-[9px] text-slate-400">${p.adresse?.substring(0, 30) || 'Adresse non renseignée'}</span>
+                                                    <span class="text-[9px] font-bold ${p.formule === 'Premium' ? 'text-gold-primary' : 'text-emerald-600'}">${p.formule || 'Standard'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                                ${patients.length === 0 ? '<div class="p-6 text-center text-slate-400 text-xs">Aucun patient non assigné</div>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date et Instructions -->
+                <div class="p-6 border-b border-slate-100">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                                <i class="fa-regular fa-calendar mr-1"></i> Date
+                            </label>
+                            <input type="date" id="assign-date" 
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                                   value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                                <i class="fa-regular fa-clock mr-1"></i> Heure
+                            </label>
+                            <input type="time" id="assign-time" 
+                                   class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300"
+                                   value="09:00">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <i class="fa-solid fa-pen mr-1"></i> Instructions pour l'aidant
+                        </label>
+                        <textarea id="assign-notes" rows="4" 
+                                  class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-300 resize-none"
+                                  placeholder="Ex: Le patient a besoin d'aide pour la prise de médicaments..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="p-6 bg-slate-50 flex gap-3">
+                    <button onclick="window.switchView('rh-dashboard')" 
+                            class="flex-1 py-4 rounded-xl font-black text-[10px] uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-all">
+                        Annuler
+                    </button>
+                    <button onclick="window.submitAssignment()" 
+                            class="flex-1 py-4 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-wider shadow-lg shadow-emerald-200 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-link"></i> Assigner
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Initialiser les sélecteurs
+    window._selectedAidant = null;
+    window._selectedPatient = null;
+    
+    // Configuration des dropdowns
+    setupDropdownFilters();
+}
+
+/**
+ * 🔧 CONFIGURATION DES FILTRES DE RECHERCHE
+ */
+function setupDropdownFilters() {
+    // Filtre aidants
+    const aidantSearch = document.getElementById('aidant-search');
+    if (aidantSearch) {
+        aidantSearch.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.aidant-item').forEach(item => {
+                const name = item.dataset.name?.toLowerCase() || '';
+                const email = item.dataset.email?.toLowerCase() || '';
+                item.style.display = name.includes(term) || email.includes(term) ? 'flex' : 'none';
+            });
+        });
+    }
+    
+    // Filtre patients
+    const patientSearch = document.getElementById('patient-search');
+    if (patientSearch) {
+        patientSearch.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.patient-item').forEach(item => {
+                const name = item.dataset.name?.toLowerCase() || '';
+                item.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        });
+    }
+}
+
+/**
+ * 🔽 OUVERTURE/FERMETURE DROPDOWN AIDANT
+ */
+window.toggleAidantDropdown = () => {
+    const dropdown = document.getElementById('aidant-dropdown');
+    const chevron = document.getElementById('aidant-chevron');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+        if (chevron) chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        
+        // Fermer l'autre dropdown
+        const patientDropdown = document.getElementById('patient-dropdown');
+        const patientChevron = document.getElementById('patient-chevron');
+        if (patientDropdown && !patientDropdown.classList.contains('hidden')) {
+            patientDropdown.classList.add('hidden');
+            if (patientChevron) patientChevron.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+/**
+ * 🔽 OUVERTURE/FERMETURE DROPDOWN PATIENT
+ */
+window.togglePatientDropdown = () => {
+    const dropdown = document.getElementById('patient-dropdown');
+    const chevron = document.getElementById('patient-chevron');
+    if (dropdown) {
+        dropdown.classList.toggle('hidden');
+        if (chevron) chevron.style.transform = dropdown.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        
+        // Fermer l'autre dropdown
+        const aidantDropdown = document.getElementById('aidant-dropdown');
+        const aidantChevron = document.getElementById('aidant-chevron');
+        if (aidantDropdown && !aidantDropdown.classList.contains('hidden')) {
+            aidantDropdown.classList.add('hidden');
+            if (aidantChevron) aidantChevron.style.transform = 'rotate(0deg)';
+        }
+    }
+};
+
+/**
+ * 📤 SOUMISSION DE L'ASSIGNATION
+ */
+window.submitAssignment = async () => {
+    if (!window._selectedAidant) {
+        UI.vibrate('error');
+        Swal.fire({ 
+            title: "Aidant requis", 
+            text: "Veuillez sélectionner un aidant", 
+            icon: "warning", 
+            customClass: { popup: 'rounded-2xl' } 
+        });
+        return;
+    }
+    if (!window._selectedPatient) {
+        UI.vibrate('error');
+        Swal.fire({ 
+            title: "Patient requis", 
+            text: "Veuillez sélectionner un patient", 
+            icon: "warning", 
+            customClass: { popup: 'rounded-2xl' } 
+        });
+        return;
+    }
+    
+    Swal.fire({ 
+        title: "Assignation...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
+    
+    try {
+        await secureFetch("/assignments/assign", {
+            method: "POST",
+            body: JSON.stringify({
+                aidant_id: window._selectedAidant.id,
+                patient_id: window._selectedPatient.id,
+                date_prevue: document.getElementById("assign-date")?.value,
+                heure_prevue: document.getElementById("assign-time")?.value,
+                notes: document.getElementById("assign-notes")?.value || ""
+            })
+        });
+        
+        Swal.fire({ 
+            icon: "success", 
+            title: "Succès", 
+            text: "Patient assigné avec succès", 
+            timer: 2000, 
+            showConfirmButton: false 
+        });
+        window.switchView("rh-dashboard");
+        
+    } catch (err) {
+        Swal.close();
+        Swal.fire({ 
+            title: "Erreur", 
+            text: err.message, 
+            icon: "error", 
+            customClass: { popup: 'rounded-2xl' } 
+        });
+    }
+};
+
+/**
+ * 🔧 Échapper les caractères HTML
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 /**
  * 💡 TRANSITION INTELLIGENTE - Briefing
  */
