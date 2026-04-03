@@ -716,13 +716,13 @@ window.nextAuthStep = () => {
         registrationData.tel_patient = document.getElementById('p-tel')?.value || "";
         registrationData.contact_urgence_tel = document.getElementById('p-urgence-tel')?.value || "";
     }
-    if (currentStep === 3) {
-        const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
-        registrationData.pathologies = meds;
-        registrationData.traitements = document.getElementById('p-traitements')?.value || "";
-        registrationData.allergies = document.getElementById('p-allergies')?.value || "";
-        registrationData.notes_medicales = document.getElementById('p-notes')?.value;
-    }
+        if (currentStep === 3) {
+            const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+            registrationData.pathologies = meds;  
+            registrationData.traitements = document.getElementById('p-traitements')?.value || "";
+            registrationData.allergies = document.getElementById('p-allergies')?.value || "";
+            registrationData.notes_medicales = document.getElementById('p-notes')?.value;
+        }
     if (currentStep === 6) { 
         if(!document.getElementById('legal-check')?.checked) {
             UI.vibrate('error');
@@ -749,42 +749,53 @@ window.prevAuthStep = () => {
         renderAuthView('register', currentStep);
     }
 };
-
 async function submitRegistration() {
     if(!registrationData.type_pack) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
     
     registrationData.formule = registrationData.type_pack;
     registrationData.email = registrationData.email.trim().toLowerCase();
-
-    Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, customClass: { popup: 'rounded-[2.5rem]' } });
+    
+    // ✅ Assure-toi que pathologies est bien un tableau
+    if (registrationData.pathologies && !Array.isArray(registrationData.pathologies)) {
+        registrationData.pathologies = registrationData.pathologies.split(',').map(s => s.trim());
+    }
+    
+    // ✅ Ne pas stringifier manuellement, laisse fetch le faire
+    const payload = {
+        ...registrationData,
+        pathologies: registrationData.pathologies || []
+    };
+    
+    Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
     try {
         const res = await fetch(`${CONFIG.API_URL}/auth/register-family-patient`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(registrationData)
+            body: JSON.stringify(payload)  // ← fetch stringifie automatiquement
         });
 
-        const data = await res.json(); 
-
+        const data = await res.json();
+        
         if (res.ok) {
             localStorage.setItem("user_categorie", registrationData.categorie);
             localStorage.setItem("user_is_maman", registrationData.categorie === 'MAMAN_BEBE');
+            
+            Swal.fire({
+                icon: "success",
+                title: "Dossier Transmis !",
+                text: "Un coordinateur va valider vos informations sous 24h.",
+                confirmButtonText: "RETOUR À L'ACCUEIL",
+                confirmButtonColor: "#16a34a"
+            }).then(() => window.location.reload());
+        } else {
+            throw new Error(data.error || "Erreur lors de l'inscription");
         }
-
-        Swal.fire({
-            icon: "success",
-            title: "Dossier Transmis !",
-            text: "Un coordinateur va valider vos informations sous 24h.",
-            confirmButtonText: "RETOUR À L'ACCUEIL",
-            confirmButtonColor: "#16a34a"
-        }).then(() => window.location.reload());
-
     } catch (e) {
+        console.error("Erreur inscription:", e);
         Swal.fire("Erreur", e.message, "error");
     }
 }
-
 // ============================================================
 // VUE AUTHENTIFICATION (LOGIN / REGISTER / OTP)
 // ============================================================
