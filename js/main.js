@@ -182,6 +182,8 @@ async function initApp() {
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
+    checkActiveVisit();
+
     
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
@@ -1547,6 +1549,28 @@ function renderOnboarding() {
         </div>
     `;
 }
+
+
+
+// Vérifier si une visite est en cours au chargement
+async function checkActiveVisit() {
+    const activeVisitId = localStorage.getItem("active_visit_id");
+    if (activeVisitId) {
+        // Vérifier si la visite existe toujours en backend
+        try {
+            const visits = await secureFetch("/visites");
+            const activeVisit = visits.find(v => v.id === activeVisitId && v.statut === "En cours");
+            if (!activeVisit) {
+                // La visite n'existe plus ou est terminée, nettoyer
+                localStorage.removeItem("active_visit_id");
+                localStorage.removeItem("geo_watch_id");
+            }
+        } catch (err) {
+            console.error("Erreur vérification visite active:", err);
+        }
+    }
+}
+
 
 window.nextOnboarding = () => {
     onboardingStep++;
