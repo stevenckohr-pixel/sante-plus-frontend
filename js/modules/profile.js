@@ -521,17 +521,51 @@ window.updateProfilePhoto = async (file) => {
 window.updatePatientPhoto = async (file) => {
     if (!file) return;
     
-    Swal.fire({ title: "Upload...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    // ✅ Compression avant envoi
+    const maxSize = 500 * 1024; // 500KB max
+    
+    let fileToUpload = file;
+    
+    // Si le fichier est trop gros, le compresser
+    if (file.size > maxSize) {
+        Swal.fire({
+            title: "Compression en cours...",
+            text: "L'image est volumineuse, elle va être compressée",
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
+        
+        try {
+            fileToUpload = await compressImage(file, 1024); // 1024px max width
+        } catch (err) {
+            Swal.close();
+            UI.error("Impossible de compresser l'image");
+            return;
+        }
+        
+        Swal.close();
+    }
+    
+    // Vérifier la taille après compression
+    if (fileToUpload.size > maxSize) {
+        UI.error("L'image est trop lourde (max 500KB)");
+        return;
+    }
+    
+    Swal.fire({ 
+        title: "Upload...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
     
     try {
-        const compressed = await compressImage(file);
         const formData = new FormData();
-        formData.append("photo", compressed);
+        formData.append("photo", fileToUpload);
         
         const result = await secureFetch("/patients/update-photo", {
             method: "POST",
             body: formData,
-            headers: {}
+            headers: {} // Important : ne pas mettre Content-Type, laisser FormData le gérer
         });
         
         if (result.photo_url) {
@@ -539,11 +573,12 @@ window.updatePatientPhoto = async (file) => {
             container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
             UI.success("Photo du patient mise à jour");
         }
+        Swal.close();
     } catch (err) {
-        UI.error(err.message);
+        Swal.close();
+        UI.error(err.message || "Erreur lors de l'upload");
     }
 };
-
 /**
  * 💾 Mettre à jour le profil
  */
