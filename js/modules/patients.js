@@ -18,6 +18,15 @@ export async function loadPatients() {
         // ✅ Correction : secureFetch retourne déjà les données JSON
         const patients = await secureFetch("/patients");
         AppState.patients = patients;
+        
+        // ✅ AJOUT - Pour la famille, définir automatiquement le patient
+        const userRole = localStorage.getItem("user_role");
+        if (userRole === "FAMILLE" && patients && patients.length > 0) {
+            AppState.currentPatient = patients[0].id;
+            localStorage.setItem("current_patient_id", patients[0].id);
+            console.log("✅ Patient famille chargé:", AppState.currentPatient);
+        }
+        
         renderPatients();
     } catch (err) {
         console.error("Erreur loadPatients:", err);
@@ -25,7 +34,6 @@ export async function loadPatients() {
         throw err;
     }
 }
-
 /**
  * 🎨 2. RENDU DE LA LISTE
  */
