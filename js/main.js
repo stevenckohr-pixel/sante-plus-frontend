@@ -182,7 +182,7 @@ async function initApp() {
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
-    checkActiveVisit();
+    
 
     
     // ✅ Correction : appeler la fonction depuis le module importé
@@ -210,7 +210,10 @@ async function initApp() {
             }
             
             renderLayout();
+            await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
+            checkActiveVisit();
+
             
             const userRole = localStorage.getItem("user_role");
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
