@@ -1656,7 +1656,7 @@ window.loadRegistrations = Admin.loadRegistrations;
 window.confirmActivation = Admin.confirmActivation;
 window.fetchStats = Dashboard.fetchStats;
 window.openActivationPage = Admin.openActivationPage;
-
+window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
 
 window.confirmStartVisit = Visites.startVisit;
