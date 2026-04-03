@@ -211,4 +211,4 @@ function escapeHtml(str) {
 }
 
 // Exporter pour rafraîchir le badge après chaque notification
-export { unreadCount, updateNotificationBadge, loadNotifications };
+export { unreadCount };
