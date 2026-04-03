@@ -319,47 +319,57 @@ window.updateProfileFull = async () => {
         });
         
         if (response.status === "success") {
-            // ✅ Mettre à jour le localStorage IMMÉDIATEMENT
+            // ✅ 1. Mettre à jour le localStorage
             const nomComplet = `${prenom || ''} ${nom || ''}`.trim();
             localStorage.setItem("user_name", nomComplet);
             localStorage.setItem("user_email", email);
             
-            // ✅ Mettre à jour l'affichage du header sans recharger
+            // ✅ 2. Mettre à jour l'affichage DANS LA PAGE PROFIL
+            // Le nom dans l'en-tête de la page profil
+            const profileName = document.querySelector("#view-container h2.text-xl.font-black");
+            if (profileName) profileName.textContent = nomComplet;
+            
+            // ✅ 3. Mettre à jour le header (en haut)
             const headerName = document.querySelector("header .font-black.truncate");
             if (headerName) headerName.textContent = nomComplet;
             
+            const headerSmallName = document.querySelector("header .text-xs.font-black");
+            if (headerSmallName) headerSmallName.textContent = nomComplet.split(' ')[0];
+            
+            // ✅ 4. Mettre à jour la sidebar
             const sidebarName = document.querySelector("aside .text-xs.font-black.truncate");
             if (sidebarName) sidebarName.textContent = nomComplet;
             
-            // ✅ Mettre à jour la photo si elle a changé
-            const userPhoto = localStorage.getItem("user_photo");
-            if (userPhoto) {
-                const headerAvatar = document.querySelector("header .rounded-xl img");
-                if (headerAvatar) headerAvatar.src = userPhoto;
-                const sidebarAvatar = document.querySelector("aside .rounded-full img");
-                if (sidebarAvatar) sidebarAvatar.src = userPhoto;
+            // ✅ 5. Recharger les données du profil depuis le serveur
+            // Pour être sûr d'avoir les dernières infos
+            const userId = localStorage.getItem("user_id");
+            const freshProfile = await secureFetch(`/auth/profile/${userId}`);
+            
+            // Mettre à jour les champs du formulaire avec les nouvelles valeurs
+            if (freshProfile) {
+                if (document.getElementById("profile-prenom")) 
+                    document.getElementById("profile-prenom").value = freshProfile.prenom || '';
+                if (document.getElementById("profile-nom")) 
+                    document.getElementById("profile-nom").value = freshProfile.nom || '';
+                if (document.getElementById("profile-email")) 
+                    document.getElementById("profile-email").value = freshProfile.email || '';
+                if (document.getElementById("profile-telephone")) 
+                    document.getElementById("profile-telephone").value = freshProfile.telephone || '';
+                if (document.getElementById("profile-adresse")) 
+                    document.getElementById("profile-adresse").value = freshProfile.adresse || '';
             }
             
             Swal.fire({
                 icon: "success",
                 title: "Profil mis à jour",
-                text: "Vos modifications ont été enregistrées",
-                timer: 2000,
+                timer: 1500,
                 showConfirmButton: false
             });
-            
-            // ✅ Ne pas recharger la page !!!
-            // window.location.reload(); ← SUPPRIME ou COMMENTE cette ligne
         }
         
     } catch (err) {
         Swal.close();
         UI.error(err.message);
-        Swal.fire({
-            title: "Erreur",
-            text: err.message,
-            icon: "error"
-        });
     }
 };
 
@@ -459,23 +469,50 @@ async function loadUserStats(role, userId) {
 window.updateProfilePhoto = async (file) => {
     if (!file) return;
     
-    const result = await ImageUploader.upload(file, '/auth/update-photo', 'photo');
+    Swal.fire({ 
+        title: "Upload...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
     
-    if (result && result.photo_url) {
-        // Mettre à jour l'affichage
-        const container = document.getElementById("profile-photo-container");
-        if (container) {
-            container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
+    try {
+        const result = await ImageUploader.upload(file, '/auth/update-photo', 'photo');
+        
+        if (result && result.photo_url) {
+            const imageUrl = `${result.photo_url}?t=${Date.now()}`;
+            
+            // ✅ Mettre à jour l'affichage dans la page profil
+            const container = document.getElementById("profile-photo-container");
+            if (container) {
+                container.innerHTML = `<img src="${imageUrl}" class="w-full h-full object-cover">`;
+            }
+            
+            // ✅ Mettre à jour le localStorage
+            localStorage.setItem("user_photo", result.photo_url);
+            
+            // ✅ Mettre à jour le header (photo)
+            const headerAvatar = document.querySelector("header .rounded-xl img");
+            if (headerAvatar) headerAvatar.src = imageUrl;
+            
+            // ✅ Mettre à jour la sidebar (photo)
+            const sidebarAvatar = document.querySelector("aside .rounded-full img");
+            if (sidebarAvatar) sidebarAvatar.src = imageUrl;
+            
+            // ✅ Mettre à jour le footer mobile (photo)
+            const mobileAvatar = document.querySelector("footer .rounded-full img");
+            if (mobileAvatar) mobileAvatar.src = imageUrl;
+            
+            Swal.fire({
+                icon: "success",
+                title: "Photo mise à jour",
+                timer: 1500,
+                showConfirmButton: false
+            });
         }
-        
-        // Mettre à jour le localStorage
-        localStorage.setItem("user_photo", result.photo_url);
-        
-        // Mettre à jour le header
-        const headerAvatar = document.querySelector("header .rounded-xl img");
-        if (headerAvatar) headerAvatar.src = result.photo_url;
-        
-        UI.success("Photo mise à jour");
+    } catch (err) {
+        UI.error(err.message);
+    } finally {
+        Swal.close();
     }
 };
 /**
@@ -588,3 +625,33 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
+
+/**
+ * Rafraîchit toutes les zones qui affichent le nom/photo de l'utilisateur
+ */
+function refreshUserDisplay() {
+    const userName = localStorage.getItem("user_name");
+    const userPhoto = localStorage.getItem("user_photo");
+    const userEmail = localStorage.getItem("user_email");
+    
+    // Header
+    const headerName = document.querySelector("header .font-black.truncate");
+    if (headerName) headerName.textContent = userName;
+    
+    const headerSmall = document.querySelector("header .text-xs.font-black");
+    if (headerSmall) headerSmall.textContent = userName?.split(' ')[0] || 'Profil';
+    
+    const headerAvatar = document.querySelector("header .rounded-xl img");
+    if (headerAvatar && userPhoto) headerAvatar.src = `${userPhoto}?t=${Date.now()}`;
+    
+    // Sidebar
+    const sidebarName = document.querySelector("aside .text-xs.font-black.truncate");
+    if (sidebarName) sidebarName.textContent = userName;
+    
+    const sidebarAvatar = document.querySelector("aside .rounded-full img");
+    if (sidebarAvatar && userPhoto) sidebarAvatar.src = `${userPhoto}?t=${Date.now()}`;
+    
+    // Footer mobile
+    const mobileAvatar = document.querySelector("footer .rounded-full img");
+    if (mobileAvatar && userPhoto) mobileAvatar.src = `${userPhoto}?t=${Date.now()}`;
+}
