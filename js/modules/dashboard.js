@@ -184,3 +184,6 @@ window.quickValidate = async (visiteId, statut) => {
         }
     });
 };
+
+
+window.fetchStats = fetchStats;
