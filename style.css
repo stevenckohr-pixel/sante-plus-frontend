@@ -1129,3 +1129,91 @@ aside {
         padding-bottom: 20px;
     }
 }
+
+
+
+
+/* ============================================
+   AMÉLIORATION DES BLOCS MENU
+   ============================================ */
+
+/* Effet subtil sur les blocs du menu */
+.menu-tile {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dégradé subtil au survol */
+.menu-tile:hover {
+    transform: translateY(-3px);
+    border-color: rgba(16, 185, 129, 0.3);
+    box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.12);
+}
+
+/* Petite bande colorée en haut */
+.menu-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #10B981, #34D399, #10B981);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.menu-tile:hover::before {
+    opacity: 0.6;
+}
+
+/* Icônes avec fond coloré */
+.menu-tile .bg-indigo-50,
+.menu-tile .bg-emerald-50,
+.menu-tile .bg-purple-50,
+.menu-tile .bg-cyan-50,
+.menu-tile .bg-blue-50,
+.menu-tile .bg-orange-50,
+.menu-tile .bg-rose-50,
+.menu-tile .bg-slate-100 {
+    transition: all 0.2s ease;
+}
+
+.menu-tile:hover .bg-indigo-50 { background: #E0E7FF !important; }
+.menu-tile:hover .bg-emerald-50 { background: #D1FAE5 !important; }
+.menu-tile:hover .bg-purple-50 { background: #F3E8FF !important; }
+.menu-tile:hover .bg-cyan-50 { background: #CFFAFE !important; }
+.menu-tile:hover .bg-blue-50 { background: #DBEAFE !important; }
+.menu-tile:hover .bg-orange-50 { background: #FFEDD5 !important; }
+.menu-tile:hover .bg-rose-50 { background: #FFE4E6 !important; }
+
+/* Texte avec contraste */
+.menu-tile .font-black {
+    font-size: 0.875rem;
+    letter-spacing: -0.01em;
+}
+
+.menu-tile .text-slate-400 {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+/* Version mobile */
+@media (max-width: 640px) {
+    .menu-tile {
+        padding: 0.875rem;
+    }
+    
+    .menu-tile .font-black {
+        font-size: 0.8rem;
+    }
+    
+    .menu-tile .text-slate-400 {
+        font-size: 0.65rem;
+    }
+}
