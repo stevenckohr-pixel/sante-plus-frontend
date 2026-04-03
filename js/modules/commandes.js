@@ -22,53 +22,131 @@ export async function loadCommandes() {
  * 🎨 AFFICHER LES COMMANDES
  */
 function renderCommandes(list) {
-  const container = document.getElementById("commandes-list");
-  const role = localStorage.getItem("user_role");
+    const container = document.getElementById("commandes-list");
+    const role = localStorage.getItem("user_role");
 
-  if (!list.length) {
-    container.innerHTML = `<div class="text-center py-20 opacity-50"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">Aucune commande</p></div>`;
-    return;
-  }
+    if (!list.length) {
+        container.innerHTML = `<div class="text-center py-20"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">Aucune commande</p></div>`;
+        return;
+    }
 
-  container.innerHTML = list
-    .map((c) => {
-      const isConfirmed = c.statut === "Confirmée";
-      const isDelivered = c.statut === "Livrée";
-      
-      let statusColor = "bg-blue-100 text-blue-700";
-      if (isDelivered) statusColor = "bg-emerald-100 text-emerald-700";
-      if (c.statut === "En attente") statusColor = "bg-amber-100 text-amber-700";
+    container.innerHTML = list.map((c) => {
+        const isPending = c.statut === "En attente";
+        const isConfirmed = c.statut === "Confirmée";
+        const isDelivered = c.statut === "Livrée";
+        
+        let statusColor = "bg-blue-100 text-blue-700";
+        let statusText = c.statut || "En attente";
+        
+        if (isDelivered) {
+            statusColor = "bg-emerald-100 text-emerald-700";
+            statusText = "Livrée ✅";
+        }
+        if (isConfirmed) {
+            statusColor = "bg-amber-100 text-amber-700";
+            statusText = "Confirmée - En livraison";
+        }
+        if (isPending) {
+            statusColor = "bg-slate-100 text-slate-700";
+            statusText = "En attente de validation";
+        }
 
-      return `
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">ID: ${c.id?.substring(0, 5) || '???'}</span>
-              <h4 class="font-black text-slate-800 text-sm mt-1 uppercase">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
+        return `
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">#${c.id?.substring(0, 8)}</span>
+                        <h4 class="font-black text-slate-800 text-sm mt-1">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
+                    </div>
+                    <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase ${statusColor}">${statusText}</span>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl mb-4">
+                    <p class="text-xs font-bold text-slate-600 italic">📦 "${c.liste_medocs || 'Aucune description'}"</p>
+                    ${c.prix_total ? `<p class="mt-2 text-xs font-black text-emerald-600">💰 Total: ${UI.formatMoney(c.prix_total)}</p>` : ''}
+                </div>
+
+                <!-- ✅ BOUTONS POUR COORDINATEUR -->
+                ${role === "COORDINATEUR" && isPending ? `
+                    <div class="space-y-3">
+                        <div class="flex gap-2">
+                            <input type="number" id="prix-${c.id}" placeholder="Montant total (CFA)" class="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                            <select id="aidant-${c.id}" class="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                                <option value="">Choisir un aidant</option>
+                            </select>
+                        </div>
+                        <button onclick="window.confirmCommand('${c.id}')" 
+                                class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md">
+                            ✅ Confirmer et assigner un aidant
+                        </button>
+                    </div>
+                ` : ''}
+
+                <!-- ✅ BOUTON POUR AIDANT -->
+                ${role === "AIDANT" && isConfirmed && !isDelivered ? `
+                    <button onclick="window.markAsDelivered('${c.id}')" 
+                            class="w-full py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                        📸 Confirmer la Livraison
+                    </button>
+                ` : ''}
+
+                <!-- ✅ PREUVE DE LIVRAISON -->
+                ${c.photo_livraison ? `
+                    <div class="mt-3">
+                        <p class="text-[9px] font-black text-slate-400 mb-1">📸 Preuve de livraison</p>
+                        <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-xl border cursor-pointer" onclick="window.open('${c.photo_livraison}')">
+                    </div>
+                ` : ''}
             </div>
-            <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase ${statusColor}">${c.statut || 'En attente'}</span>
-          </div>
-
-          <div class="p-4 bg-slate-50 rounded-xl mb-4">
-            <p class="text-xs font-bold text-slate-600 italic">"${c.liste_medocs || 'Aucune description'}"</p>
-            ${c.prix_total > 0 ? `<p class="mt-2 text-xs font-black text-emerald-600">Total: ${UI.formatMoney(c.prix_total)}</p>` : ''}
-          </div>
-
-          ${isConfirmed && role === "AIDANT" && !isDelivered ? `
-            <button onclick="window.markAsDelivered('${c.id}')" class="w-full py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-              📸 Confirmer la Livraison
-            </button>
-          ` : ''}
-
-          ${c.photo_livraison ? `
-            <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-xl mt-3 border cursor-pointer" onclick="window.open('${c.photo_livraison}')">
-          ` : ''}
-        </div>
-      `;
-    })
-    .join("");
+        `;
+    }).join("");
+    
+    // ✅ Charger la liste des aidants pour les selects (coordinateur)
+    if (role === "COORDINATEUR") {
+        loadAidantsForSelect();
+    }
 }
 
+async function loadAidantsForSelect() {
+    try {
+        const aidants = await secureFetch('/profiles?role=AIDANT');
+        document.querySelectorAll('select[id^="aidant-"]').forEach(select => {
+            select.innerHTML = '<option value="">Choisir un aidant</option>' +
+                aidants.map(a => `<option value="${a.id}">${a.nom}</option>`).join('');
+        });
+    } catch (err) {
+        console.error("Erreur chargement aidants:", err);
+    }
+}
+
+// ✅ Fonction pour confirmer la commande (Coordinateur)
+window.confirmCommand = async (commandeId) => {
+    const prix = document.getElementById(`prix-${commandeId}`)?.value;
+    const aidantId = document.getElementById(`aidant-${commandeId}`)?.value;
+    
+    if (!prix || !aidantId) {
+        Swal.fire("Champs manquants", "Veuillez entrer le prix et sélectionner un aidant", "warning");
+        return;
+    }
+    
+    Swal.fire({ title: "Confirmation...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        await secureFetch("/commandes/confirm", {
+            method: "POST",
+            body: JSON.stringify({
+                commande_id: commandeId,
+                aidant_id: aidantId,
+                prix_total: parseInt(prix)
+            })
+        });
+        
+        Swal.fire("Succès", "Commande confirmée et aidant assigné", "success");
+        loadCommandes();
+    } catch (err) {
+        Swal.fire("Erreur", err.message, "error");
+    }
+};
 /**
  * 📦 CONFIRMER LA LIVRAISON (Aidant)
  */
