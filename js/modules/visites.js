@@ -293,8 +293,7 @@ export async function loadVisits() {
     showSkeleton(container, 'visit-card');
 
     try {
-        const response = await secureFetch("/visites");
-        const data = await response.json();
+        const data = await secureFetch("/visites");
 
         if (!response.ok) {
             throw new Error(data.error || "Erreur lors de la récupération des visites");
