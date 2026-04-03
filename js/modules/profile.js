@@ -457,49 +457,23 @@ async function loadUserStats(role, userId) {
 window.updateProfilePhoto = async (file) => {
     if (!file) return;
     
-    Swal.fire({ 
-        title: "Upload...", 
-        didOpen: () => Swal.showLoading(), 
-        allowOutsideClick: false 
-    });
+    const result = await ImageUploader.upload(file, '/auth/update-photo', 'photo');
     
-    try {
-        const compressed = await compressImage(file);
-        const formData = new FormData();
-        formData.append("photo", compressed);
+    if (result && result.photo_url) {
+        // Mettre à jour l'affichage
+        const container = document.getElementById("profile-photo-container");
+        container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
         
-        const result = await secureFetch("/auth/update-photo", {
-            method: "POST",
-            body: formData,
-            headers: {}
-        });
+        // Mettre à jour le localStorage
+        localStorage.setItem("user_photo", result.photo_url);
         
-        if (result.photo_url) {
-            // ✅ Mettre à jour l'affichage
-            const container = document.getElementById("profile-photo-container");
-            container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
-            
-            // ✅ Mettre à jour le localStorage
-            localStorage.setItem("user_photo", result.photo_url);
-            
-            // ✅ Mettre à jour le header et la sidebar
-            const headerAvatar = document.querySelector("header .rounded-xl img");
-            if (headerAvatar) headerAvatar.src = result.photo_url;
-            const sidebarAvatar = document.querySelector("aside .rounded-full img");
-            if (sidebarAvatar) sidebarAvatar.src = result.photo_url;
-            
-            UI.success("Photo mise à jour");
-            
-            // ✅ Ne pas recharger la page
-            // window.location.reload(); ← SUPPRIME ou COMMENTE
-        }
-    } catch (err) {
-        UI.error(err.message);
-    } finally {
-        Swal.close();
+        // Mettre à jour le header
+        const headerAvatar = document.querySelector("header .rounded-xl img");
+        if (headerAvatar) headerAvatar.src = result.photo_url;
+        
+        UI.success("Photo mise à jour");
     }
 };
-
 /**
  * 📸 Mettre à jour la photo du patient
  */
