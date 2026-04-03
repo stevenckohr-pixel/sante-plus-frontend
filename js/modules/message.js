@@ -62,7 +62,7 @@ export async function loadFeed() {
 
     try {
         const res = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-        AppState.messages = await res.json();
+        AppState.messages = data; 
         renderFeed();
     } catch (err) {
         console.error("Erreur Feed:", err);
