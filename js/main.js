@@ -1684,41 +1684,54 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 
-// Dans main.js, vers la fin, ajoutez :
+// ============================================================
+// VALIDATION D'ACTIVATION DE COMPTE
+// ============================================================
 window.processValidation = async (id, email, nom, role) => {
-    console.log("🔵 processValidation appelée !", { id, email, nom, role });
+    console.log("🔵 Activation déclenchée pour:", { id, email, nom, role });
     
     const notes = document.getElementById('val-notes')?.value || '';
     
     Swal.fire({ 
-        title: 'Traitement...', 
+        title: 'Activation en cours...', 
         didOpen: () => Swal.showLoading(), 
         allowOutsideClick: false 
     });
 
     try {
+        // ✅ secureFetch est maintenant importé
         const result = await secureFetch('/admin/validate-member', {
             method: 'POST',
-            body: JSON.stringify({ user_id: id, email, nom, role, notes })
+            body: JSON.stringify({ 
+                user_id: id, 
+                email: email, 
+                nom: nom, 
+                role: role, 
+                notes: notes 
+            })
         });
         
-        console.log("✅ Réponse du serveur:", result);
+        console.log("✅ Réponse serveur:", result);
         
         Swal.fire({
             icon: "success",
-            title: "Succès",
-            text: "Collaborateur activé avec succès",
-            confirmButtonColor: "#10B981"
+            title: "✅ Activation réussie !",
+            text: `Le compte de ${nom} a été activé.`,
+            confirmButtonColor: "#10B981",
+            timer: 2000,
+            showConfirmButton: false
         });
         
-        window.switchView('dashboard');
+        setTimeout(() => {
+            window.switchView('dashboard');
+        }, 500);
         
-    } catch(e) {
-        console.error("❌ Erreur:", e);
+    } catch(error) {
+        console.error("❌ Erreur activation:", error);
         Swal.fire({
             icon: "error",
             title: "Erreur",
-            text: e.message,
+            text: error.message,
             confirmButtonColor: "#F43F5E"
         });
     }
