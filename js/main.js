@@ -32,6 +32,8 @@ import {
 import * as Subscription from "./modules/subscription.js";
 import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
+import { startKeepAlive } from './core/keepAlive.js';
+
 
 // ============================================================
 // VARIABLES GLOBALES
@@ -176,6 +178,8 @@ async function initApp() {
     initMicroInteractions();      // Feedback haptique
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
+    startKeepAlive();            // Ping
+
     
     // Récupération des préférences utilisateur
     const savedSoundPref = localStorage.getItem('sounds_enabled');
