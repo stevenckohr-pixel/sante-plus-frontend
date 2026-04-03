@@ -74,9 +74,8 @@ export async function renderEndVisitView() {
     const container = document.getElementById("view-container");
 
     // 1. Récupérer les infos du patient
-    const res = await secureFetch(`/patients/${AppState.currentPatient}`);
-    const patient = await res.json(); 
-    
+    const patient = await secureFetch(`/patients/${AppState.currentPatient}`);
+
     container.innerHTML = `
         <div class="animate-fadeIn max-w-lg mx-auto pb-24">
             <!-- Header de Page -->
@@ -401,8 +400,11 @@ window.startVisit = async (patientId) => {
         patient_id: patientId,
         gps_start: gpsString,
       }),
-    });
     
+    });
+
+    console.log("✅ Données reçues:", data);  
+
     // ✅ Plus besoin de res.json() et res.ok
     // if (!res.ok) throw new Error(data.error); ← À SUPPRIMER
 
