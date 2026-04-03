@@ -40,7 +40,26 @@ export async function loadBilling() {
     table.innerHTML = "";
 
     if (!Array.isArray(abonnements) || abonnements.length === 0) {
-      table.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-slate-400 italic text-xs">Aucune facture générée.</td></tr>`;
+      // ✅ Afficher un message avec bouton pour souscrire
+      table.innerHTML = `
+        <tr>
+          <td colspan="5" class="p-10 text-center">
+            <div class="flex flex-col items-center gap-4">
+              <i class="fa-solid fa-receipt text-4xl text-slate-300"></i>
+              <p class="text-slate-400 italic text-sm">Aucune facture pour le moment</p>
+              ${userRole === "FAMILLE" ? `
+                <button onclick="window.switchView('subscription')" 
+                        class="mt-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg hover:bg-emerald-700 transition-all">
+                  🎁 Souscrire un abonnement
+                </button>
+              ` : ''}
+              ${userRole === "COORDINATEUR" ? `
+                <p class="text-xs text-slate-400 mt-2">Aucune facture générée. Les factures sont créées automatiquement le 1er du mois.</p>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
     } else {
       abonnements.forEach((abo) => {
         let statusBadge = "";
