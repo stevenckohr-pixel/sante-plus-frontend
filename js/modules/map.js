@@ -196,8 +196,7 @@ async function refreshAllPositions() {
     if (!map) return;
     
     try {
-        const res = await secureFetch('/visites/live-tracking');
-        const activeVisits = await res.json();
+        const activeVisits = await secureFetch('/visites/live-tracking');
         
         // Mettre à jour le compteur
         const badge = document.getElementById('active-count-badge');
