@@ -40,8 +40,11 @@ function getChecklistHTML(category) {
 export function refreshAidantUI(patientId) {
     const container = document.getElementById("aidant-active-area");
     if (!container) return;
+    
     const activeVisitId = localStorage.getItem("active_visit_id");
-
+    
+    console.log("🔄 refreshAidantUI - activeVisitId:", activeVisitId);
+    
     if (!activeVisitId) {
         // État : Prêt à travailler
         container.innerHTML = `
@@ -53,7 +56,7 @@ export function refreshAidantUI(patientId) {
             </div>
         `;
     } else {
-        // État : Mission en cours (Alerte Visuelle + Bouton d'action)
+        // État : Mission en cours
         container.innerHTML = `
             <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                 <button onclick="window.openEndVisit()" 
@@ -64,7 +67,6 @@ export function refreshAidantUI(patientId) {
         `;
     }
 }
-
 /**
  * 📄 VUE : PAGE DE CLÔTURE DE VISITE (PLEIN ÉCRAN MOBILE)
  */
@@ -373,14 +375,12 @@ window.startVisit = async (patientId) => {
         customClass: { popup: 'rounded-[2.5rem]' }
       });
       if (confirm.isConfirmed) {
-        // Rediriger vers la page de fin de visite
         window.switchView("end-visit");
         return;
       }
       throw new Error("Une visite est déjà en cours");
     }
 
-    // UI Pro : Loader stylisé
     Swal.fire({
       title: '<i class="fa-solid fa-satellite-dish fa-beat text-emerald-500 mb-2"></i><br><span class="text-xl font-black">Initialisation du Suivi</span>',
       html: '<p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Couplage GPS et vérification du périmètre de sécurité...</p>',
@@ -390,12 +390,12 @@ window.startVisit = async (patientId) => {
       didOpen: () => Swal.showLoading(),
     });
 
-    // 1. Capturer la position d'entrée (Proof of Arrival)
+    // 1. Capturer la position d'entrée
     const coords = await getCurrentLocation();
     const gpsString = `${coords.lat},${coords.lon}`;
 
-    // 2. Déclenchement au backend
-    const res = await secureFetch("/visites/start", {
+    // 2. ✅ CORRECTION ICI : secureFetch retourne déjà les données
+    const data = await secureFetch("/visites/start", {
       method: "POST",
       body: JSON.stringify({
         patient_id: patientId,
@@ -403,8 +403,8 @@ window.startVisit = async (patientId) => {
       }),
     });
     
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
+    // ✅ Plus besoin de res.json() et res.ok
+    // if (!res.ok) throw new Error(data.error); ← À SUPPRIMER
 
     // 3. Stockage des identifiants de session
     localStorage.setItem("active_visit_id", data.visite_id);
@@ -413,17 +413,8 @@ window.startVisit = async (patientId) => {
     // 4. LANCEMENT DU TRACKER GPS
     startBackgroundTracking(data.visite_id);
 
-    // 5. Notification à la famille
-    try {
-      await fetch(`${CONFIG.API_URL}/visites/notify-family`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ patient_id: patientId })
-      });
-    } catch(e) { console.warn("Notification non envoyée"); }
+    // 5. Rafraîchir l'UI pour cacher le bouton "Démarrer"
+    refreshAidantUI(patientId);
 
     Swal.fire({
       icon: "success",
