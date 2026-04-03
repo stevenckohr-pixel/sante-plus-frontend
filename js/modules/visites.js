@@ -631,8 +631,8 @@ window.savePatientHomeGPS = async (patientId) => {
 
 export async function renderStartVisitView(patientId) {
     const container = document.getElementById("view-container");
-    const p = await secureFetch(`/patients/${patientId}`); 
-
+    const p = await secureFetch(`/patients/${patientId}`);  // ← Direct, pas de .json()
+    
     container.innerHTML = `
         <div class="animate-slideIn max-w-lg mx-auto pb-32">
             <!-- Header avec bouton Retour -->
