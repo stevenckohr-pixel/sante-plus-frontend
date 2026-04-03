@@ -38,6 +38,26 @@ import * as Notifications from "./modules/notifications.js";
 const { updateNotificationBadge } = Notifications;
 
 
+
+// Met à jour l'icône PWA selon le thème (Maman ou général)
+function updatePWAIcon(isMaman) {
+    const iconUrl = isMaman 
+        ? CONFIG.LOGO_MAMAN
+        : CONFIG.LOGO_GENERAL;
+    
+    // Mettre à jour l'icône apple-touch-icon
+    let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+    if (appleIcon) {
+        appleIcon.href = iconUrl;
+    }
+    
+    // Mettre à jour le favicon
+    let favicon = document.querySelector('link[rel="icon"]');
+    if (favicon) {
+        favicon.href = iconUrl;
+    }
+}
+
 // ============================================================
 // VARIABLES GLOBALES
 // ============================================================
@@ -174,6 +194,8 @@ async function initApp() {
     const loader = document.getElementById("initial-loader");
     const token = localStorage.getItem("token");
     const onboardingSeen = localStorage.getItem("onboarding_seen");
+    updatePWAIcon(localStorage.getItem("user_is_maman") === "true");
+
     
     console.log("📝 Onboarding vu ?", onboardingSeen);
     
