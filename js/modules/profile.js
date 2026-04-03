@@ -304,20 +304,60 @@ window.updateProfileFull = async () => {
     const telephone = document.getElementById("profile-telephone")?.value;
     const adresse = document.getElementById("profile-adresse")?.value;
     
-    Swal.fire({ title: "Mise à jour...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ 
+        title: "Mise à jour...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
     
     try {
-        await secureFetch("/auth/update-profile-full", {
+        const response = await secureFetch("/auth/update-profile-full", {
             method: "PUT",
             body: JSON.stringify({ prenom, nom, email, telephone, adresse })
         });
         
-        localStorage.setItem("user_name", `${prenom} ${nom}`.trim());
-        UI.success("Profil mis à jour");
-        Swal.close();
-        setTimeout(() => window.location.reload(), 1000);
+        if (response.status === "success") {
+            // ✅ Mettre à jour le localStorage IMMÉDIATEMENT
+            const nomComplet = `${prenom || ''} ${nom || ''}`.trim();
+            localStorage.setItem("user_name", nomComplet);
+            localStorage.setItem("user_email", email);
+            
+            // ✅ Mettre à jour l'affichage du header sans recharger
+            const headerName = document.querySelector("header .font-black.truncate");
+            if (headerName) headerName.textContent = nomComplet;
+            
+            const sidebarName = document.querySelector("aside .text-xs.font-black.truncate");
+            if (sidebarName) sidebarName.textContent = nomComplet;
+            
+            // ✅ Mettre à jour la photo si elle a changé
+            const userPhoto = localStorage.getItem("user_photo");
+            if (userPhoto) {
+                const headerAvatar = document.querySelector("header .rounded-xl img");
+                if (headerAvatar) headerAvatar.src = userPhoto;
+                const sidebarAvatar = document.querySelector("aside .rounded-full img");
+                if (sidebarAvatar) sidebarAvatar.src = userPhoto;
+            }
+            
+            Swal.fire({
+                icon: "success",
+                title: "Profil mis à jour",
+                text: "Vos modifications ont été enregistrées",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // ✅ Ne pas recharger la page !!!
+            // window.location.reload(); ← SUPPRIME ou COMMENTE cette ligne
+        }
+        
     } catch (err) {
+        Swal.close();
         UI.error(err.message);
+        Swal.fire({
+            title: "Erreur",
+            text: err.message,
+            icon: "error"
+        });
     }
 };
 
@@ -338,18 +378,33 @@ window.updatePatientFullInfo = async () => {
         notes_medicales: document.getElementById("patient-notes")?.value
     };
     
-    Swal.fire({ title: "Mise à jour...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ 
+        title: "Mise à jour...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
     
     try {
-        await secureFetch("/patients/update-full-info", {
+        const response = await secureFetch("/patients/update-full-info", {
             method: "PUT",
             body: JSON.stringify(data)
         });
         
-        UI.success("Informations patient mises à jour");
-        Swal.close();
-        setTimeout(() => window.location.reload(), 1000);
+        if (response.status === "success") {
+            Swal.fire({
+                icon: "success",
+                title: "Informations patient mises à jour",
+                text: "Les modifications ont été enregistrées",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            
+            // ✅ Ne pas recharger la page
+            // window.location.reload(); ← SUPPRIME ou COMMENTE
+        }
+        
     } catch (err) {
+        Swal.close();
         UI.error(err.message);
     }
 };
@@ -402,7 +457,11 @@ async function loadUserStats(role, userId) {
 window.updateProfilePhoto = async (file) => {
     if (!file) return;
     
-    Swal.fire({ title: "Upload...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ 
+        title: "Upload...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
     
     try {
         const compressed = await compressImage(file);
@@ -416,13 +475,28 @@ window.updateProfilePhoto = async (file) => {
         });
         
         if (result.photo_url) {
+            // ✅ Mettre à jour l'affichage
             const container = document.getElementById("profile-photo-container");
             container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
+            
+            // ✅ Mettre à jour le localStorage
             localStorage.setItem("user_photo", result.photo_url);
+            
+            // ✅ Mettre à jour le header et la sidebar
+            const headerAvatar = document.querySelector("header .rounded-xl img");
+            if (headerAvatar) headerAvatar.src = result.photo_url;
+            const sidebarAvatar = document.querySelector("aside .rounded-full img");
+            if (sidebarAvatar) sidebarAvatar.src = result.photo_url;
+            
             UI.success("Photo mise à jour");
+            
+            // ✅ Ne pas recharger la page
+            // window.location.reload(); ← SUPPRIME ou COMMENTE
         }
     } catch (err) {
         UI.error(err.message);
+    } finally {
+        Swal.close();
     }
 };
 
