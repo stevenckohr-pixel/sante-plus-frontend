@@ -88,13 +88,10 @@ export async function openAssignPage() {
     });
     
     try {
-        const [aidantsRes, patientsRes] = await Promise.all([
-            secureFetch("/assignments/available-aidants"),
-            secureFetch("/assignments/unassigned-patients")
-        ]);
+        // ✅ Correction : secureFetch retourne déjà les données
+        const aidants = await secureFetch("/assignments/available-aidants");
+        const patients = await secureFetch("/assignments/unassigned-patients");
         
-        const aidants = await aidantsRes.json();
-        const patients = await patientsRes.json();
         Swal.close();
         
         // Sauvegarder les données globalement
