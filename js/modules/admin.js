@@ -15,8 +15,8 @@ export async function loadRegistrations() {
     if (!tableBody && !mobileList) return;
 
     try {
-        const res = await secureFetch('/admin/pending-registrations');
-        const pending = await res.json();
+        // ✅ CORRECTION : secureFetch retourne déjà les données
+        const pending = await secureFetch('/admin/pending-registrations');
 
         if (pending.length === 0) {
             if (tableBody) {
@@ -115,14 +115,13 @@ export async function loadRegistrations() {
         console.error("Erreur chargement admin:", e);
         
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-rose-500">Erreur de chargement</td></tr>';
+            tableBody.innerHTML = '<td><td colspan="5" class="p-10 text-center text-rose-500">Erreur de chargement</td></tr>';
         }
         if (mobileList) {
             mobileList.innerHTML = '<div class="p-6 text-center text-rose-500 bg-white rounded-2xl border border-rose-100">Erreur de chargement</div>';
         }
     }
 }
-
 /**
  * 📄 PAGE D'ACTIVATION D'UN COMPTE
  */
