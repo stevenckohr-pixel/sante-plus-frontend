@@ -1082,9 +1082,9 @@ function renderLayout() {
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
             <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
                 <div class="flex items-center gap-4 mb-14 px-2">
-                    <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
-                        <img src="https://cdn-icons-png.flaticon.com/512/8206/8206334.png" class="w-8 h-8">
-                    </div>
+                        <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
+                            <img src="${isMaman ? CONFIG.LOGO_MAMAN : CONFIG.LOGO_GENERAL}" class="w-8 h-8 object-contain">
+                        </div>
                     <div>
                         <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
                         <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80">Elite Management</span>
@@ -1110,11 +1110,11 @@ function renderLayout() {
             </aside>
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
                 <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
-                    <div class="lg:hidden flex items-center">
-                        <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                            <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-6 h-6">
+                        <div class="lg:hidden flex items-center">
+                            <div class="w-10 h-10 ${isMaman ? 'bg-pink-500' : 'bg-slate-900'} rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+                                <img src="${isMaman ? CONFIG.LOGO_MAMAN : CONFIG.LOGO_GENERAL}" class="w-6 h-6 object-contain">
+                            </div>
                         </div>
-                    </div>
                     <div class="flex flex-col">
                         <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
                         <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
