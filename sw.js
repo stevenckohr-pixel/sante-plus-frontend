@@ -37,9 +37,24 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // ✅ IGNORER les requêtes POST, PUT, DELETE (ne pas les cacher)
+  // ✅ CRUCIAL : Ne pas intercepter les requêtes POST, PUT, DELETE
   if (event.request.method !== 'GET') {
+    // Laisser le navigateur gérer normalement
     event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // API GET: Network First
+  if (url.pathname.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
     return;
   }
   
@@ -53,20 +68,6 @@ self.addEventListener('fetch', (event) => {
           return network;
         });
       })
-    );
-    return;
-  }
-  
-  // API: Network First
-  if (url.pathname.includes('/api/')) {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
     );
     return;
   }
