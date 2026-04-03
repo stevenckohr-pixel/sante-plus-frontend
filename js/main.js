@@ -14,6 +14,7 @@ import * as Admin from "./modules/admin.js";
 import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader, initLazyLoading, secureFetchWithCache } from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
 import * as Profile from "./modules/profile.js";
+import ErrorHandler from './core/errorHandler.js';
 
 
 let deferredPrompt = null;
@@ -147,6 +148,7 @@ async function initApp() {
     // Initialiser les micro-interactions
     initMicroInteractions();
     initLazyLoading();
+    ErrorHandler.init();
 
     
     // Récupérer la préférence utilisateur pour les sons
