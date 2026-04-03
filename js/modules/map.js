@@ -974,7 +974,7 @@ async function startNavigation(patientId) {
     try {
         const patient = await secureFetch(`/patients/${patientId}`);
         if (!patient.lat || !patient.lng) {
-            UI.warning("Ce patient n'a pas de position GPS. Utilisez 'Fixer le domicile' pour enregistrer son adresse.");
+            UI.warning("Ce patient n'a pas de position GPS");
             document.getElementById('fix-patient-gps').classList.remove('hidden');
             return;
         }
@@ -982,20 +982,30 @@ async function startNavigation(patientId) {
         
         currentPatient = patient;
         currentPatientCoords = { lat: patient.lat, lng: patient.lng };
-        isNavigating = true;
+        isNavigating = true;  // ← Vérifie que cette ligne est bien là
         
+        console.log("🚗 Navigation démarrée vers:", currentPatientCoords);
+        
+        // Afficher le panneau
         document.getElementById('navigation-panel').classList.remove('hidden');
         document.getElementById('stop-navigation-btn').classList.remove('hidden');
         document.getElementById('dest-name').innerText = patient.nom_complet;
         
+        // Ajouter marqueur patient
         if (markers['patient']) map.removeLayer(markers['patient']);
         const patientIcon = createCustomIcon('#3B82F6', false, 'lg', 'home');
         markers['patient'] = L.marker([patient.lat, patient.lng], { icon: patientIcon }).addTo(map);
-        markers['patient'].bindPopup(`<p class="font-black">🏠 ${patient.nom_complet}</p><p class="text-[10px]">${patient.adresse || ''}</p><button onclick="window.openGoogleMaps(${patient.lat}, ${patient.lng})" class="mt-2 w-full py-1.5 bg-emerald-500 text-white rounded-lg text-[9px] font-black">🧭 Ouvrir dans Google Maps</button>`);
         
+        // Calculer l'itinéraire initial
         await calculateAndDisplayRoute();
+        
+        // Vérifier si déjà arrivé
         checkIfArrived();
-    } catch (err) { UI.error("Impossible de démarrer la navigation"); }
+        
+    } catch (err) { 
+        console.error("Erreur startNavigation:", err);
+        UI.error("Impossible de démarrer la navigation"); 
+    }
 }
 
 function stopNavigation() {
@@ -1023,16 +1033,37 @@ async function calculateAndDisplayRoute() {
             const data = await response.json();
             if (data.routes?.length) {
                 const route = data.routes[0];
-                document.getElementById('distance-display').innerHTML = formatDistance(route.distance);
-                document.getElementById('time-display').innerHTML = formatDuration(route.duration);
+                const distance = route.distance;
+                const duration = route.duration;
+                
+                // ✅ Mettre à jour l'affichage
+                const distanceDisplay = document.getElementById('distance-display');
+                const timeDisplay = document.getElementById('time-display');
+                
+                if (distanceDisplay) distanceDisplay.innerHTML = formatDistance(distance);
+                if (timeDisplay) timeDisplay.innerHTML = formatDuration(duration);
+                
+                console.log(`📍 Distance: ${formatDistance(distance)}, Temps: ${formatDuration(duration)}`);
+                
+                // Dessiner la route
                 if (routeLayer) map.removeLayer(routeLayer);
-                routeLayer = L.geoJSON(route.geometry, { style: { color: '#10B981', weight: 5, opacity: 0.9 } }).addTo(map);
-                checkIfOffRoute(startLat, startLng, route);
+                routeLayer = L.geoJSON(route.geometry, { 
+                    style: { color: '#10B981', weight: 5, opacity: 0.9 } 
+                }).addTo(map);
+                
                 lastRouteCalculation = Date.now();
+            } else {
+                console.warn("Aucun itinéraire trouvé");
             }
-        } catch (err) { console.error(err); }
-    }, (err) => { console.warn(err); });
+        } catch (err) { 
+            console.error("Erreur calcul itinéraire:", err);
+        }
+    }, (err) => { 
+        console.warn("Erreur GPS:", err.message);
+    });
 }
+
+
 
 function checkIfOffRoute(currentLat, currentLng, route) {
     if (!route?.geometry?.coordinates) return;
@@ -1102,10 +1133,12 @@ async function loadPatientLocation(patientId) {
 function startAidantTracking() {
     if (!navigator.geolocation) return;
     const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
+    
     navigator.geolocation.getCurrentPosition((pos) => {
         markers['aidant'] = L.marker([pos.coords.latitude, pos.coords.longitude], { icon: aidantIcon }).addTo(map);
         map.setView([pos.coords.latitude, pos.coords.longitude], 15);
     });
+    
     watchId = navigator.geolocation.watchPosition(
         (position) => {
             const { latitude, longitude } = position.coords;
@@ -1113,9 +1146,11 @@ function startAidantTracking() {
             else markers['aidant'] = L.marker([latitude, longitude], { icon: aidantIcon }).addTo(map);
             trajectoryPoints.push([latitude, longitude]);
             updateTrajectoryLine();
-            if (isNavigating && currentPatientCoords) {
-                const now = Date.now();
-                if (!lastRouteCalculation || (now - lastRouteCalculation) > 5000) { calculateAndDisplayRoute(); checkIfArrived(); }
+            
+            // ✅ Recalculer l'itinéraire à chaque mouvement si un patient est sélectionné
+            const selector = document.getElementById('patient-selector');
+            if (selector && selector.value && isNavigating) {
+                calculateAndDisplayRoute();  // ← Déjà présent mais vérifie qu'il est appelé
             }
         },
         (error) => console.warn("Erreur tracking:", error.message),
