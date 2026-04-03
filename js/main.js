@@ -1,3 +1,14 @@
+// ============================================================
+// SANTÉ PLUS SERVICES - APPLICATION PRINCIPALE
+// ============================================================
+// Version: 1.0
+// Description: Application de coordination de soins à domicile
+// Auteur: Santé Plus Services
+// ============================================================
+
+// ============================================================
+// IMPORTS DES MODULES
+// ============================================================
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
 import * as Auth from "./modules/auth.js";
@@ -11,18 +22,30 @@ import * as Messages from "./modules/message.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
 import * as Admin from "./modules/admin.js";
-import { UI, showToast, showSuccessToast, showErrorToast, showWarningToast, showInfoToast, openModernSelector, initMicroInteractions, setSoundsEnabled, getSoundsEnabled, refreshMicroInteractions, playSound, showLocalLoader, hideLocalLoader, initLazyLoading, secureFetchWithCache } from "./core/utils.js";
+import { 
+    UI, showToast, showSuccessToast, showErrorToast, 
+    showWarningToast, showInfoToast, openModernSelector, 
+    initMicroInteractions, setSoundsEnabled, getSoundsEnabled, 
+    refreshMicroInteractions, playSound, showLocalLoader, 
+    hideLocalLoader, initLazyLoading, secureFetchWithCache 
+} from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
 import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
+let deferredPrompt = null;          // Stocke l'invite d'installation PWA
+let onboardingStep = 0;              // Étape actuelle du tutoriel
+let registrationData = {};           // Données d'inscription temporaires
+let currentStep = 1;                 // Étape actuelle du formulaire d'inscription
+let loaderTimeout = null;            // Timeout pour le loader global
 
-let deferredPrompt = null;
-
-
-
-/* --- DONNÉES ONBOARDING PREMIUM AVEC IMAGES --- */
-const ONBOARDING_STEPS =[
+// ============================================================
+// DONNÉES DU TUTORIEL D'ACCUEIL (ONBOARDING)
+// ============================================================
+const ONBOARDING_STEPS = [
     {
         title: "L'Excellence à domicile",
         desc: "Bénéficiez d'un accompagnement médical de prestige pour vos parents restés au pays.",
@@ -48,18 +71,14 @@ const ONBOARDING_STEPS =[
         accent: "border-slate-900"
     }
 ];
-let onboardingStep = 0;
 
-
-
-
-
-// ============================================
-// LOADER GLOBAL
-// ============================================
-
-let loaderTimeout = null;
-
+// ============================================================
+// LOADER GLOBAL (ÉCRAN DE CHARGEMENT INITIAL)
+// ============================================================
+/**
+ * Affiche le loader global (écran complet)
+ * Utilisé uniquement au démarrage de l'application
+ */
 function showGlobalLoader() {
     let loader = document.getElementById('global-loader');
     
@@ -77,7 +96,6 @@ function showGlobalLoader() {
         document.body.appendChild(loader);
     }
     
-    // Applique la couleur rose ou verte selon le contexte
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
     if (isMaman) {
         loader.classList.add('rose');
@@ -89,6 +107,9 @@ function showGlobalLoader() {
     loader.style.opacity = '1';
 }
 
+/**
+ * Cache le loader global
+ */
 function hideGlobalLoader() {
     const loader = document.getElementById('global-loader');
     if (loader) {
@@ -96,25 +117,32 @@ function hideGlobalLoader() {
         loader.style.opacity = '0';
     }
 }
-// Force la disparition du loader après un délai max (sécurité)
+
+/**
+ * Cache le loader après un délai (sécurité)
+ */
 function hideGlobalLoaderWithDelay() {
     if (loaderTimeout) clearTimeout(loaderTimeout);
     loaderTimeout = setTimeout(() => {
-     hideGlobalLoader();
-    }, 5000); // 5 secondes max
+        hideGlobalLoader();
+    }, 5000);
 }
 
-
-/* --- CONFIGURATION SWEETALERT PREMIUM --- */
+// ============================================================
+// CONFIGURATION SWEETALERT
+// ============================================================
 const Toast = Swal.mixin({
-  toast: true,
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' }
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    customClass: { popup: 'rounded-3xl shadow-2xl border border-slate-100' }
 });
 
+/**
+ * Affiche une alerte personnalisée
+ */
 window.showAppAlert = (title, text, icon = 'success') => {
     Swal.fire({
         title: `<span class="text-xl font-black text-slate-800">${title}</span>`,
@@ -130,34 +158,31 @@ window.showAppAlert = (title, text, icon = 'success') => {
     });
 };
 
-/* --- VARIABLES D'INSCRIPTION --- */
-let registrationData = {};
-let currentStep = 1;
-
-
+// ============================================================
+// INITIALISATION DE L'APPLICATION
+// ============================================================
 /**
- * 🚀 INITIALISATION AU DÉMARRAGE
+ * Point d'entrée principal de l'application
+ * Vérifie le token, l'onboarding et charge la bonne vue
  */
 async function initApp() {
     const loader = document.getElementById("initial-loader");
     const token = localStorage.getItem("token");
-
     const onboardingSeen = localStorage.getItem("onboarding_seen");
+    
     console.log("📝 Onboarding vu ?", onboardingSeen);
     
-    // Initialiser les micro-interactions
-    initMicroInteractions();
-    initLazyLoading();
-    ErrorHandler.init();
-
+    // Initialisation des services
+    initMicroInteractions();      // Feedback haptique
+    initLazyLoading();            // Chargement différé des images
+    ErrorHandler.init();          // Gestion globale des erreurs
     
-    // Récupérer la préférence utilisateur pour les sons
+    // Récupération des préférences utilisateur
     const savedSoundPref = localStorage.getItem('sounds_enabled');
     if (savedSoundPref !== null) {
         setSoundsEnabled(savedSoundPref === 'true');
     }
 
-    // On prépare la disparition du loader
     const hideLoader = () => {
         if (loader) {
             loader.style.opacity = "0";
@@ -167,26 +192,25 @@ async function initApp() {
 
     try {
         if (token) {
-            // Check de l'onboarding
+            // Vérification de l'onboarding
             if (!onboardingSeen && !window._onboardingCompleted) {
                 hideLoader();
                 window.startOnboarding();
-                return; 
+                return;
             }
             
-            renderLayout();
-            Visites.resumeTrackingIfActive(); 
+            renderLayout();                       // Affiche l'interface principale
+            Visites.resumeTrackingIfActive();     // Reprend le tracking GPS si une visite était en cours
             
             const userRole = localStorage.getItem("user_role");
-            // Adaptation Viewport : 'home' pour mobile, 'dashboard' pour coordinateur desktop
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
             const lastView = localStorage.getItem("last_view") || defaultView;
             
             await window.switchView(lastView);
-            hideLoader(); // Cache après le rendu
+            hideLoader();
         } else {
             renderAuthView('login');
-            hideLoader(); // Cache après le login
+            hideLoader();
         }
     } catch (err) {
         console.error("Erreur Init:", err);
@@ -195,184 +219,25 @@ async function initApp() {
     }
 }
 
-/**
- * 💎 MOTEUR D'AUTHENTIFICATION UNIFIÉ (Login + Admission + OTP In-Card)
- */
-
-function renderAuthView(mode = 'login', stepSource = 1) {
-    const app = document.getElementById("app");
-    currentStep = typeof stepSource === 'number' ? stepSource : 1; 
-    const otpEmail = mode === 'otp' ? stepSource : null;
-
-    // ============================================
-    // 🎨 COULEURS DYNAMIQUES SELON LA CATÉGORIE
-    // ============================================
-    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
-    const accentBgClass = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
-    const accentHoverClass = isMamanFlow ? 'hover:bg-rose-600' : 'hover:bg-amber-500';
-    const accentShadowClass = isMamanFlow ? 'shadow-rose-200' : 'shadow-amber-200';
-    const progressColor = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
-
-    let dynamicContent = "";
-    let stepTitle = mode === 'login' ? "Espace Sécurisé" : (mode === 'otp' ? "Sécurité Avancée" : `Étape ${currentStep} / 6`);
-
-    // 1. MODE CONNEXION
-    if (mode === 'login') {
-        dynamicContent = `
-            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
-                <div class="relative group">
-                    <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                    <input id="email" type="email" class="app-input !pl-12" placeholder="Adresse email" value="${registrationData.email || ''}">
-                </div>
-                <div class="relative group">
-                    <i class="fa-solid fa-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                    <input id="password" type="password" class="app-input !pl-12" placeholder="Code d'accès">
-                </div>
-                <button onclick="window.login()" id="btn-login" class="w-full mt-4 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
-                    Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
-                </button>
-            </div>`;
-    } 
-    // 2. MODE ADMISSION (avec couleurs dynamiques)
-    else if (mode === 'register') {
-        dynamicContent = `
-            <div class="px-8 pb-6 animate-fadeIn flex flex-col h-full">
-                <div class="flex-1 overflow-y-auto custom-scroll pr-2 pb-4">
-                    ${getStepHTML()}
-                </div>
-                <div class="flex gap-3 pt-4 border-t border-slate-50 shrink-0 mt-auto">
-                    ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-[1.25rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all hover:bg-slate-200"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
-                    <button onclick="window.nextAuthStep()" class="flex-1 ${accentBgClass} ${accentHoverClass} text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg ${accentShadowClass} active:scale-95 transition-all">
-                        ${currentStep === 6 ? 'Valider le dossier' : 'Étape Suivante'}
-                    </button>
-                </div>
-            </div>`;
-    }
-    // 3. MODE OTP
-    else if (mode === 'otp') {
-        dynamicContent = `
-            <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
-                <div class="w-16 h-16 mx-auto ${isMamanFlow ? 'bg-rose-soft text-rose-primary' : 'bg-amber-50 text-amber-500'} border-4 border-white shadow-xl rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-[900] text-slate-800 tracking-tight">Vérification Requise</h3>
-                    <p class="text-xs text-slate-500 font-medium mt-2 leading-relaxed">Code à 6 chiffres envoyé à <br><b class="text-slate-800">${otpEmail}</b></p>
-                </div>
-                
-                <div class="pt-2">
-                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:${isMamanFlow ? 'border-rose-primary' : 'border-amber-400'} transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
-                </div>
-                
-                <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-2 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-800">
-                    Vérifier l'identité <i class="fa-solid fa-shield-check"></i>
-                </button>
-                
-                <button onclick="window.renderAuthView('login')" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 hover:text-slate-700 transition-colors">
-                    Annuler la connexion
-                </button>
-            </div>`;
-    }
-
-    // INJECTION DU CONTENEUR
-    const existingCard = document.getElementById("auth-card-content");
-
-    if (existingCard) {
-        document.getElementById("auth-step-title").innerText = stepTitle;
-        
-        const tabContainer = document.getElementById("auth-tabs");
-        if (tabContainer && mode !== 'otp') {
-            tabContainer.style.display = "block";
-            tabContainer.innerHTML = `
-                <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
-                    <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
-                        Connexion
-                    </button>
-                    <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
-                        Admission
-                    </button>
-                </div>`;
-        } else if (tabContainer) {
-            tabContainer.style.display = "none";
-        }
-
-        const progressContainer = document.getElementById("auth-progress");
-        if (progressContainer) {
-            if (mode === 'register') {
-                progressContainer.style.display = "block";
-                progressContainer.innerHTML = `
-                    <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full ${progressColor} transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
-                    </div>`;
-            } else {
-                progressContainer.style.display = "none";
-            }
-        }
-
-        existingCard.innerHTML = dynamicContent;
-    } else {
-        // Premier chargement (code inchangé pour la structure de base)
-        app.innerHTML = `
-        <div class="fixed inset-0 w-full h-[100dvh] flex items-center justify-center bg-[#F8FAFC] p-4 lg:p-8 z-50">
-            
-            <div class="absolute -top-20 -left-20 w-96 h-96 bg-emerald-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
-            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
-
-            <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
-                
-                <div class="shrink-0 text-center pt-8 pb-4">
-                    <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
-                        <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-8 h-8 object-contain invert">
-                    </div>
-                    <h1 class="text-xl font-[900] text-slate-900 tracking-tight leading-none uppercase">Santé Plus</h1>
-                    <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
-                </div>
-
-                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
-                    <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
-                        <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
-                            Connexion
-                        </button>
-                        <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
-                            Admission
-                        </button>
-                    </div>
-                </div>
-
-                <div id="auth-progress" class="shrink-0 px-8 mb-2" style="display: ${mode === 'register' ? 'block' : 'none'}">
-                    <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full ${progressColor} transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
-                    </div>
-                </div>
-
-                <div id="auth-card-content" class="flex-1 flex flex-col relative overflow-hidden">
-                    ${dynamicContent}
-                </div>
-                
-            </div>
-        </div>`;
-    }
-}
-
-
-// ============================================
-// CHANGER LA COULEUR DE LA BARRE D'ÉTAT (THEME COLOR)
-// ============================================
+// ============================================================
+// GESTION DE LA COULEUR DE LA BARRE D'ÉTAT (THEME COLOR)
+// ============================================================
 function setThemeColor(color) {
     const metaTheme = document.getElementById('theme-color');
     if (metaTheme) {
         metaTheme.setAttribute('content', color);
     }
-    // Pour les navigateurs modernes (Chrome Android)
     if (document.querySelector('meta[name="theme-color"]')) {
         document.querySelector('meta[name="theme-color"]').setAttribute('content', color);
     }
 }
 
-
-
+// ============================================================
+// VUES DYNAMIQUES DU FORMULAIRE D'ADMISSION
+// ============================================================
 /**
- * 📦 MINI-VUES DYNAMIQUES (Alignées sur le PDF)
+ * Génère le HTML des étapes du formulaire d'inscription
+ * 6 étapes : Payeur → Patient → Santé → Catégorie → Pack → Validation
  */
 function getStepHTML() {
     const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
@@ -382,6 +247,7 @@ function getStepHTML() {
     const themeTextClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
     
     switch(currentStep) {
+        // ÉTAPE 1 : Identité du Payeur
         case 1: return `
             <div class="text-center mb-6">
                 <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
@@ -420,6 +286,7 @@ function getStepHTML() {
             </div>
         `;
         
+        // ÉTAPE 2 : Informations du Patient
         case 2: return `
             <div class="text-center mb-6">
                 <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
@@ -466,6 +333,7 @@ function getStepHTML() {
             </div>
         `;
         
+        // ÉTAPE 3 : Profil de Santé
         case 3: return `
             <div class="text-center mb-6">
                 <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
@@ -500,6 +368,7 @@ function getStepHTML() {
             </div>
         `;
         
+        // ÉTAPE 4 : Type de Service (Senior / Maman & Bébé)
         case 4: return `
             <div class="text-center mb-6">
                 <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
@@ -543,6 +412,7 @@ function getStepHTML() {
             </div>
         `;
         
+        // ÉTAPE 5 : Choix de la formule (Pack)
         case 5: 
             const packs = isMamanFlow ? [
                 { id: 'ESSENTIEL', name: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000', features: ['2 visites/semaine', 'Suivi de base', 'Rapport hebdomadaire'] },
@@ -600,7 +470,8 @@ function getStepHTML() {
                     </button>
                 </div>
             `;
-            
+        
+        // ÉTAPE 6 : Validation et engagement légal
         case 6: return `
             <div class="text-center mb-6">
                 <div class="w-14 h-14 mx-auto bg-amber-50 rounded-2xl flex items-center justify-center mb-3 shadow-inner">
@@ -627,8 +498,9 @@ function getStepHTML() {
     }
 }
 
-
-// Ouvre le sélecteur de catégorie avec style moderne
+// ============================================================
+// SÉLECTEUR DE CATÉGORIE (SENIOR / MAMAN)
+// ============================================================
 window.openCategorySelector = async (category) => {
     const categories = {
         'SENIOR': {
@@ -652,7 +524,6 @@ window.openCategorySelector = async (category) => {
     const cat = categories[category];
     if (!cat) return;
     
-    // Confirmation visuelle avant de valider
     const confirmModal = `
         <div class="text-center">
             <div class="text-6xl mb-3">${cat.icon}</div>
@@ -682,7 +553,6 @@ window.openCategorySelector = async (category) => {
     if (result.isConfirmed) {
         registrationData.categorie = category;
         
-        // Mettre à jour l'affichage
         const displayDiv = document.getElementById('selected-category-display');
         const iconSpan = document.getElementById('selected-category-icon');
         const textSpan = document.getElementById('selected-category-text');
@@ -693,7 +563,6 @@ window.openCategorySelector = async (category) => {
             displayDiv.classList.remove('hidden');
         }
         
-        // Mettre en surbrillance la carte sélectionnée
         document.querySelectorAll('.category-card').forEach(card => {
             card.classList.remove('border-emerald-500', 'border-pink-500', 'bg-emerald-50', 'bg-pink-50');
             card.classList.add('border-slate-100');
@@ -711,14 +580,12 @@ window.openCategorySelector = async (category) => {
         
         UI.vibrate('success');
         
-        // Passer automatiquement à l'étape suivante après un petit délai
         setTimeout(() => {
             window.nextAuthStep();
         }, 500);
     }
 };
 
-// Effacer la sélection (pour modifier)
 window.clearCategorySelection = () => {
     registrationData.categorie = null;
     const displayDiv = document.getElementById('selected-category-display');
@@ -730,55 +597,90 @@ window.clearCategorySelection = () => {
     });
 };
 
-
-/**
- * 💸 GÉNÉRATEUR DE PACKS (Selon le PDF)
- */
-function renderPricingPacks() {
-    const isSenior = registrationData.categorie === 'SENIOR';
-    
-    // Intégration des vrais tarifs des PDF
-    const packs = isSenior ? [
-        { id: 'PONCTUEL', label: 'Intervention Ponctuelle', desc: 'Rdv médical, besoin urgent', price: '10.000' },
-        { id: 'REGULIER', label: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000' },
-        { id: 'COMPLET', label: 'Accompagnement Complet', desc: 'Présence soutenue & Famille à distance', price: '150.000' }
-    ] : [
-        { id: 'ESSENTIEL', label: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000' },
-        { id: 'CONFORT', label: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000' },
-        { id: 'SERENITE', label: 'Pack Sérénité', desc: 'Présence quasi quotidienne', price: '150.000' },
-        { id: 'MATERNITE', label: 'Spécial Sortie Maternité', desc: 'Suivi intensif sur 2 semaines', price: '70.000' }
-    ];
-
-    return `
-        <div class="text-center mb-6">
-            <h3 class="text-base font-black text-slate-800">Choix de la formule</h3>
-            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Tarifs mensuels indicatifs en CFA</p>
-        </div>
-        <div class="space-y-3 max-h-80 overflow-y-auto custom-scroll pr-2">
-            ${packs.map(p => `
-                <button onclick="window.setElitePlan('${p.id}', '${p.price}')" class="w-full p-5 rounded-[1.5rem] border-2 ${registrationData.type_pack === p.id ? 'border-emerald-500 bg-emerald-50 shadow-md' : 'border-slate-100 bg-white'} text-left transition-all">
-                    <h4 class="font-black text-slate-800 text-xs uppercase">${p.label} <span class="text-emerald-600 float-right">${p.price} F</span></h4>
-                    <p class="text-[9px] text-slate-400 mt-1 font-bold">${p.desc}</p>
-                </button>
-            `).join('')}
-        </div>`;
-}
-
-// --- LOGIQUE DE PILOTAGE ---
-
-window.selectCategory = (cat) => {
-    registrationData.categorie = cat;
-    window.nextAuthStep();
-};
-
-window.setElitePlan = (packId, price) => {
+// ============================================================
+// GESTION DES PACKS (ABONNEMENTS)
+// ============================================================
+window.selectPack = (packId, price) => {
     registrationData.type_pack = packId;
     registrationData.montant_prevu = price;
-    window.nextAuthStep();
+    
+    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
+    const themeColor = isMamanFlow ? 'pink' : 'emerald';
+    const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
+    const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
+    const borderColorClass = isMamanFlow ? 'border-pink-500' : 'border-emerald-500';
+    const bgColorClass = isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500';
+    
+    document.querySelectorAll('.pack-card').forEach(card => {
+        const cardPackId = card.dataset.packId;
+        if (cardPackId === packId) {
+            card.classList.add(borderColorClass);
+            card.classList.add(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+            card.classList.add(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
+            card.classList.remove('border-slate-100');
+            
+            const iconDiv = card.querySelector('.w-12.h-12');
+            if (iconDiv) {
+                iconDiv.classList.add(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+                iconDiv.classList.add(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
+                iconDiv.classList.remove('bg-slate-50');
+                const icon = iconDiv.querySelector('i');
+                if (icon) {
+                    icon.classList.add(themeColorClass);
+                    icon.classList.remove('text-slate-400');
+                }
+            }
+            
+            const radioDiv = card.querySelector('.w-5.h-5');
+            if (radioDiv) {
+                radioDiv.classList.add(borderColorClass);
+                radioDiv.classList.add(bgColorClass);
+                radioDiv.classList.remove('border-slate-300', 'bg-transparent');
+                radioDiv.innerHTML = '<i class="fa-solid fa-check text-white text-[8px]"></i>';
+            }
+        } else {
+            card.classList.remove(borderColorClass);
+            card.classList.remove(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+            card.classList.remove(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
+            card.classList.add('border-slate-100');
+            
+            const iconDiv = card.querySelector('.w-12.h-12');
+            if (iconDiv) {
+                iconDiv.classList.remove(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
+                iconDiv.classList.remove(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
+                iconDiv.classList.add('bg-slate-50');
+                const icon = iconDiv.querySelector('i');
+                if (icon) {
+                    icon.classList.remove(themeColorClass);
+                    icon.classList.add('text-slate-400');
+                }
+            }
+            
+            const radioDiv = card.querySelector('.w-5.h-5');
+            if (radioDiv) {
+                radioDiv.classList.remove(borderColorClass);
+                radioDiv.classList.remove(bgColorClass);
+                radioDiv.classList.add('border-slate-300');
+                radioDiv.innerHTML = '';
+            }
+        }
+    });
+    
+    const continueBtn = document.getElementById('pack-continue-btn');
+    if (continueBtn) {
+        continueBtn.disabled = false;
+        continueBtn.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
+        continueBtn.classList.add(isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500');
+        continueBtn.classList.add(isMamanFlow ? 'hover:bg-pink-600' : 'hover:bg-emerald-600');
+    }
+    
+    UI.vibrate('success');
 };
 
+// ============================================================
+// LOGIQUE DU FORMULAIRE D'ADMISSION (STEPPER)
+// ============================================================
 window.nextAuthStep = () => {
-    // Validation spécifique pour l'étape 5 (pack)
     if (currentStep === 5 && !registrationData.type_pack) {
         UI.vibrate('error');
         Swal.fire({
@@ -791,30 +693,29 @@ window.nextAuthStep = () => {
         return;
     }
     
-   if (currentStep === 1) {
-    registrationData.nom_famille = document.getElementById('f-nom')?.value;
-    registrationData.email = document.getElementById('f-email')?.value;
-    registrationData.password = document.getElementById('f-pass')?.value;
-    registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
-    registrationData.lien_parente = document.getElementById('f-lien')?.value || "";
-    registrationData.ville_payeur = document.getElementById('f-ville')?.value || "";
-}
-if (currentStep === 2) {
-    registrationData.nom_patient = document.getElementById('p-nom')?.value;
-    registrationData.adresse_patient = document.getElementById('p-addr')?.value;
-    registrationData.contact_urgence = document.getElementById('p-urgence')?.value;
-    registrationData.age_patient = document.getElementById('p-age')?.value || "";
-    registrationData.sexe_patient = document.getElementById('p-sex')?.value || "";
-    registrationData.tel_patient = document.getElementById('p-tel')?.value || "";
-    registrationData.contact_urgence_tel = document.getElementById('p-urgence-tel')?.value || "";
-}
-if (currentStep === 3) {
-    const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
-    registrationData.pathologies = meds;
-    registrationData.traitements = document.getElementById('p-traitements')?.value || "";
-    registrationData.allergies = document.getElementById('p-allergies')?.value || "";
-    registrationData.notes_medicales = document.getElementById('p-notes')?.value;
-}
+    if (currentStep === 1) {
+        registrationData.nom_famille = document.getElementById('f-nom')?.value;
+        registrationData.email = document.getElementById('f-email')?.value;
+        registrationData.password = document.getElementById('f-pass')?.value;
+        registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
+        registrationData.lien_parente = document.getElementById('f-lien')?.value || "";
+    }
+    if (currentStep === 2) {
+        registrationData.nom_patient = document.getElementById('p-nom')?.value;
+        registrationData.adresse_patient = document.getElementById('p-addr')?.value;
+        registrationData.contact_urgence = document.getElementById('p-urgence')?.value;
+        registrationData.age_patient = document.getElementById('p-age')?.value || "";
+        registrationData.sexe_patient = document.getElementById('p-sex')?.value || "";
+        registrationData.tel_patient = document.getElementById('p-tel')?.value || "";
+        registrationData.contact_urgence_tel = document.getElementById('p-urgence-tel')?.value || "";
+    }
+    if (currentStep === 3) {
+        const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+        registrationData.pathologies = meds;
+        registrationData.traitements = document.getElementById('p-traitements')?.value || "";
+        registrationData.allergies = document.getElementById('p-allergies')?.value || "";
+        registrationData.notes_medicales = document.getElementById('p-notes')?.value;
+    }
     if (currentStep === 6) { 
         if(!document.getElementById('legal-check')?.checked) {
             UI.vibrate('error');
@@ -835,31 +736,17 @@ if (currentStep === 3) {
     renderAuthView('register', currentStep);
 };
 
-
-
-/**
- * 🚶 LOGIQUE DU STEPPER & INSCRIPTION
- */
-function setPlan(plan) {
-    registrationData.formule = plan;
-    renderAuthView('register', 4);
-}
-
-
-function prevAuthStep() {
+window.prevAuthStep = () => {
     if (currentStep > 1) {
         currentStep--;
         renderAuthView('register', currentStep);
     }
-}
+};
 
 async function submitRegistration() {
-    // ✅ CORRECTION : On vérifie 'type_pack' au lieu de 'formule'
     if(!registrationData.type_pack) return Swal.fire("Erreur", "Veuillez choisir une formule", "warning");
     
-    // On s'assure de copier 'type_pack' dans 'formule' pour que le backend le comprenne sans erreur
     registrationData.formule = registrationData.type_pack;
-
     registrationData.email = registrationData.email.trim().toLowerCase();
 
     Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false, customClass: { popup: 'rounded-[2.5rem]' } });
@@ -873,10 +760,10 @@ async function submitRegistration() {
 
         const data = await res.json(); 
 
-            if (res.ok) {
-                localStorage.setItem("user_categorie", registrationData.categorie);
-                localStorage.setItem("user_is_maman", registrationData.categorie === 'MAMAN_BEBE');
-            }
+        if (res.ok) {
+            localStorage.setItem("user_categorie", registrationData.categorie);
+            localStorage.setItem("user_is_maman", registrationData.categorie === 'MAMAN_BEBE');
+        }
 
         Swal.fire({
             icon: "success",
@@ -891,19 +778,153 @@ async function submitRegistration() {
     }
 }
 
+// ============================================================
+// VUE AUTHENTIFICATION (LOGIN / REGISTER / OTP)
+// ============================================================
+function renderAuthView(mode = 'login', stepSource = 1) {
+    const app = document.getElementById("app");
+    currentStep = typeof stepSource === 'number' ? stepSource : 1; 
+    const otpEmail = mode === 'otp' ? stepSource : null;
 
+    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
+    const accentBgClass = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
+    const accentHoverClass = isMamanFlow ? 'hover:bg-rose-600' : 'hover:bg-amber-500';
+    const accentShadowClass = isMamanFlow ? 'shadow-rose-200' : 'shadow-amber-200';
+    const progressColor = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
 
+    let dynamicContent = "";
+    let stepTitle = mode === 'login' ? "Espace Sécurisé" : (mode === 'otp' ? "Sécurité Avancée" : `Étape ${currentStep} / 6`);
 
-/**
- * 📱 HUB DE NAVIGATION MOBILE (Interface par Blocs)
- */
+    if (mode === 'login') {
+        dynamicContent = `
+            <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
+                <div class="relative group">
+                    <i class="fa-solid fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                    <input id="email" type="email" class="app-input !pl-12" placeholder="Adresse email" value="${registrationData.email || ''}">
+                </div>
+                <div class="relative group">
+                    <i class="fa-solid fa-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                    <input id="password" type="password" class="app-input !pl-12" placeholder="Code d'accès">
+                </div>
+                <button onclick="window.login()" id="btn-login" class="w-full mt-4 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3">
+                    Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
+                </button>
+            </div>`;
+    } 
+    else if (mode === 'register') {
+        dynamicContent = `
+            <div class="px-8 pb-6 animate-fadeIn flex flex-col h-full">
+                <div class="flex-1 overflow-y-auto custom-scroll pr-2 pb-4">
+                    ${getStepHTML()}
+                </div>
+                <div class="flex gap-3 pt-4 border-t border-slate-50 shrink-0 mt-auto">
+                    ${currentStep > 1 ? `<button onclick="window.prevAuthStep()" class="w-12 h-12 rounded-[1.25rem] bg-slate-100 text-slate-400 flex items-center justify-center shadow-sm active:scale-95 transition-all hover:bg-slate-200"><i class="fa-solid fa-arrow-left"></i></button>` : ''}
+                    <button onclick="window.nextAuthStep()" class="flex-1 ${accentBgClass} ${accentHoverClass} text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg ${accentShadowClass} active:scale-95 transition-all">
+                        ${currentStep === 6 ? 'Valider le dossier' : 'Étape Suivante'}
+                    </button>
+                </div>
+            </div>`;
+    }
+    else if (mode === 'otp') {
+        dynamicContent = `
+            <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
+                <div class="w-16 h-16 mx-auto ${isMamanFlow ? 'bg-rose-soft text-rose-primary' : 'bg-amber-50 text-amber-500'} border-4 border-white shadow-xl rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-[900] text-slate-800 tracking-tight">Vérification Requise</h3>
+                    <p class="text-xs text-slate-500 font-medium mt-2 leading-relaxed">Code à 6 chiffres envoyé à <br><b class="text-slate-800">${otpEmail}</b></p>
+                </div>
+                <div class="pt-2">
+                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:${isMamanFlow ? 'border-rose-primary' : 'border-amber-400'} transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
+                </div>
+                <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-2 bg-slate-900 text-white py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-slate-800">
+                    Vérifier l'identité <i class="fa-solid fa-shield-check"></i>
+                </button>
+                <button onclick="window.renderAuthView('login')" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 hover:text-slate-700 transition-colors">
+                    Annuler la connexion
+                </button>
+            </div>`;
+    }
 
+    const existingCard = document.getElementById("auth-card-content");
+
+    if (existingCard) {
+        document.getElementById("auth-step-title").innerText = stepTitle;
+        
+        const tabContainer = document.getElementById("auth-tabs");
+        if (tabContainer && mode !== 'otp') {
+            tabContainer.style.display = "block";
+            tabContainer.innerHTML = `
+                <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
+                    <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                        Connexion
+                    </button>
+                    <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                        Admission
+                    </button>
+                </div>`;
+        } else if (tabContainer) {
+            tabContainer.style.display = "none";
+        }
+
+        const progressContainer = document.getElementById("auth-progress");
+        if (progressContainer) {
+            if (mode === 'register') {
+                progressContainer.style.display = "block";
+                progressContainer.innerHTML = `
+                    <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full ${progressColor} transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
+                    </div>`;
+            } else {
+                progressContainer.style.display = "none";
+            }
+        }
+
+        existingCard.innerHTML = dynamicContent;
+    } else {
+        app.innerHTML = `
+        <div class="fixed inset-0 w-full h-[100dvh] flex items-center justify-center bg-[#F8FAFC] p-4 lg:p-8 z-50">
+            <div class="absolute -top-20 -left-20 w-96 h-96 bg-emerald-200 rounded-full filter blur-[100px] opacity-40 animate-blob pointer-events-none z-0"></div>
+            <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
+            <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
+                <div class="shrink-0 text-center pt-8 pb-4">
+                    <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
+                        <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-8 h-8 object-contain invert">
+                    </div>
+                    <h1 class="text-xl font-[900] text-slate-900 tracking-tight leading-none uppercase">Santé Plus</h1>
+                    <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
+                </div>
+                <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
+                    <div class="bg-slate-100/50 p-1.5 rounded-[1.5rem] flex items-center gap-1 border border-slate-200/30">
+                        <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                            Connexion
+                        </button>
+                        <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                            Admission
+                        </button>
+                    </div>
+                </div>
+                <div id="auth-progress" class="shrink-0 px-8 mb-2" style="display: ${mode === 'register' ? 'block' : 'none'}">
+                    <div class="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full ${progressColor} transition-all duration-500" style="width: ${(currentStep/6)*100}%"></div>
+                    </div>
+                </div>
+                <div id="auth-card-content" class="flex-1 flex flex-col relative overflow-hidden">
+                    ${dynamicContent}
+                </div>
+            </div>
+        </div>`;
+    }
+}
+
+// ============================================================
+// HUB DE NAVIGATION MOBILE
+// ============================================================
 function renderMobileHub() {
     const userRole = localStorage.getItem("user_role");
     const userName = localStorage.getItem("user_name");
     const container = document.getElementById("view-container");
-    
-    // Pour savoir si c'est une famille Maman (on peut détecter via le rôle ou stocker en local)
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     
     const menuItems = [
@@ -924,9 +945,6 @@ function renderMobileHub() {
 
     container.innerHTML = `
         <div class="animate-fadeIn pb-32">
-            <!-- ============================================ -->
-            <!-- BANNIÈRE DE BIENVENUE COLORÉE (AJOUTÉE ICI) -->
-            <!-- ============================================ -->
             <div class="${isMaman ? 'maman-banner' : 'premium-banner'} p-5 rounded-2xl mb-8 shadow-sm">
                 <div class="flex items-center justify-between">
                     <div>
@@ -945,16 +963,11 @@ function renderMobileHub() {
                     </div>
                 </div>
             </div>
-
-            <!-- Barre de recherche -->
             <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
                 <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
                 <input type="text" placeholder="Rechercher un dossier..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
             </div>
-
             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4 ml-1">Menu Principal</h4>
-
-            <!-- GRILLE DE BLOCS -->
             <div class="menu-grid">
                 ${filteredMenu.map(item => `
                     <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer">
@@ -972,302 +985,168 @@ function renderMobileHub() {
     `;
 }
 
-
-/**
- * 🔔 INITIALISATION DES NOTIFICATIONS NATIVES
- */
+// ============================================================
+// NOTIFICATIONS PUSH
+// ============================================================
 async function initPushNotifications() {
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") return;
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") return;
 
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: "BM48rks5FJAMMZ9QcGpFPfvQz5TlS6CCeN8uvrucR7yKmJCmwMxjgzTuREGznW48kgwm8LPYwelg1R8wUzA0Pq0",
-    });
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: "BM48rks5FJAMMZ9QcGpFPfvQz5TlS6CCeN8uvrucR7yKmJCmwMxjgzTuREGznW48kgwm8LPYwelg1R8wUzA0Pq0",
+        });
 
-    const sub = JSON.parse(JSON.stringify(subscription));
-    await fetch(`${CONFIG.API_URL}/auth/subscribe-push`, {
-      method: "POST",
-      headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` 
-      },
-      body: JSON.stringify({
-        endpoint: sub.endpoint,
-        p256dh: sub.keys.p256dh,
-        auth: sub.keys.auth,
-      }),
-    });
-  } catch (err) { console.warn("🔔 Push non configuré."); }
+        const sub = JSON.parse(JSON.stringify(subscription));
+        await fetch(`${CONFIG.API_URL}/auth/subscribe-push`, {
+            method: "POST",
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            },
+            body: JSON.stringify({
+                endpoint: sub.endpoint,
+                p256dh: sub.keys.p256dh,
+                auth: sub.keys.auth,
+            }),
+        });
+    } catch (err) { console.warn("🔔 Push non configuré."); }
 }
 
-/**
- * 🏗️ STRUCTURE PRINCIPALE (LAYOUT)
- */
-/**
- * 🏗️ STRUCTURE PRINCIPALE (LAYOUT) - Version avec photo profil
- */
+// ============================================================
+// LAYOUT PRINCIPAL (HEADER, SIDEBAR, FOOTER)
+// ============================================================
 function renderLayout() {
-  const userRole = localStorage.getItem("user_role");
-  const userName = localStorage.getItem("user_name");
-  const userPhoto = localStorage.getItem("user_photo");
-  const isMaman = localStorage.getItem("user_is_maman") === "true";
-  
-  // Couleur du thème pour le header
-  const themeColor = isMaman ? 'pink' : 'emerald';
+    const userRole = localStorage.getItem("user_role");
+    const userName = localStorage.getItem("user_name");
+    const userPhoto = localStorage.getItem("user_photo");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const themeColor = isMaman ? 'pink' : 'emerald';
 
-  document.getElementById("app").innerHTML = `
-    <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
-        
-        <!-- 🖥️ SIDEBAR DESKTOP -->
-        <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-            <div class="flex items-center gap-4 mb-14 px-2">
-                <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
-                    <img src="https://cdn-icons-png.flaticon.com/512/8206/8206334.png" class="w-8 h-8">
-                </div>
-                <div>
-                    <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
-                    <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80">Elite Management</span>
-                </div>
-            </div>
-
-            <nav class="flex-1 space-y-3" id="nav-desktop">
-                ${getNavLinks(userRole, 'desktop')}
-            </nav>
-
-            <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20 overflow-hidden">
-                        ${userPhoto ? 
-                            `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
-                            `<span>${userName ? userName.charAt(0).toUpperCase() : 'S'}</span>`
-                        }
+    document.getElementById("app").innerHTML = `
+        <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
+            <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
+                <div class="flex items-center gap-4 mb-14 px-2">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
+                        <img src="https://cdn-icons-png.flaticon.com/512/8206/8206334.png" class="w-8 h-8">
                     </div>
-                    <div class="overflow-hidden">
-                        <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
-                        <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
+                    <div>
+                        <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
+                        <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80">Elite Management</span>
                     </div>
                 </div>
-                <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-power-off"></i> Fermer la session
-                </button>
-            </div>
-        </aside>
-
-        <!-- 🚀 CONTENEUR DE CONTENU -->
-        <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
-            
-            <!-- HEADER GLOBAL AVEC PHOTO PROFIL -->
-            <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
-                
-                <!-- Logo mobile -->
-                <div class="lg:hidden flex items-center">
-                    <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                        <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-6 h-6">
-                    </div>
-                </div>
-                
-                <!-- Titre de la vue -->
-                <div class="flex flex-col">
-                    <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
-                    <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
-                </div>
-            
-                <!-- Zone droite : Notifications + Profil -->
-                <div class="flex items-center gap-3">
-                    <!-- Bouton notifications -->
-                    <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-${themeColor}-600 transition-all shadow-sm group">
-                        <i class="fa-solid fa-bell text-sm"></i>
-                        <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
-                    </button>
-                    
-                    <!-- Bouton profil avec photo -->
-                    <button onclick="window.switchView('profile')" 
-                            class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
-                        <div class="flex flex-col items-end">
-                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider hidden lg:block">Mon compte</span>
-                            <span class="text-xs font-black text-slate-800 hidden lg:block">${userName?.split(' ')[0] || 'Profil'}</span>
+                <nav class="flex-1 space-y-3" id="nav-desktop">
+                    ${getNavLinks(userRole, 'desktop')}
+                </nav>
+                <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20 overflow-hidden">
+                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<span>${userName ? userName.charAt(0).toUpperCase() : 'S'}</span>`}
                         </div>
-                        <div class="relative">
-                            <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-${themeColor}-100 to-${themeColor}-200 flex items-center justify-center shadow-md">
-                                ${userPhoto ? 
-                                    `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
-                                    `<i class="fa-solid fa-user-${userRole === 'AIDANT' ? 'nurse' : userRole === 'FAMILLE' ? 'family' : 'tie'} text-${themeColor}-600 text-lg"></i>`
-                                }
+                        <div class="overflow-hidden">
+                            <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
+                        </div>
+                    </div>
+                    <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-power-off"></i> Fermer la session
+                    </button>
+                </div>
+            </aside>
+            <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
+                <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
+                    <div class="lg:hidden flex items-center">
+                        <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+                            <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="w-6 h-6">
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
+                        <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-${themeColor}-600 transition-all shadow-sm group">
+                            <i class="fa-solid fa-bell text-sm"></i>
+                            <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                        </button>
+                        <button onclick="window.switchView('profile')" class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
+                            <div class="flex flex-col items-end">
+                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider hidden lg:block">Mon compte</span>
+                                <span class="text-xs font-black text-slate-800 hidden lg:block">${userName?.split(' ')[0] || 'Profil'}</span>
                             </div>
-                            <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></div>
-                        </div>
-                    </button>
-                </div>
-            </header>
-
-            <!-- ARRIÈRE-PLAN DÉCORATIF -->
-            <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
-            <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
-
-            <!-- 📥 ZONE DE RENDU -->
-            <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
-                <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
-            </main>
-
-            <!-- 📱 NAVIGATION MOBILE -->
-            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
-                
-                <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
-                    <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
-                </button>
-            
-                <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                </button>
-            
-                <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
-                    <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                        ${userPhoto ? 
-                            `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
-                            `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`
-                        }
+                            <div class="relative">
+                                <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-${themeColor}-100 to-${themeColor}-200 flex items-center justify-center shadow-md">
+                                    ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user-${userRole === 'AIDANT' ? 'nurse' : userRole === 'FAMILLE' ? 'family' : 'tie'} text-${themeColor}-600 text-lg"></i>`}
+                                </div>
+                                <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></div>
+                            </div>
+                        </button>
                     </div>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-                </button>
-            
-            </footer>
+                </header>
+                <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
+                <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
+                <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
+                    <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
+                </main>
+                <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
+                    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
+                        <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
+                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+                    </button>
+                    <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                        <i class="fa-solid fa-plus text-xl"></i>
+                    </button>
+                    <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
+                        <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
+                        </div>
+                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+                    </button>
+                </footer>
+            </div>
         </div>
-    </div>`;
+    `;
 }
 
-
-window.selectPack = (packId, price) => {
-    registrationData.type_pack = packId;
-    registrationData.montant_prevu = price;
-    
-    const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
-    const themeColor = isMamanFlow ? 'pink' : 'emerald';
-    const themeBgClass = isMamanFlow ? 'bg-pink-50 border-pink-200' : 'bg-emerald-50 border-emerald-200';
-    const themeColorClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
-    const borderColorClass = isMamanFlow ? 'border-pink-500' : 'border-emerald-500';
-    const bgColorClass = isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500';
-    
-    // Mettre à jour l'apparence des cartes
-    document.querySelectorAll('.pack-card').forEach(card => {
-        const cardPackId = card.dataset.packId;
-        if (cardPackId === packId) {
-            // Ajouter les classes une par une
-            card.classList.add(borderColorClass);
-            card.classList.add(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
-            card.classList.add(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
-            card.classList.remove('border-slate-100');
-            
-            // Mettre à jour l'icône
-            const iconDiv = card.querySelector('.w-12.h-12');
-            if (iconDiv) {
-                iconDiv.classList.add(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
-                iconDiv.classList.add(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
-                iconDiv.classList.remove('bg-slate-50');
-                const icon = iconDiv.querySelector('i');
-                if (icon) {
-                    icon.classList.add(themeColorClass);
-                    icon.classList.remove('text-slate-400');
-                }
-            }
-            
-            // Mettre à jour le radio button
-            const radioDiv = card.querySelector('.w-5.h-5');
-            if (radioDiv) {
-                radioDiv.classList.add(borderColorClass);
-                radioDiv.classList.add(bgColorClass);
-                radioDiv.classList.remove('border-slate-300', 'bg-transparent');
-                radioDiv.innerHTML = '<i class="fa-solid fa-check text-white text-[8px]"></i>';
-            }
-        } else {
-            // Supprimer les classes une par une
-            card.classList.remove(borderColorClass);
-            card.classList.remove(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
-            card.classList.remove(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
-            card.classList.add('border-slate-100');
-            
-            // Réinitialiser l'icône
-            const iconDiv = card.querySelector('.w-12.h-12');
-            if (iconDiv) {
-                iconDiv.classList.remove(isMamanFlow ? 'bg-pink-50' : 'bg-emerald-50');
-                iconDiv.classList.remove(isMamanFlow ? 'border-pink-200' : 'border-emerald-200');
-                iconDiv.classList.add('bg-slate-50');
-                const icon = iconDiv.querySelector('i');
-                if (icon) {
-                    icon.classList.remove(themeColorClass);
-                    icon.classList.add('text-slate-400');
-                }
-            }
-            
-            // Réinitialiser le radio button
-            const radioDiv = card.querySelector('.w-5.h-5');
-            if (radioDiv) {
-                radioDiv.classList.remove(borderColorClass);
-                radioDiv.classList.remove(bgColorClass);
-                radioDiv.classList.add('border-slate-300');
-                radioDiv.innerHTML = '';
-            }
-        }
-    });
-    
-    // Activer le bouton continuer
-    const continueBtn = document.getElementById('pack-continue-btn');
-    if (continueBtn) {
-        continueBtn.disabled = false;
-        continueBtn.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
-        continueBtn.classList.add(isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500');
-        continueBtn.classList.add(isMamanFlow ? 'hover:bg-pink-600' : 'hover:bg-emerald-600');
-    }
-    
-    UI.vibrate('success');
-};
-
-
+// ============================================================
+// LIENS DE NAVIGATION (DESKTOP)
+// ============================================================
 function getNavLinks(role, mode) {
     const isMobile = mode === 'mobile';
-    const tabs =[
+    const tabs = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
         { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR'] }, 
-        { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles:['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles:['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
-        
         { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
         { id: 'commandes', icon: 'fa-pills', label: 'Pharmacie', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-
         { id: 'feed', icon: 'fa-rss', label: 'Feed', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles:['COORDINATEUR', 'FAMILLE'] },
+        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] }
     ];
 
     return tabs.filter(tab => tab.roles.includes(role)).map(tab => {
         if (isMobile) {
-            return `
-                <button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
-                    <i class="fa-solid ${tab.icon} text-lg"></i>
-                    <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
-                </button>`;
+            return `<button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
+                        <i class="fa-solid ${tab.icon} text-lg"></i>
+                        <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
+                    </button>`;
         } else {
-            return `
-                <button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm mb-1">
-                    <i class="fa-solid ${tab.icon} text-lg"></i>
-                    <span>${tab.label}</span>
-                </button>`;
+            return `<button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm mb-1">
+                        <i class="fa-solid ${tab.icon} text-lg"></i>
+                        <span>${tab.label}</span>
+                    </button>`;
         }
     }).join('');
 }
 
-// ============================================
-// TRANSITION FLUIDE AVEC LOADER LOCAL
-// ============================================
-// ============================================
-// TRANSITION FLUIDE SANS SACCADES
-// ============================================
-
+// ============================================================
+// TRANSITION ENTRE LES VUES (SWITCHVIEW)
+// ============================================================
 let isTransitioning = false;
 let pendingView = null;
 
@@ -1278,70 +1157,53 @@ window.switchView = async function(viewName) {
     }
     
     isTransitioning = true;
-    
     const container = document.getElementById("view-container");
-    const mainContent = document.querySelector("main");
     
     if (!container) {
         isTransitioning = false;
         return;
     }
     
-    // 1. Animation de sortie (plus douce)
+    // Animation de sortie
     container.style.transition = "opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)";
     container.style.opacity = "0";
     container.style.transform = "translateY(10px)";
-    
-    // 2. Attendre un peu pour que l'animation se fasse
     await new Promise(r => setTimeout(r, 150));
     
-    // 3. Afficher un loader élégant (plus petit)
+    // Loader élégant
     container.innerHTML = `
         <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
             <div class="relative w-10 h-10">
                 <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" 
-                     class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-pulse">
+                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-pulse">
             </div>
             <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
         </div>
     `;
-    
-    // 4. Petit délai pour que le loader s'affiche
     await new Promise(r => setTimeout(r, 50));
     
     try {
         await performViewSwitch(viewName);
-        
-        // 5. Animation d'entrée
         container.style.opacity = "1";
         container.style.transform = "translateY(0)";
-        
-        // 6. Nettoyer les styles après animation
         setTimeout(() => {
             if (container) {
                 container.style.transition = "";
                 container.style.transform = "";
             }
         }, 250);
-        
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        container.innerHTML = `
-            <div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
-                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
-                <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-                <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
-                <button onclick="window.switchView('${viewName}')" 
-                        class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">
-                    Réessayer
-                </button>
-            </div>`;
+        container.innerHTML = `<div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
+                                    <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+                                    <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+                                    <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
+                                    <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+                                </div>`;
         container.style.opacity = "1";
     }
     
     isTransitioning = false;
-    
     if (pendingView) {
         const next = pendingView;
         pendingView = null;
@@ -1349,10 +1211,9 @@ window.switchView = async function(viewName) {
     }
 };
 
-// ============================================
-//  :
-// ============================================
-
+// ============================================================
+// CHARGEMENT D'UNE VUE SPÉCIFIQUE
+// ============================================================
 async function performViewSwitch(viewName) {
     const container = document.getElementById("view-container");
     const titleElement = document.getElementById("view-title");
@@ -1361,7 +1222,7 @@ async function performViewSwitch(viewName) {
     const userRole = localStorage.getItem("user_role");
     const paymentStatus = localStorage.getItem("payment_status");
 
-    // 🛡️ SÉCURITÉ PAIEMENT
+    // Sécurité paiement : accès restreint si impayé
     const restrictedViews = ["feed", "visits", "commandes"];
     if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
         UI.vibrate("error");
@@ -1376,7 +1237,7 @@ async function performViewSwitch(viewName) {
         return;
     }
 
-    // 🎨 MISE À JOUR DE L'INTERFACE (ACTIVE TABS)
+    // Mise à jour des onglets actifs
     document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
         const isActive = btn.dataset.view === viewName;
         if (btn.classList.contains('sidebar-link')) {
@@ -1405,16 +1266,14 @@ async function performViewSwitch(viewName) {
         "link-family": "Lier une Famille",
         "add-aidant": "Nouvel Aidant",
         "end-visit": "Clôturer la visite",
-        "start-visit": "Démarrer la visite"
+        "start-visit": "Démarrer la visite",
+        "subscription": "Nos Formules",
+        "profile": "Mon Profil"
     };
     
     if (titleElement) titleElement.innerText = viewTitles[viewName] || "Santé Plus";
-
     localStorage.setItem("last_view", viewName);
     AppState.currentView = viewName;
-
-    // 🔴 PLUS AUCUN LOADER ICI - Le loader est déjà dans switchView
-    // 🔴 Le contenu va être chargé directement par les cas ci-dessous
 
     try {
         switch (viewName) {
@@ -1422,11 +1281,9 @@ async function performViewSwitch(viewName) {
                 container.innerHTML = document.getElementById("template-dashboard").innerHTML;
                 await Dashboard.loadAdminDashboard(); 
                 break;
-                
             case "map": 
                 await MapModule.initLiveMap(); 
                 break;
-                
             case "patients": 
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
@@ -1442,12 +1299,10 @@ async function performViewSwitch(viewName) {
                 await Patients.loadPatients();
                 refreshMicroInteractions();
                 break;
-                
             case "visits": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
                 await Visites.loadVisits(); 
                 break;
-                
             case "feed": 
                 if (!AppState.currentPatient && userRole === "FAMILLE") {
                     window.switchView("patients");
@@ -1455,12 +1310,10 @@ async function performViewSwitch(viewName) {
                 }
                 await Messages.loadFeed(); 
                 break;
-                
             case "billing": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
                 await Billing.loadBilling(); 
                 break;
-                
             case "aidants": 
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
@@ -1469,35 +1322,26 @@ async function performViewSwitch(viewName) {
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
                                 <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
                             </div>
-                            ${userRole === 'COORDINATEUR' ? `
-                                <button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center">
-                                    <i class="fa-solid fa-user-plus text-lg"></i>
-                                </button>
-                            ` : ''}
+                            ${userRole === 'COORDINATEUR' ? `<button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center"><i class="fa-solid fa-user-plus text-lg"></i></button>` : ''}
                         </div>
                         <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                     </div>`;
                 await Aidants.loadAidants(); 
                 break;
-                
-                case "planning":
-                    container.innerHTML = `
-                        <div class="animate-slideIn pb-32">
-                            <div class="flex justify-between items-center mb-8">
-                                <div>
-                                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
-                                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
-                                </div>
-                                ${userRole === "COORDINATEUR" ? `
-                                    <button onclick="window.openAssignPage()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                                        <i class="fa-solid fa-calendar-plus"></i>
-                                    </button>` : ""}
+            case "planning":
+                container.innerHTML = `
+                    <div class="animate-slideIn pb-32">
+                        <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Planification des interventions</p>
                             </div>
-                            <div id="planning-list" class="space-y-4"></div>
-                        </div>`;
-                    await Planning.loadPlanning();
-                    break;
-                
+                            ${userRole === "COORDINATEUR" ? `<button onclick="window.openAssignPage()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-calendar-plus"></i></button>` : ""}
+                        </div>
+                        <div id="planning-list" class="space-y-4"></div>
+                    </div>`;
+                await Planning.loadPlanning();
+                break;
             case "commandes":
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
@@ -1506,58 +1350,46 @@ async function performViewSwitch(viewName) {
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
                                 <p class="text-xs text-slate-400 font-bold uppercase mt-1">Commandes et Livraisons</p>
                             </div>
-                            ${userRole === "FAMILLE" ? `
-                                <button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>` : ""}
+                            ${userRole === "FAMILLE" ? `<button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
                         </div>
                         <div id="commandes-list" class="space-y-4"></div>
                     </div>`;
                 await Commandes.loadCommandes(); 
                 break;
-                
             case "add-patient": 
                 await Patients.renderAddPatientView(); 
                 break;
-                
             case "link-family": 
                 await Patients.renderLinkFamilyView(); 
                 break;
-                
             case "add-aidant": 
                 await Aidants.renderAddAidantView(); 
                 break;
-                
             case "end-visit": 
                 await Visites.renderEndVisitView(); 
                 break;
-                
             case "start-visit":
                 await Visites.renderStartVisitView(AppState.currentPatient);
                 break;
-                
             case "home": 
                 container.innerHTML = document.getElementById("template-home").innerHTML;
                 renderMobileHub(); 
                 break;
             case "subscription":
-                    await Subscription.renderSubscriptionPage();
-                    break;
-
+                await Subscription.renderSubscriptionPage();
+                break;
             case "rh-dashboard":
                 await Admin.renderRHDashboard();
                 break;
-
             case "profile":
                 await Profile.renderProfilePage();
                 break;
         }
         
-        // Animation d'entrée après chargement réussi
+        // Animation d'entrée
         container.style.opacity = "0";
         container.style.transform = "translateY(8px)";
         container.style.transition = "opacity 0.15s ease, transform 0.15s ease";
-        
         setTimeout(() => {
             container.style.opacity = "1";
             container.style.transform = "translateY(0)";
@@ -1568,17 +1400,19 @@ async function performViewSwitch(viewName) {
         
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
-        container.innerHTML = `
-            <div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
-                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
-                <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
-                <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre à cette requête."}</p>
-                <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
-            </div>`;
+        container.innerHTML = `<div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
+                                    <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
+                                    <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
+                                    <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre à cette requête."}</p>
+                                    <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
+                                </div>`;
         container.style.opacity = "1";
     }
 }
 
+// ============================================================
+// MENU PROFIL (COMPTE UTILISATEUR)
+// ============================================================
 window.openProfileMenu = () => {
     const userName = localStorage.getItem("user_name");
     const userRole = localStorage.getItem("user_role");
@@ -1590,7 +1424,6 @@ window.openProfileMenu = () => {
             <div class="text-center p-4">
                 <div class="inline-block px-4 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase mb-6">${userRole}</div>
                 <div class="space-y-3">
-                    <!-- Option Sons -->
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-volume-high text-slate-400"></i>
@@ -1601,19 +1434,14 @@ window.openProfileMenu = () => {
                             <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                         </label>
                     </div>
-                    <!-- Option Installation PWA -->
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-download text-slate-400"></i>
                             <span class="text-xs font-bold text-slate-700">Installer l'application</span>
                         </div>
-                        <button onclick="window.installPWA(); Swal.close();" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">
-                            Installer
-                        </button>
+                        <button onclick="window.installPWA(); Swal.close();" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">Installer</button>
                     </div>
-                    <button onclick="window.logout()" class="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold text-sm active:scale-95 transition-transform">
-                        Déconnexion
-                    </button>
+                    <button onclick="window.logout()" class="w-full py-4 bg-rose-50 text-rose-500 rounded-2xl font-bold text-sm active:scale-95 transition-transform">Déconnexion</button>
                 </div>
             </div>`,
         showConfirmButton: false,
@@ -1636,7 +1464,6 @@ window.openProfileMenu = () => {
     });
 };
 
-// Fonction d'installation PWA
 window.installPWA = () => {
     if (window.deferredPrompt) {
         window.deferredPrompt.prompt();
@@ -1651,11 +1478,9 @@ window.installPWA = () => {
     }
 };
 
-
-
-
-
-/* --- 📝 LOGIQUE DE L'ONBOARDING (Slides d'accueil) --- */
+// ============================================================
+// ONBOARDING (TUTORIEL D'ACCUEIL)
+// ============================================================
 window.startOnboarding = () => {
     if (localStorage.getItem("onboarding_seen")) return;
     onboardingStep = 0;
@@ -1672,27 +1497,15 @@ function renderOnboarding() {
             <div class="onboarding-image-container animate-fadeIn">
                 <img src="${step.image}" class="onboarding-img shadow-2xl">
                 <div class="onboarding-image-blur"></div>
-                ${!isLast ? `
-                    <button onclick="window.finishOnboarding()" class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/30 z-50">
-                        Ignorer
-                    </button>
-                ` : ''}
+                ${!isLast ? `<button onclick="window.finishOnboarding()" class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/30 z-50">Ignorer</button>` : ''}
             </div>
-
             <div class="flex-1 flex flex-col items-center text-center px-10 pb-10">
-                <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4 leading-tight">
-                    ${step.title}
-                </h2>
-                <p class="text-slate-400 text-sm leading-relaxed mb-auto">
-                    ${step.desc}
-                </p>
-
+                <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4 leading-tight">${step.title}</h2>
+                <p class="text-slate-400 text-sm leading-relaxed mb-auto">${step.desc}</p>
                 <div class="flex gap-2 mb-8">
                     ${ONBOARDING_STEPS.map((_, i) => `<div class="onboarding-dot ${i === onboardingStep ? 'active' : ''}"></div>`).join('')}
                 </div>
-
-                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" 
-                    class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 active:scale-95 transition-all">
+                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 active:scale-95 transition-all">
                     ${isLast ? 'Démarrer SPS Élite' : 'Continuer'}
                 </button>
             </div>
@@ -1711,16 +1524,15 @@ window.finishOnboarding = () => {
     window.location.reload(); 
 };
 
-
-
-/* --- 🔑 MAÎTRE DES BRANCHEMENTS --- */
+// ============================================================
+// ÉVÉNEMENTS GLOBAUX
+// ============================================================
+// Assignation des fonctions globales
 window.CONFIG = CONFIG;
 window.AppState = AppState;
 window.login = Auth.handleLogin;
 window.logout = Auth.handleLogout;
 window.verifyOTP = Auth.verifyOTP;
-
-// 🚀 NOUVELLE LOGIQUE DE PAGES (Adieu les modales pour la gestion !)
 window.openAddPatient = () => window.switchView('add-patient');
 window.openEndVisit = () => window.switchView('end-visit');
 window.submitEndVisit = Visites.submitEndVisit;
@@ -1729,46 +1541,30 @@ window.openLinkFamilyModal = (id, name) => {
     AppState.tempData = { patientId: id, patientName: name }; 
     window.switchView('link-family');
 };
-
-// Modales restantes (à transformer bientôt)
 window.openAddAidantModal = Aidants.openAddAidantModal;
 window.markAsDelivered = Commandes.markAsDelivered;
-
-
 window.viewPatientFeed = async (id) => { 
     const userRole = localStorage.getItem("user_role");
     const titleElement = document.getElementById("view-title");
-    
-    // Sauvegarde en mémoire
     localStorage.setItem("current_patient_id", id);
     AppState.currentPatient = id;
-
-    // Si c'est un Aidant, on l'envoie sur la fiche de Briefing
     if (userRole === 'AIDANT') {
         UI.vibrate();
         if (titleElement) titleElement.innerText = "Briefing Patient";
-        
-        // ⚠️ PLUS AUCUN LOADER MANUEL - Le loader global s'en charge
         await Patients.renderPatientDetailsView(id);
-    } 
-    // Si c'est une Famille ou Coordinateur, on va direct au journal
-    else {
+    } else {
         window.switchView("feed"); 
     }
 };
-
-window.switchView = switchView;
 window.viewPatientDetails = Patients.renderPatientDetailsView;
-
-// Inscription In-Card
-// Remplace le bloc inscription par :
 window.renderAuthView = renderAuthView; 
 window.nextAuthStep = nextAuthStep;
 window.prevAuthStep = prevAuthStep;
-window.setPlan = setPlan;
-window.submitRegistration = submitRegistration; 
-
-// Onboarding
+window.setPlan = (plan) => {
+    registrationData.formule = plan;
+    renderAuthView('register', 4);
+};
+window.submitRegistration = submitRegistration;
 window.startOnboarding = startOnboarding;
 window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
@@ -1781,7 +1577,6 @@ window.openMissionBriefing = Planning.openMissionBriefing;
 window.loadRegistrations = Admin.loadRegistrations;
 window.confirmActivation = Admin.confirmActivation;
 window.fetchStats = Dashboard.fetchStats;
-window.openOrderModal = Commandes.openOrderModal; 
 window.openActivationPage = Admin.openActivationPage;
 window.processValidation = Admin.processValidation;
 window.confirmStartVisit = Visites.startVisit; 
@@ -1792,37 +1587,24 @@ window.UI = UI;
 window.playSound = playSound;
 window.openAssignPage = Planning.openAssignPage;
 
-
-
-// ============================================
-// ÉVÉNEMENTS POUR LA PAGE D'ASSIGNATION
-// ============================================
-
-// Sélection d'un aidant
+// Événements pour la page d'assignation (dropdowns)
 document.addEventListener('click', (e) => {
     const aidantItem = e.target.closest('.aidant-item');
     if (aidantItem) {
         const id = aidantItem.dataset.id;
         const name = aidantItem.dataset.name;
         const email = aidantItem.dataset.email;
-        
         window._selectedAidant = { id, name, email };
-        
         const nameEl = document.getElementById('selected-aidant-name');
         const emailEl = document.getElementById('selected-aidant-email');
         if (nameEl) nameEl.innerText = name;
         if (emailEl) emailEl.innerHTML = email || '<span class="text-slate-400">Email non renseigné</span>';
-        
-        // Fermer le dropdown
         const dropdown = document.getElementById('aidant-dropdown');
         const chevron = document.getElementById('aidant-chevron');
         if (dropdown) dropdown.classList.add('hidden');
         if (chevron) chevron.style.transform = 'rotate(0deg)';
-        
-        // Retirer la sélection visuelle des autres
         document.querySelectorAll('.aidant-item').forEach(el => el.classList.remove('bg-emerald-50'));
         aidantItem.classList.add('bg-emerald-50');
-        
         UI.vibrate('click');
     }
     
@@ -1831,29 +1613,21 @@ document.addEventListener('click', (e) => {
         const id = patientItem.dataset.id;
         const name = patientItem.dataset.name;
         const formule = patientItem.dataset.formule;
-        
         window._selectedPatient = { id, name, formule };
-        
         const nameEl = document.getElementById('selected-patient-name');
         const formuleEl = document.getElementById('selected-patient-formule');
         if (nameEl) nameEl.innerText = name;
         if (formuleEl) formuleEl.innerHTML = formule || 'Standard';
-        
-        // Fermer le dropdown
         const dropdown = document.getElementById('patient-dropdown');
         const chevron = document.getElementById('patient-chevron');
         if (dropdown) dropdown.classList.add('hidden');
         if (chevron) chevron.style.transform = 'rotate(0deg)';
-        
-        // Retirer la sélection visuelle des autres
         document.querySelectorAll('.patient-item').forEach(el => el.classList.remove('bg-blue-50'));
         patientItem.classList.add('bg-blue-50');
-        
         UI.vibrate('click');
     }
 });
 
-// Fermer les dropdowns en cliquant ailleurs
 document.addEventListener('click', (e) => {
     if (!e.target.closest('#aidant-selector')) {
         const dropdown = document.getElementById('aidant-dropdown');
@@ -1873,14 +1647,12 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Ajoute ceci vers la fin du fichier, avant initApp()
+// Détection de l'installation PWA
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     window.deferredPrompt = e;
     console.log('📱 PWA installable détectée');
 });
 
-
-
-
+// Lancement de l'application
 initApp();
