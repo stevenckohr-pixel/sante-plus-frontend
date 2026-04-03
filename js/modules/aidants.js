@@ -8,7 +8,6 @@ export async function loadAidants() {
     const container = document.getElementById('view-container');
     const userRole = localStorage.getItem('user_role');
 
-    // Structure de base
     container.innerHTML = `
         <div class="flex justify-between items-center mb-8 animate-fadeIn">
             <div>
@@ -25,18 +24,13 @@ export async function loadAidants() {
     `;
 
     const list = document.getElementById('aidants-list');
-    
-    // Afficher le squelette pendant le chargement
     showSkeleton(list, 'aidant-card');
 
     try {
-        // Récupérer les Aidants
-        const res = await secureFetch('/auth/profiles?role=AIDANT');
-        let members = await res.json();
+        // ✅ CORRECTION : secureFetch retourne déjà les données
+        let members = await secureFetch('/auth/profiles?role=AIDANT');
         
-        // Récupérer aussi les Coordinateurs
-        const resCoord = await secureFetch('/auth/profiles?role=COORDINATEUR');
-        const coords = await resCoord.json();
+        const coords = await secureFetch('/auth/profiles?role=COORDINATEUR');
         members = [...coords, ...members];
 
         if (members.length === 0) {
@@ -44,15 +38,12 @@ export async function loadAidants() {
             return;
         }
 
-        // Rendu des cartes
         const cards = await Promise.all(members.map(async (m) => {
             let statsHtml = '';
             
-            // Pour les aidants, afficher les statistiques terrain
             if (m.role === 'AIDANT') {
                 try {
-                    const statRes = await secureFetch(`/aidants/stats/${m.id}`);
-                    const stats = await statRes.json();
+                    const stats = await secureFetch(`/aidants/stats/${m.id}`);
                     statsHtml = `
                         <div class="flex items-center gap-3 mt-5 pt-5 border-t border-slate-50">
                             <span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 uppercase tracking-widest">${stats.total_visites || 0} Visites</span>
@@ -97,7 +88,6 @@ export async function loadAidants() {
         list.innerHTML = `<p class="text-rose-500 text-center col-span-full p-10">Erreur de chargement</p>`;
     }
 }
-
 
 export async function renderAddAidantView() {
     const container = document.getElementById("view-container");
