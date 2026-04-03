@@ -1608,6 +1608,8 @@ window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
 window.openAssignPage = Planning.openAssignPage;
+window.renderRHDashboard = Admin.renderRHDashboard;
+
 
 // Événements pour la page d'assignation (dropdowns)
 document.addEventListener('click', (e) => {
