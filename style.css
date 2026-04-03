@@ -1227,3 +1227,32 @@ aside {
 .nav-btn.active span {
     color: #10B981 !important;
 }
+
+
+
+
+/* Thème Maman & Bébé */
+:root {
+  --maman-pink: #DB2777;
+  --maman-pink-light: #FDF2F8;
+  --maman-pink-dark: #BE185D;
+}
+
+/* Bannière Maman */
+.maman-banner {
+  background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+  border: 1px solid #FBCFE8;
+}
+
+.maman-banner .text-rose-primary {
+  color: #DB2777 !important;
+}
+
+/* Boutons Maman */
+.btn-maman {
+  background: #DB2777 !important;
+  color: white !important;
+}
+.btn-maman:hover {
+  background: #BE185D !important;
+}
