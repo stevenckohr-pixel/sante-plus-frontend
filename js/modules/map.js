@@ -171,25 +171,19 @@ async function initCoordinatorMap() {
             <div class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-user-nurse mr-1"></i> Filtrer par aidant
-                        </label>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">Filtrer par aidant</label>
                         <select id="filter-aidant" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
                             <option value="">Tous les aidants</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-hospital-user mr-1"></i> Filtrer par patient
-                        </label>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">Filtrer par patient</label>
                         <select id="filter-patient" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
                             <option value="">Tous les patients</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                            <i class="fa-solid fa-circle-exclamation mr-1"></i> Statut
-                        </label>
+                        <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">Statut</label>
                         <select id="filter-status" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
                             <option value="all">Tous</option>
                             <option value="inside">Dans la zone ✅</option>
@@ -214,57 +208,78 @@ async function initCoordinatorMap() {
             <div id="info-panel" class="fixed right-4 top-24 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 z-30 hidden transition-all">
                 <div class="p-4 border-b border-slate-100 flex justify-between items-center">
                     <h4 id="panel-title" class="font-black text-slate-800">Détails</h4>
-                    <button id="close-panel" class="text-slate-400 hover:text-slate-600">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
+                    <button id="close-panel" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-times"></i></button>
                 </div>
                 <div id="panel-content" class="p-4 max-h-96 overflow-y-auto"></div>
             </div>
         </div>
     `;
 
-    setTimeout(async () => {
-        const mapElement = document.getElementById('map');
-        if (!mapElement) return;
-        
-        if (map) { map.remove(); map = null; markers = {}; }
-        
-        const mapLoading = document.getElementById('map-loading');
-        
-        map = L.map('map', { zoomControl: false, attributionControl: false, zoomSnap: 0.5 });
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-        }).addTo(map);
-        
-        if (mapLoading) {
-            setTimeout(() => {
-                mapLoading.style.opacity = '0';
-                setTimeout(() => mapLoading.style.display = 'none', 300);
-            }, 500);
-        }
-        
-        setTimeout(() => map.invalidateSize(true), 150);
-        
-        document.getElementById('refresh-map-btn')?.addEventListener('click', () => loadCoordinatorData());
-        document.getElementById('center-all-btn')?.addEventListener('click', () => centerAllMarkers());
-        document.getElementById('show-alerts-btn')?.addEventListener('click', () => showAlertsPanel());
-        document.getElementById('close-panel')?.addEventListener('click', () => {
-            document.getElementById('info-panel').classList.add('hidden');
-        });
-        
-        document.getElementById('filter-aidant')?.addEventListener('change', () => applyFilters());
-        document.getElementById('filter-patient')?.addEventListener('change', () => applyFilters());
-        document.getElementById('filter-status')?.addEventListener('change', () => applyFilters());
-        
-        await loadCoordinatorData();
-        await loadFiltersData();
-        
-        if (activeInterval) clearInterval(activeInterval);
-        activeInterval = setInterval(() => loadCoordinatorData(), 10000);
-        
-    }, 100);
+    // ✅ Attendre que le DOM soit prêt
+    await new Promise(r => setTimeout(r, 100));
+    
+    const mapElement = document.getElementById('map');
+    if (!mapElement) {
+        console.error("❌ Map element non trouvé");
+        return;
+    }
+    
+    // ✅ Nettoyer l'ancienne carte
+    if (map) {
+        map.remove();
+        map = null;
+        markers = {};
+    }
+    
+    // ✅ Initialiser la carte AVEC un centre par défaut
+    map = L.map('map', { 
+        zoomControl: false, 
+        attributionControl: false, 
+        zoomSnap: 0.5,
+        center: [6.368, 2.401],  // ← Centre par défaut (Cotonou)
+        zoom: 12                  // ← Zoom par défaut
+    });
+    
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(map);
+    
+    // ✅ Forcer l'invalidation de la taille
+    setTimeout(() => {
+        if (map) map.invalidateSize(true);
+    }, 200);
+    
+    // ✅ Cacher le loader
+    const mapLoading = document.getElementById('map-loading');
+    if (mapLoading) {
+        setTimeout(() => {
+            mapLoading.style.opacity = '0';
+            setTimeout(() => mapLoading.style.display = 'none', 300);
+        }, 500);
+    }
+    
+    // ✅ Événements
+    document.getElementById('refresh-map-btn')?.addEventListener('click', () => loadCoordinatorData());
+    document.getElementById('center-all-btn')?.addEventListener('click', () => centerAllMarkers());
+    document.getElementById('show-alerts-btn')?.addEventListener('click', () => showAlertsPanel());
+    document.getElementById('close-panel')?.addEventListener('click', () => {
+        document.getElementById('info-panel').classList.add('hidden');
+    });
+    
+    document.getElementById('filter-aidant')?.addEventListener('change', () => applyFilters());
+    document.getElementById('filter-patient')?.addEventListener('change', () => applyFilters());
+    document.getElementById('filter-status')?.addEventListener('change', () => applyFilters());
+    
+    // ✅ Charger les données
+    await loadCoordinatorData();
+    await loadFiltersData();
+    
+    // ✅ Rafraîchissement automatique
+    if (activeInterval) clearInterval(activeInterval);
+    activeInterval = setInterval(() => loadCoordinatorData(), 10000);
 }
 
 async function loadCoordinatorData() {
@@ -280,44 +295,60 @@ async function loadCoordinatorData() {
 }
 
 function updateCoordinatorMarkers(aidants, patients) {
+    if (!map) return;
+    
+    // Supprimer les anciens marqueurs
     Object.keys(markers).forEach(key => {
-        if (markers[key]) { map.removeLayer(markers[key]); delete markers[key]; }
+        if (markers[key] && map) {
+            try {
+                map.removeLayer(markers[key]);
+            } catch(e) {}
+            delete markers[key];
+        }
     });
     
-    patients.forEach(patient => {
-        if (!patient.lat || !patient.lng) return;
-        const icon = createCoordinatorIcon('#3B82F6', 'home', false);
-        const marker = L.marker([patient.lat, patient.lng], { icon }).addTo(map);
-        marker.bindPopup(`
-            <div class="text-center p-2">
-                <p class="font-black text-slate-800">🏠 ${escapeHtml(patient.nom_complet)}</p>
-                <p class="text-[10px] text-slate-500">${escapeHtml(patient.adresse || 'Adresse non renseignée')}</p>
-                <button onclick="window.centerOnPatient(${patient.lat}, ${patient.lng})" class="mt-2 w-full py-1.5 bg-blue-500 text-white rounded-lg text-[9px] font-black">Centrer</button>
-            </div>
-        `);
-        markers[`patient_${patient.id}`] = marker;
-    });
+    // Marqueurs patients
+    if (patients && patients.length) {
+        patients.forEach(patient => {
+            if (!patient.lat || !patient.lng) return;
+            try {
+                const icon = createCoordinatorIcon('#3B82F6', 'home', false);
+                const marker = L.marker([patient.lat, patient.lng], { icon }).addTo(map);
+                marker.bindPopup(`
+                    <div class="text-center p-2">
+                        <p class="font-black text-slate-800">🏠 ${escapeHtml(patient.nom_complet)}</p>
+                        <p class="text-[10px] text-slate-500">${escapeHtml(patient.adresse || 'Adresse non renseignée')}</p>
+                    </div>
+                `);
+                markers[`patient_${patient.id}`] = marker;
+            } catch(e) { console.warn("Erreur marqueur patient:", e); }
+        });
+    }
     
-    aidants.forEach(aidant => {
-        if (!aidant.last_position?.lat || !aidant.last_position?.lng) return;
-        const isInside = aidant.is_inside_geofence;
-        const color = isInside ? '#10B981' : '#F43F5E';
-        const icon = createCoordinatorIcon(color, 'user-nurse', true);
-        const marker = L.marker([aidant.last_position.lat, aidant.last_position.lng], { icon }).addTo(map);
-        marker.bindPopup(`
-            <div class="text-center p-2 min-w-[200px]">
-                <p class="font-black text-slate-800">${escapeHtml(aidant.aidant?.nom || 'Aidant')}</p>
-                <p class="text-[10px] text-slate-500">Patient: ${escapeHtml(aidant.patient?.nom_complet || '?')}</p>
-                <p class="text-[9px] ${isInside ? 'text-emerald-600' : 'text-rose-600'} font-bold">${isInside ? '✅ Dans la zone' : '⚠️ Hors zone'}</p>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="window.viewAidantHistory('${aidant.aidant?.id}')" class="flex-1 py-1.5 bg-indigo-500 text-white rounded-lg text-[9px] font-black">📜 Historique</button>
-                    <button onclick="window.centerOnAidant(${aidant.last_position.lat}, ${aidant.last_position.lng})" class="flex-1 py-1.5 bg-slate-800 text-white rounded-lg text-[9px] font-black">Centrer</button>
-                </div>
-            </div>
-        `);
-        markers[`aidant_${aidant.id}`] = marker;
-    });
+    // Marqueurs aidants
+    if (aidants && aidants.length) {
+        aidants.forEach(aidant => {
+            if (!aidant.last_position?.lat || !aidant.last_position?.lng) return;
+            try {
+                const isInside = aidant.is_inside_geofence;
+                const color = isInside ? '#10B981' : '#F43F5E';
+                const icon = createCoordinatorIcon(color, 'user-nurse', true);
+                const marker = L.marker([aidant.last_position.lat, aidant.last_position.lng], { icon }).addTo(map);
+                marker.bindPopup(`
+                    <div class="text-center p-2 min-w-[200px]">
+                        <p class="font-black text-slate-800">${escapeHtml(aidant.aidant?.nom || 'Aidant')}</p>
+                        <p class="text-[10px] text-slate-500">Patient: ${escapeHtml(aidant.patient?.nom_complet || '?')}</p>
+                        <p class="text-[9px] ${isInside ? 'text-emerald-600' : 'text-rose-600'} font-bold">${isInside ? '✅ Dans la zone' : '⚠️ Hors zone'}</p>
+                        <button onclick="window.viewAidantHistory('${aidant.aidant?.id}')" class="mt-1 w-full py-1 bg-indigo-500 text-white rounded-lg text-[9px]">📜 Historique</button>
+                    </div>
+                `);
+                markers[`aidant_${aidant.id}`] = marker;
+            } catch(e) { console.warn("Erreur marqueur aidant:", e); }
+        });
+    }
 }
+
+
 
 function updateCoordinatorStats(aidants) {
     const total = aidants.length;
@@ -374,10 +405,23 @@ function applyFilters() {
 }
 
 function centerAllMarkers() {
+    if (!map) return;
+    
     const bounds = [];
-    Object.values(markers).forEach(m => bounds.push(m.getLatLng()));
-    if (bounds.length) map.fitBounds(bounds, { padding: [50, 50] });
-    else map.setView([6.368, 2.401], 12);
+    Object.values(markers).forEach(marker => {
+        if (marker && marker.getLatLng) {
+            try {
+                bounds.push(marker.getLatLng());
+            } catch(e) {}
+        }
+    });
+    
+    if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+    } else {
+        // ✅ Centre par défaut si aucun marqueur
+        map.setView([6.368, 2.401], 12);
+    }
 }
 
 async function showAlertsPanel() {
