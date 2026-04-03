@@ -1010,9 +1010,9 @@ function renderMobileHub() {
                             ${isMaman ? 'Accompagnement personnalisé' : 'Accès prioritaire aux soins'}
                         </p>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-crown'} text-xl text-white"></i>
-                    </div>
+                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <img src="${isMaman ? CONFIG.LOGO_MAMAN : CONFIG.LOGO_GENERAL}" class="w-8 h-8 object-contain">
+                        </div>
                 </div>
             </div>
             <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
