@@ -1112,20 +1112,30 @@ function renderLayout() {
                     <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                 </main>
                 <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
-                    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
+                    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5">
                         <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
                         <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
                     </button>
-                    <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
-                        <i class="fa-solid fa-plus text-xl"></i>
-                    </button>
-                    <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all active:scale-95">
-                        <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
-                        </div>
-                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-                    </button>
-                </footer>
+                    
+                <!-- ✅ AJOUTER LE BOUTON RADAR POUR AIDANT -->
+                ${userRole === 'AIDANT' ? `
+                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5">
+                    <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
+                </button>
+                ` : ''}
+                
+                <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </button>
+                
+                <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5">
+                    <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                        ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
+                    </div>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+                </button>
+            </footer>
             </div>
         </div>
     `;
