@@ -10,8 +10,7 @@ export async function loadCommandes() {
   if (!listContainer) return;
 
   try {
-    const res = await secureFetch("/commandes");
-    const data = await res.json();
+    const data = await secureFetch("/commandes");
     renderCommandes(data);
   } catch (err) {
     console.error("Erreur chargement commandes:", err);
