@@ -1682,5 +1682,45 @@ window.addEventListener('beforeinstallprompt', (e) => {
     console.log('📱 PWA installable détectée');
 });
 
+
+// Dans main.js, vers la fin, ajoutez :
+window.processValidation = async (id, email, nom, role) => {
+    console.log("🔵 processValidation appelée !", { id, email, nom, role });
+    
+    const notes = document.getElementById('val-notes')?.value || '';
+    
+    Swal.fire({ 
+        title: 'Traitement...', 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
+
+    try {
+        const result = await secureFetch('/admin/validate-member', {
+            method: 'POST',
+            body: JSON.stringify({ user_id: id, email, nom, role, notes })
+        });
+        
+        console.log("✅ Réponse du serveur:", result);
+        
+        Swal.fire({
+            icon: "success",
+            title: "Succès",
+            text: "Collaborateur activé avec succès",
+            confirmButtonColor: "#10B981"
+        });
+        
+        window.switchView('dashboard');
+        
+    } catch(e) {
+        console.error("❌ Erreur:", e);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: e.message,
+            confirmButtonColor: "#F43F5E"
+        });
+    }
+};
 // Lancement de l'application
 initApp();
