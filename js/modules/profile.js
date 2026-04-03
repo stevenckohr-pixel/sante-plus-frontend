@@ -521,57 +521,53 @@ window.updateProfilePhoto = async (file) => {
 window.updatePatientPhoto = async (file) => {
     if (!file) return;
     
-    // ✅ Compression avant envoi
-    const maxSize = 500 * 1024; // 500KB max
+    // ✅ Compression de l'image avant envoi
+    const maxSize = 500 * 1024; // 500KB
     
+    // Si l'image est trop grosse, la compresser
     let fileToUpload = file;
-    
-    // Si le fichier est trop gros, le compresser
     if (file.size > maxSize) {
-        Swal.fire({
-            title: "Compression en cours...",
-            text: "L'image est volumineuse, elle va être compressée",
-            didOpen: () => Swal.showLoading(),
-            allowOutsideClick: false
-        });
-        
+        Swal.fire({ title: "Compression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
         try {
-            fileToUpload = await compressImage(file, 1024); // 1024px max width
+            fileToUpload = await compressImage(file, 800, 0.7);
         } catch (err) {
             Swal.close();
             UI.error("Impossible de compresser l'image");
             return;
         }
-        
         Swal.close();
     }
     
-    // Vérifier la taille après compression
+    // Vérification finale
     if (fileToUpload.size > maxSize) {
         UI.error("L'image est trop lourde (max 500KB)");
         return;
     }
     
-    Swal.fire({ 
-        title: "Upload...", 
-        didOpen: () => Swal.showLoading(), 
-        allowOutsideClick: false 
-    });
+    Swal.fire({ title: "Upload...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     
     try {
         const formData = new FormData();
         formData.append("photo", fileToUpload);
         
+        // Ajouter patient_id si disponible
+        let patientId = document.getElementById("patient-id")?.value;
+        if (patientId) {
+            formData.append("patient_id", patientId);
+        }
+        
         const result = await secureFetch("/patients/update-photo", {
             method: "POST",
             body: formData,
-            headers: {} // Important : ne pas mettre Content-Type, laisser FormData le gérer
+            headers: {} // Important : laisser FormData gérer le Content-Type
         });
         
         if (result.photo_url) {
             const container = document.getElementById("patient-photo-container");
-            container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
-            UI.success("Photo du patient mise à jour");
+            if (container) {
+                container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
+            }
+            UI.success("Photo mise à jour");
         }
         Swal.close();
     } catch (err) {
