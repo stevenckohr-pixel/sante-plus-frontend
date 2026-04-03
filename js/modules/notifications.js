@@ -166,8 +166,19 @@ window.markAllAsRead = async () => {
 window.goToNotification = (url, notifId) => {
     // Marquer comme lue
     markAsRead(notifId);
+    
+    // ✅ Nettoyer l'URL (enlever le # et les slashs en trop)
+    let cleanUrl = url.replace('#', '').replace(/^\/+/, '');
+    
+    // Si l'URL est vide, rediriger vers home
+    if (!cleanUrl || cleanUrl === '') {
+        cleanUrl = 'home';
+    }
+    
+    console.log("🔀 Redirection vers:", cleanUrl);
+    
     // Rediriger
-    window.switchView(url.replace('#', ''));
+    window.switchView(cleanUrl);
 };
 
 async function markAsRead(notifId) {
