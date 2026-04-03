@@ -588,9 +588,22 @@ async function loadFamilyData() {
 // ============================================================
 // 🧭 VUE AIDANT
 // ============================================================
-
 async function initAidantMap() {
     const container = document.getElementById('view-container');
+    
+    // ✅ 1. DEMANDER L'AUTORISATION GPS IMMÉDIATEMENT
+    let hasGpsPermission = false;
+    try {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        if (permission.state === 'granted') {
+            hasGpsPermission = true;
+        } else if (permission.state === 'prompt') {
+            // La demande sera faite automatiquement
+            hasGpsPermission = true;
+        }
+    } catch (err) {
+        console.warn("Permission API non supportée", err);
+    }
     
     container.innerHTML = `
         <div class="animate-fadeIn flex flex-col h-[80vh] pb-32">
@@ -608,6 +621,20 @@ async function initAidantMap() {
                     </button>
                     <button id="stop-navigation-btn" class="bg-rose-500 text-white px-4 py-3 rounded-xl shadow-md text-[10px] font-black uppercase hidden">
                         <i class="fa-solid fa-stop"></i> Arrêter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- ✅ BOUTON POUR ACTIVER LE GPS MANUELLEMENT -->
+            <div id="gps-warning" class="mb-4 bg-amber-50 border border-amber-200 p-4 rounded-xl hidden">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-location-dot text-amber-500 text-xl"></i>
+                    <div class="flex-1">
+                        <p class="text-sm font-black text-amber-800">GPS non activé</p>
+                        <p class="text-[10px] text-amber-700">Activez votre position pour utiliser la navigation</p>
+                    </div>
+                    <button id="enable-gps-btn" class="bg-amber-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase">
+                        Activer GPS
                     </button>
                 </div>
             </div>
@@ -639,7 +666,12 @@ async function initAidantMap() {
             <div id="live-map-container" class="flex-1 w-full rounded-[2rem] border-4 border-white shadow-2xl relative overflow-hidden bg-slate-100">
                 <div id="map" class="absolute inset-0 z-10 w-full h-full"></div>
                 <div id="map-loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex items-center justify-center">
-                    <div class="text-center"><div class="relative w-10 h-10 mx-auto mb-3"><div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div></div><p class="text-[10px] font-black text-slate-400">Chargement...</p></div>
+                    <div class="text-center">
+                        <div class="relative w-10 h-10 mx-auto mb-3">
+                            <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                        </div>
+                        <p class="text-[10px] font-black text-slate-400">Chargement de la carte...</p>
+                    </div>
                 </div>
             </div>
             
@@ -669,21 +701,87 @@ async function initAidantMap() {
         
         setTimeout(() => map.invalidateSize(true), 150);
         
+        // ✅ 2. BOUTON POUR ACTIVER LE GPS
+        const enableGpsBtn = document.getElementById('enable-gps-btn');
+        const gpsWarning = document.getElementById('gps-warning');
+        
+        // ✅ 3. FONCTION POUR DEMANDER LA POSITION
+        const requestLocation = () => {
+            if (!navigator.geolocation) {
+                showToast("GPS non supporté par votre navigateur", "error");
+                return false;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    // Succès
+                    gpsWarning?.classList.add('hidden');
+                    showToast("GPS activé !", "success");
+                    
+                    // Ajouter le marqueur de position
+                    const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
+                    if (markers['aidant']) map.removeLayer(markers['aidant']);
+                    markers['aidant'] = L.marker([position.coords.latitude, position.coords.longitude], { icon: aidantIcon }).addTo(map);
+                    map.setView([position.coords.latitude, position.coords.longitude], 15);
+                    
+                    // Démarrer le tracking
+                    startAidantTracking();
+                    return true;
+                },
+                (error) => {
+                    console.error("Erreur GPS:", error);
+                    let message = "Impossible d'obtenir votre position";
+                    if (error.code === 1) message = "Vous devez autoriser l'accès à votre position";
+                    if (error.code === 2) message = "Position indisponible";
+                    if (error.code === 3) message = "Délai d'attente dépassé";
+                    
+                    showToast(message, "error");
+                    gpsWarning?.classList.remove('hidden');
+                    return false;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        };
+        
+        // ✅ 4. DEMANDER LA POSITION AUTOMATIQUEMENT
+        requestLocation();
+        
+        // ✅ 5. BOUTON CENTRAGE
         document.getElementById('center-map-btn')?.addEventListener('click', () => {
-            if (navigator.geolocation) navigator.geolocation.getCurrentPosition(pos => map.setView([pos.coords.latitude, pos.coords.longitude], 16));
+            requestLocation();
         });
-        document.getElementById('clear-trajectory-btn')?.addEventListener('click', () => { clearTrajectory(); showToast("Trajectoire effacée", "info"); });
+        
+        // ✅ 6. BOUTON ACTIVER GPS
+        enableGpsBtn?.addEventListener('click', () => {
+            requestLocation();
+        });
+        
+        // ✅ 7. AUTRES ÉVÉNEMENTS
+        document.getElementById('clear-trajectory-btn')?.addEventListener('click', () => { 
+            clearTrajectory(); 
+            showToast("Trajectoire effacée", "info"); 
+        });
+        
         document.getElementById('fix-patient-gps')?.addEventListener('click', () => fixCurrentLocationAsPatientHome());
         document.getElementById('stop-navigation-btn')?.addEventListener('click', () => stopNavigation());
         
         await loadAssignedPatients();
-        startAidantTracking();
         
         document.getElementById('patient-selector')?.addEventListener('change', async (e) => {
             const patientId = e.target.value;
             if (patientId) { await startNavigation(patientId); }
             else { stopNavigation(); }
         });
+        
+        // ✅ 8. CACHER LE LOADER
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading) {
+            setTimeout(() => {
+                mapLoading.style.opacity = '0';
+                setTimeout(() => mapLoading.style.display = 'none', 300);
+            }, 500);
+        }
+        
     }, 100);
 }
 
