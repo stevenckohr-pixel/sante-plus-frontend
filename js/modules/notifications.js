@@ -163,23 +163,37 @@ window.markAllAsRead = async () => {
 /**
  * 🔗 REDIRIGER VERS LA PAGE CORRESPONDANTE
  */
-window.goToNotification = (url, notifId) => {
+window.goToNotification = async (url, notifId, type) => {
     // Marquer comme lue
-    markAsRead(notifId);
+    await markAsRead(notifId);
     
-    // ✅ Nettoyer l'URL (enlever le # et les slashs en trop)
-    let cleanUrl = url.replace('#', '').replace(/^\/+/, '');
+    let targetView = 'home';
     
-    // Si l'URL est vide, rediriger vers home
-    if (!cleanUrl || cleanUrl === '') {
-        cleanUrl = 'home';
+    // Déterminer la vue selon le type
+    switch(type) {
+        case 'visit':
+            targetView = 'visits';
+            break;
+        case 'payment':
+            targetView = 'billing';
+            break;
+        case 'assignment':
+            targetView = 'planning';
+            break;
+        case 'expiration':
+            targetView = 'subscription';
+            break;
+        case 'message':
+            targetView = 'feed';
+            break;
+        default:
+            targetView = url?.replace('#', '') || 'home';
     }
     
-    console.log("🔀 Redirection vers:", cleanUrl);
-    
-    // Rediriger
-    window.switchView(cleanUrl);
+    console.log("🔀 Redirection vers:", targetView);
+    window.switchView(targetView);
 };
+
 
 async function markAsRead(notifId) {
     try {
