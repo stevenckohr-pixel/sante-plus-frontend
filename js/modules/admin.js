@@ -6,6 +6,23 @@ import { UI, openModernSelector } from "../core/utils.js";
 let rhData = null;
 let currentRHTab = 'aidants';
 
+
+// Fonction sécurisée pour formater les dates
+function formatDateSafe(dateString) {
+    if (!dateString) return 'Date inconnue';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return 'Date invalide';
+        return date.toLocaleDateString('fr-FR', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+        });
+    } catch(e) {
+        return 'Date invalide';
+    }
+}
+
 /**
  * 📥 CHARGER LES INSCRIPTIONS EN ATTENTE (Coordinateur)
  */
@@ -58,7 +75,7 @@ export async function loadRegistrations() {
                             ` : '<span class="text-slate-300 text-xs">Aucun patient lié</span>'}
                         </td>
                         <td class="p-4 text-[11px] text-slate-400">
-                            ${new Date(req.created_at).toLocaleDateString()}
+                            ${formatDateSafe(req.created_at)}
                         </td>
                         <td class="p-4 text-right">
                             <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
@@ -100,7 +117,7 @@ export async function loadRegistrations() {
                         ` : '<div class="bg-slate-50 p-3 rounded-xl mb-4 text-center text-slate-400 text-xs">Aucun patient lié</div>'}
 
                         <div class="flex items-center justify-between text-[10px] text-slate-400 mb-4">
-                            <span><i class="fa-regular fa-calendar mr-1"></i> ${new Date(req.created_at).toLocaleDateString()}</span>
+                            <span><i class="fa-regular fa-calendar mr-1"></i> ${formatDateSafe(req.created_at)}</span>
                         </div>
 
                         <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
@@ -167,17 +184,35 @@ export async function openActivationPage(id, email, nom, role) {
  */
 window.processValidation = async (id, email, nom, role) => {
     const notes = document.getElementById('val-notes')?.value || '';
-    Swal.fire({ title: 'Traitement...', didOpen: () => Swal.showLoading() });
+    
+    Swal.fire({ 
+        title: 'Traitement...', 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
 
     try {
         await secureFetch('/admin/validate-member', {
             method: 'POST',
             body: JSON.stringify({ user_id: id, email, nom, role, notes })
         });
+        
+        Swal.fire({
+            icon: "success",
+            title: "Succès",
+            text: "Collaborateur activé avec succès",
+            confirmButtonColor: "#10B981"
+        });
+        
         window.switchView('dashboard');
-        Swal.fire("Succès", "Collaborateur activé.", "success");
+        
     } catch(e) {
-        Swal.fire("Erreur", e.message, "error");
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: e.message,
+            confirmButtonColor: "#F43F5E"
+        });
     }
 };
 
