@@ -1,6 +1,7 @@
 import { secureFetch } from "../core/api.js";
 import { UI, openModernSelector } from "../core/utils.js";
 
+
 // Variables globales pour le dashboard RH
 let rhData = null;
 let currentRHTab = 'aidants';
