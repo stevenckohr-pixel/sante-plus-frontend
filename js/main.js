@@ -33,6 +33,7 @@ import * as Subscription from "./modules/subscription.js";
 import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
+import * as Notifications from "./modules/notifications.js";
 
 
 // ============================================================
@@ -179,6 +180,8 @@ async function initApp() {
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();            // Ping
+    updateNotificationBadge();    //Notification
+
 
     
     // Récupération des préférences utilisateur
@@ -1072,9 +1075,10 @@ function renderLayout() {
                         <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-${themeColor}-600 transition-all shadow-sm group">
+                        <button onclick="window.switchView('notifications')" 
+                                class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm group">
                             <i class="fa-solid fa-bell text-sm"></i>
-                            <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
                         </button>
                         <button onclick="window.switchView('profile')" class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
                             <div class="flex flex-col items-end">
@@ -1387,6 +1391,9 @@ async function performViewSwitch(viewName) {
                 break;
             case "profile":
                 await Profile.renderProfilePage();
+                break;
+            case "notifications":
+                await Notifications.renderNotificationsPage();
                 break;
         }
         
