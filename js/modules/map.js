@@ -307,16 +307,17 @@ function updateCoordinatorMarkers(aidants, patients) {
         }
     });
     
-    // Marqueurs patients
-    if (patients && patients.length) {
+    // Marqueurs patients - avec vérification de sécurité
+    if (patients && Array.isArray(patients) && patients.length) {
         patients.forEach(patient => {
-            if (!patient.lat || !patient.lng) return;
+            // ✅ Vérification que patient existe et a des coordonnées
+            if (!patient || !patient.lat || !patient.lng) return;
             try {
                 const icon = createCoordinatorIcon('#3B82F6', 'home', false);
                 const marker = L.marker([patient.lat, patient.lng], { icon }).addTo(map);
                 marker.bindPopup(`
                     <div class="text-center p-2">
-                        <p class="font-black text-slate-800">🏠 ${escapeHtml(patient.nom_complet)}</p>
+                        <p class="font-black text-slate-800">🏠 ${escapeHtml(patient.nom_complet || 'Patient')}</p>
                         <p class="text-[10px] text-slate-500">${escapeHtml(patient.adresse || 'Adresse non renseignée')}</p>
                     </div>
                 `);
@@ -325,12 +326,13 @@ function updateCoordinatorMarkers(aidants, patients) {
         });
     }
     
-    // Marqueurs aidants
-    if (aidants && aidants.length) {
+    // Marqueurs aidants - avec vérification de sécurité
+    if (aidants && Array.isArray(aidants) && aidants.length) {
         aidants.forEach(aidant => {
-            if (!aidant.last_position?.lat || !aidant.last_position?.lng) return;
+            // ✅ Vérification que aidant existe et a une position
+            if (!aidant || !aidant.last_position?.lat || !aidant.last_position?.lng) return;
             try {
-                const isInside = aidant.is_inside_geofence;
+                const isInside = aidant.is_inside_geofence === true;
                 const color = isInside ? '#10B981' : '#F43F5E';
                 const icon = createCoordinatorIcon(color, 'user-nurse', true);
                 const marker = L.marker([aidant.last_position.lat, aidant.last_position.lng], { icon }).addTo(map);
@@ -347,8 +349,6 @@ function updateCoordinatorMarkers(aidants, patients) {
         });
     }
 }
-
-
 
 function updateCoordinatorStats(aidants) {
     const total = aidants.length;
