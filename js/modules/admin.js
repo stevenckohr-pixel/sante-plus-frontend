@@ -271,8 +271,7 @@ async function loadRHDashboardData() {
 
     try {
         const res = await secureFetch("/assignments/full-dashboard");
-        rhData = await res.json();
-
+ 
         document.getElementById("stat-aidants").innerText = rhData.total_aidants || 0;
         document.getElementById("stat-patients").innerText = rhData.total_patients || 0;
         document.getElementById("stat-assignments").innerText = rhData.total_assignments || 0;
