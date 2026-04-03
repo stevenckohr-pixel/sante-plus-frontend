@@ -11,15 +11,27 @@ let currentRHTab = 'aidants';
 function formatDateSafe(dateString) {
     if (!dateString) return 'Date inconnue';
     try {
+        // Si c'est déjà un objet Date
+        if (dateString instanceof Date) {
+            if (isNaN(dateString.getTime())) return 'Date inconnue';
+            return dateString.toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+        
+        // Si c'est une chaîne
         const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Date invalide';
+        if (isNaN(date.getTime())) return 'Date inconnue';
         return date.toLocaleDateString('fr-FR', {
             day: 'numeric',
             month: 'short',
             year: 'numeric'
         });
     } catch(e) {
-        return 'Date invalide';
+        console.warn("Erreur format date:", dateString, e);
+        return 'Date inconnue';
     }
 }
 
@@ -800,8 +812,7 @@ window.unassignPatientFromPatient = async (patientId) => {
 };
 
 
-
-// Activation avec email par défaut (automatique)
+// Activation avec email par défaut
 window.activateWithDefaultEmail = async (id, email, nom, role) => {
     Swal.fire({ 
         title: 'Activation...', 
@@ -818,7 +829,7 @@ window.activateWithDefaultEmail = async (id, email, nom, role) => {
                 email: email, 
                 nom: nom, 
                 role: role, 
-                notes: null,  // ← null = email par défaut
+                notes: null,
                 use_default: true 
             })
         });
@@ -826,13 +837,19 @@ window.activateWithDefaultEmail = async (id, email, nom, role) => {
         Swal.fire({
             icon: "success",
             title: "✅ Activation réussie !",
-            text: `Le compte de ${nom} a été activé. L'email par défaut a été envoyé.`,
+            text: `Le compte de ${nom} a été activé.`,
             confirmButtonColor: "#10B981",
-            timer: 2000,
+            timer: 1500,
             showConfirmButton: false
         });
         
-        setTimeout(() => window.switchView('dashboard'), 500);
+        // ✅ FORCER LE RECHARGEMENT DE LA LISTE DES INSCRIPTIONS
+        await refreshPendingRegistrations();
+        
+        // Rester sur la même page mais rafraîchir les données
+        setTimeout(() => {
+            window.switchView('dashboard');
+        }, 500);
         
     } catch(error) {
         Swal.fire({
@@ -873,7 +890,7 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
                 email: email, 
                 nom: nom, 
                 role: role, 
-                notes: notes,  // ← message personnalisé
+                notes: notes,
                 use_default: false 
             })
         });
@@ -881,13 +898,18 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
         Swal.fire({
             icon: "success",
             title: "✅ Activation réussie !",
-            text: `Le compte de ${nom} a été activé. Votre message personnalisé a été inclus dans l'email.`,
+            text: `Le compte de ${nom} a été activé.`,
             confirmButtonColor: "#10B981",
-            timer: 2000,
+            timer: 1500,
             showConfirmButton: false
         });
         
-        setTimeout(() => window.switchView('dashboard'), 500);
+        // ✅ FORCER LE RECHARGEMENT DE LA LISTE DES INSCRIPTIONS
+        await refreshPendingRegistrations();
+        
+        setTimeout(() => {
+            window.switchView('dashboard');
+        }, 500);
         
     } catch(error) {
         Swal.fire({
@@ -898,3 +920,112 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
         });
     }
 };
+
+// ✅ NOUVELLE FONCTION : Rafraîchir la liste des inscriptions
+async function refreshPendingRegistrations() {
+    try {
+        // Recharger les données depuis le serveur
+        const pending = await secureFetch('/admin/pending-registrations');
+        
+        // Mettre à jour l'affichage desktop
+        const tableBody = document.getElementById('pending-table-body');
+        if (tableBody) {
+            if (pending.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-slate-400 italic">Aucune inscription en attente.</td></tr>';
+            } else {
+                tableBody.innerHTML = pending.map(req => {
+                    const patient = req.patients && req.patients[0];
+                    return `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td class="p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600">
+                                        ${req.nom?.charAt(0) || '?'}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-sm">${req.nom || 'Inconnu'}</p>
+                                        <p class="text-[10px] text-slate-400">${req.email || ''}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">${req.role || 'FAMILLE'}</span>
+                            </td>
+                            <td class="p-4">
+                                ${patient ? `
+                                    <div>
+                                        <p class="font-bold text-slate-800 text-xs">${patient.nom_complet || '-'}</p>
+                                        <p class="text-[9px] text-green-600 font-bold mt-0.5">${patient.formule || 'Standard'}</p>
+                                    </div>
+                                ` : '<span class="text-slate-300 text-xs">Aucun patient lié</span>'}
+                            </td>
+                            <td class="p-4 text-[11px] text-slate-400">
+                                ${formatDateSafe(req.created_at)}
+                            </td>
+                            <td class="p-4 text-right">
+                                <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
+                                        class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-sm active:scale-95 transition-all">
+                                    Activer
+                                </button>
+                             </td>
+                         </tr>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // Mettre à jour l'affichage mobile
+        const mobileList = document.getElementById('pending-mobile-list');
+        if (mobileList) {
+            if (pending.length === 0) {
+                mobileList.innerHTML = '<div class="p-6 text-center text-slate-400 italic bg-white rounded-2xl border border-slate-100">Aucune inscription en attente.</div>';
+            } else {
+                mobileList.innerHTML = pending.map(req => {
+                    const patient = req.patients && req.patients[0];
+                    return `
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-3">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="font-black text-slate-800 text-sm">${req.nom || 'Inconnu'}</p>
+                                    <p class="text-[10px] text-slate-400 mt-0.5">${req.email || ''}</p>
+                                </div>
+                                <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">${req.role || 'FAMILLE'}</span>
+                            </div>
+                            
+                            ${patient ? `
+                                <div class="bg-slate-50 p-3 rounded-xl mb-4 border border-slate-100">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <p class="font-bold text-slate-700 text-xs">👤 Patient: ${patient.nom_complet || '-'}</p>
+                                            <p class="text-[9px] text-green-600 font-bold mt-0.5">📦 Formule: ${patient.formule || 'Standard'}</p>
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                                            <i class="fa-solid fa-user text-emerald-600 text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            ` : '<div class="bg-slate-50 p-3 rounded-xl mb-4 text-center text-slate-400 text-xs">Aucun patient lié</div>'}
+
+                            <div class="flex items-center justify-between text-[10px] text-slate-400 mb-4">
+                                <span><i class="fa-regular fa-calendar mr-1"></i> ${formatDateSafe(req.created_at)}</span>
+                            </div>
+
+                            <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
+                                    class="w-full bg-emerald-500 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-sm active:scale-95 transition-all">
+                                ✅ Activer le dossier
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        // ✅ AUSSI RAFRAÎCHIR LES STATISTIQUES DU DASHBOARD
+        if (typeof window.fetchStats === 'function') {
+            await window.fetchStats();
+        }
+        
+    } catch(e) {
+        console.error("Erreur rafraîchissement:", e);
+    }
+}
