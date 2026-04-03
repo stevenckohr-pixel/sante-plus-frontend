@@ -1231,7 +1231,11 @@ aside {
 
 
 
-/* Thème Maman & Bébé */
+//* ============================================
+   THEME MAMAN & BEBE
+   ============================================ */
+
+/* Couleurs Maman */
 :root {
   --maman-pink: #DB2777;
   --maman-pink-light: #FDF2F8;
@@ -1244,15 +1248,22 @@ aside {
   border: 1px solid #FBCFE8;
 }
 
-.maman-banner .text-rose-primary {
+/* Texte rose pour Maman */
+.text-maman-pink {
   color: #DB2777 !important;
 }
 
-/* Boutons Maman */
+/* Fond rose clair */
+.bg-maman-light {
+  background-color: #FDF2F8 !important;
+}
+
+/* Bouton rose */
 .btn-maman {
-  background: #DB2777 !important;
+  background-color: #DB2777 !important;
   color: white !important;
 }
+
 .btn-maman:hover {
-  background: #BE185D !important;
+  background-color: #BE185D !important;
 }
