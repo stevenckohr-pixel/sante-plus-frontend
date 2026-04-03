@@ -1549,7 +1549,9 @@ window.finishOnboarding = () => {
 // ============================================================
 // ÉVÉNEMENTS GLOBAUX
 // ============================================================
-// Assignation des fonctions globales
+// ============================================================
+// ÉVÉNEMENTS GLOBAUX
+// ============================================================
 window.CONFIG = CONFIG;
 window.AppState = AppState;
 window.login = Auth.handleLogin;
@@ -1579,7 +1581,7 @@ window.viewPatientFeed = async (id) => {
     }
 };
 window.viewPatientDetails = Patients.renderPatientDetailsView;
-window.renderAuthView = renderAuthView; 
+window.renderAuthView = renderAuthView;
 window.nextAuthStep = nextAuthStep;
 window.prevAuthStep = prevAuthStep;
 window.setPlan = (plan) => {
@@ -1592,22 +1594,24 @@ window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
 window.setPatientHomeDirect = Patients.setPatientHomeDirect;
 window.openAssignModal = Planning.openAssignModal;
+window.openAssignPage = Planning.openAssignPage;
 window.openOrderModal = Commandes.openOrderModal;
-window.loadPlanning = Planning.loadPlanning; 
+window.loadPlanning = Planning.loadPlanning;
 window.loadCommandes = Commandes.loadCommandes;
 window.openMissionBriefing = Planning.openMissionBriefing;
 window.loadRegistrations = Admin.loadRegistrations;
 window.confirmActivation = Admin.confirmActivation;
 window.fetchStats = Dashboard.fetchStats;
 window.openActivationPage = Admin.openActivationPage;
+
 window.processValidation = Admin.processValidation;
-window.confirmStartVisit = Visites.startVisit; 
+
+window.confirmStartVisit = Visites.startVisit;
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
-window.openAssignPage = Planning.openAssignPage;
 window.renderRHDashboard = Admin.renderRHDashboard;
 
 
