@@ -1440,10 +1440,16 @@ async function performViewSwitch(viewName) {
         setTimeout(() => {
             container.style.opacity = "1";
             container.style.transform = "translateY(0)";
+
+            updateActiveNavButtons(viewName);
+
+            
             setTimeout(() => {
                 if (container) container.style.transition = "";
             }, 150);
         }, 10);
+
+
         
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
@@ -1729,7 +1735,17 @@ window.addEventListener('beforeinstallprompt', (e) => {
     console.log('📱 PWA installable détectée');
 });
 
-
+// Met à jour la couleur des icônes du menu du bas
+function updateActiveNavButtons(viewName) {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        const btnView = btn.getAttribute('data-view');
+        if (btnView === viewName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
 // ============================================================
 // VALIDATION D'ACTIVATION DE COMPTE
 // ============================================================
