@@ -91,8 +91,8 @@ function renderStatCard(label, id, icon, color) {
  */
 async function fetchStats() {
     try {
-        const res = await secureFetch('/dashboard/stats');
-        const stats = await res.json();
+        // ✅ Correction : secureFetch retourne déjà les données
+        const stats = await secureFetch('/dashboard/stats');
         
         const patientsEl = document.getElementById('stat-patients');
         const visitsEl = document.getElementById('stat-visits');
@@ -108,7 +108,6 @@ async function fetchStats() {
         console.error("Stats Error:", e); 
     }
 }
-
 /**
  * 📋 CHARGER LES VISITES À VALIDER
  */
@@ -117,8 +116,8 @@ async function loadVisitsToValidate() {
     if (!list) return;
     
     try {
-        const res = await secureFetch('/visites?statut=En attente');
-        const visits = await res.json();
+        // ✅ Correction : secureFetch retourne déjà les données
+        const visits = await secureFetch('/visites?statut=En attente');
         const pending = Array.isArray(visits) ? visits.filter(v => v.statut === 'En attente') : [];
 
         if (pending.length === 0) {
