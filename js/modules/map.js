@@ -635,104 +635,96 @@ async function loadFamilyData() {
 async function initAidantMap() {
     const container = document.getElementById('view-container');
     
-    // ✅ 1. DEMANDER L'AUTORISATION GPS IMMÉDIATEMENT
-    let hasGpsPermission = false;
-    try {
-        const permission = await navigator.permissions.query({ name: 'geolocation' });
-        if (permission.state === 'granted') {
-            hasGpsPermission = true;
-        } else if (permission.state === 'prompt') {
-            // La demande sera faite automatiquement
-            hasGpsPermission = true;
-        }
-    } catch (err) {
-        console.warn("Permission API non supportée", err);
-    }
-    
+    // ✅ Utiliser toute la hauteur disponible
     container.innerHTML = `
-        <div class="animate-fadeIn flex flex-col h-[80vh] pb-32">
-            <div class="flex justify-between items-center mb-6 shrink-0 flex-wrap gap-3">
+        <div class="animate-fadeIn flex flex-col h-[calc(100vh-120px)] pb-0">
+            <div class="flex justify-between items-center mb-4 shrink-0 flex-wrap gap-3">
                 <div>
-                    <h3 class="text-2xl font-black text-slate-800">🧭 Navigation GPS</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Guidage vers le domicile du patient</p>
+                    <h3 class="text-xl font-black text-slate-800">🧭 Navigation GPS</h3>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Guidage vers le domicile du patient</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button id="center-map-btn" class="bg-white p-3 rounded-xl shadow-md border border-slate-100">
+                    <button id="center-map-btn" class="bg-white p-2 rounded-xl shadow-md border border-slate-100">
                         <i class="fa-solid fa-location-crosshairs text-slate-600"></i>
                     </button>
-                    <button id="clear-trajectory-btn" class="bg-slate-100 p-3 rounded-xl shadow-md border border-slate-100">
+                    <button id="clear-trajectory-btn" class="bg-slate-100 p-2 rounded-xl shadow-md border border-slate-100">
                         <i class="fa-solid fa-eraser text-slate-600"></i>
                     </button>
-                    <button id="stop-navigation-btn" class="bg-rose-500 text-white px-4 py-3 rounded-xl shadow-md text-[10px] font-black uppercase hidden">
+                    <button id="stop-navigation-btn" class="bg-rose-500 text-white px-3 py-2 rounded-xl shadow-md text-[9px] font-black uppercase hidden">
                         <i class="fa-solid fa-stop"></i> Arrêter
                     </button>
                 </div>
             </div>
             
-            <!-- ✅ BOUTON POUR ACTIVER LE GPS MANUELLEMENT -->
-            <div id="gps-warning" class="mb-4 bg-amber-50 border border-amber-200 p-4 rounded-xl hidden">
+            <!-- Bandeau GPS -->
+            <div id="gps-warning" class="mb-3 bg-amber-50 border border-amber-200 p-3 rounded-xl hidden">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-location-dot text-amber-500 text-xl"></i>
+                    <i class="fa-solid fa-location-dot text-amber-500 text-lg"></i>
                     <div class="flex-1">
                         <p class="text-sm font-black text-amber-800">GPS non activé</p>
-                        <p class="text-[10px] text-amber-700">Activez votre position pour utiliser la navigation</p>
+                        <p class="text-[9px] text-amber-700">Activez votre position pour utiliser la navigation</p>
                     </div>
-                    <button id="enable-gps-btn" class="bg-amber-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase">
+                    <button id="enable-gps-btn" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-[9px] font-black uppercase">
                         Activer GPS
                     </button>
                 </div>
             </div>
             
-            <div class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                <label class="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                    <i class="fa-solid fa-hospital-user mr-1"></i> Sélectionnez votre destination
+            <!-- Sélecteur patient compact -->
+            <div class="mb-3 bg-white p-3 rounded-xl shadow-sm border border-slate-100">
+                <label class="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-1">
+                    <i class="fa-solid fa-hospital-user mr-1"></i> Destination
                 </label>
-                <select id="patient-selector" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
+                <select id="patient-selector" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium">
                     <option value="">-- Choisir un patient --</option>
                 </select>
             </div>
             
-            <div id="navigation-panel" class="mb-4 bg-emerald-500 text-white p-4 rounded-xl shadow-lg hidden">
+            <!-- Panneau de navigation compact -->
+            <div id="navigation-panel" class="mb-3 bg-emerald-500 text-white p-3 rounded-xl shadow-lg hidden">
                 <div class="flex items-center justify-between">
-                    <div><p class="text-[8px] font-black uppercase tracking-wider opacity-80">DESTINATION</p><p id="dest-name" class="font-black text-sm">---</p></div>
-                    <i class="fa-solid fa-route text-2xl opacity-80"></i>
+                    <div><p class="text-[7px] font-black uppercase opacity-80">DESTINATION</p><p id="dest-name" class="font-black text-sm">---</p></div>
+                    <i class="fa-solid fa-route text-xl opacity-80"></i>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-white/20">
-                    <div><p class="text-[8px] font-black uppercase tracking-wider opacity-80">DISTANCE</p><p id="distance-display" class="font-black text-lg">---</p></div>
-                    <div><p class="text-[8px] font-black uppercase tracking-wider opacity-80">TEMPS ESTIMÉ</p><p id="time-display" class="font-black text-lg">---</p></div>
+                <div class="grid grid-cols-2 gap-3 mt-2 pt-2 border-t border-white/20">
+                    <div><p class="text-[7px] font-black uppercase opacity-80">DISTANCE</p><p id="distance-display" class="font-black text-base">---</p></div>
+                    <div><p class="text-[7px] font-black uppercase opacity-80">TEMPS</p><p id="time-display" class="font-black text-base">---</p></div>
                 </div>
-                <div id="direction-arrow" class="mt-3 text-center">
-                    <i class="fa-solid fa-location-arrow text-2xl animate-pulse"></i>
-                    <span id="direction-text" class="text-[10px] ml-2">Suivez l'itinéraire tracé</span>
+                <div id="direction-arrow" class="mt-2 text-center text-[9px]">
+                    <i class="fa-solid fa-location-arrow text-lg animate-pulse"></i>
+                    <span id="direction-text" class="ml-1">Suivez l'itinéraire</span>
                 </div>
             </div>
             
-            <div id="live-map-container" class="flex-1 w-full rounded-[2rem] border-4 border-white shadow-2xl relative overflow-hidden bg-slate-100">
+            <!-- ✅ CARTE PLEIN ÉCRAN -->
+            <div id="live-map-container" class="flex-1 w-full rounded-xl border-2 border-white shadow-lg relative overflow-hidden bg-slate-100" style="min-height: 50vh; height: auto;">
                 <div id="map" class="absolute inset-0 z-10 w-full h-full"></div>
                 <div id="map-loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex items-center justify-center">
                     <div class="text-center">
-                        <div class="relative w-10 h-10 mx-auto mb-3">
+                        <div class="relative w-8 h-8 mx-auto mb-2">
                             <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
                         </div>
-                        <p class="text-[10px] font-black text-slate-400">Chargement de la carte...</p>
+                        <p class="text-[9px] font-black text-slate-400">Chargement...</p>
                     </div>
                 </div>
             </div>
             
-            <div class="mt-4 bg-white/90 backdrop-blur-sm p-3 rounded-xl border border-slate-100">
-                <div class="flex items-center justify-around text-[9px] font-bold">
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div><span>Ma position</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-blue-500"></div><span>Patient</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-emerald-400"></div><span>Itinéraire</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 bg-amber-500 rounded-full"></div><span>Trajectoire</span></div>
+            <!-- Légende compacte -->
+            <div class="mt-3 bg-white/90 backdrop-blur-sm p-2 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-around text-[8px] font-bold">
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><span>Ma position</span></div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span>Patient</span></div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-emerald-400"></div><span>Itinéraire</span></div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-amber-500 rounded-full"></div><span>Trajectoire</span></div>
                 </div>
             </div>
             
-            <button id="fix-patient-gps" class="mt-3 w-full py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase hidden">
+            <button id="fix-patient-gps" class="mt-2 w-full py-2 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase hidden">
                 📍 Fixer ce lieu comme domicile du patient
             </button>
         </div>
     `;
+    
 
     setTimeout(async () => {
         const mapElement = document.getElementById('map');
@@ -750,85 +742,61 @@ async function initAidantMap() {
         const gpsWarning = document.getElementById('gps-warning');
         
         // ✅ 3. FONCTION POUR DEMANDER LA POSITION
-        const requestLocation = () => {
-            if (!navigator.geolocation) {
-                showToast("GPS non supporté par votre navigateur", "error");
-                return false;
-            }
+       const requestLocation = () => {
+    if (!navigator.geolocation) {
+        showToast("GPS non supporté par votre navigateur", "error");
+        gpsWarning?.classList.remove('hidden');
+        return false;
+    }
+    
+    // ✅ Afficher un message de chargement
+    showToast("📍 Recherche de votre position...", "info", 2000);
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            console.log("✅ Position obtenue:", position.coords);
+            gpsWarning?.classList.add('hidden');
+            showToast("GPS activé !", "success");
             
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    // Succès
-                    gpsWarning?.classList.add('hidden');
-                    showToast("GPS activé !", "success");
-                    
-                    // Ajouter le marqueur de position
-                    const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
-                    if (markers['aidant']) map.removeLayer(markers['aidant']);
-                    markers['aidant'] = L.marker([position.coords.latitude, position.coords.longitude], { icon: aidantIcon }).addTo(map);
-                    map.setView([position.coords.latitude, position.coords.longitude], 15);
-                    
-                    // Démarrer le tracking
-                    startAidantTracking();
-                    return true;
-                },
-                (error) => {
-                    console.error("Erreur GPS:", error);
-                    let message = "Impossible d'obtenir votre position";
-                    if (error.code === 1) message = "Vous devez autoriser l'accès à votre position";
-                    if (error.code === 2) message = "Position indisponible";
-                    if (error.code === 3) message = "Délai d'attente dépassé";
-                    
-                    showToast(message, "error");
-                    gpsWarning?.classList.remove('hidden');
-                    return false;
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
-        };
-        
-        // ✅ 4. DEMANDER LA POSITION AUTOMATIQUEMENT
-        requestLocation();
-        
-        // ✅ 5. BOUTON CENTRAGE
-        document.getElementById('center-map-btn')?.addEventListener('click', () => {
-            requestLocation();
-        });
-        
-        // ✅ 6. BOUTON ACTIVER GPS
-        enableGpsBtn?.addEventListener('click', () => {
-            requestLocation();
-        });
-        
-        // ✅ 7. AUTRES ÉVÉNEMENTS
-        document.getElementById('clear-trajectory-btn')?.addEventListener('click', () => { 
-            clearTrajectory(); 
-            showToast("Trajectoire effacée", "info"); 
-        });
-        
-        document.getElementById('fix-patient-gps')?.addEventListener('click', () => fixCurrentLocationAsPatientHome());
-        document.getElementById('stop-navigation-btn')?.addEventListener('click', () => stopNavigation());
-        
-        await loadAssignedPatients();
-        
-        document.getElementById('patient-selector')?.addEventListener('change', async (e) => {
-            const patientId = e.target.value;
-            if (patientId) { await startNavigation(patientId); }
-            else { stopNavigation(); }
-        });
-        
-        // ✅ 8. CACHER LE LOADER
-        const mapLoading = document.getElementById('map-loading');
-        if (mapLoading) {
-            setTimeout(() => {
-                mapLoading.style.opacity = '0';
-                setTimeout(() => mapLoading.style.display = 'none', 300);
-            }, 500);
+            const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
+            if (markers['aidant']) map.removeLayer(markers['aidant']);
+            markers['aidant'] = L.marker([position.coords.latitude, position.coords.longitude], { icon: aidantIcon }).addTo(map);
+            map.setView([position.coords.latitude, position.coords.longitude], 16);
+            
+            startAidantTracking();
+            return true;
+        },
+        (error) => {
+            console.error("Erreur GPS:", error);
+            let message = "Impossible d'obtenir votre position";
+            if (error.code === 1) {
+                message = "❌ Vous devez autoriser l'accès à votre position dans les paramètres de votre navigateur";
+                // ✅ Ouvrir les paramètres si possible
+                if (error.message && error.message.includes("denied")) {
+                    message = "❌ Accès à la position refusé. Veuillez autoriser dans les paramètres puis rafraîchir la page.";
+                }
+            }
+            if (error.code === 2) message = "📍 Position indisponible, réessayez";
+            if (error.code === 3) message = "⏱️ Délai dépassé, vérifiez votre connexion";
+            
+            showToast(message, "error", 5000);
+            gpsWarning?.classList.remove('hidden');
+            
+            // ✅ Message dans le bandeau
+            const warningText = document.querySelector('#gps-warning .text-amber-700');
+            if (warningText) warningText.innerHTML = message;
+            
+            return false;
+        },
+        { 
+            enableHighAccuracy: true, 
+            timeout: 15000,      // 15 secondes
+            maximumAge: 0        // Ne pas utiliser de position en cache
         }
-        
-    }, 100);
-}
+    );
+};
 
+        
 async function loadAssignedPatients() {
     try {
         const patients = await secureFetch('/patients');
