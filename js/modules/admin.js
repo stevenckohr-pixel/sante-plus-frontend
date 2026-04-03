@@ -165,20 +165,38 @@ export async function openActivationPage(id, email, nom, role) {
                     <p class="text-xs text-blue-600 font-bold">${email} • ${role}</p>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <label class="text-[10px] font-black text-slate-400 uppercase block mb-2">Instructions pour l'email de bienvenue</label>
-                    <textarea id="val-notes" class="w-full h-32 bg-transparent text-sm font-medium outline-none" placeholder="Ex: Bienvenue... votre compte sera actif dès réception de votre premier virement."></textarea>
+                <!-- Option 1: Activation directe -->
+                <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-[11px] font-black text-emerald-700">⚡ Activation rapide</p>
+                            <p class="text-[9px] text-emerald-600">Envoie le message automatique par défaut</p>
+                        </div>
+                        <button onclick="window.activateWithDefaultEmail('${id}', '${email}', '${nom}', '${role}')" 
+                                class="bg-emerald-600 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-sm">
+                            Activer directement
+                        </button>
+                    </div>
                 </div>
 
-                <div class="flex gap-4 pt-4">
-                    <button onclick="window.switchView('dashboard')" class="flex-1 py-4 rounded-xl font-black text-[10px] uppercase text-slate-400 hover:bg-slate-100">Annuler</button>
-                    <button onclick="window.processValidation('${id}', '${email}', '${nom}', '${role}')" class="flex-1 py-4 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase shadow-lg shadow-emerald-200">Activer le profil</button>
+                <!-- Option 2: Message personnalisé -->
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                    <p class="text-[11px] font-black text-amber-700 mb-2">✏️ Activation avec message personnalisé</p>
+                    <p class="text-[9px] text-amber-600 mb-3">Le message ci-dessous sera AJOUTÉ dans l'email de bienvenue</p>
+                    
+                    <textarea id="val-notes" rows="4" 
+                              class="w-full p-3 bg-white border border-amber-200 rounded-xl text-sm font-medium outline-none focus:border-emerald-300"
+                              placeholder="Écrivez votre message personnalisé ici...&#10;&#10;Exemple:&#10;Bienvenue dans notre service !&#10;Votre compte est maintenant actif.&#10;N'hésitez pas à nous contacter pour toute question."></textarea>
+                    
+                    <button onclick="window.activateWithCustomEmail('${id}', '${email}', '${nom}', '${role}')" 
+                            class="w-full mt-4 py-3 rounded-xl bg-amber-600 text-white font-black text-[10px] uppercase shadow-lg">
+                        Activer avec message personnalisé
+                    </button>
                 </div>
             </div>
         </div>
     `;
 }
-
 /**
  * ✅ TRAITER LA VALIDATION D'UN COMPTE
  */
@@ -778,5 +796,105 @@ window.unassignPatientFromPatient = async (patientId) => {
         } catch (err) {
             Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
         }
+    }
+};
+
+
+
+// Activation avec email par défaut (automatique)
+window.activateWithDefaultEmail = async (id, email, nom, role) => {
+    Swal.fire({ 
+        title: 'Activation...', 
+        text: 'Envoi de l\'email automatique',
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
+
+    try {
+        await secureFetch('/admin/validate-member', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                user_id: id, 
+                email: email, 
+                nom: nom, 
+                role: role, 
+                notes: null,  // ← null = email par défaut
+                use_default: true 
+            })
+        });
+        
+        Swal.fire({
+            icon: "success",
+            title: "✅ Activation réussie !",
+            text: `Le compte de ${nom} a été activé. L'email par défaut a été envoyé.`,
+            confirmButtonColor: "#10B981",
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+        setTimeout(() => window.switchView('dashboard'), 500);
+        
+    } catch(error) {
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: error.message,
+            confirmButtonColor: "#F43F5E"
+        });
+    }
+};
+
+// Activation avec message personnalisé
+window.activateWithCustomEmail = async (id, email, nom, role) => {
+    const notes = document.getElementById('val-notes')?.value;
+    
+    if (!notes || notes.trim() === '') {
+        Swal.fire({
+            icon: "warning",
+            title: "Message vide",
+            text: "Veuillez écrire un message personnalisé ou utilisez l'activation rapide",
+            confirmButtonColor: "#F59E0B"
+        });
+        return;
+    }
+    
+    Swal.fire({ 
+        title: 'Activation...', 
+        text: 'Envoi de l\'email avec votre message',
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
+
+    try {
+        await secureFetch('/admin/validate-member', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                user_id: id, 
+                email: email, 
+                nom: nom, 
+                role: role, 
+                notes: notes,  // ← message personnalisé
+                use_default: false 
+            })
+        });
+        
+        Swal.fire({
+            icon: "success",
+            title: "✅ Activation réussie !",
+            text: `Le compte de ${nom} a été activé. Votre message personnalisé a été inclus dans l'email.`,
+            confirmButtonColor: "#10B981",
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+        setTimeout(() => window.switchView('dashboard'), 500);
+        
+    } catch(error) {
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: error.message,
+            confirmButtonColor: "#F43F5E"
+        });
     }
 };
