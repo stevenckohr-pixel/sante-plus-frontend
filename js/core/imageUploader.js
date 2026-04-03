@@ -1,6 +1,7 @@
 // js/core/imageUploader.js
-import { secureFetch } from './api.js';
+import { CONFIG } from './config.js';
 import { compressImage } from './utils.js';
+import ErrorHandler from './errorHandler.js';  
 
 class ImageUploader {
     constructor() {
