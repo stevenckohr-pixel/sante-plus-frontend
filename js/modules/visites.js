@@ -295,10 +295,6 @@ export async function loadVisits() {
     try {
         const data = await secureFetch("/visites");
 
-        if (!response.ok) {
-            throw new Error(data.error || "Erreur lors de la récupération des visites");
-        }
-
         AppState.visites = Array.isArray(data) ? data : [];
         renderVisits();
     } catch (err) {
