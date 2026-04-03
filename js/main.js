@@ -34,6 +34,7 @@ import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
 import * as Notifications from "./modules/notifications.js";
+const { updateNotificationBadge } = Notifications;
 
 
 // ============================================================
@@ -179,10 +180,10 @@ async function initApp() {
     initMicroInteractions();      // Feedback haptique
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
-    startKeepAlive();            // Ping
-    updateNotificationBadge();    //Notification
-
-
+    startKeepAlive();             // Ping
+    
+    // ✅ Correction : appeler la fonction depuis le module importé
+    Notifications.updateNotificationBadge();
     
     // Récupération des préférences utilisateur
     const savedSoundPref = localStorage.getItem('sounds_enabled');
@@ -199,15 +200,14 @@ async function initApp() {
 
     try {
         if (token) {
-            // Vérification de l'onboarding
             if (!onboardingSeen && !window._onboardingCompleted) {
                 hideLoader();
                 window.startOnboarding();
                 return;
             }
             
-            renderLayout();                       // Affiche l'interface principale
-            Visites.resumeTrackingIfActive();     // Reprend le tracking GPS si une visite était en cours
+            renderLayout();
+            Visites.resumeTrackingIfActive();
             
             const userRole = localStorage.getItem("user_role");
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
