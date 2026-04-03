@@ -1,6 +1,6 @@
-const CACHE_NAME = 'sps-v4';
-const STATIC_CACHE = 'sps-static-v4';
-const IMAGE_CACHE = 'sps-images-v4';
+const CACHE_NAME = 'sps-v5';
+const STATIC_CACHE = 'sps-static-v5';
+const IMAGE_CACHE = 'sps-images-v5';
 
 const staticUrls = [
   './',
@@ -37,20 +37,24 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // ✅ CRUCIAL : Ne pas intercepter les requêtes POST, PUT, DELETE
+  // ✅ NE PAS CACHER LES REQUÊTES POST, PUT, DELETE
   if (event.request.method !== 'GET') {
-    // Laisser le navigateur gérer normalement
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // API GET: Network First
+  // ✅ API GET - Network First (sans clone problématique)
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          // Mettre en cache seulement si la réponse est OK
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
           return response;
         })
         .catch(() => caches.match(event.request))
@@ -58,13 +62,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Images: Cache First
+  // ✅ Images - Cache First
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
         if (cached) return cached;
         return fetch(event.request).then(network => {
-          caches.open(IMAGE_CACHE).then(cache => cache.put(event.request, network.clone()));
+          if (network && network.status === 200) {
+            caches.open(IMAGE_CACHE).then(cache => {
+              cache.put(event.request, network.clone());
+            });
+          }
           return network;
         });
       })
@@ -72,7 +80,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Fichiers statiques: Cache First
+  // ✅ Fichiers statiques - Cache First
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
