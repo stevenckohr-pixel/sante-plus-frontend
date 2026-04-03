@@ -509,8 +509,6 @@ window.openAssignModal = async () => {
         secureFetch("/assignments/unassigned-patients")
     ]);
     
-    const aidants = await aidantsRes.json();
-    const patients = await patientsRes.json();
     
     const preSelectedAidant = localStorage.getItem("pre_selected_aidant");
     const preSelectedPatient = localStorage.getItem("pre_selected_patient");
