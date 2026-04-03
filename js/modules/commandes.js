@@ -109,7 +109,7 @@ function renderCommandes(list) {
 
 async function loadAidantsForSelect() {
     try {
-        const aidants = await secureFetch('/profiles?role=AIDANT');
+        const aidants = await secureFetch('/auth/profiles?role=AIDANT');
         document.querySelectorAll('select[id^="aidant-"]').forEach(select => {
             select.innerHTML = '<option value="">Choisir un aidant</option>' +
                 aidants.map(a => `<option value="${a.id}">${a.nom}</option>`).join('');
