@@ -61,8 +61,9 @@ export async function loadFeed() {
     `;
 
     try {
-        const res = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-        AppState.messages = data; 
+        // ✅ CORRECTION ICI
+        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+        AppState.messages = data;
         renderFeed();
     } catch (err) {
         console.error("Erreur Feed:", err);
@@ -78,7 +79,6 @@ export async function loadFeed() {
         }
     }
 }
-
 /**
  * 🎨 RENDU FILTRÉ
  */
