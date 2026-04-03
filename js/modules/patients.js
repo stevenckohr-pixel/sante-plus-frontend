@@ -324,7 +324,6 @@ async function openFormuleSelector() {
 export async function renderPatientDetailsView(patientId) {
     const container = document.getElementById("view-container");
     const res = await secureFetch(`/patients/${patientId}`);
-    const p = await res.json();
 
     const isMaman = p.categorie_service === 'MAMAN_BEBE';
     const isPremium = p.formule === 'Premium' || p.type_pack === 'Premium';
