@@ -270,8 +270,15 @@ async function loadRHDashboardData() {
     `;
 
     try {
-        const res = await secureFetch("/assignments/full-dashboard");
- 
+        // ✅ CORRECTION : secureFetch retourne déjà les données
+        rhData = await secureFetch("/assignments/full-dashboard");
+        
+        // ✅ Vérifier que rhData n'est pas null
+        if (!rhData) {
+            throw new Error("Aucune donnée reçue du serveur");
+        }
+        
+        // Maintenant on peut accéder aux propriétés
         document.getElementById("stat-aidants").innerText = rhData.total_aidants || 0;
         document.getElementById("stat-patients").innerText = rhData.total_patients || 0;
         document.getElementById("stat-assignments").innerText = rhData.total_assignments || 0;
@@ -280,6 +287,7 @@ async function loadRHDashboardData() {
         showRHTab('aidants');
 
     } catch (err) {
+        console.error("❌ Erreur chargement RH:", err);
         contentDiv.innerHTML = `
             <div class="bg-white rounded-2xl p-10 text-center border border-rose-100">
                 <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
