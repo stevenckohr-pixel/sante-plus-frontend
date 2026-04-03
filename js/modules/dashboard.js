@@ -116,7 +116,7 @@ async function loadVisitsToValidate() {
     if (!list) return;
     
     try {
-        // ✅ Correction : secureFetch retourne déjà les données
+        // ✅ Correction : secureFetch retourne déjà les données, pas besoin de .json()
         const visits = await secureFetch('/visites?statut=En attente');
         const pending = Array.isArray(visits) ? visits.filter(v => v.statut === 'En attente') : [];
 
