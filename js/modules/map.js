@@ -529,38 +529,53 @@ async function initFamilyMap() {
     const container = document.getElementById('view-container');
     
     container.innerHTML = `
-        <div class="animate-fadeIn flex flex-col h-[80vh] pb-32">
-            <div class="flex justify-between items-center mb-6">
+        <div class="animate-fadeIn flex flex-col h-[calc(100vh-120px)] pb-0">
+            <div class="flex justify-between items-center mb-4 shrink-0 flex-wrap gap-3">
                 <div>
-                    <h3 class="text-2xl font-black text-slate-800">👨‍👩‍👧 Suivi de votre proche</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Localisation en temps réel</p>
+                    <h3 class="text-xl font-black text-slate-800">👨‍👩‍👧 Suivi de votre proche</h3>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Localisation en temps réel</p>
                 </div>
-                <button id="refresh-family-btn" class="bg-white p-3 rounded-xl shadow-md border border-slate-100">
+                <button id="refresh-family-btn" class="bg-white p-2 rounded-xl shadow-md border border-slate-100">
                     <i class="fa-solid fa-rotate-right text-slate-600"></i>
                 </button>
             </div>
             
-            <div id="live-map-container" class="flex-1 w-full rounded-[2rem] border-4 border-white shadow-2xl relative overflow-hidden bg-slate-100">
+            <!-- Carte -->
+            <div id="live-map-container" class="flex-1 w-full rounded-xl border-2 border-white shadow-lg relative overflow-hidden bg-slate-100" style="min-height: 50vh; height: auto;">
                 <div id="map" class="absolute inset-0 z-10 w-full h-full"></div>
                 <div id="map-loading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex items-center justify-center">
-                    <div class="text-center"><div class="relative w-10 h-10 mx-auto mb-3"><div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div></div><p class="text-[10px] font-black text-slate-400">Chargement...</p></div>
+                    <div class="text-center">
+                        <div class="relative w-8 h-8 mx-auto mb-2">
+                            <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                        </div>
+                        <p class="text-[9px] font-black text-slate-400">Chargement de la carte...</p>
+                    </div>
                 </div>
             </div>
             
-            <div id="family-info" class="mt-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+            <!-- Informations -->
+            <div class="mt-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">STATUT DE L'INTERVENTION</p>
-                        <p id="family-status" class="font-black text-emerald-600 text-sm">Chargement...</p>
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-wider">STATUT DE L'INTERVENTION</p>
+                        <p id="family-status" class="font-black text-emerald-600 text-sm">---</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">DERNIÈRE MISE À JOUR</p>
-                        <p id="family-last-update" class="text-[10px] text-slate-500">---</p>
+                        <p class="text-[8px] font-black text-slate-400 uppercase tracking-wider">DERNIÈRE MISE À JOUR</p>
+                        <p id="family-last-update" class="text-[9px] text-slate-500">---</p>
                     </div>
                 </div>
                 <div id="family-distance" class="mt-3 pt-3 border-t border-slate-100 hidden">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">DISTANCE DE L'AIDANT</p>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-wider">DISTANCE DE L'AIDANT</p>
                     <p id="family-distance-value" class="font-black text-lg text-emerald-600">---</p>
+                </div>
+            </div>
+            
+            <!-- Légende -->
+            <div class="mt-3 bg-white/90 backdrop-blur-sm p-2 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-around text-[8px] font-bold">
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span>Domicile</span></div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div><span>Aidant</span></div>
                 </div>
             </div>
         </div>
@@ -568,67 +583,153 @@ async function initFamilyMap() {
 
     setTimeout(async () => {
         const mapElement = document.getElementById('map');
-        if (!mapElement) return;
-        if (map) { map.remove(); map = null; markers = {}; }
+        if (!mapElement) {
+            console.error("❌ Map element non trouvé");
+            return;
+        }
         
-        map = L.map('map', { zoomControl: false, attributionControl: false });
+        if (map) {
+            map.remove();
+            map = null;
+            markers = {};
+        }
+        
+        // ✅ Initialisation de la carte AVEC centre par défaut
+        map = L.map('map', { 
+            zoomControl: false, 
+            attributionControl: false,
+            center: [6.368, 2.401],
+            zoom: 12
+        });
+        
         L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
         
-        setTimeout(() => map.invalidateSize(true), 150);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+        }).addTo(map);
         
-        document.getElementById('refresh-family-btn')?.addEventListener('click', () => loadFamilyData());
+        // ✅ Forcer la taille de la carte
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize(true);
+                setTimeout(() => {
+                    if (map) map.invalidateSize(true);
+                }, 500);
+            }
+        }, 300);
         
+        // ✅ Cacher le loader
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading) {
+            setTimeout(() => {
+                mapLoading.style.opacity = '0';
+                setTimeout(() => mapLoading.style.display = 'none', 500);
+            }, 1000);
+        }
+        
+        // ✅ Bouton rafraîchissement
+        document.getElementById('refresh-family-btn')?.addEventListener('click', () => {
+            loadFamilyData();
+            showToast("Rafraîchissement...", "info", 1000);
+        });
+        
+        // ✅ Charger les données
         await loadFamilyData();
+        
+        // ✅ Rafraîchissement automatique toutes les 15 secondes
         if (activeInterval) clearInterval(activeInterval);
         activeInterval = setInterval(() => loadFamilyData(), 15000);
-    }, 100);
+        
+    }, 200);
 }
 
 async function loadFamilyData() {
     try {
-        const patients = await secureFetch('/patients');
-        const patient = patients?.[0];
-        if (!patient) return;
+        console.log("📡 Chargement des données famille...");
         
+        const patients = await secureFetch('/patients');
+        console.log("📋 Patients reçus:", patients);
+        
+        const patient = patients?.[0];
+        if (!patient) {
+            console.warn("Aucun patient trouvé pour cette famille");
+            document.getElementById('family-status').innerHTML = '❌ Aucun patient associé';
+            return;
+        }
+        
+        // Afficher le domicile du patient
         if (patient.lat && patient.lng) {
+            console.log("📍 Domicile patient:", patient.lat, patient.lng);
+            
             if (markers['patient_home']) map.removeLayer(markers['patient_home']);
             const homeIcon = createCustomIcon('#3B82F6', false, 'lg', 'home');
             markers['patient_home'] = L.marker([patient.lat, patient.lng], { icon: homeIcon }).addTo(map);
-            markers['patient_home'].bindPopup(`<p class="font-black">🏠 Domicile de ${patient.nom_complet}</p><p class="text-[10px]">${patient.adresse || ''}</p>`);
-        }
-        
-        const activeVisit = await secureFetch(`/visites/active/${patient.id}`);
-        
-        if (activeVisit && activeVisit.lat && activeVisit.lng) {
-            if (markers['aidant']) map.removeLayer(markers['aidant']);
-            const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
-            markers['aidant'] = L.marker([activeVisit.lat, activeVisit.lng], { icon: aidantIcon }).addTo(map);
-            markers['aidant'].bindPopup(`<p class="font-black">👨‍⚕️ ${activeVisit.aidant_nom || 'Aidant'}</p><p class="text-[10px]">🚶 En déplacement vers votre proche</p>`);
+            markers['patient_home'].bindPopup(`
+                <div class="text-center p-2">
+                    <p class="font-black text-slate-800">🏠 ${escapeHtml(patient.nom_complet)}</p>
+                    <p class="text-[10px] text-slate-500">${escapeHtml(patient.adresse || 'Adresse non renseignée')}</p>
+                </div>
+            `);
             
-            document.getElementById('family-status').innerHTML = '🟢 Intervention en cours';
-            document.getElementById('family-last-update').innerHTML = new Date(activeVisit.last_update).toLocaleTimeString();
-            
-            if (patient.lat && patient.lng) {
-                const distance = calculateDistance(activeVisit.lat, activeVisit.lng, patient.lat, patient.lng);
-                document.getElementById('family-distance').classList.remove('hidden');
-                document.getElementById('family-distance-value').innerHTML = formatDistance(distance);
-                
-                const bounds = L.latLngBounds([patient.lat, patient.lng], [activeVisit.lat, activeVisit.lng]);
-                map.fitBounds(bounds, { padding: [50, 50] });
-            } else {
-                map.setView([activeVisit.lat, activeVisit.lng], 14);
-            }
+            // Centrer sur le patient
+            map.setView([patient.lat, patient.lng], 14);
         } else {
-            document.getElementById('family-status').innerHTML = '⚪ Aucune intervention en cours';
-            document.getElementById('family-last-update').innerHTML = '---';
-            document.getElementById('family-distance').classList.add('hidden');
-            if (patient.lat && patient.lng) map.setView([patient.lat, patient.lng], 14);
-            else map.setView([6.368, 2.401], 12);
+            console.warn("Patient sans coordonnées GPS");
         }
-    } catch (err) { console.error(err); }
+        
+        // Récupérer la position de l'aidant
+        try {
+            const activeVisit = await secureFetch(`/visites/active/${patient.id}`);
+            console.log("🩺 Visite active:", activeVisit);
+            
+            if (activeVisit && activeVisit.lat && activeVisit.lng) {
+                console.log("📍 Position aidant:", activeVisit.lat, activeVisit.lng);
+                
+                if (markers['aidant']) map.removeLayer(markers['aidant']);
+                const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
+                markers['aidant'] = L.marker([activeVisit.lat, activeVisit.lng], { icon: aidantIcon }).addTo(map);
+                markers['aidant'].bindPopup(`
+                    <div class="text-center p-2">
+                        <p class="font-black text-slate-800">👨‍⚕️ ${escapeHtml(activeVisit.aidant_nom || 'Aidant')}</p>
+                        <p class="text-[10px] text-emerald-600">🚶 En déplacement vers votre proche</p>
+                        <p class="text-[9px] text-slate-400">🕐 ${new Date(activeVisit.last_update).toLocaleTimeString()}</p>
+                    </div>
+                `);
+                
+                document.getElementById('family-status').innerHTML = '🟢 Intervention en cours';
+                document.getElementById('family-last-update').innerHTML = new Date(activeVisit.last_update).toLocaleTimeString();
+                
+                if (patient.lat && patient.lng) {
+                    const distance = calculateDistance(activeVisit.lat, activeVisit.lng, patient.lat, patient.lng);
+                    document.getElementById('family-distance').classList.remove('hidden');
+                    document.getElementById('family-distance-value').innerHTML = formatDistance(distance);
+                    
+                    // Adapter la vue pour voir les deux points
+                    const bounds = L.latLngBounds([patient.lat, patient.lng], [activeVisit.lat, activeVisit.lng]);
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            } else {
+                console.log("Aucune visite active");
+                document.getElementById('family-status').innerHTML = '⚪ Aucune intervention en cours';
+                document.getElementById('family-last-update').innerHTML = '---';
+                document.getElementById('family-distance').classList.add('hidden');
+                
+                if (patient.lat && patient.lng) {
+                    map.setView([patient.lat, patient.lng], 14);
+                }
+            }
+        } catch (err) {
+            console.error("Erreur chargement visite active:", err);
+            document.getElementById('family-status').innerHTML = '⚠️ Erreur de chargement';
+        }
+        
+    } catch (err) {
+        console.error("❌ Erreur loadFamilyData:", err);
+        document.getElementById('family-status').innerHTML = '❌ Erreur de chargement';
+        showToast("Erreur de chargement des données", "error");
+    }
 }
-
 // ============================================================
 // 🧭 VUE AIDANT
 // ============================================================
