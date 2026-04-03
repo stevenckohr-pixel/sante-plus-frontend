@@ -100,10 +100,7 @@ const ONBOARDING_STEPS = [
 // ============================================================
 // LOADER GLOBAL (ÉCRAN DE CHARGEMENT INITIAL)
 // ============================================================
-/**
- * Affiche le loader global (écran complet)
- * Utilisé uniquement au démarrage de l'application
- */
+
 function showGlobalLoader() {
     let loader = document.getElementById('global-loader');
     
@@ -114,7 +111,7 @@ function showGlobalLoader() {
         loader.innerHTML = `
             <div class="relative mb-4">
                 <div class="loader-ring"></div>
-                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="loader-heart">
+                <img id="loader-logo-img" class="loader-heart">
             </div>
             <p class="loader-text">Santé Plus Services</p>
         `;
@@ -122,6 +119,13 @@ function showGlobalLoader() {
     }
     
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    const logoSrc = isMaman ? CONFIG.LOGO_MAMAN : CONFIG.LOGO_GENERAL;
+    
+    const loaderLogo = document.getElementById('loader-logo-img');
+    if (loaderLogo) {
+        loaderLogo.src = logoSrc;
+    }
+    
     if (isMaman) {
         loader.classList.add('rose');
     } else {
@@ -131,6 +135,8 @@ function showGlobalLoader() {
     loader.classList.remove('hidden');
     loader.style.opacity = '1';
 }
+
+
 
 /**
  * Cache le loader global
