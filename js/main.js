@@ -40,19 +40,20 @@ const { updateNotificationBadge } = Notifications;
 
 
 // Met à jour l'icône PWA selon le thème (Maman ou général)
+// Met à jour l'icône PWA selon le thème (Maman ou général)
 function updatePWAIcon(isMaman) {
     const iconUrl = isMaman 
         ? CONFIG.LOGO_MAMAN
         : CONFIG.LOGO_GENERAL;
     
     // Mettre à jour l'icône apple-touch-icon
-    let appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+    let appleIcon = document.getElementById('apple-touch-icon');
     if (appleIcon) {
         appleIcon.href = iconUrl;
     }
     
     // Mettre à jour le favicon
-    let favicon = document.querySelector('link[rel="icon"]');
+    let favicon = document.getElementById('favicon');
     if (favicon) {
         favicon.href = iconUrl;
     }
@@ -210,6 +211,8 @@ async function initApp() {
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
+    updateThemeColor();
+    updateThemeColor();
     
 
     
@@ -268,11 +271,14 @@ function setThemeColor(color) {
     if (metaTheme) {
         metaTheme.setAttribute('content', color);
     }
-    if (document.querySelector('meta[name="theme-color"]')) {
-        document.querySelector('meta[name="theme-color"]').setAttribute('content', color);
-    }
 }
 
+
+function updateThemeColor() {
+    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    const color = isMaman ? '#DB2777' : '#0F172A';
+    setThemeColor(color);
+}
 // ============================================================
 // VUES DYNAMIQUES DU FORMULAIRE D'ADMISSION
 // ============================================================
