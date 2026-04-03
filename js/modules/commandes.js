@@ -129,56 +129,97 @@ window.markAsDelivered = async (commandeId) => {
   }
 };
 
+
 /**
  * 💊 OUVRIR LA MODALE DE COMMANDE (Famille)
  */
 export async function openOrderModal() { 
-  const { value: text } = await Swal.fire({
-    title: "Commander des médicaments",
-    input: "textarea",
-    inputPlaceholder: "Listez les médicaments et les quantités...\nEx: Paracétamol 500mg x 2 boîtes",
-    showCancelButton: true,
-    confirmButtonText: "Envoyer la commande",
-    confirmButtonColor: "#10B981",
-    cancelButtonText: "Annuler",
-    customClass: { popup: 'rounded-2xl', input: 'rounded-xl' }
-  });
-
-  if (!text) return;
-
-  try {
-    Swal.fire({
-      title: "Envoi...",
-      didOpen: () => Swal.showLoading(),
-      allowOutsideClick: false,
-      customClass: { popup: 'rounded-2xl' }
-    });
-
-    await secureFetch("/commandes/add", {
-      method: "POST",
-      body: JSON.stringify({
-        patient_id: window.AppState?.currentPatient,
-        liste_medocs: text,
-      }),
-    });
+    // ✅ 1. Récupérer le patient de la famille connectée
+    let patientId = AppState.currentPatient;
     
-    UI.success("Commande envoyée");
-    Swal.fire({
-      icon: "success",
-      title: "Envoyé !",
-      text: "La commande a été transmise au coordinateur.",
-      timer: 2000,
-      showConfirmButton: false,
-      customClass: { popup: 'rounded-2xl' }
+    // ✅ 2. Si pas de patient sélectionné, récupérer le premier patient de la famille
+    if (!patientId) {
+        try {
+            const patients = await secureFetch('/patients');
+            if (patients && patients.length > 0) {
+                patientId = patients[0].id;
+                AppState.currentPatient = patientId;
+                console.log("📋 Patient chargé automatiquement:", patientId);
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Aucun patient",
+                    text: "Vous n'avez aucun patient associé à votre compte.",
+                    confirmButtonColor: "#0F172A"
+                });
+                return;
+            }
+        } catch (err) {
+            console.error("Erreur chargement patient:", err);
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Impossible de charger les informations du patient.",
+                confirmButtonColor: "#0F172A"
+            });
+            return;
+        }
+    }
+    
+    // ✅ 3. Demander la liste des médicaments
+    const { value: text } = await Swal.fire({
+        title: "Commander des médicaments",
+        input: "textarea",
+        inputPlaceholder: "Listez les médicaments et les quantités...\nEx: Paracétamol 500mg x 2 boîtes\nAspirine x 1 boîte",
+        showCancelButton: true,
+        confirmButtonText: "Envoyer la commande",
+        confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler",
+        customClass: { popup: 'rounded-2xl', input: 'rounded-xl' }
     });
-    loadCommandes();
-  } catch(e) {
-    UI.error(e.message);
-    Swal.fire({
-      title: "Erreur",
-      text: e.message,
-      icon: "error",
-      customClass: { popup: 'rounded-2xl' }
-    });
-  }
+
+    if (!text) return;
+
+    try {
+        Swal.fire({
+            title: "Envoi...",
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false,
+            customClass: { popup: 'rounded-2xl' }
+        });
+
+        console.log("📤 Envoi commande pour patient:", patientId);
+        console.log("📦 Médicaments:", text);
+
+        await secureFetch("/commandes/add", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: patientId,
+                liste_medocs: text,
+            }),
+        });
+        
+        UI.success("Commande envoyée");
+        Swal.fire({
+            icon: "success",
+            title: "Envoyé !",
+            text: "Votre commande a été transmise au coordinateur.",
+            timer: 2000,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-2xl' }
+        });
+        
+        // Recharger la liste des commandes
+        loadCommandes();
+        
+    } catch(e) {
+        console.error("❌ Erreur commande:", e);
+        Swal.fire({
+            title: "Erreur",
+            text: e.message,
+            icon: "error",
+            confirmButtonColor: "#F43F5E",
+            customClass: { popup: 'rounded-2xl' }
+        });
+    }
 }
