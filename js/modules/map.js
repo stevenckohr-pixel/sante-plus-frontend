@@ -654,7 +654,9 @@ async function loadFamilyData() {
         const patient = patients?.[0];
         if (!patient) {
             console.warn("Aucun patient trouvé pour cette famille");
-            document.getElementById('family-status').innerHTML = '❌ Aucun patient associé';
+            // ✅ Vérifier que l'élément existe avant de modifier
+            const statusEl = document.getElementById('family-status');
+            if (statusEl) statusEl.innerHTML = '❌ Aucun patient associé';
             return;
         }
         
@@ -672,7 +674,6 @@ async function loadFamilyData() {
                 </div>
             `);
             
-            // Centrer sur le patient
             map.setView([patient.lat, patient.lng], 14);
         } else {
             console.warn("Patient sans coordonnées GPS");
@@ -683,7 +684,18 @@ async function loadFamilyData() {
             const activeVisit = await secureFetch(`/visites/active/${patient.id}`);
             console.log("🩺 Visite active:", activeVisit);
             
-            if (activeVisit && activeVisit.lat && activeVisit.lng) {
+            const statusEl = document.getElementById('family-status');
+            const lastUpdateEl = document.getElementById('family-last-update');
+            const distanceDiv = document.getElementById('family-distance');
+            const distanceValueEl = document.getElementById('family-distance-value');
+            
+            // ✅ Vérifier que les éléments existent
+            if (!statusEl || !lastUpdateEl) {
+                console.warn("Éléments HTML non trouvés");
+                return;
+            }
+            
+            if (activeVisit && activeVisit.hasPosition === true && activeVisit.lat && activeVisit.lng) {
                 console.log("📍 Position aidant:", activeVisit.lat, activeVisit.lng);
                 
                 if (markers['aidant']) map.removeLayer(markers['aidant']);
@@ -697,23 +709,22 @@ async function loadFamilyData() {
                     </div>
                 `);
                 
-                document.getElementById('family-status').innerHTML = '🟢 Intervention en cours';
-                document.getElementById('family-last-update').innerHTML = new Date(activeVisit.last_update).toLocaleTimeString();
+                statusEl.innerHTML = '🟢 Intervention en cours';
+                lastUpdateEl.innerHTML = new Date(activeVisit.last_update).toLocaleTimeString();
                 
-                if (patient.lat && patient.lng) {
+                if (patient.lat && patient.lng && distanceDiv && distanceValueEl) {
                     const distance = calculateDistance(activeVisit.lat, activeVisit.lng, patient.lat, patient.lng);
-                    document.getElementById('family-distance').classList.remove('hidden');
-                    document.getElementById('family-distance-value').innerHTML = formatDistance(distance);
+                    distanceDiv.classList.remove('hidden');
+                    distanceValueEl.innerHTML = formatDistance(distance);
                     
-                    // Adapter la vue pour voir les deux points
                     const bounds = L.latLngBounds([patient.lat, patient.lng], [activeVisit.lat, activeVisit.lng]);
                     map.fitBounds(bounds, { padding: [50, 50] });
                 }
             } else {
                 console.log("Aucune visite active");
-                document.getElementById('family-status').innerHTML = '⚪ Aucune intervention en cours';
-                document.getElementById('family-last-update').innerHTML = '---';
-                document.getElementById('family-distance').classList.add('hidden');
+                statusEl.innerHTML = '⚪ Aucune intervention en cours';
+                lastUpdateEl.innerHTML = '---';
+                if (distanceDiv) distanceDiv.classList.add('hidden');
                 
                 if (patient.lat && patient.lng) {
                     map.setView([patient.lat, patient.lng], 14);
@@ -721,12 +732,14 @@ async function loadFamilyData() {
             }
         } catch (err) {
             console.error("Erreur chargement visite active:", err);
-            document.getElementById('family-status').innerHTML = '⚠️ Erreur de chargement';
+            const statusEl = document.getElementById('family-status');
+            if (statusEl) statusEl.innerHTML = '⚠️ Erreur de chargement';
         }
         
     } catch (err) {
         console.error("❌ Erreur loadFamilyData:", err);
-        document.getElementById('family-status').innerHTML = '❌ Erreur de chargement';
+        const statusEl = document.getElementById('family-status');
+        if (statusEl) statusEl.innerHTML = '❌ Erreur de chargement';
         showToast("Erreur de chargement des données", "error");
     }
 }
