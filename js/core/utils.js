@@ -32,7 +32,7 @@ export const UI = {
 };
 
 // Compression d'image avant envoi au serveur 
-export async function compressImage(file, maxWidth = 800, quality = 0.7) {
+export async function compressImage(file, maxWidth = 800, quality = 0.5) {  // quality plus bas
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -59,7 +59,7 @@ export async function compressImage(file, maxWidth = 800, quality = 0.7) {
                         resolve(blob);
                     },
                     "image/jpeg",
-                    quality
+                    quality  // ← qualité réduite
                 );
             };
         };
