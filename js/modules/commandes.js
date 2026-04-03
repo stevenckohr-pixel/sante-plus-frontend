@@ -147,6 +147,7 @@ window.confirmCommand = async (commandeId) => {
         Swal.fire("Erreur", err.message, "error");
     }
 };
+
 /**
  * 📦 CONFIRMER LA LIVRAISON (Aidant)
  */
@@ -206,7 +207,6 @@ window.markAsDelivered = async (commandeId) => {
     });
   }
 };
-
 
 /**
  * 💊 OUVRIR LA MODALE DE COMMANDE (Famille)
