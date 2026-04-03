@@ -947,7 +947,7 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     
     const menuItems = [
-        { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
         { id: 'patients', label: 'Dossiers', desc: 'Gestion Clients', icon: 'fa-hospital-user', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'planning', label: 'Planning', desc: 'Mon Agenda', icon: 'fa-calendar-days', color: 'text-purple-500', bg: 'bg-purple-50', roles: ['COORDINATEUR', 'AIDANT'] },
         { id: 'commandes', label: 'Pharmacie', desc: 'Médicaments', icon: 'fa-pills', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
@@ -1111,31 +1111,33 @@ function renderLayout() {
                 <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
                     <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                 </main>
-                <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
-                    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5">
-                        <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
-                        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
-                    </button>
-                    
-                <!-- ✅ AJOUTER LE BOUTON RADAR POUR AIDANT -->
-                ${userRole === 'AIDANT' ? `
-                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5">
-                    <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
-                </button>
-                ` : ''}
-                
-                <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                </button>
-                
-                <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5">
-                    <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                        ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
-                    </div>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-                </button>
-            </footer>
+                        <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
+                            <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5">
+                                <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
+                                <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+                            </button>
+                            
+                            <!-- ✅ BOUTON RADAR POUR AIDANT ET FAMILLE -->
+                            ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
+                            <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5">
+                                <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
+                                <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
+                            </button>
+                            ` : ''}
+                            
+                            <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                                <i class="fa-solid fa-plus text-xl"></i>
+                            </button>
+                            
+                            <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5">
+                                <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                                    ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
+                                </div>
+                                <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+                            </button>
+                        </footer>
+
+             
             </div>
         </div>
     `;
@@ -1148,7 +1150,7 @@ function getNavLinks(role, mode) {
     const isMobile = mode === 'mobile';
     const tabs = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
-        { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT'] }, 
+        { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] }, 
         { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
