@@ -1094,3 +1094,38 @@ aside {
     background: linear-gradient(90deg, #10B981, #34D399, #10B981);
     opacity: 0.6;
 }
+
+
+/* ============================================
+   FORMULAIRE D'ADMISSION - SANS BARRE DE SCROLL
+   ============================================ */
+
+/* Zone de contenu - scroll sans barre visible */
+#auth-card-content {
+    overflow-y: auto;
+    scrollbar-width: none;  /* Firefox - cache la scrollbar */
+    -ms-overflow-style: none;  /* IE/Edge - cache la scrollbar */
+    flex: 1;
+}
+
+/* Chrome/Safari - cache la scrollbar */
+#auth-card-content::-webkit-scrollbar {
+    display: none;
+}
+
+/* Pour le mode login (contenu plus petit) */
+.auth-card:has(#email) #auth-card-content {
+    overflow-y: visible;
+}
+
+/* Responsive mobile */
+@media (max-width: 640px) {
+    .auth-card {
+        min-height: 75vh !important;
+        max-height: 90vh !important;
+    }
+    
+    #auth-card-content {
+        padding-bottom: 20px;
+    }
+}
