@@ -1216,3 +1216,14 @@ aside {
         font-size: 0.65rem;
     }
 }
+
+
+
+/* Couleur des icônes actives dans le menu du bas */
+.nav-btn.active i {
+    color: #10B981 !important;
+}
+
+.nav-btn.active span {
+    color: #10B981 !important;
+}
