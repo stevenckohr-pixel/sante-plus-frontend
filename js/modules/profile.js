@@ -1,5 +1,7 @@
 import { secureFetch } from "../core/api.js";
 import { UI, compressImage } from "../core/utils.js";
+import ImageUploader from '../core/imageUploader.js';
+
 
 /**
  * 📱 PAGE PROFIL UTILISATEUR
