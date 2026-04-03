@@ -464,7 +464,9 @@ window.updateProfilePhoto = async (file) => {
     if (result && result.photo_url) {
         // Mettre à jour l'affichage
         const container = document.getElementById("profile-photo-container");
-        container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
+        if (container) {
+            container.innerHTML = `<img src="${result.photo_url}?t=${Date.now()}" class="w-full h-full object-cover">`;
+        }
         
         // Mettre à jour le localStorage
         localStorage.setItem("user_photo", result.photo_url);
