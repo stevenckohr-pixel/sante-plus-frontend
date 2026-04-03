@@ -725,76 +725,137 @@ async function initAidantMap() {
         </div>
     `;
     
-
     setTimeout(async () => {
         const mapElement = document.getElementById('map');
         if (!mapElement) return;
         if (map) { map.remove(); map = null; markers = {}; }
         
+        // ============================================
+        // ✅ CRÉATION DE LA CARTE
+        // ============================================
         map = L.map('map', { zoomControl: false, attributionControl: false, zoomSnap: 0.5 });
         L.control.zoom({ position: 'bottomright' }).addTo(map);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
         
-        setTimeout(() => map.invalidateSize(true), 150);
+        // ============================================
+        // ✅ FORCER LA TAILLE DE LA CARTE (AJOUTÉ ICI)
+        // ============================================
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize(true);
+                setTimeout(() => {
+                    if (map) map.invalidateSize(true);
+                }, 500);
+            }
+        }, 300);
         
-        // ✅ 2. BOUTON POUR ACTIVER LE GPS
+        // ============================================
+        // ✅ BOUTONS ET ÉVÉNEMENTS
+        // ============================================
         const enableGpsBtn = document.getElementById('enable-gps-btn');
         const gpsWarning = document.getElementById('gps-warning');
         
         // ✅ 3. FONCTION POUR DEMANDER LA POSITION
-       const requestLocation = () => {
-    if (!navigator.geolocation) {
-        showToast("GPS non supporté par votre navigateur", "error");
-        gpsWarning?.classList.remove('hidden');
-        return false;
-    }
-    
-    // ✅ Afficher un message de chargement
-    showToast("📍 Recherche de votre position...", "info", 2000);
-    
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            console.log("✅ Position obtenue:", position.coords);
-            gpsWarning?.classList.add('hidden');
-            showToast("GPS activé !", "success");
-            
-            const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
-            if (markers['aidant']) map.removeLayer(markers['aidant']);
-            markers['aidant'] = L.marker([position.coords.latitude, position.coords.longitude], { icon: aidantIcon }).addTo(map);
-            map.setView([position.coords.latitude, position.coords.longitude], 16);
-            
-            startAidantTracking();
-            return true;
-        },
-        (error) => {
-            console.error("Erreur GPS:", error);
-            let message = "Impossible d'obtenir votre position";
-            if (error.code === 1) {
-                message = "❌ Vous devez autoriser l'accès à votre position dans les paramètres de votre navigateur";
-                // ✅ Ouvrir les paramètres si possible
-                if (error.message && error.message.includes("denied")) {
-                    message = "❌ Accès à la position refusé. Veuillez autoriser dans les paramètres puis rafraîchir la page.";
-                }
+        const requestLocation = () => {
+            if (!navigator.geolocation) {
+                showToast("GPS non supporté par votre navigateur", "error");
+                gpsWarning?.classList.remove('hidden');
+                return false;
             }
-            if (error.code === 2) message = "📍 Position indisponible, réessayez";
-            if (error.code === 3) message = "⏱️ Délai dépassé, vérifiez votre connexion";
             
-            showToast(message, "error", 5000);
-            gpsWarning?.classList.remove('hidden');
+            showToast("📍 Recherche de votre position...", "info", 2000);
             
-            // ✅ Message dans le bandeau
-            const warningText = document.querySelector('#gps-warning .text-amber-700');
-            if (warningText) warningText.innerHTML = message;
-            
-            return false;
-        },
-        { 
-            enableHighAccuracy: true, 
-            timeout: 15000,      // 15 secondes
-            maximumAge: 0        // Ne pas utiliser de position en cache
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    console.log("✅ Position obtenue:", position.coords);
+                    gpsWarning?.classList.add('hidden');
+                    showToast("GPS activé !", "success");
+                    
+                    const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
+                    if (markers['aidant']) map.removeLayer(markers['aidant']);
+                    markers['aidant'] = L.marker([position.coords.latitude, position.coords.longitude], { icon: aidantIcon }).addTo(map);
+                    map.setView([position.coords.latitude, position.coords.longitude], 16);
+                    
+                    startAidantTracking();
+                    return true;
+                },
+                (error) => {
+                    console.error("Erreur GPS:", error);
+                    let message = "Impossible d'obtenir votre position";
+                    if (error.code === 1) {
+                        message = "❌ Vous devez autoriser l'accès à votre position";
+                        if (error.message && error.message.includes("denied")) {
+                            message = "❌ Accès refusé. Autorisez dans les paramètres puis rafraîchissez.";
+                        }
+                    }
+                    if (error.code === 2) message = "📍 Position indisponible, réessayez";
+                    if (error.code === 3) message = "⏱️ Délai dépassé, vérifiez votre connexion";
+                    
+                    showToast(message, "error", 5000);
+                    gpsWarning?.classList.remove('hidden');
+                    
+                    const warningText = document.querySelector('#gps-warning .text-amber-700');
+                    if (warningText) warningText.innerHTML = message;
+                    
+                    return false;
+                },
+                { 
+                    enableHighAccuracy: true, 
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        };
+        
+        // Centrage sur position actuelle
+        document.getElementById('center-map-btn')?.addEventListener('click', () => {
+            requestLocation();
+        });
+        
+        // Effacer trajectoire
+        document.getElementById('clear-trajectory-btn')?.addEventListener('click', () => { 
+            clearTrajectory(); 
+            showToast("Trajectoire effacée", "info"); 
+        });
+        
+        // Activer GPS
+        enableGpsBtn?.addEventListener('click', () => {
+            requestLocation();
+        });
+        
+        // Fixer domicile patient
+        document.getElementById('fix-patient-gps')?.addEventListener('click', () => fixCurrentLocationAsPatientHome());
+        
+        // Arrêter navigation
+        document.getElementById('stop-navigation-btn')?.addEventListener('click', () => stopNavigation());
+        
+        // Charger patients assignés
+        await loadAssignedPatients();
+        
+        // Sélection patient
+        document.getElementById('patient-selector')?.addEventListener('change', async (e) => {
+            const patientId = e.target.value;
+            if (patientId) { 
+                await startNavigation(patientId); 
+            } else { 
+                stopNavigation(); 
+            }
+        });
+        
+        // Cacher loader
+        const mapLoading = document.getElementById('map-loading');
+        if (mapLoading) {
+            setTimeout(() => {
+                mapLoading.style.opacity = '0';
+                setTimeout(() => mapLoading.style.display = 'none', 300);
+            }, 500);
         }
-    );
-};
+        
+        // Démarrer la demande GPS
+        requestLocation();
+        
+    }, 100);
+}
 
         
 async function loadAssignedPatients() {
