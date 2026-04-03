@@ -1,6 +1,6 @@
-const CACHE_NAME = 'sps-v3';
-const STATIC_CACHE = 'sps-static-v3';
-const IMAGE_CACHE = 'sps-images-v3';
+const CACHE_NAME = 'sps-v4';
+const STATIC_CACHE = 'sps-static-v4';
+const IMAGE_CACHE = 'sps-images-v4';
 
 const staticUrls = [
   './',
@@ -11,23 +11,21 @@ const staticUrls = [
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('🔧 Service Worker installation...');
+  console.log('🔧 SW installation...');
   event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE).then(cache => cache.addAll(staticUrls)),
-      caches.open(IMAGE_CACHE)
-    ]).then(() => self.skipWaiting())
+    caches.open(STATIC_CACHE).then(cache => cache.addAll(staticUrls))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('✨ Service Worker activation...');
+  console.log('✨ SW activation...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.map((cache) => {
+        cacheNames.map(cache => {
           if (cache !== STATIC_CACHE && cache !== IMAGE_CACHE && cache !== CACHE_NAME) {
-            console.log(`🗑️ Suppression ancien cache: ${cache}`);
+            console.log(`🗑️ Suppression: ${cache}`);
             return caches.delete(cache);
           }
         })
@@ -39,21 +37,27 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
+  // ✅ IGNORER les requêtes POST, PUT, DELETE (ne pas les cacher)
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // Images: Cache First
   if (event.request.destination === 'image') {
     event.respondWith(
-      caches.open(IMAGE_CACHE).then(cache => {
-        return cache.match(event.request).then(cached => {
-          if (cached) return cached;
-          return fetch(event.request).then(network => {
-            cache.put(event.request, network.clone());
-            return network;
-          });
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(network => {
+          caches.open(IMAGE_CACHE).then(cache => cache.put(event.request, network.clone()));
+          return network;
         });
       })
     );
     return;
   }
   
+  // API: Network First
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
@@ -67,11 +71,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Fichiers statiques: Cache First
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
 });
 
+// Notifications push
 self.addEventListener("push", function (event) {
   let data = {};
   try {
