@@ -9,6 +9,7 @@
 // ============================================================
 // IMPORTS DES MODULES
 // ============================================================
+import { secureFetch } from "./core/api.js";
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
 import * as Auth from "./modules/auth.js";
