@@ -664,3 +664,30 @@ export async function renderStartVisitView(patientId) {
         </div>
     `;
 }
+
+
+
+export async function checkActiveVisitOnStart() {
+    try {
+        const visits = await secureFetch("/visites");
+        const activeVisit = visits.find(v => v.statut === "En cours");
+        
+        if (activeVisit) {
+            console.log("🔄 Visite active trouvée en base:", activeVisit.id);
+            localStorage.setItem("active_visit_id", activeVisit.id);
+            localStorage.setItem("active_patient_id", activeVisit.patient_id);
+            
+            // Rafraîchir l'UI
+            const currentPatientId = localStorage.getItem("active_patient_id");
+            if (currentPatientId) {
+                refreshAidantUI(currentPatientId);
+            }
+        } else {
+            // Nettoyer si aucune visite active
+            localStorage.removeItem("active_visit_id");
+            localStorage.removeItem("geo_watch_id");
+        }
+    } catch (err) {
+        console.error("Erreur vérification visite active:", err);
+    }
+}
