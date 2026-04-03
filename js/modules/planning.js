@@ -12,8 +12,7 @@ export async function loadPlanning() {
     const userRole = localStorage.getItem("user_role");
 
     try {
-        const res = await secureFetch("/planning");
-        const data = await res.json();
+        const data = await secureFetch("/planning");
 
         if (!data?.length) {
             listContainer.innerHTML = `
