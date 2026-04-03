@@ -161,7 +161,6 @@ export async function markAsDelivered(commandeId) {
     confirmButtonColor: "#10B981",
     showCancelButton: true,
     cancelButtonText: "Annuler",
-    customClass: { popup: 'rounded-2xl' }
   });
 
   if (!file) return;
@@ -171,10 +170,14 @@ export async function markAsDelivered(commandeId) {
       title: "Envoi de la preuve...",
       didOpen: () => Swal.showLoading(),
       allowOutsideClick: false,
-      customClass: { popup: 'rounded-2xl' }
     });
 
-    const compressed = await compressImage(file);
+    // ✅ Compression plus agressive (qualité 0.4)
+    const compressed = await compressImage(file, 800, 0.4);
+    
+    console.log(`📸 Taille originale: ${(file.size / 1024).toFixed(2)} KB`);
+    console.log(`📸 Taille compressée: ${(compressed.size / 1024).toFixed(2)} KB`);
+    
     const fd = new FormData();
     fd.append("commande_id", commandeId);
     fd.append("photo_livraison", compressed);
@@ -185,25 +188,27 @@ export async function markAsDelivered(commandeId) {
       body: fd,
     });
 
-    if (!response.ok) throw new Error("Erreur lors de l'envoi");
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || "Erreur lors de l'envoi");
+    }
 
     UI.success("Livraison confirmée !");
     Swal.fire({
       icon: "success",
       title: "Livré !",
-      text: "La famille a été notifiée de la livraison.",
       timer: 2000,
       showConfirmButton: false,
-      customClass: { popup: 'rounded-2xl' }
     });
     loadCommandes();
   } catch (err) {
+    console.error("❌ Erreur:", err);
     UI.error(err.message);
     Swal.fire({
       title: "Erreur",
       text: err.message,
       icon: "error",
-      customClass: { popup: 'rounded-2xl' }
     });
   }
 }
