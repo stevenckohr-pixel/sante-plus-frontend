@@ -329,9 +329,12 @@ async function openFormuleSelector() {
 /**
  * 📄 VUE : FICHE PATIENT (Aidant)
  */
+/**
+ * 📄 VUE : FICHE PATIENT (Aidant)
+ */
 export async function renderPatientDetailsView(patientId) {
     const container = document.getElementById("view-container");
-    const res = await secureFetch(`/patients/${patientId}`);
+    const p = await secureFetch(`/patients/${patientId}`);  
 
     const isMaman = p.categorie_service === 'MAMAN_BEBE';
     const isPremium = p.formule === 'Premium' || p.type_pack === 'Premium';
