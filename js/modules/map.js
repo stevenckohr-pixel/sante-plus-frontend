@@ -1179,3 +1179,36 @@ function clearRoute() {
 window.copyAddressToClipboard = (address) => { if (address) { navigator.clipboard.writeText(address); showToast("Adresse copiée !", "success"); } };
 window.zoomToLocation = (lat, lng) => map?.setView([lat, lng], 16);
 window.openGoogleMaps = (lat, lng) => window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`, '_blank');
+
+
+async function getCurrentLocation() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("GPS non supporté par ce téléphone"));
+            return;
+        }
+
+        // ✅ Options moins contraignantes pour éviter le timeout
+        const options = {
+            enableHighAccuracy: false,  // ← Plus rapide
+            timeout: 30000,             // ← 30 secondes
+            maximumAge: 60000          // ← Accepte position récente
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                console.log("✅ Position obtenue:", pos.coords);
+                resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+            },
+            (err) => {
+                console.error("❌ Erreur GPS:", err);
+                let msg = "Impossible d'obtenir votre position";
+                if (err.code === 1) msg = "📍 Autorisez l'accès à votre position";
+                if (err.code === 2) msg = "📍 Position indisponible";
+                if (err.code === 3) msg = "⏱️ Délai dépassé - Vérifiez votre connexion GPS";
+                reject(new Error(msg));
+            },
+            options
+        );
+    });
+}
