@@ -151,7 +151,7 @@ window.confirmCommand = async (commandeId) => {
 /**
  * 📦 CONFIRMER LA LIVRAISON (Aidant)
  */
-window.markAsDelivered = async (commandeId) => {
+export async function markAsDelivered(commandeId) {
   const { value: file } = await Swal.fire({
     title: "Preuve de livraison",
     text: "Prenez une photo des médicaments déposés au domicile.",
@@ -206,8 +206,7 @@ window.markAsDelivered = async (commandeId) => {
       customClass: { popup: 'rounded-2xl' }
     });
   }
-};
-
+}
 /**
  * 💊 OUVRIR LA MODALE DE COMMANDE (Famille)
 */ 
