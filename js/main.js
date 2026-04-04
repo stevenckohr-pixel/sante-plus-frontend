@@ -22,6 +22,7 @@ import * as Visites from "./modules/visites.js";
 import * as Messages from "./modules/message.js";
 import * as MapModule from "./modules/map.js";
 import * as Planning from "./modules/planning.js";
+import { quickValidate } from "./modules/dashboard.js";
 import * as Admin from "./modules/admin.js";
 import { 
     UI, showToast, showSuccessToast, showErrorToast, 
@@ -1896,7 +1897,12 @@ window.openActivationPage = Admin.openActivationPage;
 window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
 
-window.quickValidate = quickValidate
+if (typeof quickValidate === 'function') {
+    window.quickValidate = quickValidate;
+    console.log("✅ window.quickValidate assignée");
+} else {
+    console.error("❌ quickValidate n'est pas une fonction");
+}
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
