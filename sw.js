@@ -8,10 +8,10 @@ const staticUrls = [
   './style.css',
   './js/main.js',
   './manifest.json',
-  './assets/images/logo-general-icon.png',
-  './assets/images/logo-general-text.png',
-  './assets/images/logo-maman-icon.png',
-  './assets/images/logo-maman-text.png'
+  '/sante-plus-frontend/assets/images/logo-general-icon.png',
+  '/sante-plus-frontend/assets/images/logo-general-text.png',
+  '/sante-plus-frontend/assets/images/logo-maman-icon.png',
+  '/sante-plus-frontend/assets/images/logo-maman-text.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -96,8 +96,8 @@ self.addEventListener("push", function (event) {
   
   const options = {
     body: data.message,
-    icon: "/assets/images/logo-general-icon.png",
-    badge: "/assets/images/logo-general-icon.png",
+    icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
+    badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
     vibrate: [100, 50, 100],
     data: { url: data.url || "/" },
     actions: [
