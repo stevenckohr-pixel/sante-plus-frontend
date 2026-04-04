@@ -130,7 +130,7 @@ async function loadAidantsForSelect() {
 }
 
 // ✅ Fonction pour confirmer la commande (Coordinateur)
-window.confirmCommand = async (commandeId) => {
+export async function confirmCommand() {
     const prix = document.getElementById(`prix-${commandeId}`)?.value;
     const aidantId = document.getElementById(`aidant-${commandeId}`)?.value;
     
@@ -156,7 +156,7 @@ window.confirmCommand = async (commandeId) => {
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
     }
-};
+}
 
 /**
  * 📦 CONFIRMER LA LIVRAISON (Aidant)
