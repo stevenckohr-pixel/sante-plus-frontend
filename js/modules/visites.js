@@ -744,17 +744,3 @@ window.savePatientHomeGPS = async (patientId) => {
         }
     }
 };
-
-
-// ✅ Exporter les fonctions pour les imports ES modules
-export { 
-    startVisit, 
-    loadVisits, 
-    renderVisits, 
-    submitEndVisit, 
-    renderEndVisitView, 
-    renderStartVisitView,
-    checkActiveVisitOnStart,
-    savePatientHomeGPS,
-    rateVisit
-};
