@@ -66,8 +66,8 @@ export function renderPatients() {
         const animationDelay = `${index * 0.05}s`;
 
         return `
-            <div class="patient-card animate-fadeIn group ${premiumCardClass}" style="animation-delay: ${animationDelay}; animation-duration: 0.3s;">
-                <div class="flex items-start justify-between mb-4">
+                <div class="patient-card animate-fadeIn group ${premiumCardClass} card-animate" style="animation-delay: ${index * 0.05}s; animation-duration: 0.3s;">
+                    <div class="flex items-start justify-between mb-4">
                     <div class="flex items-center gap-3">
                         <div class="relative">
                             <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 font-black text-base border-2 ${themeColorClass} shadow-sm">
