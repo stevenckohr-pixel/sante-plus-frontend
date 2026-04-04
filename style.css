@@ -1894,3 +1894,48 @@ main::-webkit-scrollbar,
         height: 4px;
     }
 }
+
+
+/* ============================================
+   BRANDING TYPOGRAPHIQUE UNIFIÉ
+   "SantéPlus Services" avec couleurs dynamiques
+   ============================================ */
+
+.brand-container {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0px;
+    flex-wrap: wrap;
+}
+
+/* Tailles */
+.brand-sante-md, .brand-plus-md, .brand-service-md {
+    font-size: 0.9rem;
+}
+.brand-sante-sidebar, .brand-plus-sidebar, .brand-service-sidebar {
+    font-size: 0.85rem;
+}
+.brand-sante-footer, .brand-plus-footer, .brand-service-footer {
+    font-size: 0.7rem;
+}
+
+/* Couleurs par défaut */
+.brand-sante-md, .brand-sante-sidebar, .brand-sante-footer {
+    font-weight: 800;
+    color: #10B981;  /* Vert par défaut */
+}
+.brand-plus-md, .brand-plus-sidebar, .brand-plus-footer {
+    color: #D4AF37;  /* Or pour tous */
+    font-weight: 800;
+}
+.brand-service-md, .brand-service-sidebar, .brand-service-footer {
+    color: #64748B;  /* Gris pour tous */
+    font-weight: 800;
+}
+
+/* Version Maman (rose) - appliqué dynamiquement par JS */
+.brand-sante-md.maman, 
+.brand-sante-sidebar.maman, 
+.brand-sante-footer.maman {
+    color: #DB2777;
+}
