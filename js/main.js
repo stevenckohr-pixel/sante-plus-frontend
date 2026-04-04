@@ -1562,6 +1562,17 @@ async function performViewSwitch(viewName) {
                 await Visites.renderEndVisitView(); 
                 break;
             case "start-visit":
+                if (!AppState.currentPatient) {
+                    // Récupérer le premier patient si aucun n'est sélectionné
+                    const patients = await secureFetch("/patients");
+                    if (patients && patients.length > 0) {
+                        AppState.currentPatient = patients[0].id;
+                    } else {
+                        UI.error("Aucun patient trouvé");
+                        window.switchView('patients');
+                        return;
+                    }
+                }
                 await Visites.renderStartVisitView(AppState.currentPatient);
                 break;
             case "home": 
