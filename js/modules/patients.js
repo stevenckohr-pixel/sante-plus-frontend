@@ -37,82 +37,81 @@ export async function loadPatients() {
 /**
  * 🎨 2. RENDU DE LA LISTE
  */
+
 export function renderPatients() {
     const container = document.getElementById("patients-list");
     const userRole = localStorage.getItem("user_role");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    
     if (!container) return;
 
     if (!AppState.patients?.length) {
         container.innerHTML = `
-            <div class="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-100 animate-fadeIn">
-                <i class="fa-solid fa-users-slash text-slate-100 text-5xl mb-4"></i>
-                <p class="text-slate-400 font-bold uppercase text-[10px] tracking-wider">Aucun dossier actif</p>
+            <div class="flex flex-col items-center justify-center py-16">
+                <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-users-slash text-slate-300 text-xl"></i>
+                </div>
+                <p class="text-slate-400 text-sm font-medium">Aucun dossier</p>
             </div>`;
         return;
     }
 
     container.innerHTML = AppState.patients.map((p, index) => {
-        const isMaman = p.categorie_service === 'MAMAN_BEBE';
         const isPremium = p.formule === 'Premium';
-        const themeColorClass = isMaman ? 'border-pink-200' : 'border-emerald-100';
-        const badgeColorClass = isMaman ? 'bg-pink-100 text-pink-600' : 'bg-emerald-50 text-emerald-600';
-        const categoryIcon = isMaman ? '🍼' : '👴';
-        const categoryLabel = isMaman ? 'Maman & Bébé' : 'Dossier Sénior';
-        const premiumCardClass = isPremium ? 'border-2 border-amber-300 shadow-md bg-amber-50/30' : 'border-slate-100 bg-white';
-        
         const initials = p.nom_complet?.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || '??';
         const hasGps = p.lat && p.lng;
         const canManageGps = (userRole === 'COORDINATEUR' || userRole === 'AIDANT');
-        const animationDelay = `${index * 0.05}s`;
-
+        
+        // Couleurs selon le type
+        const bgColor = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+        const textColor = isMaman ? 'text-pink-600' : 'text-emerald-600';
+        const borderColor = isMaman ? 'border-pink-100' : 'border-emerald-100';
+        
         return `
-                <div class="patient-card animate-fadeIn group ${premiumCardClass} card-animate" style="animation-delay: ${index * 0.05}s; animation-duration: 0.3s;">
-                    <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
+            <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border ${borderColor} active:scale-98 transition-all" style="animation: fadeInUp 0.25s ease ${index * 0.03}s forwards; opacity: 0;">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3 flex-1">
                         <div class="relative">
-                            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-slate-400 font-black text-base border-2 ${themeColorClass} shadow-sm">
+                            <div class="w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center font-bold text-base ${textColor}">
                                 ${initials}
                             </div>
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${hasGps ? 'bg-emerald-500' : 'bg-slate-300'} shadow-sm" title="${hasGps ? 'Domicile fixé' : 'GPS Manquant'}"></div>
+                            ${hasGps ? `<div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border border-white"></div>` : ''}
                         </div>
-                        <div>
-                            <div class="flex items-center gap-1.5">
-                                <h4 class="font-black text-slate-800 text-sm">${p.nom_complet || 'Inconnu'}</h4>
-                                ${isPremium ? '<i class="fa-solid fa-crown text-[10px] text-amber-500"></i>' : ''}
+                        <div class="flex-1">
+                            <div class="flex items-center gap-1">
+                                <p class="font-semibold text-slate-800 text-sm">${p.nom_complet || 'Inconnu'}</p>
+                                ${isPremium ? '<i class="fa-solid fa-crown text-[9px] text-amber-500"></i>' : ''}
                             </div>
-                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                <span class="status-pill ${isPremium ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'} text-[9px]">${p.formule || 'Standard'}</span>
-                                <span class="status-pill ${badgeColorClass} text-[9px]">${categoryIcon} ${categoryLabel}</span>
-                            </div>
-                            <p class="text-[9px] font-bold text-slate-400 mt-1.5"><i class="fa-solid fa-map-pin mr-1"></i>${p.adresse || 'Adresse non renseignée'}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${p.adresse?.split(',')[0] || 'Adresse non renseignée'}</p>
                         </div>
                     </div>
-
-                    <div class="flex gap-1.5">
-                        ${canManageGps ? `
+                    
+                    <div class="flex items-center gap-1">
+                        ${canManageGps && !hasGps ? `
                             <button onclick="window.setPatientHomeDirect('${p.id}')" 
-                                class="w-8 h-8 rounded-lg ${hasGps ? 'bg-slate-50 text-slate-400' : 'bg-amber-50 text-amber-600'} flex items-center justify-center border active:scale-90 transition-all" 
-                                title="Fixer le domicile GPS">
-                                <i class="fa-solid fa-house-signal text-xs"></i>
+                                    class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center active:bg-slate-100 transition-all"
+                                    title="Fixer le domicile">
+                                <i class="fa-solid fa-location-dot text-slate-400 text-xs"></i>
                             </button>
                         ` : ''}
-                        <button onclick="window.viewPatientFeed('${p.id}')" class="w-8 h-8 rounded-lg bg-slate-800 text-white flex items-center justify-center shadow-sm active:scale-90 transition-all hover:bg-emerald-600">
+                        <button onclick="window.viewPatientFeed('${p.id}')" 
+                                class="w-8 h-8 rounded-lg ${textColor} bg-opacity-10 ${bgColor} flex items-center justify-center active:scale-95 transition-all">
                             <i class="fa-solid fa-chevron-right text-xs"></i>
                         </button>
                     </div>
                 </div>
-
-                <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <div class="flex items-center gap-1.5">
-                        <div class="flex -space-x-1">
-                            <div class="w-5 h-5 rounded-full border-2 border-white bg-blue-500 text-[7px] flex items-center justify-center text-white font-bold">F</div>
-                            <div class="w-5 h-5 rounded-full border-2 border-white bg-emerald-500 text-[7px] flex items-center justify-center text-white font-bold">A</div>
-                        </div>
-                        <p class="text-[8px] font-black text-slate-400">Famille : <span class="text-slate-700">${p.famille?.nom || 'Non liée'}</span></p>
+                
+                <!-- Ligne info rapide (optionnelle, plus discrète) -->
+                <div class="flex items-center justify-between mt-3 pt-2 border-t ${borderColor}">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-medium ${textColor}">${p.formule || 'Standard'}</span>
+                        <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                        <span class="text-[9px] text-slate-400">ID: ${p.id?.substring(0, 6)}</span>
                     </div>
                     ${userRole === 'COORDINATEUR' && !p.famille_user_id ? `
-                        <button onclick="window.openLinkFamilyModal('${p.id}', '${(p.nom_complet || '').replace(/'/g, "\\'")}')" class="text-[8px] font-black text-blue-500 uppercase underline">
-                            Lier Famille
+                        <button onclick="window.openLinkFamilyModal('${p.id}', '${(p.nom_complet || '').replace(/'/g, "\\'")}')" 
+                                class="text-[9px] font-medium text-blue-500">
+                            Lier
                         </button>
                     ` : ''}
                 </div>
@@ -120,7 +119,6 @@ export function renderPatients() {
         `;
     }).join("");
 }
-
 /**
  * 📄 VUE : PAGE D'AJOUT D'UN PATIENT
  */
