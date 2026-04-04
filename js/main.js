@@ -1279,12 +1279,17 @@ async function initPushNotifications() {
     
                     <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
                         
-                   <!-- Logo mobile avec couleur dynamique -->
-                    <div class="lg:hidden">
-                        <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
-                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
+                    <!-- Logo mobile avec texte dynamique -->
+                        <div class="lg:hidden flex items-center gap-2">
+                            <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
+                                <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
+                            </div>
+                            <div class="flex items-baseline gap-0">
+                                <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
+                                <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
+                                <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
+                            </div>
                         </div>
-                    </div>
                         
                         <!-- Titre desktop uniquement -->
                         <div class="hidden lg:block">
@@ -1855,7 +1860,7 @@ function updateBrandingColors() {
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
     
     // Mettre à jour la couleur de "Santé" partout
-    const santeElements = document.querySelectorAll('#header-sante, #sidebar-sante, #footer-sante, #loader-sante');
+    const santeElements = document.querySelectorAll('#header-sante, #sidebar-sante, #footer-sante, #loader-sante, .mobile-brand-sante');
     santeElements.forEach(el => {
         if (el) {
             el.style.color = isMaman ? '#DB2777' : '#10B981';
@@ -1863,15 +1868,23 @@ function updateBrandingColors() {
     });
     
     // ✅ Changer le texte de "Service" ou "Maman & Bébé"
-    const serviceElements = document.querySelectorAll('#header-service, #sidebar-service, #footer-service, #loader-service');
+    const serviceElements = document.querySelectorAll('#header-service, #sidebar-service, #footer-service, #loader-service, .mobile-brand-service');
     serviceElements.forEach(el => {
         if (el) {
             if (isMaman) {
-                el.textContent = ' Maman & Bébé';
+                el.textContent = 'Maman & Bébé';
             } else {
-                el.textContent = ' Service';
+                el.textContent = 'Service';
             }
             el.style.color = '#64748B';
+        }
+    });
+    
+    // Mettre à jour "Plus" (couleur or)
+    const plusElements = document.querySelectorAll('#header-plus, #sidebar-plus, #footer-plus, .mobile-brand-plus');
+    plusElements.forEach(el => {
+        if (el) {
+            el.style.color = '#D4AF37'; // Or
         }
     });
     
