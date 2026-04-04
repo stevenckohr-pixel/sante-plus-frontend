@@ -1765,6 +1765,28 @@ function updateBrandingColors() {
     logoElements.forEach(img => {
         if (img) img.src = logoSrc;
     });
+    
+    // ✅ AJOUT : Changer la couleur de la barre de progression du loader
+    const loaderBar = document.querySelector('#initial-loader .bg-emerald-500, #initial-loader .bg-pink-500');
+    if (loaderBar) {
+        if (isMaman) {
+            loaderBar.classList.remove('bg-emerald-500');
+            loaderBar.classList.add('bg-pink-500');
+        } else {
+            loaderBar.classList.remove('bg-pink-500');
+            loaderBar.classList.add('bg-emerald-500');
+        }
+    }
+    
+    // ✅ AJOUT : Mettre à jour la classe CSS pour le thème Maman sur le loader
+    const loaderContainer = document.getElementById('initial-loader');
+    if (loaderContainer) {
+        if (isMaman) {
+            loaderContainer.classList.add('maman');
+        } else {
+            loaderContainer.classList.remove('maman');
+        }
+    }
 }
 
 // Exporter la fonction
