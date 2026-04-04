@@ -130,7 +130,8 @@ async function loadAidantsForSelect() {
 }
 
 // ✅ Fonction pour confirmer la commande (Coordinateur)
-export async function confirmCommand() {
+// ✅ Ajouter commandeId comme paramètre
+export async function confirmCommand(commandeId) {
     const prix = document.getElementById(`prix-${commandeId}`)?.value;
     const aidantId = document.getElementById(`aidant-${commandeId}`)?.value;
     
@@ -145,7 +146,7 @@ export async function confirmCommand() {
         await secureFetch("/commandes/confirm", {
             method: "POST",
             body: JSON.stringify({
-                commande_id: commandeId,
+                commande_id: commandeId,  
                 aidant_id: aidantId,
                 prix_total: parseInt(prix)
             })
@@ -357,4 +358,9 @@ export async function openOrderModal() {
 }
 
 
-
+export { 
+    loadCommandes, 
+    confirmCommand, 
+    markAsDelivered, 
+    openOrderModal 
+};
