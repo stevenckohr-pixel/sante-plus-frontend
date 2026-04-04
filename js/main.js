@@ -1261,16 +1261,6 @@ function renderLayout() {
                     <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
                 </button>
             </footer>
-            
-            <!-- Ajoute le texte de marque sous le footer -->
-            <div class="lg:hidden fixed bottom-2 left-0 right-0 text-center z-50 pointer-events-none">
-                <div class="brand-container justify-center">
-                    <span id="footer-sante" class="brand-sante-footer font-black">Santé</span>
-                    <span class="brand-plus-footer font-black">Plus</span>
-                    <span id="footer-service" class="brand-service-footer font-black"> Services</span>
-                </div>
-            </div>
-
              
             </div>
         </div>
