@@ -1992,3 +1992,257 @@ body {
 body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     background: rgba(219, 39, 119, 0.05) !important;
 }
+
+
+
+
+
+/* ============================================
+   FOOTER MOBILE CORRIGÉ
+   ============================================ */
+
+/* Structure principale pour mobile */
+@media (max-width: 1023px) {
+    #app {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;
+    }
+    
+    .main-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    main {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 70px !important; /* Espace pour le footer */
+    }
+    
+    footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 8px 0;
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Ajustement du contenu pour ne pas être caché par le footer */
+    .pb-32, .pb-24, .pb-20 {
+        padding-bottom: 80px !important;
+    }
+}
+
+/* Style des boutons du footer */
+.nav-btn {
+    transition: all 0.2s ease;
+}
+
+.nav-btn.active i {
+    color: #10B981 !important;
+}
+
+.nav-btn.active span {
+    color: #10B981 !important;
+}
+
+
+
+
+
+
+
+
+
+/* ============================================
+   MENU CIRCULAIRE FLOTTANT (FAB)
+   ============================================ */
+
+.fab-container {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.fab-button {
+    width: 56px;
+    height: 56px;
+    background: #10B981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid white;
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+.fab-button i {
+    font-size: 24px;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.fab-button.active i {
+    transform: rotate(45deg);
+}
+
+/* Menu items autour du bouton */
+.fab-menu {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.fab-menu.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+.fab-menu-item {
+    width: 48px;
+    height: 48px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #f1f5f9;
+}
+
+.fab-menu-item:active {
+    transform: scale(0.9);
+}
+
+.fab-menu-item i {
+    font-size: 20px;
+    color: #64748B;
+}
+
+/* Version Maman */
+body.maman-mode .fab-button {
+    background: #DB2777;
+}
+
+/* Positionnement des items en cercle */
+.fab-menu.circle {
+    gap: 0;
+}
+
+.fab-menu.circle .fab-menu-item {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform-origin: center;
+}
+
+/* Animation d'entrée */
+.fab-menu.open .fab-menu-item {
+    animation: fabPopIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes fabPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+
+
+/* ============================================
+   MENU CIRCULAIRE FLOTTANT (FAB) - CORRECTIONS
+   ============================================ */
+
+/* S'assurer que le FAB est au-dessus de tout */
+.fab-container {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;  /* Augmenté pour être au-dessus */
+}
+
+/* Animation plus fluide */
+.fab-menu {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    pointer-events: none;
+}
+
+.fab-menu.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Items en position fixe autour du cercle */
+.fab-menu.circle .fab-menu-item {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform-origin: center;
+}
+
+/* Animation d'entrée plus naturelle */
+.fab-menu.open .fab-menu-item {
+    animation: fabPopIn 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes fabPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    80% {
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Couleur Maman */
+.maman-mode .fab-button {
+    background: #DB2777 !important;
+}
