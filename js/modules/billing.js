@@ -211,6 +211,7 @@ window.payWithFeda = async (abonnementId, montant) => {
   }
 };
 
+ 
 /**
  * ✅ VALIDATION MANUELLE (Coordinateur)
  */
@@ -228,14 +229,31 @@ window.markAsPaid = async (id, montant) => {
   });
 
   if (confirm.isConfirmed) {
-    Swal.fire({ title: "Traitement...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ 
+      title: "Traitement...", 
+      didOpen: () => Swal.showLoading(), 
+      allowOutsideClick: false 
+    });
+    
     try {
       await secureFetch("/billing/pay", {
         method: "POST",
         body: JSON.stringify({ abonnement_id: id, montant: montant }),
       });
+      
       UI.success("Paiement validé");
-      loadBilling();
+      
+      // ✅ FORCER LE RE-CHARGE DES DONNÉES (pas le cache)
+      await loadBilling(); // Recharge la liste
+      
+      Swal.fire({
+        icon: "success",
+        title: "Paiement validé !",
+        text: "La facture a été marquée comme payée.",
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
     } catch (err) {
       UI.error(err.message);
       Swal.fire({
@@ -247,4 +265,3 @@ window.markAsPaid = async (id, montant) => {
     }
   }
 };
-
