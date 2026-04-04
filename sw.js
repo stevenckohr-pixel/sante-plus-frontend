@@ -1,13 +1,17 @@
-const CACHE_NAME = 'sps-v5';
-const STATIC_CACHE = 'sps-static-v5';
-const IMAGE_CACHE = 'sps-images-v5';
+const CACHE_NAME = 'sps-v6';
+const STATIC_CACHE = 'sps-static-v6';
+const IMAGE_CACHE = 'sps-images-v6';
 
 const staticUrls = [
   './',
   './index.html',
   './style.css',
   './js/main.js',
-  './manifest.json'
+  './manifest.json',
+  './assets/images/logo-general-icon.png',
+  './assets/images/logo-general-text.png',
+  './assets/images/logo-maman-icon.png',
+  './assets/images/logo-maman-text.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -37,18 +41,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // ✅ NE PAS CACHER LES REQUÊTES POST, PUT, DELETE
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // ✅ API GET - Network First (sans clone problématique)
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // Mettre en cache seulement si la réponse est OK
           if (response && response.status === 200) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
@@ -62,7 +63,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // ✅ Images - Cache First
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -80,7 +80,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // ✅ Fichiers statiques - Cache First
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
@@ -97,8 +96,8 @@ self.addEventListener("push", function (event) {
   
   const options = {
     body: data.message,
-    icon: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
-    badge: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png",
+    icon: "/assets/images/logo-general-icon.png",
+    badge: "/assets/images/logo-general-icon.png",
     vibrate: [100, 50, 100],
     data: { url: data.url || "/" },
     actions: [
