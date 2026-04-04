@@ -49,55 +49,65 @@
     </script>  
     -->
 
-                               <!-- LOADER MINIMALISTE -->
-                <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
-                    
-                    <!-- Logo avec effet de douceur -->
-                    <div class="w-14 h-14 bg-slate-50 rounded-2xl shadow-sm flex items-center justify-center mb-3">
-                        <img id="loader-logo-img" class="w-9 h-9 object-contain" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+        <!-- LOADER MINIMALISTE -->
+                    <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
+                        
+                        <!-- Logo avec effet de douceur -->
+                        <div class="w-14 h-14 bg-slate-50 rounded-2xl shadow-sm flex items-center justify-center mb-3">
+                            <img id="loader-logo-img" class="w-9 h-9 object-contain" src="/sante-plus-frontend/assets/images/logo-general-icon.png" style="width:36px;height:36px">
+                        </div>
+                        
+                        <!-- Texte minimal -->
+                        <p class="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em]">Santé Plus Services</p>
+                        
+                        <!-- Petite barre de progression -->
+                        <div class="w-12 h-0.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                            <div class="w-full h-full bg-emerald-500 rounded-full animate-loading-bar"></div>
+                        </div>
                     </div>
                     
-                    <!-- Texte minimal -->
-                    <p class="text-[8px] font-black text-slate-300 uppercase tracking-[0.3em]">Santé Plus Service</p>
+                    <style>
+                    @keyframes loading-bar {
+                        0% { width: 0%; }
+                        50% { width: 100%; }
+                        100% { width: 0%; }
+                    }
+                    .animate-loading-bar {
+                        animation: loading-bar 1.5s ease-in-out infinite;
+                    }
                     
-                    <!-- Petite barre de progression -->
-                    <div class="w-12 h-0.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                        <div class="w-full h-full bg-emerald-500 rounded-full animate-loading-bar"></div>
-                    </div>
-                </div>
-                
-                <style>
-                @keyframes loading-bar {
-                    0% { width: 0%; }
-                    50% { width: 100%; }
-                    100% { width: 0%; }
-                }
-                .animate-loading-bar {
-                    animation: loading-bar 1.5s ease-in-out infinite;
-                }
-                </style>
-                
-                <script>
-                (function() {
-                    setTimeout(function() {
-                        try {
-                            const isMaman = localStorage.getItem('user_is_maman') === 'true';
-                            const loaderImg = document.getElementById('loader-logo-img');
-                            if (loaderImg) {
-                                loaderImg.src = isMaman 
-                                    ? '/sante-plus-frontend/assets/images/logo-maman-icon.png'
-                                    : '/sante-plus-frontend/assets/images/logo-general-icon.png';
-                            }
-                            const bar = document.querySelector('.bg-emerald-500');
-                            if (isMaman && bar) {
-                                bar.classList.remove('bg-emerald-500');
-                                bar.classList.add('bg-pink-500');
-                            }
-                        } catch(e) {}
-                    }, 10);
-                })();
-                </script>
-                    <!-- ============================================ -->
+                    /* Force la taille du logo pour éviter les conflits CSS */
+                    #loader-logo-img {
+                        width: 36px !important;
+                        height: 36px !important;
+                        animation: none !important;
+                        background: transparent !important;
+                        padding: 0 !important;
+                        box-shadow: none !important;
+                    }
+                    </style>
+                    
+                    <script>
+                    (function() {
+                        setTimeout(function() {
+                            try {
+                                const isMaman = localStorage.getItem('user_is_maman') === 'true';
+                                const loaderImg = document.getElementById('loader-logo-img');
+                                if (loaderImg) {
+                                    loaderImg.src = isMaman 
+                                        ? '/sante-plus-frontend/assets/images/logo-maman-icon.png'
+                                        : '/sante-plus-frontend/assets/images/logo-general-icon.png';
+                                }
+                                const bar = document.querySelector('.bg-emerald-500');
+                                if (isMaman && bar) {
+                                    bar.classList.remove('bg-emerald-500');
+                                    bar.classList.add('bg-pink-500');
+                                }
+                            } catch(e) {}
+                        }, 10);
+                    })();
+                    </script>
+     <!-- ============================================ -->
     <!-- CONTENEUR PRINCIPAL -->
     <!-- ============================================ -->
     <div id="app" class="h-full w-full"></div>
