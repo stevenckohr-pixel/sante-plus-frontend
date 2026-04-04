@@ -1330,48 +1330,44 @@ async function initPushNotifications() {
                         <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                     </main>
                 
-                           <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 py-2 z-50 shadow-lg">
-    <div class="flex items-center justify-around px-3">
+                           <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 py-3 z-50 shadow-lg">
+    <div class="flex items-center justify-around px-4">
         
         <!-- Accueil -->
-        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1">
-            <i class="fa-solid fa-house-chimney text-xl text-slate-400"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+        <button onclick="window.switchView('home')" data-view="home" class="nav-btn transition-all active:scale-95">
+            <i class="fa-solid fa-house-chimney text-2xl text-slate-400"></i>
         </button>
         
         <!-- Visites -->
-        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1">
-            <i class="fa-solid fa-calendar-check text-xl text-slate-400"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Visites</span>
+        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn transition-all active:scale-95">
+            <i class="fa-solid fa-calendar-check text-2xl text-slate-400"></i>
         </button>
         
         <!-- Bouton central ROND -->
         ${userRole === 'COORDINATEUR' ? `
-        <button onclick="window.switchView('add-patient')" class="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-user-plus text-xl"></i>
+        <button onclick="window.switchView('add-patient')" class="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
+            <i class="fa-solid fa-plus text-xl"></i>
         </button>
         ` : userRole === 'AIDANT' ? `
-        <button onclick="window.switchView('start-visit')" class="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+        <button onclick="window.switchView('start-visit')" class="w-14 h-14 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
             <i class="fa-solid fa-play text-xl"></i>
         </button>
         ` : `
-        <button onclick="window.openOrderModal()" class="w-14 h-14 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-full flex items-center justify-center shadow-lg -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+        <button onclick="window.openOrderModal()" class="w-14 h-14 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-full flex items-center justify-center shadow-lg -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
             <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-xl"></i>
         </button>
         `}
         
-        <!-- Messages / Feed -->
-        <button onclick="window.switchView('feed')" data-view="feed" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1">
-            <i class="fa-regular fa-message text-xl text-slate-400"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Messages</span>
+        <!-- Journal -->
+        <button onclick="window.switchView('feed')" data-view="feed" class="nav-btn transition-all active:scale-95">
+            <i class="fa-solid fa-newspaper text-2xl text-slate-400"></i>
         </button>
         
         <!-- Profil -->
-        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1">
+        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn transition-all active:scale-95">
             <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-sm"></i>`}
+                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-base"></i>`}
             </div>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Profil</span>
         </button>
         
     </div>
