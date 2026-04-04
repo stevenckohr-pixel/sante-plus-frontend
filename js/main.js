@@ -1186,43 +1186,38 @@ function renderLayout() {
             </aside>
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
 
-                        <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
-                            <div class="lg:hidden flex items-center">
-                                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                                    <img id="header-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-6 h-6 object-contain">
-                                </div>
+                    <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
+                        
+                        <!-- Logo mobile -->
+                        <div class="lg:hidden">
+                            <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center shadow-md">
+                                <img id="header-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-5 h-5 object-contain">
                             </div>
-                            
-                            <div class="flex flex-col">
-                                        <div class="brand-container">
-                                                <span id="header-sante" class="brand-sante-md font-black">Santé</span>
-                                                <span class="brand-plus-md font-black">Plus</span>
-                                                <span id="header-service" class="brand-service-md font-black"> Service</span>
-                                        </div>
-                                <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Partenaire de confiance</p>
+                        </div>
+                        
+                        <!-- Titre desktop uniquement -->
+                        <div class="hidden lg:block">
+                            <div class="brand-container">
+                                <span id="header-sante" class="brand-sante-md font-black">Santé</span>
+                                <span class="brand-plus-md font-black">Plus</span>
+                                <span id="header-service" class="brand-service-md font-black"> Service</span>
                             </div>
-                            
-                            <div class="flex items-center gap-3">
-                                <!-- Le reste du header (notifications, profil) reste identique -->
-                                <button onclick="window.switchView('notifications')" 
-                                        class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm group">
-                                    <i class="fa-solid fa-bell text-sm"></i>
-                                    <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
-                                </button>
-                                <button onclick="window.switchView('profile')" class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
-                                    <div class="flex flex-col items-end">
-                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider hidden lg:block">Mon compte</span>
-                                        <span class="text-xs font-black text-slate-800 hidden lg:block">${userName?.split(' ')[0] || 'Profil'}</span>
-                                    </div>
-                                    <div class="relative">
-                                        <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-${themeColor}-100 to-${themeColor}-200 flex items-center justify-center shadow-md">
-                                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user-${userRole === 'AIDANT' ? 'nurse' : userRole === 'FAMILLE' ? 'family' : 'tie'} text-${themeColor}-600 text-lg"></i>`}
-                                        </div>
-                                        <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></div>
-                                    </div>
-                                </button>
-                            </div>
-                        </header>
+                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                        </div>
+                        
+                        <!-- Espace vide pour équilibre sur mobile -->
+                        <div class="lg:hidden"></div>
+                        
+                        <!-- Notifications -->
+                        <div class="flex items-center gap-3">
+                            <button onclick="window.switchView('notifications')" 
+                                    class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
+                                <i class="fa-solid fa-bell text-sm"></i>
+                                <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                            </button>
+                        </div>
+                        
+                    </header>
                 <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
                 <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
                 <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
