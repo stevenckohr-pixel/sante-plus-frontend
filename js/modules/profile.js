@@ -521,10 +521,9 @@ window.updateProfilePhoto = async (file) => {
 window.updatePatientPhoto = async (file) => {
     if (!file) return;
     
-    // ✅ Compression de l'image avant envoi
+    // Compression de l'image avant envoi
     const maxSize = 500 * 1024; // 500KB
     
-    // Si l'image est trop grosse, la compresser
     let fileToUpload = file;
     if (file.size > maxSize) {
         Swal.fire({ title: "Compression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
@@ -538,7 +537,6 @@ window.updatePatientPhoto = async (file) => {
         Swal.close();
     }
     
-    // Vérification finale
     if (fileToUpload.size > maxSize) {
         UI.error("L'image est trop lourde (max 500KB)");
         return;
@@ -550,17 +548,33 @@ window.updatePatientPhoto = async (file) => {
         const formData = new FormData();
         formData.append("photo", fileToUpload);
         
-        // Ajouter patient_id si disponible
-        let patientId = document.getElementById("patient-id")?.value;
+        // Récupérer l'ID du patient
+        let patientId = null;
+        const patients = await secureFetch('/patients');
+        if (patients && patients.length > 0) {
+            patientId = patients[0].id;
+        }
+        
         if (patientId) {
             formData.append("patient_id", patientId);
         }
         
-        const result = await secureFetch("/patients/update-photo", {
+        // ✅ Utiliser fetch au lieu de secureFetch pour FormData
+        const response = await fetch(`${CONFIG.API_URL}/patients/update-photo`, {
             method: "POST",
-            body: formData,
-            headers: {} // Important : laisser FormData gérer le Content-Type
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+                // ⚠️ NE PAS mettre Content-Type, laisser le navigateur le gérer
+            },
+            body: formData
         });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur lors de l'upload");
+        }
+        
+        const result = await response.json();
         
         if (result.photo_url) {
             const container = document.getElementById("patient-photo-container");
@@ -572,6 +586,7 @@ window.updatePatientPhoto = async (file) => {
         Swal.close();
     } catch (err) {
         Swal.close();
+        console.error("❌ Erreur:", err);
         UI.error(err.message || "Erreur lors de l'upload");
     }
 };
