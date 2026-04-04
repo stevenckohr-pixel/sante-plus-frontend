@@ -911,6 +911,9 @@ async function submitRegistration() {
         pathologies: registrationData.pathologies || [],
         categorie: registrationData.categorie
     };
+
+    console.log("📤 Envoi inscription - Catégorie:", registrationData.categorie);
+    console.log("📤 Payload complet:", payload);
     
     Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
 
