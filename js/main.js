@@ -966,9 +966,9 @@ function renderAuthView(mode = 'login', stepSource = 1) {
             <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
             <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
                 <div class="shrink-0 text-center pt-8 pb-4">
-                        <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
-                            <img src="/assets/images/logo-general-icon.png" class="w-8 h-8 object-contain">
-                        </div>
+                     <div class="w-14 h-14 mx-auto bg-slate-900 text-white rounded-[1.2rem] flex items-center justify-center text-xl shadow-xl mb-3">
+                        <img src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-8 h-8 object-contain">
+                    </div>
                     <h1 class="text-xl font-[900] text-slate-900 tracking-tight leading-none uppercase">Santé Plus</h1>
                     <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
                 </div>
