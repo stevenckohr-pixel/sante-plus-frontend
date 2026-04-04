@@ -1005,80 +1005,88 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // Texte de la bannière selon le profil
-    let bannerText = "";
-    let bannerIcon = "";
-    let bannerDesc = "";
+    // Couleurs selon profil
+    const primaryColor = isMaman ? 'pink' : 'emerald';
+    const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+    const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
     
-    if (isMaman) {
-        bannerText = "🌸 Programme Maman & Bébé";
-        bannerIcon = "fa-hand-holding-heart";
-        bannerDesc = "Soutien et bien-être pour maman et bébé";
-    } else if (isSenior) {
-        bannerText = "⭐ Programme Sénior";
-        bannerIcon = "fa-crown";
-        bannerDesc = "Maintien à domicile et soins au quotidien";
-    } else {
-        bannerText = "⭐ Programme Premium";
-        bannerIcon = "fa-crown";
-        bannerDesc = "Accès prioritaire aux soins";
-    }
-    
-    // Menu adapté selon le profil
-    const menuItems = [
-        { id: 'map', label: 'Suivi GPS', desc: isMaman ? 'Où est l\'aidant ?' : 'Localisation', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Santé maman et bébé' : (isSenior ? 'Dossier médical' : 'Gestion'), icon: 'fa-hospital-user', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'visits', label: 'Visites', desc: 'Historique des passages', icon: 'fa-calendar-check', color: 'text-blue-500', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), desc: 'Photos et messages', icon: 'fa-rss', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },        { id: 'billing', label: 'Factures', desc: 'Paiements et abonnement', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'subscription', label: 'Abonnement', desc: 'Nos formules', icon: 'fa-ticket', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['FAMILLE'] },
-        { id: 'profile', label: 'Mon compte', desc: 'Mes informations', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+    // Menu simplifié
+    const mainMenu = [
+        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), icon: 'fa-folder-open', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', label: 'Visites', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: isMaman ? 'Journal' : (isSenior ? 'Journal' : 'Fil d\'actu'), icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', label: isMaman ? 'Commandes' : 'Commandes', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'map', label: 'Radar', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+        { id: 'billing', label: 'Factures', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'subscription', label: 'Abonnement', icon: 'fa-ticket', roles: ['FAMILLE'] }
     ];
-
-    const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
+    
+    const filteredMenu = mainMenu.filter(item => item.roles.includes(userRole));
 
     container.innerHTML = `
-        <div class="animate-fadeIn pb-32">
-            <div class="${isMaman ? 'maman-banner' : 'premium-banner'} p-5 rounded-2xl mb-8 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-[10px] font-black uppercase tracking-wider opacity-80">
-                            ${bannerText}
-                        </p>
-                        <p class="text-lg font-black mt-1 ${isMaman ? 'text-pink-600' : 'text-slate-800'}">
-                            ${userName?.split(' ')[0] || 'Utilisateur'} 👋
-                        </p>
-                        <p class="text-[10px] font-medium opacity-70 mt-0.5">
-                            ${bannerDesc}
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <i class="fa-solid ${bannerIcon} text-xl text-white"></i>
-                    </div>
+        <div class="px-4 pt-6 pb-24">
+            <!-- Header profil -->
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-14 h-14 rounded-full ${primaryBg} flex items-center justify-center">
+                    <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-hand-holding-heart'} text-2xl ${primaryText}"></i>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-xs font-medium">Bon retour 👋</p>
+                    <p class="text-slate-800 font-bold text-xl">${userName?.split(' ')[0] || 'Utilisateur'}</p>
+                    <p class="text-xs text-slate-400">${isMaman ? 'Programme Maman & Bébé' : (isSenior ? 'Programme Sénior' : 'Accompagnement')}</p>
                 </div>
             </div>
             
-            <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
-                <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
-                <input type="text" placeholder="${isMaman ? 'Rechercher dans le carnet de bébé...' : 'Rechercher un dossier...'}" class="bg-transparent border-none outline-none text-sm font-medium w-full">
-            </div>
-            
-            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4 ml-1">
-                ${isMaman ? 'Menu Maman & Bébé' : 'Menu Principal'}
-            </h4>
-            
-            <div class="menu-grid">
-                ${filteredMenu.map((item, index) => `
-                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer hover-lift" style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
-                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center">
-                            <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
-                        </div>
-                        <div>
-                            <p class="font-black text-slate-800 text-sm">${item.label}</p>
-                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
-                        </div>
+            <!-- Grille menu principale -->
+            <div class="grid grid-cols-4 gap-3 mb-8">
+                ${filteredMenu.slice(0, 4).map(item => `
+                    <div onclick="window.switchView('${item.id}')" 
+                         class="flex flex-col items-center gap-2 py-3 rounded-xl bg-white shadow-sm border border-slate-100 active:scale-95 transition-all">
+                        <i class="fa-solid ${item.icon} text-slate-500 text-lg"></i>
+                        <span class="text-[10px] font-medium text-slate-600">${item.label}</span>
                     </div>
                 `).join('')}
+            </div>
+            
+            <!-- Section plus -->
+            ${filteredMenu.length > 4 ? `
+            <div class="mb-6">
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3">Plus</p>
+                <div class="space-y-2">
+                    ${filteredMenu.slice(4).map(item => `
+                        <div onclick="window.switchView('${item.id}')" 
+                             class="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-100 active:scale-98 transition-all">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center">
+                                    <i class="fa-solid ${item.icon} text-slate-500"></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-slate-800 text-sm">${item.label}</p>
+                                    <p class="text-[10px] text-slate-400">${item.id === 'billing' ? 'Paiements' : (item.id === 'subscription' ? 'Nos formules' : '')}</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ` : ''}
+            
+            <!-- Section profil -->
+            <div class="mt-4">
+                <div onclick="window.switchView('profile')" 
+                     class="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm border border-slate-100 active:scale-98 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                            <i class="fa-solid fa-user-circle text-slate-500 text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-slate-800 text-sm">Mon compte</p>
+                            <p class="text-[10px] text-slate-400">Informations personnelles</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                </div>
             </div>
         </div>
     `;
