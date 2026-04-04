@@ -1866,8 +1866,8 @@ window.fetchStats = Dashboard.fetchStats;
 window.openActivationPage = Admin.openActivationPage;
 window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
-
 window.confirmStartVisit = Visites.startVisit;
+window.startVisit = Visites.startVisit; 
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
