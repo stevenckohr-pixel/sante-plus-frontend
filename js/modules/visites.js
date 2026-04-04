@@ -390,6 +390,7 @@ export async function renderStartVisitView(patientId) {
 
 export async function checkActiveVisitOnStart() {
     try {
+        console.log("🔍 Vérification des visites actives au démarrage...");
         const visits = await secureFetch("/visites");
         const activeVisit = visits.find(v => v.statut === "En cours");
         
@@ -398,14 +399,23 @@ export async function checkActiveVisitOnStart() {
             localStorage.setItem("active_visit_id", activeVisit.id);
             localStorage.setItem("active_patient_id", activeVisit.patient_id);
             
-            // Rafraîchir l'UI
+            // ✅ Attendre que le DOM soit prêt avant de rafraîchir l'UI
             const currentPatientId = localStorage.getItem("active_patient_id");
             if (currentPatientId) {
-                refreshAidantUI(currentPatientId);
+                setTimeout(() => {
+                    const container = document.getElementById("aidant-active-area");
+                    if (container) {
+                        refreshAidantUI(currentPatientId);
+                        console.log("✅ UI rafraîchie après chargement");
+                    } else {
+                        console.log("⚠️ Élément aidant-active-area pas encore disponible");
+                    }
+                }, 500);
             }
         } else {
-            // Nettoyer si aucune visite active
+            console.log("✅ Aucune visite active trouvée");
             localStorage.removeItem("active_visit_id");
+            localStorage.removeItem("active_patient_id");
             localStorage.removeItem("geo_watch_id");
         }
     } catch (err) {
@@ -431,39 +441,44 @@ export function resumeTrackingIfActive() {
 //-----------------------------------------------------------------------------
 //------------------------------------------------------------------------
 
-
 export function refreshAidantUI(patientId) {
-    const container = document.getElementById("aidant-active-area");
-    if (!container) return;
+    // ✅ Attendre que le DOM soit prêt
+    const tryRefresh = () => {
+        const container = document.getElementById("aidant-active-area");
+        if (!container) {
+            console.log("⏳ En attente de l'élément aidant-active-area...");
+            setTimeout(tryRefresh, 200);
+            return;
+        }
+        
+        const activeVisitId = localStorage.getItem("active_visit_id");
+        
+        console.log("🔄 refreshAidantUI - activeVisitId:", activeVisitId);
+        console.log("🔄 refreshAidantUI - patientId:", patientId);
+        
+        if (!activeVisitId) {
+            container.innerHTML = `
+                <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
+                    <button onclick="window.startVisit('${patientId}')" 
+                            class="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-play"></i> Démarrer la visite
+                    </button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
+                    <button onclick="window.openEndVisit()" 
+                            class="w-full py-5 bg-rose-500 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-rose-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                        <i class="fa-solid fa-camera"></i> Clôturer la visite
+                    </button>
+                </div>
+            `;
+        }
+    };
     
-    const activeVisitId = localStorage.getItem("active_visit_id");
-    
-    console.log("🔄 refreshAidantUI - activeVisitId:", activeVisitId);
-    console.log("🔄 refreshAidantUI - patientId:", patientId);
-    
-    if (!activeVisitId) {
-        // Pas de visite active → bouton "Démarrer"
-        container.innerHTML = `
-            <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
-                <button onclick="window.startVisit('${patientId}')" 
-                        class="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-play"></i> Démarrer la visite
-                </button>
-            </div>
-        `;
-    } else {
-        // Visite active → bouton "Clôturer"
-        container.innerHTML = `
-            <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
-                <button onclick="window.openEndVisit()" 
-                        class="w-full py-5 bg-rose-500 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-rose-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-camera"></i> Clôturer la visite
-                </button>
-            </div>
-        `;
-    }
+    tryRefresh();
 }
-
 //-----------------------------------------------------
 //-------------------------------------------------------------
 
