@@ -1387,19 +1387,30 @@ setTimeout(() => {
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
     
     if (fabButton && fabMenu) {
-        // Appliquer la couleur Maman si besoin
+        // Appliquer la couleur Maman
         if (isMaman) {
             document.body.classList.add('maman-mode');
-            const btn = document.querySelector('.fab-button');
-            if (btn) btn.style.background = '#DB2777';
+            fabButton.style.background = '#DB2777';
+        } else {
+            document.body.classList.remove('maman-mode');
+            fabButton.style.background = '#10B981';
         }
         
         // Toggle menu au clic
-        fabButton.addEventListener('click', (e) => {
+        fabButton.onclick = (e) => {
             e.stopPropagation();
-            fabMenu.classList.toggle('open');
-            fabButton.classList.toggle('active');
-        });
+            const isOpen = fabMenu.classList.contains('open');
+            
+            if (isOpen) {
+                // Fermer le menu
+                fabMenu.classList.remove('open');
+                fabButton.classList.remove('active');
+            } else {
+                // Ouvrir le menu
+                fabMenu.classList.add('open');
+                fabButton.classList.add('active');
+            }
+        };
         
         // Fermer le menu en cliquant ailleurs
         document.addEventListener('click', (e) => {
@@ -1411,14 +1422,15 @@ setTimeout(() => {
         
         // Navigation vers les vues
         document.querySelectorAll('.fab-menu-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const view = item.dataset.view;
+            item.onclick = (e) => {
+                e.stopPropagation();
+                const view = item.getAttribute('data-view');
                 if (view) {
                     window.switchView(view);
                     fabMenu.classList.remove('open');
                     fabButton.classList.remove('active');
                 }
-            });
+            };
         });
     }
 }, 100);
