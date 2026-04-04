@@ -171,10 +171,9 @@ async function quickValidate(visiteId, statut) {
     
     if (!result.isConfirmed) return;
     
-    // ✅ Afficher le loader
-    Swal.fire({
-        title: "Traitement...",
-        text: "Validation en cours",
+    const loadingAlert = Swal.fire({
+        title: "Validation...",
+        html: "Veuillez patienter",
         allowOutsideClick: false,
         didOpen: () => {
             Swal.showLoading();
@@ -187,8 +186,11 @@ async function quickValidate(visiteId, statut) {
             body: JSON.stringify({ visite_id: visiteId, statut: statut })
         });
         
-        // ✅ Fermer le loader et afficher le succès
-        Swal.fire({
+        // ✅ Fermer le loader
+        Swal.close();
+        
+        // ✅ Afficher le succès
+        await Swal.fire({
             icon: "success",
             title: "Succès !",
             text: `Visite ${statut === 'Validé' ? 'validée' : 'rejetée'} avec succès`,
@@ -201,8 +203,11 @@ async function quickValidate(visiteId, statut) {
         await fetchStats();
         
     } catch (err) {
-        // ✅ Fermer le loader et afficher l'erreur
-        Swal.fire({
+        // ✅ Fermer le loader
+        Swal.close();
+        
+        // ✅ Afficher l'erreur
+        await Swal.fire({
             icon: "error",
             title: "Erreur",
             text: err.message,
