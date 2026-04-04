@@ -324,9 +324,7 @@ async function openFormuleSelector() {
 }
 
 
-/**
- * 📄 VUE : FICHE PATIENT (Aidant)
- */
+
 /**
  * 📄 VUE : FICHE PATIENT (Aidant)
  */
@@ -381,7 +379,11 @@ export async function renderPatientDetailsView(patientId) {
     `;
 
     AppState.currentPatient = p.id;
-    Visites.refreshAidantUI(p.id);
+    
+    // ✅ Attendre que le DOM soit mis à jour avant d'appeler refreshAidantUI
+    setTimeout(() => {
+        Visites.refreshAidantUI(p.id);
+    }, 100);
 }
 
 /**
