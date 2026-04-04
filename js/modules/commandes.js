@@ -164,19 +164,19 @@ window.confirmCommand = async (commandeId) => {
 export async function markAsDelivered(commandeId) {
     const { value: file } = await Swal.fire({
         title: "Preuve de livraison",
-        text: "Prenez une photo des médicaments déposés au domicile.",
+        text: "Prenez une photo",
         input: "file",
         inputAttributes: { accept: "image/*", capture: "camera" },
-        confirmButtonText: "VALIDER LA LIVRAISON",
+        confirmButtonText: "VALIDER",
         confirmButtonColor: "#10B981",
         showCancelButton: true,
-        cancelButtonText: "Annuler",
     });
 
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-        Swal.fire("Image trop lourde", "Maximum 5MB", "warning");
+    // Vérification taille
+    if (file.size > 10 * 1024 * 1024) {
+        Swal.fire("Image trop lourde", "Maximum 10MB", "warning");
         return;
     }
 
@@ -187,15 +187,19 @@ export async function markAsDelivered(commandeId) {
     });
 
     try {
-        const compressed = await compressImage(file, 800, 0.5);
+        // ✅ Compression légère seulement si nécessaire
+        let fileToSend = file;
+        if (file.size > 2 * 1024 * 1024) {
+            fileToSend = await compressImage(file, 1024, 0.7);
+        }
         
         const fd = new FormData();
         fd.append("commande_id", commandeId);
-        fd.append("photo_livraison", compressed);
+        fd.append("photo_livraison", fileToSend);
 
-        // ✅ Ajouter un timeout
+        // ✅ Timeout plus long
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => controller.abort(), 45000);
 
         const response = await fetch(`${CONFIG.API_URL}/commandes/deliver`, {
             method: "POST",
@@ -208,23 +212,23 @@ export async function markAsDelivered(commandeId) {
 
         clearTimeout(timeoutId);
 
-        let result;
-        const text = await response.text();
-        
-        try {
-            result = JSON.parse(text);
-        } catch (e) {
-            console.error("Réponse non-JSON:", text.substring(0, 500));
-            throw new Error("Le serveur a retourné une réponse invalide");
-        }
-
         if (!response.ok) {
-            throw new Error(result.error || "Erreur serveur");
+            const text = await response.text();
+            let errorMsg;
+            try {
+                const json = JSON.parse(text);
+                errorMsg = json.error;
+            } catch {
+                errorMsg = text.substring(0, 200);
+            }
+            throw new Error(errorMsg || `Erreur ${response.status}`);
         }
 
+        const result = await response.json();
+        
         Swal.fire({
             icon: "success",
-            title: "Livraison confirmée !",
+            title: "Livré !",
             timer: 2000,
             showConfirmButton: false,
         });
@@ -235,7 +239,7 @@ export async function markAsDelivered(commandeId) {
         console.error("❌ Erreur:", err);
         Swal.fire({
             title: "Erreur",
-            text: err.name === "AbortError" ? "Le serveur ne répond pas" : err.message,
+            text: err.name === "AbortError" ? "Délai dépassé" : err.message,
             icon: "error"
         });
     }
