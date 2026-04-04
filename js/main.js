@@ -120,7 +120,8 @@ function showGlobalLoader() {
     }
     
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
-    const logoSrc = isMaman ? CONFIG.LOGO_MAMAN : CONFIG.LOGO_GENERAL;
+    // ✅ Utiliser l'icône (cœur) selon le thème
+    const logoSrc = isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON;
     
     const loaderLogo = document.getElementById('loader-logo-img');
     if (loaderLogo) {
@@ -136,7 +137,6 @@ function showGlobalLoader() {
     loader.classList.remove('hidden');
     loader.style.opacity = '1';
 }
-
 
 
 /**
