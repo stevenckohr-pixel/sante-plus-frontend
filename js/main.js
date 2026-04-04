@@ -1028,7 +1028,7 @@ function renderMobileHub() {
             <!-- Header profil -->
             <div class="flex items-center gap-4 mb-8">
                 <div class="w-14 h-14 rounded-full ${primaryBg} flex items-center justify-center">
-                    <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-hand-holding-heart'} text-2xl ${primaryText}"></i>
+                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-10 h-10 object-contain">
                 </div>
                 <div>
                     <p class="text-slate-500 text-xs font-medium">Bon retour 👋</p>
