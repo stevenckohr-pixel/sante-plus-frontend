@@ -1745,6 +1745,19 @@ function updateBrandingColors() {
         }
     });
     
+    // ✅ Changer le texte de "Service" ou "Maman & Bébé"
+    const serviceElements = document.querySelectorAll('#header-service, #sidebar-service, #footer-service, #loader-service');
+    serviceElements.forEach(el => {
+        if (el) {
+            if (isMaman) {
+                el.textContent = ' Maman & Bébé';
+            } else {
+                el.textContent = ' Service';
+            }
+            el.style.color = '#64748B';
+        }
+    });
+    
     // Mettre à jour les logos
     const logoElements = document.querySelectorAll('#header-logo-img, #sidebar-logo-img, #loader-logo-img');
     const logoSrc = isMaman 
@@ -1755,7 +1768,7 @@ function updateBrandingColors() {
         if (img) img.src = logoSrc;
     });
     
-    // ✅ AJOUT : Changer la couleur de la barre de progression du loader
+    // Barre de progression du loader
     const loaderBar = document.querySelector('#initial-loader .bg-emerald-500, #initial-loader .bg-pink-500');
     if (loaderBar) {
         if (isMaman) {
@@ -1764,16 +1777,6 @@ function updateBrandingColors() {
         } else {
             loaderBar.classList.remove('bg-pink-500');
             loaderBar.classList.add('bg-emerald-500');
-        }
-    }
-    
-    // ✅ AJOUT : Mettre à jour la classe CSS pour le thème Maman sur le loader
-    const loaderContainer = document.getElementById('initial-loader');
-    if (loaderContainer) {
-        if (isMaman) {
-            loaderContainer.classList.add('maman');
-        } else {
-            loaderContainer.classList.remove('maman');
         }
     }
 }
