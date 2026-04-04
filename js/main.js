@@ -1005,10 +1005,11 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // Couleurs de branding
+    // Couleurs de branding (PAS DE BLEU)
     const primaryColor = isMaman ? '#DB2777' : '#10B981';
     const primaryLight = isMaman ? '#FDF2F8' : '#ECFDF5';
     const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
     const goldColor = '#D4AF37';
     
     // Texte de la bannière
@@ -1034,16 +1035,16 @@ function renderMobileHub() {
         bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // Menu avec branding fort
+    // Menu avec BRANDING UNIQUEMENT (Vert/Rose + Or)
     const menuItems = [
-        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Carnet de santé' : 'Dossier médical', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Carnet de santé' : 'Dossier médical', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes' : 'Commandes', desc: 'Produits', icon: 'fa-box', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', label: isMaman ? 'Commandes' : 'Commandes', desc: 'Produits', icon: 'fa-box', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
-        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: 'text-slate-500', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
@@ -1068,7 +1069,7 @@ function renderMobileHub() {
                         </p>
                     </div>
                     <div class="w-12 h-12 rounded-full bg-gradient-to-br ${isMaman ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600'} flex items-center justify-center shadow-lg">
-                        <i class="fa-solid fa-star text-white text-lg"></i>
+                        <i class="fa-solid fa-gem text-white text-lg"></i>
                     </div>
                 </div>
             </div>
@@ -1099,7 +1100,7 @@ function renderMobileHub() {
                 `).join('')}
             </div>
             
-            <!-- Badge de marque en bas -->
+            <!-- Badge de marque -->
             <div class="text-center mt-8 pt-4 border-t border-slate-100">
                 <p class="text-[8px] font-black uppercase tracking-wider text-slate-300">
                     Santé Plus Services — <span class="${isMaman ? 'text-pink-400' : 'text-emerald-400'}">Élite</span>
