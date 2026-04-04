@@ -317,8 +317,8 @@ export function renderVisits() {
     return;
   }
 
-  container.innerHTML = AppState.visites
-    .map((v) => {
+container.innerHTML = AppState.visites
+    .map((v, index) => {  
       const isPending =  v.statut === "En attente";
       const statusColor =
          v.statut === "Validé"
