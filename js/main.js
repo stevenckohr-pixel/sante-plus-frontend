@@ -820,8 +820,8 @@ window.selectPack = (packId, price) => {
 // ============================================================
 // LOGIQUE DU FORMULAIRE D'ADMISSION (STEPPER)
 // ============================================================
-window.nextAuthStep = () => {
-    if (currentStep === 5 && !registrationData.type_pack) {
+ window.nextAuthStep = () => {
+    if (currentStep === 4 && !registrationData.type_pack) { 
         UI.vibrate('error');
         Swal.fire({
             title: "Sélection requise",
@@ -833,6 +833,13 @@ window.nextAuthStep = () => {
         return;
     }
     
+    if (currentStep === 0) {
+        // Étape 0 : choix du service (déjà géré par selectServiceType)
+        currentStep++;
+        renderAuthView('register', currentStep);
+        return;
+    }
+    
     if (currentStep === 1) {
         registrationData.nom_famille = document.getElementById('f-nom')?.value;
         registrationData.email = document.getElementById('f-email')?.value;
@@ -840,6 +847,7 @@ window.nextAuthStep = () => {
         registrationData.tel_famille = document.getElementById('f-tel')?.value || "";
         registrationData.lien_parente = document.getElementById('f-lien')?.value || "";
     }
+    
     if (currentStep === 2) {
         registrationData.nom_patient = document.getElementById('p-nom')?.value;
         registrationData.adresse_patient = document.getElementById('p-addr')?.value;
@@ -849,14 +857,17 @@ window.nextAuthStep = () => {
         registrationData.tel_patient = document.getElementById('p-tel')?.value || "";
         registrationData.contact_urgence_tel = document.getElementById('p-urgence-tel')?.value || "";
     }
-        if (currentStep === 3) {
-            const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
-            registrationData.pathologies = meds;  
-            registrationData.traitements = document.getElementById('p-traitements')?.value || "";
-            registrationData.allergies = document.getElementById('p-allergies')?.value || "";
-            registrationData.notes_medicales = document.getElementById('p-notes')?.value;
-        }
-    if (currentStep === 6) { 
+    
+    if (currentStep === 3) {
+        const meds = Array.from(document.querySelectorAll('.med-hist:checked')).map(el => el.value);
+        registrationData.pathologies = meds;  
+        registrationData.traitements = document.getElementById('p-traitements')?.value || "";
+        registrationData.allergies = document.getElementById('p-allergies')?.value || "";
+        registrationData.notes_medicales = document.getElementById('p-notes')?.value;
+    }
+    
+    // ✅ ÉTAPE 5 : Confirmation (c'est la dernière étape, pas 6)
+    if (currentStep === 5) { 
         if(!document.getElementById('legal-check')?.checked) {
             UI.vibrate('error');
             Swal.fire({
@@ -875,6 +886,7 @@ window.nextAuthStep = () => {
     currentStep++;
     renderAuthView('register', currentStep);
 };
+
 
 window.prevAuthStep = () => {
     if (currentStep > 1) {
