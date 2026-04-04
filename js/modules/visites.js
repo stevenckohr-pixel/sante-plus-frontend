@@ -630,7 +630,6 @@ window.savePatientHomeGPS = async (patientId) => {
 };
 
 export async function renderStartVisitView(patientId) {
-    // ✅ Vérifier que patientId existe
     if (!patientId) {
         console.error("❌ renderStartVisitView: patientId manquant");
         UI.error("Patient non sélectionné");
@@ -666,7 +665,7 @@ export async function renderStartVisitView(patientId) {
                         <p class="text-xs font-medium text-slate-700 leading-relaxed italic">"${p.notes_medicales || 'Aucune consigne.'}"</p>
                     </div>
 
-                    <button onclick="window.confirmStartVisit('${p.id}')" class="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-600 transition-all active:scale-95">
+                    <button onclick="window.startVisit('${p.id}')" class="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-600 transition-all active:scale-95">
                         DÉMARRER LA VISITE (GPS)
                     </button>
                 </div>
@@ -678,7 +677,6 @@ export async function renderStartVisitView(patientId) {
         window.switchView('patients');
     }
 }
-
 
 export async function checkActiveVisitOnStart() {
     try {
