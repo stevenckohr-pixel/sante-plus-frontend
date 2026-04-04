@@ -254,6 +254,18 @@ async function initApp() {
             await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
             checkActiveVisit();
+
+                        // ✅ FORCER la mise à jour de l'UI de l'aidant
+            const userRole = localStorage.getItem("user_role");
+            if (userRole === "AIDANT") {
+                const activePatientId = localStorage.getItem("active_patient_id");
+                if (activePatientId) {
+                    setTimeout(() => {
+                        Visites.refreshAidantUI(activePatientId);
+                    }, 500);
+                }
+            }
+
             setTimeout(() => updateBrandingColors(), 100);
 
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
@@ -339,6 +351,10 @@ async function initApp() {
         hideLoader();
     }
 }
+
+
+
+
 // ============================================================
 // GESTION DE LA COULEUR DE LA BARRE D'ÉTAT (THEME COLOR)
 // ============================================================
