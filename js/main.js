@@ -1275,10 +1275,10 @@ async function initPushNotifications() {
     
                     <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
                         
-                    <!-- Logo mobile - fond vert ciel -->
+                   <!-- Logo mobile avec couleur dynamique -->
                     <div class="lg:hidden">
-                        <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shadow-md">
-                            <img id="header-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-5 h-5 object-contain">
+                        <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
+                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
                         </div>
                     </div>
                         
