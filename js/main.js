@@ -1868,6 +1868,8 @@ window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
 window.confirmStartVisit = Visites.startVisit;
 window.startVisit = Visites.startVisit; 
+console.log("✅ window.startVisit assignée:", typeof window.startVisit);
+
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
