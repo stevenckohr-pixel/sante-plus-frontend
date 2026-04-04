@@ -526,12 +526,7 @@ main, .custom-scroll {
     flex-shrink: 0;
 }
 
-#initial-loader {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: white;
-}
+
 
 #initial-loader.hidden {
     display: none !important;
