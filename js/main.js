@@ -908,7 +908,8 @@ async function submitRegistration() {
     // ✅ Ne pas stringifier manuellement, laisse fetch le faire
     const payload = {
         ...registrationData,
-        pathologies: registrationData.pathologies || []
+        pathologies: registrationData.pathologies || [],
+        categorie: registrationData.categorie
     };
     
     Swal.fire({ title: 'Création du dossier...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
