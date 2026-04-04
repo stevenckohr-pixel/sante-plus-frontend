@@ -1,0 +1,5 @@
+assets/images/
+├── logo-general-text.png      (SPS + texte pour emails)
+├── logo-maman-text.png        (SPS Maman + texte pour emails)
+├── logo-general-icon.png      (cœur seulement, pour loader/favicon)
+├── logo-maman-icon.png        (cœur rose seulement)
