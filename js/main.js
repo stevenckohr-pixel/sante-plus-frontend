@@ -294,214 +294,226 @@ function getStepHTML() {
     const themeTextClass = isMamanFlow ? 'text-pink-600' : 'text-emerald-600';
     
     switch(currentStep) {
-        // ÉTAPE 1 : Identité du Payeur
-        case 1: return `
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
-                    <i class="fa-solid fa-user-plus text-2xl ${themeTextClass}"></i>
+        // ============================================
+        // ÉTAPE 0 : CHOIX DU SERVICE (NOUVEAU)
+        // ============================================
+        case 0: return `
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center mb-4 shadow-md border border-slate-100">
+                    <i class="fa-solid fa-hand-holding-heart text-2xl text-emerald-500"></i>
                 </div>
-                <h3 class="text-lg font-black text-slate-800">Identité du Payeur</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Qui paie l'accompagnement ?</p>
+                <h3 class="text-xl font-black text-slate-800">Comment pouvons-nous vous aider ?</h3>
+                <p class="text-xs text-slate-400 mt-1">Choisissez le profil qui vous correspond</p>
             </div>
             <div class="space-y-4">
-                <div class="relative">
-                    <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="f-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du responsable" value="${registrationData.nom_famille || ''}">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="f-email" type="email" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse email" value="${registrationData.email || ''}">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="f-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone" value="${registrationData.tel_famille || ''}">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <select id="f-lien" class="app-input !pl-11 !py-3 !text-sm">
-                        <option value="">Lien de parenté</option>
-                        <option value="Fils/Fille">👨‍👧 Fils / Fille</option>
-                        <option value="Frère/Soeur">👫 Frère / Soeur</option>
-                        <option value="Conjoint">💑 Conjoint(e)</option>
-                        <option value="Parent">👴👵 Parent</option>
-                    </select>
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="f-pass" type="password" class="app-input !pl-11 !py-3 !text-sm" placeholder="Créer un mot de passe (6 caractères min.)">
-                </div>
-            </div>
-        `;
-        
-        // ÉTAPE 2 : Informations du Patient
-        case 2: return `
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
-                    <i class="fa-solid fa-hospital-user text-2xl ${themeTextClass}"></i>
-                </div>
-                <h3 class="text-lg font-black text-slate-800">Votre Proche au Bénin</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">La personne accompagnée</p>
-            </div>
-            <div class="space-y-4">
-                <div class="relative">
-                    <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="p-nom" class="app-input !pl-11 !py-3 !text-sm" placeholder="Nom complet du patient" value="${registrationData.nom_patient || ''}">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="relative">
-                        <i class="fa-solid fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                        <input id="p-age" type="number" class="app-input !pl-11 !py-3 !text-sm" placeholder="Âge">
-                    </div>
-                    <div class="relative">
-                        <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                        <select id="p-sex" class="app-input !pl-11 !py-3 !text-sm">
-                            <option value="">Sexe</option>
-                            <option value="Homme">👨 Homme</option>
-                            <option value="Femme">👩 Femme</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="p-addr" class="app-input !pl-11 !py-3 !text-sm" placeholder="Adresse complète (quartier, rue, repères)" value="${registrationData.adresse_patient || ''}">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="p-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone du patient (optionnel)">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-address-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="p-urgence" class="app-input !pl-11 !py-3 !text-sm" placeholder="Contact urgence (voisin/famille proche)" value="${registrationData.contact_urgence || ''}">
-                </div>
-                <div class="relative">
-                    <i class="fa-solid fa-phone-alt absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm"></i>
-                    <input id="p-urgence-tel" class="app-input !pl-11 !py-3 !text-sm" placeholder="Téléphone urgence">
-                </div>
-            </div>
-        `;
-        
-        // ÉTAPE 3 : Profil de Santé
-        case 3: return `
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
-                    <i class="fa-solid fa-heartbeat text-2xl ${themeTextClass}"></i>
-                </div>
-                <h3 class="text-lg font-black text-slate-800">Profil de Santé</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Informations médicales importantes</p>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Pathologies connues</label>
-                    <div class="flex flex-wrap gap-2">
-                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Diabète"> Diabète</label>
-                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Hypertension"> Hypertension</label>
-                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Arthrose"> Arthrose</label>
-                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Alzheimer"> Alzheimer</label>
-                        <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Parkinson"> Parkinson</label>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Traitements en cours</label>
-                    <textarea id="p-traitements" class="app-input !py-3 !text-sm h-24" placeholder="Médicaments, posologies..."></textarea>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Allergies</label>
-                    <textarea id="p-allergies" class="app-input !py-3 !text-sm h-20" placeholder="Médicaments, aliments..."></textarea>
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-2 mb-2 block">Observations générales</label>
-                    <textarea id="p-notes" class="app-input !py-3 !text-sm h-24" placeholder="Mobilité, habitudes, précautions..."></textarea>
-                </div>
-            </div>
-        `;
-        
-        // ÉTAPE 4 : Type de Service (Senior / Maman & Bébé)
-        case 4: return `
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
-                    <i class="fa-solid fa-layer-group text-2xl ${themeTextClass}"></i>
-                </div>
-                <h3 class="text-lg font-black text-slate-800">Type de Service</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Sélectionnez la catégorie</p>
-            </div>
-            <div id="category-selector" class="space-y-3">
-                <div onclick="window.openCategorySelector('SENIOR')" 
-                     class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-emerald-200 flex items-center justify-between">
+                <div onclick="window.selectServiceType('SENIOR')" 
+                     class="service-card p-5 bg-white rounded-2xl border-2 border-slate-200 cursor-pointer transition-all hover:border-emerald-400 hover:shadow-lg active:scale-98">
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-3xl">👴</div>
-                        <div>
-                            <h4 class="font-black text-slate-800 text-base">Personne Âgée</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Maintien à domicile</p>
+                        <div class="w-14 h-14 rounded-xl bg-emerald-50 flex items-center justify-center text-3xl">👴</div>
+                        <div class="flex-1">
+                            <h4 class="font-black text-slate-800 text-base">Accompagnement Sénior</h4>
+                            <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Maintien à domicile • Soins au quotidien</p>
                         </div>
+                        <i class="fa-solid fa-arrow-right text-slate-300"></i>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-slate-300"></i>
                 </div>
-                <div onclick="window.openCategorySelector('MAMAN_BEBE')" 
-                     class="category-card p-5 bg-white rounded-2xl border-2 border-slate-100 cursor-pointer transition-all active:scale-98 hover:border-pink-200 flex items-center justify-between">
+                <div onclick="window.selectServiceType('MAMAN_BEBE')" 
+                     class="service-card p-5 bg-white rounded-2xl border-2 border-slate-200 cursor-pointer transition-all hover:border-pink-400 hover:shadow-lg active:scale-98">
                     <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center text-3xl">👶</div>
-                        <div>
+                        <div class="w-14 h-14 rounded-xl bg-pink-50 flex items-center justify-center text-3xl">👶</div>
+                        <div class="flex-1">
                             <h4 class="font-black text-slate-800 text-base">Maman & Bébé</h4>
-                            <p class="text-[10px] text-pink-500 font-bold uppercase mt-0.5">Sortie de maternité</p>
+                            <p class="text-[10px] text-pink-500 font-bold uppercase tracking-wider">Post-partum • Nouveau-né • Allaitement</p>
                         </div>
+                        <i class="fa-solid fa-arrow-right text-slate-300"></i>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-slate-300"></i>
-                </div>
-            </div>
-            <div id="selected-category-display" class="mt-4 hidden">
-                <div class="flex items-center justify-between p-3 ${themeBgClass} rounded-xl border ${themeBorderClass}">
-                    <div class="flex items-center gap-2">
-                        <i id="selected-category-icon" class="fa-solid fa-check-circle ${themeTextClass}"></i>
-                        <span id="selected-category-text" class="text-xs font-bold ${themeTextClass}"></span>
-                    </div>
-                    <button onclick="window.clearCategorySelection()" class="text-[10px] underline ${themeTextClass}">Modifier</button>
                 </div>
             </div>
         `;
         
-        // ÉTAPE 5 : Choix de la formule (Pack)
-        case 5: 
+        // ============================================
+        // ÉTAPE 1 : QUI PAYE ?
+        // ============================================
+                case 1: return `
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                            <i class="fa-solid fa-user-plus text-2xl ${themeTextClass}"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800">Qui fait la demande ?</h3>
+                        <p class="text-xs text-slate-400 mt-1">Les informations du responsable</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="f-nom" class="app-input !pl-12 !py-3" placeholder="Votre nom complet" value="${registrationData.nom_famille || ''}">
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="f-email" type="email" class="app-input !pl-12 !py-3" placeholder="Votre email" value="${registrationData.email || ''}">
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="f-tel" class="app-input !pl-12 !py-3" placeholder="Votre téléphone" value="${registrationData.tel_famille || ''}">
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="f-pass" type="password" class="app-input !pl-12 !py-3" placeholder="Choisissez un mot de passe">
+                        </div>
+                    </div>
+                `;
+        // ============================================
+        // ÉTAPE 2 : QUI A BESOIN D'AIDE ?
+        // ============================================
+                      case 2: return `
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                            <i class="fa-solid fa-hands-helping text-2xl ${themeTextClass}"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800">Pour qui ?</h3>
+                        <p class="text-xs text-slate-400 mt-1">Les informations de la personne à accompagner</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <i class="fa-solid fa-user-circle absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="p-nom" class="app-input !pl-12 !py-3" placeholder="Son nom complet" value="${registrationData.nom_patient || ''}">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="relative">
+                                <i class="fa-solid fa-cake-candles absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input id="p-age" type="number" class="app-input !pl-12 !py-3" placeholder="Âge">
+                            </div>
+                            <div class="relative">
+                                <i class="fa-solid fa-venus-mars absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <select id="p-sex" class="app-input !pl-12 !py-3">
+                                    <option value="">Sexe</option>
+                                    <option value="Homme">Homme</option>
+                                    <option value="Femme">Femme</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="p-addr" class="app-input !pl-12 !py-3" placeholder="Son adresse (quartier, rue)" value="${registrationData.adresse_patient || ''}">
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="p-tel" class="app-input !pl-12 !py-3" placeholder="Son téléphone (optionnel)">
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-address-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input id="p-urgence" class="app-input !pl-12 !py-3" placeholder="Contact d'urgence (voisin, famille)">
+                        </div>
+                    </div>
+                `;
+                        
+        // ============================================
+        // ÉTAPE 3 : SANTÉ (Adapté selon Sénior ou Maman)
+        // ============================================
+        case 3: 
+            if (isMamanFlow) {
+                return `
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 mx-auto bg-pink-50 rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                            <i class="fa-solid fa-baby-carriage text-2xl text-pink-500"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800">Suivi Maman & Bébé</h3>
+                        <p class="text-xs text-slate-400 mt-1">Quelques informations pour mieux vous accompagner</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <i class="fa-solid fa-hospital-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <select id="accouchement" class="app-input !pl-12 !py-3">
+                                <option value="">Type d'accouchement</option>
+                                <option value="voie_basse">Voie basse</option>
+                                <option value="cesarienne">Césarienne</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-hand-holding-heart absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <select id="allaitement" class="app-input !pl-12 !py-3">
+                                <option value="">Allaitement</option>
+                                <option value="maternel">Maternel</option>
+                                <option value="mixte">Mixte</option>
+                                <option value="artificiel">Artificiel</option>
+                            </select>
+                        </div>
+                        <div>
+                            <textarea id="p-notes" class="app-input !py-3" rows="3" placeholder="Informations complémentaires (poids du bébé, sommeil, soucis particuliers...)"></textarea>
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                            <i class="fa-solid fa-heartbeat text-2xl ${themeTextClass}"></i>
+                        </div>
+                        <h3 class="text-xl font-black text-slate-800">Informations de santé</h3>
+                        <p class="text-xs text-slate-400 mt-1">Pour un accompagnement adapté</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-black text-slate-400 ml-1 mb-2 block">Pathologies existantes</label>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Diabète"> Diabète</label>
+                                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Hypertension"> Hypertension</label>
+                                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Arthrose"> Arthrose</label>
+                                <label class="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-full text-xs"><input type="checkbox" class="med-hist" value="Alzheimer"> Alzheimer</label>
+                            </div>
+                        </div>
+                        <div>
+                            <textarea id="p-traitements" class="app-input !py-3" rows="2" placeholder="Traitements en cours (médicaments, posologies)"></textarea>
+                        </div>
+                        <div>
+                            <textarea id="p-allergies" class="app-input !py-3" rows="2" placeholder="Allergies connues"></textarea>
+                        </div>
+                        <div>
+                            <textarea id="p-notes" class="app-input !py-3" rows="2" placeholder="Autres informations (mobilité, habitudes, précautions)"></textarea>
+                        </div>
+                    </div>
+                `;
+            }
+        
+        // ============================================
+        // ÉTAPE 4 : FORFAIT
+        // ============================================
+        case 4:
             const packs = isMamanFlow ? [
-                { id: 'ESSENTIEL', name: 'Pack Essentiel', desc: '2 visites / semaine', price: '50.000', features: ['2 visites/semaine', 'Suivi de base', 'Rapport hebdomadaire'] },
-                { id: 'CONFORT', name: 'Pack Confort', desc: '3 à 4 visites / semaine', price: '85.000', features: ['3-4 visites/semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'] },
-                { id: 'SERENITE', name: 'Pack Sérénité', desc: 'Présence quasi quotidienne', price: '150.000', features: ['6-7 visites/semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport temps réel'] },
-                { id: 'MATERNITE', name: 'Spécial Sortie Maternité', desc: 'Suivi intensif 2 semaines', price: '70.000', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'] }
+                { id: 'ESSENTIEL', name: 'Essentiel', desc: '2 visites par semaine', price: '50.000', features: ['2 visites/semaine', 'Suivi de base'] },
+                { id: 'CONFORT', name: 'Confort', desc: '3 à 4 visites par semaine', price: '85.000', features: ['3-4 visites/semaine', 'Aide à la toilette', 'Préparation repas'] },
+                { id: 'SERENITE', name: 'Sérénité', desc: '6 à 7 visites par semaine', price: '150.000', features: ['6-7 visites/semaine', 'Accompagnement complet', 'Urgence 24/7'] },
+                { id: 'MATERNITE', name: 'Spécial Maternité', desc: 'Suivi intensif 2 semaines', price: '70.000', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement'] }
             ] : [
-                { id: 'PONCTUEL', name: 'Intervention Ponctuelle', desc: 'Rdv médical, besoin urgent', price: '10.000', features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'] },
-                { id: 'REGULIER', name: 'Suivi Régulier', desc: '2 à 3 visites / semaine', price: '60.000', features: ['2-3 visites/semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'] },
-                { id: 'COMPLET', name: 'Accompagnement Complet', desc: 'Présence soutenue', price: '150.000', features: ['5-6 visites/semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport temps réel'] }
+                { id: 'PONCTUEL', name: 'Ponctuel', desc: 'À la demande', price: '10.000', features: ['Intervention unique', 'Accompagnement RDV'] },
+                { id: 'REGULIER', name: 'Régulier', desc: '2 à 3 visites/semaine', price: '60.000', features: ['2-3 visites/semaine', 'Suivi médical', 'Lien famille'] },
+                { id: 'COMPLET', name: 'Complet', desc: '5 à 6 visites/semaine', price: '150.000', features: ['5-6 visites/semaine', 'Présence renforcée', 'Veille sanitaire'] }
             ];
             
             return `
-                <div class="text-center mb-6">
-                    <div class="w-14 h-14 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-3 shadow-inner">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 mx-auto ${themeBgClass} rounded-2xl flex items-center justify-center mb-4 shadow-md">
                         <i class="fa-solid fa-gem text-2xl ${themeTextClass}"></i>
                     </div>
-                    <h3 class="text-lg font-black text-slate-800">Choisissez votre formule</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Tarifs mensuels en CFA</p>
+                    <h3 class="text-xl font-black text-slate-800">Choisissez votre formule</h3>
+                    <p class="text-xs text-slate-400 mt-1">Tarifs mensuels en CFA</p>
                 </div>
-                <div id="pack-selector" class="space-y-3 max-h-96 overflow-y-auto pr-1">
+                <div id="pack-selector" class="space-y-3 max-h-96 overflow-y-auto">
                     ${packs.map(pack => `
                         <div onclick="window.selectPack('${pack.id}', '${pack.price}')" 
                              class="pack-card p-4 bg-white rounded-xl border-2 cursor-pointer transition-all ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 ${themeBgClass}` : 'border-slate-100'}"
                              data-pack-id="${pack.id}">
-                            <div class="flex items-start gap-3">
-                                <div class="w-12 h-12 rounded-xl ${registrationData.type_pack === pack.id ? themeBgClass : 'bg-slate-50'} flex items-center justify-center shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl ${registrationData.type_pack === pack.id ? themeBgClass : 'bg-slate-50'} flex items-center justify-center">
                                     <i class="fa-solid ${pack.id.includes('CONFORT') || pack.id.includes('REGULIER') ? 'fa-chart-line' : pack.id.includes('SERENITE') || pack.id.includes('COMPLET') ? 'fa-crown' : 'fa-seedling'} ${registrationData.type_pack === pack.id ? themeTextClass : 'text-slate-400'} text-xl"></i>
                                 </div>
                                 <div class="flex-1">
-                                    <div class="flex flex-wrap items-center justify-between gap-2">
-                                        <p class="font-black text-slate-800 text-sm">${pack.name}</p>
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-black text-slate-800">${pack.name}</p>
                                         <p class="text-base font-black ${themeTextClass}">${pack.price} F</p>
                                     </div>
-                                    <p class="text-[10px] text-slate-400 mt-0.5">${pack.desc}</p>
-                                    <div class="flex flex-wrap gap-2 mt-2">
-                                        ${pack.features.map(f => `<span class="text-[8px] text-slate-500 bg-slate-50 px-2 py-1 rounded-full">✓ ${f}</span>`).join('')}
-                                    </div>
-                                </div>
-                                <div class="shrink-0">
-                                    <div class="w-5 h-5 rounded-full border-2 ${registrationData.type_pack === pack.id ? `border-${themeColor}-500 bg-${themeColor}-500` : 'border-slate-300'} flex items-center justify-center">
-                                        ${registrationData.type_pack === pack.id ? '<i class="fa-solid fa-check text-white text-[8px]"></i>' : ''}
+                                    <p class="text-[10px] text-slate-400">${pack.desc}</p>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        ${pack.features.map(f => `<span class="text-[8px] text-slate-400">✓ ${f}</span>`).join('')}
                                     </div>
                                 </div>
                             </div>
@@ -511,39 +523,46 @@ function getStepHTML() {
                 <div class="mt-6">
                     <button onclick="window.nextAuthStep()" 
                             id="pack-continue-btn"
-                            class="w-full py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${registrationData.type_pack ? (isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500') : 'bg-slate-200 text-slate-400 cursor-not-allowed'}"
+                            class="w-full py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg transition-all active:scale-95 ${registrationData.type_pack ? (isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500') : 'bg-slate-200 text-slate-400 cursor-not-allowed'}"
                             ${!registrationData.type_pack ? 'disabled' : ''}>
-                        Continuer <i class="fa-solid fa-arrow-right"></i>
+                        Continuer
                     </button>
                 </div>
             `;
         
-        // ÉTAPE 6 : Validation et engagement légal
-        case 6: return `
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 mx-auto bg-amber-50 rounded-2xl flex items-center justify-center mb-3 shadow-inner">
-                    <i class="fa-solid fa-file-signature text-2xl text-amber-600"></i>
+        // ============================================
+        // ÉTAPE 5 : CONFIRMATION
+        // ============================================
+        case 5: return `
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 mx-auto bg-amber-50 rounded-2xl flex items-center justify-center mb-4 shadow-md">
+                    <i class="fa-solid fa-check-circle text-2xl text-amber-600"></i>
                 </div>
-                <h3 class="text-lg font-black text-slate-800">Engagement Élite</h3>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Conditions d'accompagnement</p>
+                <h3 class="text-xl font-black text-slate-800">Dernière étape</h3>
+                <p class="text-xs text-slate-400 mt-1">Validation de votre demande</p>
             </div>
             <div class="bg-amber-50 p-5 rounded-2xl border border-amber-100 mb-6">
-                <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
-                    <b>⚠️ AVERTISSEMENT LÉGAL :</b> Santé Plus Services propose un accompagnement <b>humain et logistique</b>. Nos intervenants ne sont pas des médecins ou infirmiers.
+                <p class="text-xs text-amber-800 leading-relaxed">
+                    <b>⚠️ À savoir :</b> Notre service propose un accompagnement <b>humain et logistique</b> (non médical).
                 </p>
-                <div class="mt-3 space-y-1 text-[10px] text-amber-700">
-                    <p>❌ Pas d'injections</p>
-                    <p>❌ Pas de prescriptions médicales</p>
-                    <p>❌ Pas d'actes infirmiers</p>
-                </div>
             </div>
-            <label class="flex items-start gap-3 p-4 bg-white rounded-2xl border border-slate-200 cursor-pointer hover:border-emerald-500 transition-all">
+            <label class="flex items-start gap-3 p-4 bg-white rounded-2xl border border-slate-200 cursor-pointer">
                 <input type="checkbox" id="legal-check" class="mt-1 w-5 h-5 accent-emerald-500">
-                <span class="text-xs font-bold text-slate-700 leading-tight">Je certifie avoir compris que ce service est une assistance au quotidien, non-médicale.</span>
+                <span class="text-xs font-medium text-slate-700">Je confirme avoir compris le principe de l'accompagnement non médical.</span>
             </label>
         `;
     }
 }
+
+
+
+window.selectServiceType = (type) => {
+    registrationData.categorie = type;
+    registrationData.user_is_maman = (type === 'MAMAN_BEBE');
+    currentStep = 1;
+    renderAuthView('register', currentStep);
+};
+
 
 // ============================================================
 // SÉLECTEUR DE CATÉGORIE (SENIOR / MAMAN)
