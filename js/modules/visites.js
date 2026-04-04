@@ -740,10 +740,3 @@ window.savePatientHomeGPS = async (patientId) => {
 };
 
 
-
-// Expositions globales pour les boutons
-window.startVisit = startVisit;
-window.confirmStartVisit = startVisit;
-window.submitEndVisit = submitEndVisit;
-window.savePatientHomeGPS = savePatientHomeGPS;
-window.rateVisit = rateVisit;
