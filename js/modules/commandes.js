@@ -40,8 +40,8 @@ function renderCommandes(list) {
         return;
     }
 
-    container.innerHTML = list.map((c) => {
-        const isPending = c.statut === "En attente";
+container.innerHTML = list.map((c, index) => { 
+  const isPending = c.statut === "En attente";
         const isConfirmed = c.statut === "Confirmée";
         const isDelivered = c.statut === "Livrée";
         
