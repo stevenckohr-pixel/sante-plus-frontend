@@ -387,7 +387,6 @@ export async function renderStartVisitView(patientId) {
 //--------------------------------------------------------------------
 //-------------------------------------------------------------------
 
-
 export async function checkActiveVisitOnStart() {
     try {
         console.log("🔍 Vérification des visites actives au démarrage...");
@@ -399,16 +398,14 @@ export async function checkActiveVisitOnStart() {
             localStorage.setItem("active_visit_id", activeVisit.id);
             localStorage.setItem("active_patient_id", activeVisit.patient_id);
             
-            // ✅ Attendre que le DOM soit prêt avant de rafraîchir l'UI
+            // ✅ Attendre que la vue patient soit chargée
             const currentPatientId = localStorage.getItem("active_patient_id");
             if (currentPatientId) {
                 setTimeout(() => {
+                    // Vérifier si on est sur la vue patient
                     const container = document.getElementById("aidant-active-area");
                     if (container) {
                         refreshAidantUI(currentPatientId);
-                        console.log("✅ UI rafraîchie après chargement");
-                    } else {
-                        console.log("⚠️ Élément aidant-active-area pas encore disponible");
                     }
                 }, 500);
             }
