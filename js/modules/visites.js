@@ -3,13 +3,19 @@ import { CONFIG } from "../core/config.js";
 import { AppState } from "../core/state.js";
 import { UI, compressImage, showSkeleton } from "../core/utils.js";
 
+
+// Au tout début de visites.js, après les imports
+console.log("🔍 [visites.js] Début du chargement du module");
+console.log("🔍 [visites.js] UI importé:", typeof UI);
+console.log("🔍 [visites.js] secureFetch importé:", typeof secureFetch);
+
 // Variables globales pour le tracking GPS
 let geoWatchId = null;
 let lastSentPosition = null;
 let trackingInterval = null;
 
 
-window.startVisit = async (patientId) => {
+export async function startVisit(patientId) {
   try {
     UI.vibrate();
     
@@ -96,7 +102,7 @@ window.startVisit = async (patientId) => {
         customClass: { popup: 'rounded-[2.5rem]' }
     });
   }
-};
+}
 
 
 
@@ -740,3 +746,16 @@ window.savePatientHomeGPS = async (patientId) => {
 };
 
 
+// ✅ Exporter les fonctions pour les imports ES modules
+export { 
+    startVisit, 
+    loadVisits, 
+    renderVisits, 
+    submitEndVisit, 
+    renderEndVisitView, 
+    renderStartVisitView,
+    checkActiveVisitOnStart,
+    resumeTrackingIfActive,
+    savePatientHomeGPS,
+    rateVisit
+};
