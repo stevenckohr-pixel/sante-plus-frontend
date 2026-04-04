@@ -328,7 +328,7 @@ export function renderVisits() {
             : "text-orange-500";
 
       return `
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm mb-4">
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm mb-4 list-item-animate" style="animation-delay: ${index * 0.05}s">
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h4 class="font-black text-slate-800 uppercase text-xs">${v.patient.nom_complet}</h4>
