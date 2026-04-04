@@ -1850,7 +1850,13 @@ window.openLinkFamilyModal = (id, name) => {
     window.switchView('link-family');
 };
 window.openAddAidantModal = Aidants.openAddAidantModal;
-window.markAsDelivered = Commandes.markAsDelivered;
+
+if (Commandes && typeof Commandes.markAsDelivered === 'function') {
+    window.markAsDelivered = Commandes.markAsDelivered.bind(Commandes);
+    console.log("✅ window.markAsDelivered assignée");
+} else {
+    console.error("❌ Commandes.markAsDelivered n'est pas une fonction");
+}
 window.viewPatientFeed = async (id) => { 
     const userRole = localStorage.getItem("user_role");
     const titleElement = document.getElementById("view-title");
