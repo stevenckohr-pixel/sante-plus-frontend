@@ -1306,8 +1306,8 @@ window.switchView = async function(viewName) {
         <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
             <div class="relative w-10 h-10">
                 <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                <img src="https://res.cloudinary.com/dglwrrvh3/image/upload/v1774974945/heart-beat_tjb16u.png" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-pulse">
-            </div>
+                    <img src="/assets/images/logo-general-icon.png" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-pulse">   
+                </div>
             <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
         </div>
     `;
