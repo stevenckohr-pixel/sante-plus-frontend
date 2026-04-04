@@ -1684,3 +1684,43 @@ h1, h2, h3, h4, .font-black, .font-bold {
         font-size: 0.6rem;
     }
 }
+
+
+
+
+/* ============================================
+   CACHE LES BARRES DE SCROLL PARTOUT
+   ============================================ */
+
+/* Pour Chrome, Safari, Edge */
+*::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Pour Firefox */
+* {
+    scrollbar-width: none !important;
+}
+
+/* Pour Internet Explorer */
+* {
+    -ms-overflow-style: none !important;
+}
+
+/* Garde la fonctionnalité de scroll mais cache la barre */
+body, html, main, .custom-scroll, #view-container, .overflow-y-auto {
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+body::-webkit-scrollbar, 
+html::-webkit-scrollbar, 
+main::-webkit-scrollbar, 
+.custom-scroll::-webkit-scrollbar, 
+#view-container::-webkit-scrollbar, 
+.overflow-y-auto::-webkit-scrollbar {
+    display: none;
+}
