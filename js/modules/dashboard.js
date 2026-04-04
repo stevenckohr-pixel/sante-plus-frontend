@@ -157,7 +157,9 @@ async function loadVisitsToValidate() {
 /**
  * ✅ VALIDATION RAPIDE D'UNE VISITE
  */
-window.quickValidate = async (visiteId, statut) => {
+
+// ✅ Définir la fonction comme une fonction normale, pas directement sur window
+async function quickValidate(visiteId, statut) {
     Swal.fire({
         title: "Validation",
         text: `Confirmer la ${statut === 'Validé' ? 'validation' : 'invalidation'} de cette visite ?`,
@@ -183,9 +185,11 @@ window.quickValidate = async (visiteId, statut) => {
             }
         }
     });
-};
+}
 
-
+// ✅ Exposer la fonction globalement pour les appels HTML
+window.quickValidate = quickValidate;
 window.fetchStats = fetchStats;
 
+// ✅ Exporter la fonction pour l'import dans main.js
 export { quickValidate };
