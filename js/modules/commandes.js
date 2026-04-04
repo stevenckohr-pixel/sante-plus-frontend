@@ -228,6 +228,9 @@ export async function markAsDelivered(commandeId) {
 
 
 export async function openOrderModal() { 
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isFamily = localStorage.getItem("user_role") === "FAMILLE";
+    
     // ✅ Récupérer l'ID du patient
     let patientId = AppState.currentPatient;
     
@@ -261,13 +264,28 @@ export async function openOrderModal() {
         }
     }
     
+    // ✅ Texte personnalisé selon le profil
+    let modalTitle = "Passer une commande";
+    let modalPlaceholder = "Décrivez ce que vous souhaitez commander...\nEx: Médicaments, courses, matériel...";
+    let confirmButtonText = "Envoyer la commande";
+    
+    if (isFamily && isMaman) {
+        modalTitle = "Commandes bébé";
+        modalPlaceholder = "Listez vos besoins (couches, lait, vêtements, médicaments bébé, puériculture...)";
+        confirmButtonText = "Commander";
+    } else if (isFamily && !isMaman) {
+        modalTitle = "Commander";
+        modalPlaceholder = "Listez les produits nécessaires (médicaments, matériel médical, courses...)";
+        confirmButtonText = "Envoyer";
+    }
+    
     const { value: text } = await Swal.fire({
-        title: "Commander des médicaments",
+        title: modalTitle,
         input: "textarea",
-        inputPlaceholder: "Listez les médicaments et les quantités...\nEx: Paracétamol 500mg x 2 boîtes",
+        inputPlaceholder: modalPlaceholder,
         showCancelButton: true,
-        confirmButtonText: "Envoyer la commande",
-        confirmButtonColor: "#10B981",
+        confirmButtonText: confirmButtonText,
+        confirmButtonColor: isMaman ? "#DB2777" : "#10B981",
         cancelButtonText: "Annuler",
         customClass: { popup: 'rounded-2xl', input: 'rounded-xl' }
     });
@@ -282,13 +300,13 @@ export async function openOrderModal() {
         });
 
         console.log("📤 Envoi commande - Patient ID:", patientId);
-        console.log("📦 Médicaments:", text);
+        console.log("📦 Contenu:", text);
 
         await secureFetch("/commandes/add", {
             method: "POST",
             body: JSON.stringify({
                 patient_id: patientId,
-                liste_medocs: text,
+                liste_medocs: text,  // Le champ reste liste_medocs dans la base
             }),
         });
         
@@ -315,7 +333,6 @@ export async function openOrderModal() {
         });
     }
 }
-
 
 
 
