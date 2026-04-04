@@ -239,6 +239,11 @@ async function initApp() {
             }
             
             renderLayout();
+            setTimeout(() => {
+                window.startVisit = Visites.startVisit;
+                window.confirmStartVisit = Visites.startVisit;
+                console.log("✅ Fonctions window assignées après délai");
+            }, 500);
             await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
             checkActiveVisit();
@@ -1820,7 +1825,6 @@ window.logout = Auth.handleLogout;
 window.verifyOTP = Auth.verifyOTP;
 window.openAddPatient = () => window.switchView('add-patient');
 window.openEndVisit = () => window.switchView('end-visit');
-window.submitEndVisit = Visites.submitEndVisit;
 window.submitAddAidant = Aidants.submitAddAidant;
 window.openLinkFamilyModal = (id, name) => {
     AppState.tempData = { patientId: id, patientName: name }; 
@@ -1866,9 +1870,8 @@ window.fetchStats = Dashboard.fetchStats;
 window.openActivationPage = Admin.openActivationPage;
 window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
-window.confirmStartVisit = Visites.startVisit;
 
-
+window.quickValidate = quickValidate
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
@@ -2011,6 +2014,17 @@ window.processValidation = async (id, email, nom, role) => {
     }
 };
 
-window.startVisit = Visites.startVisit; 
+console.log("🔍 Vérification des fonctions avant assignation:");
+console.log("Visites.startVisit:", typeof Visites.startVisit);
+console.log("Visites.submitEndVisit:", typeof Visites.submitEndVisit);
+
+window.startVisit = Visites.startVisit;
+window.confirmStartVisit = Visites.startVisit;
+window.submitEndVisit = Visites.submitEndVisit;
+window.savePatientHomeGPS = Visites.savePatientHomeGPS;
+window.rateVisit = Visites.rateVisit;
+
 console.log("✅ window.startVisit assignée:", typeof window.startVisit);
+console.log("✅ window.confirmStartVisit assignée:", typeof window.confirmStartVisit);
+
 initApp();
