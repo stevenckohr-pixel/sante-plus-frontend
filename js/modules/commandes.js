@@ -24,9 +24,19 @@ export async function loadCommandes() {
 function renderCommandes(list) {
     const container = document.getElementById("commandes-list");
     const role = localStorage.getItem("user_role");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isFamily = role === "FAMILLE";
+
+    // Message personnalisé selon le profil
+    let emptyMessage = "Aucune commande";
+    if (isFamily && isMaman) {
+        emptyMessage = "Aucune commande de pharmacie";
+    } else if (isFamily && !isMaman) {
+        emptyMessage = "Aucune commande médicale";
+    }
 
     if (!list.length) {
-        container.innerHTML = `<div class="text-center py-20"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">Aucune commande</p></div>`;
+        container.innerHTML = `<div class="text-center py-20"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">${emptyMessage}</p></div>`;
         return;
     }
 
@@ -66,7 +76,7 @@ function renderCommandes(list) {
                     ${c.prix_total ? `<p class="mt-2 text-xs font-black text-emerald-600">💰 Total: ${UI.formatMoney(c.prix_total)}</p>` : ''}
                 </div>
 
-                <!-- ✅ BOUTONS POUR COORDINATEUR -->
+                <!-- BOUTONS POUR COORDINATEUR -->
                 ${role === "COORDINATEUR" && isPending ? `
                     <div class="space-y-3">
                         <div class="flex gap-2">
@@ -82,7 +92,7 @@ function renderCommandes(list) {
                     </div>
                 ` : ''}
 
-                <!-- ✅ BOUTON POUR AIDANT -->
+                <!-- BOUTON POUR AIDANT -->
                 ${role === "AIDANT" && isConfirmed && !isDelivered ? `
                     <button onclick="window.markAsDelivered('${c.id}')" 
                             class="w-full py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
@@ -90,7 +100,7 @@ function renderCommandes(list) {
                     </button>
                 ` : ''}
 
-                <!-- ✅ PREUVE DE LIVRAISON -->
+                <!-- PREUVE DE LIVRAISON -->
                 ${c.photo_livraison ? `
                     <div class="mt-3">
                         <p class="text-[9px] font-black text-slate-400 mb-1">📸 Preuve de livraison</p>
@@ -101,7 +111,7 @@ function renderCommandes(list) {
         `;
     }).join("");
     
-    // ✅ Charger la liste des aidants pour les selects (coordinateur)
+    // Charger la liste des aidants pour les selects (coordinateur)
     if (role === "COORDINATEUR") {
         loadAidantsForSelect();
     }
