@@ -1301,16 +1301,19 @@ window.switchView = async function(viewName) {
     container.style.transform = "translateY(10px)";
     await new Promise(r => setTimeout(r, 150));
     
-    // Loader élégant
-    container.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
-            <div class="relative w-10 h-10">
-                <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                    <img src="/assets/images/logo-general-icon.png" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 animate-pulse">   
+        // Loader élégant avec logo local
+        const isMaman = localStorage.getItem('user_is_maman') === 'true';
+        const loaderIcon = isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON;
+        
+        container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
+                <div class="relative w-10 h-10">
+                    <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                    <img src="${loaderIcon}" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-5 h-5 animate-pulse">
                 </div>
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
-        </div>
-    `;
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
+            </div>
+        `;
     await new Promise(r => setTimeout(r, 50));
     
     try {
