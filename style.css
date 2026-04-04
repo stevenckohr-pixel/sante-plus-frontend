@@ -1507,3 +1507,76 @@ aside {
 .btn-transition:active {
     transform: scale(0.96);
 }
+
+
+
+/* Style épuré pour les cartes patients */
+.patient-card-modern {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.patient-card-modern:active {
+    background: #f8fafc;
+    transform: scale(0.98);
+}
+
+.patient-avatar {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #166534;
+}
+
+/* Version maman */
+.patient-avatar.maman {
+    background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+    color: #be185d;
+}
+
+
+
+/* Menu mobile épuré */
+.mobile-menu {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+.mobile-menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    transition: all 0.2s ease;
+}
+
+.mobile-menu-item.active {
+    color: #10b981;
+}
+
+.mobile-menu-item i {
+    font-size: 1.25rem;
+}
+
+.mobile-menu-item span {
+    font-size: 0.65rem;
+    font-weight: 600;
+}
