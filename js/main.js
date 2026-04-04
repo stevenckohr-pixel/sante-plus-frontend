@@ -1003,19 +1003,37 @@ function renderMobileHub() {
     const userName = localStorage.getItem("user_name");
     const container = document.getElementById("view-container");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isSenior = !isMaman && userRole === "FAMILLE";
     
+    // Texte de la bannière selon le profil
+    let bannerText = "";
+    let bannerIcon = "";
+    let bannerDesc = "";
+    
+    if (isMaman) {
+        bannerText = "🌸 Programme Maman & Bébé";
+        bannerIcon = "fa-hand-holding-heart";
+        bannerDesc = "Soutien et bien-être pour maman et bébé";
+    } else if (isSenior) {
+        bannerText = "⭐ Programme Sénior";
+        bannerIcon = "fa-crown";
+        bannerDesc = "Maintien à domicile et soins au quotidien";
+    } else {
+        bannerText = "⭐ Programme Premium";
+        bannerIcon = "fa-crown";
+        bannerDesc = "Accès prioritaire aux soins";
+    }
+    
+    // Menu adapté selon le profil
     const menuItems = [
-        { id: 'map', label: 'Radar', desc: 'Tracking Live', icon: 'fa-location-dot', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: 'Dossiers', desc: 'Gestion Clients', icon: 'fa-hospital-user', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'planning', label: 'Planning', desc: 'Mon Agenda', icon: 'fa-calendar-days', color: 'text-purple-500', bg: 'bg-purple-50', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'commandes', label: 'Pharmacie', desc: 'Médicaments', icon: 'fa-pills', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'visits', label: 'Visites', desc: 'Interventions', icon: 'fa-calendar-check', color: 'text-blue-500', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: 'Journal', desc: 'Live Feed', icon: 'fa-rss', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'map', label: 'Suivi GPS', desc: isMaman ? 'Où est l\'aidant ?' : 'Localisation', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Santé maman et bébé' : (isSenior ? 'Dossier médical' : 'Gestion'), icon: 'fa-hospital-user', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', label: 'Visites', desc: 'Historique des passages', icon: 'fa-calendar-check', color: 'text-blue-500', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), desc: 'Photos et messages', icon: 'fa-rss', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', label: 'Pharmacie', desc: 'Commandes et livraisons', icon: 'fa-pills', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements et abonnement', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Nos formules', icon: 'fa-ticket', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['FAMILLE'] },
-        { id: 'aidants', label: 'Équipe', desc: 'Ressources', icon: 'fa-user-nurse', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
-        { id: 'profile', label: 'Profil', desc: 'Mes informations', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        { id: 'profile', label: 'Mon compte', desc: 'Mes informations', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
@@ -1026,25 +1044,30 @@ function renderMobileHub() {
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-[10px] font-black uppercase tracking-wider opacity-80">
-                            ${isMaman ? '👶 Programme Maman & Bébé' : '⭐ Programme Premium'}
+                            ${bannerText}
                         </p>
-                        <p class="text-lg font-black mt-1 ${isMaman ? 'text-rose-primary' : 'text-slate-deep'}">
+                        <p class="text-lg font-black mt-1 ${isMaman ? 'text-pink-600' : 'text-slate-800'}">
                             ${userName?.split(' ')[0] || 'Utilisateur'} 👋
                         </p>
                         <p class="text-[10px] font-medium opacity-70 mt-0.5">
-                            ${isMaman ? 'Accompagnement personnalisé' : 'Accès prioritaire aux soins'}
+                            ${bannerDesc}
                         </p>
                     </div>
-                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                            <img src="${isMaman ? CONFIG.LOGO_MAMAN : CONFIG.LOGO_GENERAL}" class="w-8 h-8 object-contain">
-                        </div>
+                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                        <i class="fa-solid ${bannerIcon} text-xl text-white"></i>
+                    </div>
                 </div>
             </div>
+            
             <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
                 <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
-                <input type="text" placeholder="Rechercher un dossier..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
+                <input type="text" placeholder="${isMaman ? 'Rechercher dans le carnet de bébé...' : 'Rechercher un dossier...'}" class="bg-transparent border-none outline-none text-sm font-medium w-full">
             </div>
-            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4 ml-1">Menu Principal</h4>
+            
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4 ml-1">
+                ${isMaman ? 'Menu Maman & Bébé' : 'Menu Principal'}
+            </h4>
+            
             <div class="menu-grid">
                 ${filteredMenu.map(item => `
                     <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer">
@@ -1061,7 +1084,6 @@ function renderMobileHub() {
         </div>
     `;
 }
-
 // ============================================================
 // NOTIFICATIONS PUSH
 // ============================================================
@@ -1212,22 +1234,26 @@ function renderLayout() {
 // LIENS DE NAVIGATION (DESKTOP)
 // ============================================================
 function getNavLinks(role, mode) {
-    const isMobile = mode === 'mobile';
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isSenior = !isMaman && role === "FAMILLE";
+    
     const tabs = [
         { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
-        { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] }, 
-        { id: 'patients', icon: 'fa-hospital-user', label: 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+        { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Équipe & Assignations', icon: 'fa-users', color: 'text-indigo-500', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
-        { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'commandes', icon: 'fa-pills', label: 'Pharmacie', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', icon: 'fa-rss', label: 'Feed', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', icon: 'fa-rss', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', icon: 'fa-pills', label: isMaman ? 'Pharmacie bébé' : 'Pharmacie', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] }
+        { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
+        { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
+        { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
+        { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
     return tabs.filter(tab => tab.roles.includes(role)).map(tab => {
-        if (isMobile) {
+        if (mode === 'mobile') {
             return `<button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
                         <i class="fa-solid ${tab.icon} text-lg"></i>
                         <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
@@ -1318,6 +1344,8 @@ async function performViewSwitch(viewName) {
 
     const userRole = localStorage.getItem("user_role");
     const paymentStatus = localStorage.getItem("payment_status");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isFamily = userRole === "FAMILLE";
 
     // Sécurité paiement : accès restreint si impayé
     const restrictedViews = ["feed", "visits", "commandes"];
@@ -1347,15 +1375,32 @@ async function performViewSwitch(viewName) {
         }
     });
 
+        // Titres dynamiques selon le profil
+        let patientsTitle = "Gestion des Dossiers";
+        let feedTitle = "Journal de Soins Live";
+        let commandesTitle = "Pharmacie & Logistique";
+        
+        if (isFamily) {
+            if (isMaman) {
+                patientsTitle = "Mon accompagnement";
+                feedTitle = "Mon journal";
+                commandesTitle = "Pharmacie";
+            } else {
+                patientsTitle = "Mon proche";
+                feedTitle = "Journal de soins";
+                commandesTitle = "Commandes médicales";
+            }
+        }
+    
     const viewTitles = {
         dashboard: "Aperçu Analytique", 
         map: "Radar Terrain Live", 
-        patients: "Gestion des Dossiers",
+        patients: patientsTitle,
         visits: "Suivi des Interventions", 
-        feed: "Journal de Soins Live", 
+        feed: feedTitle, 
         billing: "Centre de Facturation",
         aidants: "Gestion de l'Équipe", 
-        commandes: "Pharmacie & Logistique",
+        commandes: commandesTitle,
         planning: "Agenda des Soins",
         home: "Accueil",
         "rh-dashboard": "RH & Assignations",
@@ -1382,12 +1427,26 @@ async function performViewSwitch(viewName) {
                 await MapModule.initLiveMap(); 
                 break;
             case "patients": 
+                const isMaman = localStorage.getItem("user_is_maman") === "true";
+                const isFamily = userRole === "FAMILLE";
+                
+                let title = "Dossiers Clients";
+                let subtitle = "Base de données active";
+                
+                if (isFamily && isMaman) {
+                    title = "Carnet de bébé";
+                    subtitle = "Suivi de mon enfant";
+                } else if (isFamily && !isMaman) {
+                    title = "Mon proche";
+                    subtitle = "Suivi médical";
+                }
+                
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Dossiers Clients</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Base de données active</p>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${title}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${subtitle}</p>
                             </div>
                             ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
                         </div>
@@ -1440,14 +1499,38 @@ async function performViewSwitch(viewName) {
                 await Planning.loadPlanning();
                 break;
             case "commandes":
+                const isFamily = userRole === "FAMILLE";
+                const isMaman = localStorage.getItem("user_is_maman") === "true";
+                
+                let commandesTitle = "Pharmacie & Logistique";
+                let commandesDesc = "Commandes et Livraisons";
+                let buttonText = "Commander";
+                
+                if (isFamily) {
+                    if (isMaman) {
+                        commandesTitle = "Pharmacie";
+                        commandesDesc = "Médicaments et produits de puériculture";
+                        buttonText = "Nouvelle commande";
+                    } else {
+                        commandesTitle = "Commandes médicales";
+                        commandesDesc = "Médicaments et matériel médical";
+                        buttonText = "Commander";
+                    }
+                }
+                
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Pharmacie & Logistique</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Commandes et Livraisons</p>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${commandesTitle}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${commandesDesc}</p>
                             </div>
-                            ${userRole === "FAMILLE" ? `<button onclick="window.openOrderModal()" class="w-12 h-12 bg-green-600 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
+                            ${userRole === "FAMILLE" ? `
+                                <button onclick="window.openOrderModal()" 
+                                        class="w-12 h-12 bg-${isMaman ? 'pink-500' : 'emerald-600'} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center">
+                                    <i class="fa-solid fa-plus text-xl"></i>
+                                </button>
+                            ` : ''}
                         </div>
                         <div id="commandes-list" class="space-y-4"></div>
                     </div>`;
