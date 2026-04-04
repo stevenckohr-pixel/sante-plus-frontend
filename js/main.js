@@ -2090,37 +2090,9 @@ window.processValidation = async (id, email, nom, role) => {
     }
 };
 
-console.log("🔍 Vérification des fonctions avant assignation:");
-console.log("Visites.startVisit:", typeof Visites.startVisit);
-console.log("Visites.submitEndVisit:", typeof Visites.submitEndVisit);
 
-// ✅ S'assurer que la fonction existe avant de l'assigner
-if (Visites && typeof Visites.startVisit === 'function') {
-    window.startVisit = Visites.startVisit.bind(Visites);
-    window.confirmStartVisit = Visites.startVisit.bind(Visites);
-    console.log("✅ window.startVisit assignée avec succès");
-} else {
-    console.error("❌ Visites.startVisit n'est pas une fonction");
-}
 
-if (Visites && typeof Visites.submitEndVisit === 'function') {
-    window.submitEndVisit = Visites.submitEndVisit.bind(Visites);
-}
 
-if (Visites && typeof Visites.savePatientHomeGPS === 'function') {
-    window.savePatientHomeGPS = Visites.savePatientHomeGPS.bind(Visites);
-}
-
-if (Visites && typeof Visites.rateVisit === 'function') {
-    window.rateVisit = Visites.rateVisit.bind(Visites);
-}
-
-if (Commandes && typeof Commandes.confirmCommand === 'function') {
-    window.confirmCommand = Commandes.confirmCommand;
-    console.log("✅ window.confirmCommand assignée");
-} else {
-    console.error("❌ Commandes.confirmCommand n'est pas une fonction");
-}
 
 
 
