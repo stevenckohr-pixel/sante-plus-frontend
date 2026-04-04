@@ -43,8 +43,8 @@ const { updateNotificationBadge } = Notifications;
 // Met à jour l'icône PWA selon le thème (Maman ou général)
 function updatePWAIcon(isMaman) {
     const iconUrl = isMaman 
-        ? CONFIG.LOGO_MAMAN
-        : CONFIG.LOGO_GENERAL;
+        ? CONFIG.LOGO_MAMAN_ICON
+        : CONFIG.LOGO_GENERAL_ICON;
     
     // Mettre à jour l'icône apple-touch-icon
     let appleIcon = document.getElementById('apple-touch-icon');
@@ -58,7 +58,6 @@ function updatePWAIcon(isMaman) {
         favicon.href = iconUrl;
     }
 }
-
 // ============================================================
 // VARIABLES GLOBALES
 // ============================================================
