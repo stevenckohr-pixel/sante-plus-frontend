@@ -157,10 +157,8 @@ async function loadVisitsToValidate() {
 /**
  * ✅ VALIDATION RAPIDE D'UNE VISITE
  */
-
-// ✅ Définir la fonction comme une fonction normale, pas directement sur window
 async function quickValidate(visiteId, statut) {
-    Swal.fire({
+    const result = await Swal.fire({
         title: "Validation",
         text: `Confirmer la ${statut === 'Validé' ? 'validation' : 'invalidation'} de cette visite ?`,
         icon: "question",
@@ -169,24 +167,49 @@ async function quickValidate(visiteId, statut) {
         confirmButtonColor: statut === 'Validé' ? "#10B981" : "#F43F5E",
         cancelButtonText: "Annuler",
         customClass: { popup: 'rounded-2xl' }
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            Swal.fire({ title: "Traitement...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-            try {
-                await secureFetch("/visites/validate", {
-                    method: "POST",
-                    body: JSON.stringify({ visite_id: visiteId, statut: statut })
-                });
-                UI.success(`Visite ${statut === 'Validé' ? 'validée' : 'rejetée'} avec succès`);
-                loadVisitsToValidate();
-                fetchStats();
-            } catch (err) {
-                UI.error(err.message);
-            }
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    // ✅ Afficher le loader
+    Swal.fire({
+        title: "Traitement...",
+        text: "Validation en cours",
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
         }
     });
+    
+    try {
+        await secureFetch("/visites/validate", {
+            method: "POST",
+            body: JSON.stringify({ visite_id: visiteId, statut: statut })
+        });
+        
+        // ✅ Fermer le loader et afficher le succès
+        Swal.fire({
+            icon: "success",
+            title: "Succès !",
+            text: `Visite ${statut === 'Validé' ? 'validée' : 'rejetée'} avec succès`,
+            timer: 1500,
+            showConfirmButton: false
+        });
+        
+        // ✅ Rafraîchir les données
+        await loadVisitsToValidate();
+        await fetchStats();
+        
+    } catch (err) {
+        // ✅ Fermer le loader et afficher l'erreur
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: err.message,
+            confirmButtonColor: "#F43F5E"
+        });
+    }
 }
-
 // ✅ Exposer la fonction globalement pour les appels HTML
 window.quickValidate = quickValidate;
 window.fetchStats = fetchStats;
