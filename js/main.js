@@ -1224,37 +1224,44 @@ function renderLayout() {
                     <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                 </main>
             
-            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
-                <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-                    <i class="fa-solid fa-house-chimney text-lg text-slate-400 group-[.active]:text-emerald-500"></i>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400 group-[.active]:text-emerald-500">Accueil</span>
-                </button>
-                
-                ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
-                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-                    <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
-                </button>
-                ` : ''}
-                
-                ${userRole === 'COORDINATEUR' ? `
-                <button onclick="window.switchView('rh-dashboard')" data-view="rh-dashboard" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-                    <i class="fa-solid fa-users text-lg text-slate-400"></i>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">RH</span>
-                </button>
-                ` : ''}
-                
-                <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                </button>
-                
-                <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-                    <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                        ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
-                    </div>
-                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-                </button>
-            </footer>
+           <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 px-4 py-2 z-50 shadow-lg">
+    <div class="flex justify-between items-center gap-1">
+        
+        <!-- 1. Accueil -->
+        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+            <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+        </button>
+        
+        <!-- 2. Radar (si aidant ou famille) -->
+        ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
+        <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+            <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Radar</span>
+        </button>
+        ` : '<div class="flex-1"></div>'}
+        
+        <!-- 3. BOUTON CENTRAL (PLUS) -->
+        <button onclick="window.openAddPatient()" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
+            <i class="fa-solid fa-plus text-xl"></i>
+        </button>
+        
+        <!-- 4. Visites / Historique -->
+        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+            <i class="fa-solid fa-calendar-check text-lg text-slate-400"></i>
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Visites</span>
+        </button>
+        
+        <!-- 5. Profil -->
+        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+            <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
+            </div>
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+        </button>
+        
+    </div>
+</footer>
              
             </div>
         </div>
