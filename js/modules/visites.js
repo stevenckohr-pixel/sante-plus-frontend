@@ -630,41 +630,54 @@ window.savePatientHomeGPS = async (patientId) => {
 };
 
 export async function renderStartVisitView(patientId) {
-    const container = document.getElementById("view-container");
-    const p = await secureFetch(`/patients/${patientId}`);   
+    // ✅ Vérifier que patientId existe
+    if (!patientId) {
+        console.error("❌ renderStartVisitView: patientId manquant");
+        UI.error("Patient non sélectionné");
+        window.switchView('patients');
+        return;
+    }
     
-    container.innerHTML = `
-        <div class="animate-slideIn max-w-lg mx-auto pb-32">
-            <!-- Header avec bouton Retour -->
-            <div class="flex items-center gap-4 mb-8">
-                <button onclick="window.switchView('patients')" class="w-12 h-12 bg-white rounded-2xl border shadow-sm flex items-center justify-center text-slate-400">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </button>
-                <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Mission : ${p.nom_complet}</h3>
-                    <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Prêt pour l'intervention ?</p>
+    const container = document.getElementById("view-container");
+    
+    try {
+        const p = await secureFetch(`/patients/${patientId}`);
+        
+        container.innerHTML = `
+            <div class="animate-slideIn max-w-lg mx-auto pb-32">
+                <div class="flex items-center gap-4 mb-8">
+                    <button onclick="window.switchView('patients')" class="w-12 h-12 bg-white rounded-2xl border shadow-sm flex items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <h3 class="font-black text-2xl text-slate-800 tracking-tight">Mission : ${p.nom_complet}</h3>
+                        <p class="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Prêt pour l'intervention ?</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
+                    <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Localisation</p>
+                        <p class="text-xs font-bold text-slate-800">${p.adresse || 'Adresse non renseignée'}</p>
+                    </div>
+
+                    <div class="p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                        <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1">Instructions</p>
+                        <p class="text-xs font-medium text-slate-700 leading-relaxed italic">"${p.notes_medicales || 'Aucune consigne.'}"</p>
+                    </div>
+
+                    <button onclick="window.confirmStartVisit('${p.id}')" class="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-600 transition-all active:scale-95">
+                        DÉMARRER LA VISITE (GPS)
+                    </button>
                 </div>
             </div>
-
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-                <div class="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Localisation</p>
-                    <p class="text-xs font-bold text-slate-800">${p.adresse}</p>
-                </div>
-
-                <div class="p-5 bg-blue-50 rounded-2xl border border-blue-100">
-                    <p class="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1">Instructions</p>
-                    <p class="text-xs font-medium text-slate-700 leading-relaxed italic">"${p.notes_medicales || 'Aucune consigne.'}"</p>
-                </div>
-
-                <button onclick="window.confirmStartVisit('${p.id}')" class="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-emerald-600 transition-all active:scale-95">
-                    DÉMARRER LA VISITE (GPS)
-                </button>
-            </div>
-        </div>
-    `;
+        `;
+    } catch (err) {
+        console.error("❌ Erreur renderStartVisitView:", err);
+        UI.error("Patient introuvable");
+        window.switchView('patients');
+    }
 }
-
 
 
 export async function checkActiveVisitOnStart() {
