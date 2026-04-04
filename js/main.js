@@ -1195,11 +1195,11 @@ function renderLayout() {
                             
                             <div class="flex flex-col">
                                 <div class="brand-container">
-                                    <span id="header-sante" class="brand-sante-md font-black hidden lg:inline">Santé</span>
-                                    <span class="brand-plus-md font-black hidden lg:inline">Plus</span>
-                                    <span id="header-service" class="brand-service-md font-black hidden lg:inline"> Services</span>
+                                    <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
+                                    <span class="brand-plus-sidebar font-black">Plus</span>
+                                    <span id="sidebar-service" class="brand-service-sidebar font-black"> Services</span>
                                 </div>
-                                <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Protocole de confiance</p>
+                                <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Partenaire de confiance</p>
                             </div>
                             
                             <div class="flex items-center gap-3">
