@@ -1580,3 +1580,33 @@ aside {
     font-size: 0.65rem;
     font-weight: 600;
 }
+
+
+
+/* Branding - Couleurs primaires */
+.brand-primary {
+    color: #10B981;
+}
+.brand-primary-bg {
+    background: #10B981;
+}
+.brand-gold {
+    color: #D4AF37;
+}
+.brand-gold-bg {
+    background: #D4AF37;
+}
+
+/* Version Maman */
+.brand-maman {
+    color: #DB2777;
+}
+.brand-maman-bg {
+    background: #DB2777;
+}
+
+/* Cartes avec touche de brand */
+.menu-tile:hover i {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
