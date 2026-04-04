@@ -780,7 +780,7 @@ main {
     visibility: hidden;
 }
 
-/* Le cercle qui tourne */
+/* Le cercle qui tourne
 .global-loader .loader-ring {
     width: 64px;
     height: 64px;
@@ -789,9 +789,9 @@ main {
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     position: relative;
-}
+} */
 
-/* Le cœur qui pulse au centre */
+/* Le cœur qui pulse au centre 
 .global-loader .loader-heart {
     position: absolute;
     top: 50%;
@@ -800,7 +800,7 @@ main {
     width: 32px;
     height: 32px;
     animation: pulse 1s ease-in-out infinite;
-}
+}*/
 
 .global-loader .loader-text {
     margin-top: 1rem;
