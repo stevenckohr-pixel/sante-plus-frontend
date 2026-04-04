@@ -1160,9 +1160,9 @@ function renderLayout() {
                         </div>
                         <div>
                             <div class="brand-container justify-center">
-                                <span id="footer-sante" class="brand-sante-footer font-black">Santé</span>
-                                <span class="brand-plus-footer font-black">Plus</span>
-                                <span id="footer-service" class="brand-service-footer font-black"> Service</span>
+                                <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
+                                <span class="brand-plus-sidebar font-black">Plus</span>
+                                <span id="sidebar-service" class="brand-service-sidebar font-black"> Service</span>
                             </div>
                         </div>
                     </div>
@@ -1194,11 +1194,11 @@ function renderLayout() {
                             </div>
                             
                             <div class="flex flex-col">
-                                <div class="brand-container">
-                                    <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
-                                    <span class="brand-plus-sidebar font-black">Plus</span>
-                                    <span id="sidebar-service" class="brand-service-sidebar font-black"> Services</span>
-                                </div>
+                                        <div class="brand-container">
+                                                <span id="header-sante" class="brand-sante-md font-black">Santé</span>
+                                                <span class="brand-plus-md font-black">Plus</span>
+                                                <span id="header-service" class="brand-service-md font-black"> Service</span>
+                                        </div>
                                 <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Partenaire de confiance</p>
                             </div>
                             
@@ -1734,6 +1734,8 @@ async function checkActiveVisit() {
 /**
  * 🎨 Met à jour les couleurs du branding partout
  */
+
+
 function updateBrandingColors() {
     const isMaman = localStorage.getItem('user_is_maman') === 'true';
     
@@ -1780,8 +1782,7 @@ function updateBrandingColors() {
         }
     }
 }
-
-// Exporter la fonction
+//fonction
 window.updateBrandingColors = updateBrandingColors;
 
 window.nextOnboarding = () => {
