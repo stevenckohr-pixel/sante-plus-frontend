@@ -1030,8 +1030,7 @@ function renderMobileHub() {
         { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Santé maman et bébé' : (isSenior ? 'Dossier médical' : 'Gestion'), icon: 'fa-hospital-user', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', label: 'Visites', desc: 'Historique des passages', icon: 'fa-calendar-check', color: 'text-blue-500', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'feed', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), desc: 'Photos et messages', icon: 'fa-rss', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: 'Pharmacie', desc: 'Commandes et livraisons', icon: 'fa-pills', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements et abonnement', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },        { id: 'billing', label: 'Factures', desc: 'Paiements et abonnement', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Nos formules', icon: 'fa-ticket', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['FAMILLE'] },
         { id: 'profile', label: 'Mon compte', desc: 'Mes informations', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
@@ -1243,8 +1242,7 @@ function getNavLinks(role, mode) {
         { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'feed', icon: 'fa-rss', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', icon: 'fa-pills', label: isMaman ? 'Pharmacie bébé' : 'Pharmacie', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
         { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
         { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
@@ -1375,22 +1373,28 @@ async function performViewSwitch(viewName) {
         }
     });
 
-        // Titres dynamiques selon le profil
-        let patientsTitle = "Gestion des Dossiers";
-        let feedTitle = "Journal de Soins Live";
-        let commandesTitle = "Pharmacie & Logistique";
-        
-        if (isFamily) {
-            if (isMaman) {
-                patientsTitle = "Mon accompagnement";
-                feedTitle = "Mon journal";
-                commandesTitle = "Pharmacie";
-            } else {
-                patientsTitle = "Mon proche";
-                feedTitle = "Journal de soins";
-                commandesTitle = "Commandes médicales";
-            }
+    // ✅ Titres dynamiques selon le profil
+    let patientsTitle = "Gestion des Dossiers";
+    let feedTitle = "Journal de Soins Live";
+    let commandesTitle = "Commandes";
+    let commandesDesc = "Produits et livraisons";
+    let commandesBtnColor = "emerald-600";
+    
+    if (isFamily) {
+        if (isMaman) {
+            patientsTitle = "Mon accompagnement";
+            feedTitle = "Mon journal";
+            commandesTitle = "Commandes bébé";
+            commandesDesc = "Couches, lait, puériculture";
+            commandesBtnColor = "pink-500";
+        } else {
+            patientsTitle = "Mon proche";
+            feedTitle = "Journal de soins";
+            commandesTitle = "Commandes";
+            commandesDesc = "Médicaments et matériel médical";
+            commandesBtnColor = "emerald-600";
         }
+    }
     
     const viewTitles = {
         dashboard: "Aperçu Analytique", 
@@ -1427,26 +1431,12 @@ async function performViewSwitch(viewName) {
                 await MapModule.initLiveMap(); 
                 break;
             case "patients": 
-                const isMaman = localStorage.getItem("user_is_maman") === "true";
-                const isFamily = userRole === "FAMILLE";
-                
-                let title = "Dossiers Clients";
-                let subtitle = "Base de données active";
-                
-                if (isFamily && isMaman) {
-                    title = "Carnet de bébé";
-                    subtitle = "Suivi de mon enfant";
-                } else if (isFamily && !isMaman) {
-                    title = "Mon proche";
-                    subtitle = "Suivi médical";
-                }
-                
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${title}</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${subtitle}</p>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${patientsTitle}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${isFamily ? (isMaman ? "Santé maman et bébé" : "Suivi médical") : "Base de données active"}</p>
                             </div>
                             ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
                         </div>
@@ -1499,25 +1489,6 @@ async function performViewSwitch(viewName) {
                 await Planning.loadPlanning();
                 break;
             case "commandes":
-                const isFamily = userRole === "FAMILLE";
-                const isMaman = localStorage.getItem("user_is_maman") === "true";
-                
-                let commandesTitle = "Pharmacie & Logistique";
-                let commandesDesc = "Commandes et Livraisons";
-                let buttonText = "Commander";
-                
-                if (isFamily) {
-                    if (isMaman) {
-                        commandesTitle = "Pharmacie";
-                        commandesDesc = "Médicaments et produits de puériculture";
-                        buttonText = "Nouvelle commande";
-                    } else {
-                        commandesTitle = "Commandes médicales";
-                        commandesDesc = "Médicaments et matériel médical";
-                        buttonText = "Commander";
-                    }
-                }
-                
                 container.innerHTML = `
                     <div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
@@ -1527,10 +1498,10 @@ async function performViewSwitch(viewName) {
                             </div>
                             ${userRole === "FAMILLE" ? `
                                 <button onclick="window.openOrderModal()" 
-                                        class="w-12 h-12 bg-${isMaman ? 'pink-500' : 'emerald-600'} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center">
+                                        class="w-12 h-12 bg-${commandesBtnColor} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center">
                                     <i class="fa-solid fa-plus text-xl"></i>
                                 </button>
-                            ` : ''}
+                            ` : ""}
                         </div>
                         <div id="commandes-list" class="space-y-4"></div>
                     </div>`;
@@ -1576,17 +1547,12 @@ async function performViewSwitch(viewName) {
         setTimeout(() => {
             container.style.opacity = "1";
             container.style.transform = "translateY(0)";
-
             updateActiveNavButtons(viewName);
-
-            
             setTimeout(() => {
                 if (container) container.style.transition = "";
             }, 150);
         }, 10);
 
-
-        
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
         container.innerHTML = `<div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
@@ -1598,7 +1564,6 @@ async function performViewSwitch(viewName) {
         container.style.opacity = "1";
     }
 }
-
 // ============================================================
 // MENU PROFIL (COMPTE UTILISATEUR)
 // ============================================================
