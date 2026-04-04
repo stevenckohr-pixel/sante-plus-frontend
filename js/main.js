@@ -204,9 +204,18 @@ async function initApp() {
     const loader = document.getElementById("initial-loader");
     const token = localStorage.getItem("token");
     const onboardingSeen = localStorage.getItem("onboarding_seen");
+    const userRole = localStorage.getItem("user_role");
+    
+    // ✅ CORRECTION : Réinitialiser le flag Maman pour les non-familles
+    if (userRole && userRole !== 'FAMILLE') {
+        localStorage.setItem("user_is_maman", "false");
+    }
+    
     updatePWAIcon(localStorage.getItem("user_is_maman") === "true");
 
     console.log("📝 Onboarding vu ?", onboardingSeen);
+    console.log("👤 Rôle utilisateur:", userRole);
+    console.log("🌸 Mode Maman:", localStorage.getItem("user_is_maman") === "true");
     
     // Initialisation des services
     initMicroInteractions();      // Feedback haptique
@@ -247,7 +256,6 @@ async function initApp() {
             checkActiveVisit();
             setTimeout(() => updateBrandingColors(), 100);
 
-            const userRole = localStorage.getItem("user_role");
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
             const lastView = localStorage.getItem("last_view") || defaultView;
             
