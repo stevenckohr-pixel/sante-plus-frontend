@@ -1,5 +1,7 @@
 /* === FONT INTER (Design Moderne) === */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
+
+
 /* === DESIGN SYSTEM & VARIABLES === */
 :root {
     /* Couleurs de base & Structure */
@@ -35,6 +37,9 @@
     box-sizing: border-box;
 }
 
+
+
+
 html, body {
     height: 100%;
     margin: 0;
@@ -42,9 +47,14 @@ html, body {
     overflow: hidden;
     background-color: var(--slate-50);
     color: var(--slate-900);
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
+}
+
+/* === GLOBAL === */
+html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
 }
 
 #app {
@@ -1609,4 +1619,68 @@ aside {
 .menu-tile:hover i {
     transform: scale(1.05);
     transition: transform 0.2s ease;
+}
+
+
+
+/* Texte plus aéré */
+p, span, li, .text-sm, .text-xs, .text-base {
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+}
+
+/* Titres plus équilibrés */
+h1, h2, h3, h4, .font-black, .font-bold {
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+/* Espacement entre les éléments */
+.space-y-2 > * + * {
+    margin-top: 0.5rem;
+}
+
+.space-y-3 > * + * {
+    margin-top: 0.75rem;
+}
+
+.space-y-4 > * + * {
+    margin-top: 1rem;
+}
+
+/* Cartes avec padding adapté */
+.menu-tile {
+    padding: 1rem;
+}
+
+.menu-tile .font-black {
+    font-size: 0.8rem;
+    letter-spacing: -0.01em;
+}
+
+.menu-tile .text-slate-400 {
+    font-size: 0.65rem;
+    line-height: 1.4;
+}
+
+
+
+@media (max-width: 640px) {
+    /* Texte plus aéré sur mobile */
+    p, span, .text-sm, .text-xs {
+        line-height: 1.45;
+    }
+    
+    /* Espacement des cartes */
+    .menu-tile {
+        padding: 0.75rem;
+    }
+    
+    .menu-tile .font-black {
+        font-size: 0.75rem;
+    }
+    
+    .menu-tile .text-slate-400 {
+        font-size: 0.6rem;
+    }
 }
