@@ -1863,6 +1863,9 @@ window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
 window.renderRHDashboard = Admin.renderRHDashboard;
+indow.openAssignModal = Planning.openAssignPage;
+window.openAssignModal = Planning.openAssignPage;
+
 
 
 // Événements pour la page d'assignation (dropdowns)
