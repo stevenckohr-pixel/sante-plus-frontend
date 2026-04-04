@@ -1322,54 +1322,52 @@ async function initPushNotifications() {
                         <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                     </main>
                 
-<footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 py-3 z-50 shadow-lg">
-    <div class="flex items-center justify-between px-2">
-        
-        <!-- 1. Accueil -->
-        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-1 transition-all">
-            <i class="fa-solid fa-house-chimney text-2xl text-slate-400"></i>
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
-        </button>
-        
-        <!-- 2. Dashboard (UNIQUEMENT pour coordinateur) -->
-        ${userRole === 'COORDINATEUR' ? `
-        <button onclick="window.switchView('dashboard')" data-view="dashboard" class="nav-btn flex flex-col items-center gap-1 transition-all">
-            <i class="fa-solid fa-chart-pie text-2xl text-slate-400"></i>
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Stats</span>
-        </button>
-        ` : ''}
-        
-        <!-- 3. Bouton central -->
-        ${userRole === 'COORDINATEUR' ? `
-        <button onclick="window.switchView('add-patient')" class="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-user-plus text-2xl"></i>
-        </button>
-        ` : userRole === 'AIDANT' ? `
-        <button onclick="window.switchView('start-visit')" class="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-play text-2xl"></i>
-        </button>
-        ` : `
-        <button onclick="window.openOrderModal()" class="w-16 h-16 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-2xl"></i>
-        </button>
-        `}
-        
-        <!-- 4. Visites -->
-        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-1 transition-all">
-            <i class="fa-solid fa-calendar-check text-2xl text-slate-400"></i>
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Visites</span>
-        </button>
-        
-        <!-- 5. Profil -->
-        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-1 transition-all">
-            <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-lg"></i>`}
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-        </button>
-        
-    </div>
-</footer>
+                            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 py-2 z-50 shadow-lg">
+                                <div class="flex items-center justify-around px-2">
+                                    
+                                    <!-- Accueil -->
+                                    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl">
+                                        <i class="fa-solid fa-house-chimney text-xl text-slate-400"></i>
+                                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+                                    </button>
+                                    
+                                    <!-- Visites -->
+                                    <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl">
+                                        <i class="fa-solid fa-calendar-check text-xl text-slate-400"></i>
+                                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Visites</span>
+                                    </button>
+                                    
+                                    <!-- Bouton central (ADD pour coordinateur / PLAY pour aidant / COMMANDE pour famille) -->
+                                    ${userRole === 'COORDINATEUR' ? `
+                                    <button onclick="window.switchView('add-patient')" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                                        <i class="fa-solid fa-user-plus text-xl"></i>
+                                    </button>
+                                    ` : userRole === 'AIDANT' ? `
+                                    <button onclick="window.switchView('start-visit')" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                                        <i class="fa-solid fa-play text-xl"></i>
+                                    </button>
+                                    ` : `
+                                    <button onclick="window.openOrderModal()" class="w-14 h-14 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-lg -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                                        <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-xl"></i>
+                                    </button>
+                                    `}
+                                    
+                                    <!-- Messages / Feed -->
+                                    <button onclick="window.switchView('feed')" data-view="feed" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl">
+                                        <i class="fa-regular fa-message text-xl text-slate-400"></i>
+                                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Messages</span>
+                                    </button>
+                                    
+                                    <!-- Profil -->
+                                    <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl">
+                                        <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-sm"></i>`}
+                                        </div>
+                                        <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+                                    </button>
+                                    
+                                </div>
+                            </footer>
                      
                 </div>
             </div>
