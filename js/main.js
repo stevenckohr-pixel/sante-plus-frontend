@@ -1346,56 +1346,82 @@ async function initPushNotifications() {
                         <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                     </main>
                 
-<footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 py-2 z-50 shadow-lg">
-    <div class="flex items-center justify-around px-2">
-        
+<!-- Menu circulaire flottant -->
+<div class="fab-container">
+    <div class="fab-menu circle" id="fab-menu">
         <!-- Accueil -->
-        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl active:bg-slate-100">
-            <i class="fa-solid fa-house-chimney text-xl text-slate-500"></i>
-            <span class="text-[8px] font-medium text-slate-500">Accueil</span>
-        </button>
-        
+        <div class="fab-menu-item" data-view="home" style="transform: translateX(-80px) translateY(-30px); transition-delay: 0s;">
+            <i class="fa-solid fa-house-chimney"></i>
+        </div>
         <!-- Visites -->
-        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl active:bg-slate-100">
-            <i class="fa-solid fa-calendar-check text-xl text-slate-500"></i>
-            <span class="text-[8px] font-medium text-slate-500">Visites</span>
-        </button>
-        
-        <!-- Bouton central -->
-        ${userRole === 'COORDINATEUR' ? `
-        <button onclick="window.switchView('add-patient')" class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg -mt-5 border-3 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-plus text-lg"></i>
-        </button>
-        ` : userRole === 'AIDANT' ? `
-        <button onclick="window.switchView('start-visit')" class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg -mt-5 border-3 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-play text-lg"></i>
-        </button>
-        ` : `
-        <button onclick="window.openOrderModal()" class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-full flex items-center justify-center shadow-lg -mt-5 border-3 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-lg"></i>
-        </button>
-        `}
-        
+        <div class="fab-menu-item" data-view="visits" style="transform: translateX(-40px) translateY(-70px); transition-delay: 0.05s;">
+            <i class="fa-solid fa-calendar-check"></i>
+        </div>
         <!-- Journal -->
-        <button onclick="window.switchView('feed')" data-view="feed" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl active:bg-slate-100">
-            <i class="fa-regular fa-newspaper text-xl text-slate-500"></i>
-            <span class="text-[8px] font-medium text-slate-500">Journal</span>
-        </button>
-        
+        <div class="fab-menu-item" data-view="feed" style="transform: translateX(0px) translateY(-85px); transition-delay: 0.1s;">
+            <i class="fa-regular fa-newspaper"></i>
+        </div>
         <!-- Profil -->
-        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all py-1 px-2 rounded-xl active:bg-slate-100">
-            <div class="w-5 h-5 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-500 text-xs"></i>`}
-            </div>
-            <span class="text-[8px] font-medium text-slate-500">Moi</span>
-        </button>
-        
+        <div class="fab-menu-item" data-view="profile" style="transform: translateX(40px) translateY(-70px); transition-delay: 0.15s;">
+            <i class="fa-solid fa-user"></i>
+        </div>
+        <!-- Radar/Map -->
+        <div class="fab-menu-item" data-view="map" style="transform: translateX(80px) translateY(-30px); transition-delay: 0.2s;">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
     </div>
-</footer>
+    
+    <!-- Bouton central -->
+    <div class="fab-button" id="fab-button">
+        <i class="fa-solid fa-plus"></i>
+    </div>
+</div>
                      
                 </div>
             </div>
         `;
+
+setTimeout(() => {
+    const fabButton = document.getElementById('fab-button');
+    const fabMenu = document.getElementById('fab-menu');
+    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    
+    if (fabButton && fabMenu) {
+        // Appliquer la couleur Maman si besoin
+        if (isMaman) {
+            document.body.classList.add('maman-mode');
+            const btn = document.querySelector('.fab-button');
+            if (btn) btn.style.background = '#DB2777';
+        }
+        
+        // Toggle menu au clic
+        fabButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fabMenu.classList.toggle('open');
+            fabButton.classList.toggle('active');
+        });
+        
+        // Fermer le menu en cliquant ailleurs
+        document.addEventListener('click', (e) => {
+            if (!fabButton.contains(e.target) && !fabMenu.contains(e.target)) {
+                fabMenu.classList.remove('open');
+                fabButton.classList.remove('active');
+            }
+        });
+        
+        // Navigation vers les vues
+        document.querySelectorAll('.fab-menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const view = item.dataset.view;
+                if (view) {
+                    window.switchView(view);
+                    fabMenu.classList.remove('open');
+                    fabButton.classList.remove('active');
+                }
+            });
+        });
+    }
+}, 100);
     
         setTimeout(() => {
             updateBrandingColors();
