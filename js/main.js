@@ -1149,23 +1149,24 @@ function renderLayout() {
     const userName = localStorage.getItem("user_name");
     const userPhoto = localStorage.getItem("user_photo");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isFamily = userRole === "FAMILLE";  // ← AJOUT OBLIGATOIRE
     const themeColor = isMaman ? 'pink' : 'emerald';
 
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
             <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-                    <div class="flex items-center gap-4 mb-14 px-2">
-                        <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
-                            <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
-                        </div>
-                        <div>
-                            <div class="brand-container justify-center">
-                                <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
-                                <span class="brand-plus-sidebar font-black">Plus</span>
-                                <span id="sidebar-service" class="brand-service-sidebar font-black"> Service</span>
-                            </div>
+                <div class="flex items-center gap-4 mb-14 px-2">
+                    <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
+                        <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
+                    </div>
+                    <div>
+                        <div class="brand-container">
+                            <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
+                            <span class="brand-plus-sidebar font-black">Plus</span>
+                            <span id="sidebar-service" class="brand-service-sidebar font-black"> Service</span>
                         </div>
                     </div>
+                </div>
                 <nav class="flex-1 space-y-3" id="nav-desktop">
                     ${getNavLinks(userRole, 'desktop')}
                 </nav>
@@ -1186,109 +1187,110 @@ function renderLayout() {
             </aside>
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
 
-                    <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
-                        
-                        <!-- Logo mobile -->
-                        <div class="lg:hidden">
-                            <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center shadow-md">
-                                <img id="header-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-5 h-5 object-contain">
-                            </div>
+                <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
+                    
+                    <!-- Logo mobile -->
+                    <div class="lg:hidden">
+                        <div class="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center shadow-md">
+                            <img id="header-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-5 h-5 object-contain">
                         </div>
-                        
-                        <!-- Titre desktop uniquement -->
-                        <div class="hidden lg:block">
-                            <div class="brand-container">
-                                <span id="header-sante" class="brand-sante-md font-black">Santé</span>
-                                <span class="brand-plus-md font-black">Plus</span>
-                                <span id="header-service" class="brand-service-md font-black"> Service</span>
-                            </div>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                    </div>
+                    
+                    <!-- Titre desktop uniquement -->
+                    <div class="hidden lg:block">
+                        <div class="brand-container">
+                            <span id="header-sante" class="brand-sante-md font-black">Santé</span>
+                            <span class="brand-plus-md font-black">Plus</span>
+                            <span id="header-service" class="brand-service-md font-black"> Service</span>
                         </div>
-                        
-                        <!-- Espace vide pour équilibre sur mobile -->
-                        <div class="lg:hidden"></div>
-                        
-                        <!-- Notifications -->
-                        <div class="flex items-center gap-3">
-                            <button onclick="window.switchView('notifications')" 
-                                    class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
-                                <i class="fa-solid fa-bell text-sm"></i>
-                                <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
-                            </button>
-                        </div>
-                        
-                    </header>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                    </div>
+                    
+                    <!-- Espace vide pour équilibre sur mobile -->
+                    <div class="lg:hidden"></div>
+                    
+                    <!-- Notifications -->
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.switchView('notifications')" 
+                                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
+                            <i class="fa-solid fa-bell text-sm"></i>
+                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                        </button>
+                    </div>
+                    
+                </header>
+                
                 <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
                 <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
+                
                 <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
                     <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                 </main>
             
-           <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 px-4 py-2 z-50 shadow-lg">
-    <div class="flex justify-between items-center gap-1">
-        
-        <!-- 1. Accueil (toujours visible) -->
-        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
-            <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
-        </button>
-        
-        <!-- 2. Radar (visible pour aidant ou famille) -->
-        ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
-        <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
-            <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Radar</span>
-        </button>
-        ` : '<div class="flex-1"></div>'}
-        
-        <!-- 3. BOUTON CENTRAL (PLUS) - Adapté selon le rôle -->
-        ${userRole === 'COORDINATEUR' ? `
-        <button onclick="window.switchView('add-patient')" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-user-plus text-xl"></i>
-        </button>
-        ` : `
-        <button onclick="window.openOrderModal()" class="w-14 h-14 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-xl"></i>
-        </button>
-        `}
-        
-        <!-- 4. Visites / Journal (adapté selon Maman ou Sénior) -->
-        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
-            <i class="fa-solid fa-calendar-check text-lg text-slate-400"></i>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Visites</span>
-        </button>
-        
-        <!-- 5. Profil / Suivi (adapté selon Maman ou Sénior) -->
-        <button onclick="window.switchView('${isFamily ? (isMaman ? 'feed' : 'patients') : 'profile'}')" data-view="${isFamily ? (isMaman ? 'feed' : 'patients') : 'profile'}" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
-            ${isFamily ? (isMaman ? `
-            <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
-                <i class="fa-solid fa-book-open text-pink-500 text-xs"></i>
-            </div>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Journal</span>
-            ` : `
-            <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                <i class="fa-solid fa-folder-open text-emerald-500 text-xs"></i>
-            </div>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Dossier</span>
-            `) : `
-            <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
-            </div>
-            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-            `}
-        </button>
-        
-    </div>
-</footer>
-             
+                <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 px-4 py-2 z-50 shadow-lg">
+                    <div class="flex justify-between items-center gap-1">
+                        
+                        <!-- 1. Accueil (toujours visible) -->
+                        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+                            <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+                        </button>
+                        
+                        <!-- 2. Radar (visible pour aidant ou famille) -->
+                        ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
+                        <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+                            <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Radar</span>
+                        </button>
+                        ` : '<div class="flex-1"></div>'}
+                        
+                        <!-- 3. BOUTON CENTRAL (PLUS) - Adapté selon le rôle -->
+                        ${userRole === 'COORDINATEUR' ? `
+                        <button onclick="window.switchView('add-patient')" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
+                            <i class="fa-solid fa-user-plus text-xl"></i>
+                        </button>
+                        ` : `
+                        <button onclick="window.openOrderModal()" class="w-14 h-14 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
+                            <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-xl"></i>
+                        </button>
+                        `}
+                        
+                        <!-- 4. Visites -->
+                        <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+                            <i class="fa-solid fa-calendar-check text-lg text-slate-400"></i>
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Visites</span>
+                        </button>
+                        
+                        <!-- 5. Profil / Suivi (adapté selon Maman ou Sénior) -->
+                        <button onclick="window.switchView('${isFamily ? (isMaman ? 'feed' : 'patients') : 'profile'}')" data-view="${isFamily ? (isMaman ? 'feed' : 'patients') : 'profile'}" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+                            ${isFamily ? (isMaman ? `
+                            <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
+                                <i class="fa-solid fa-book-open text-pink-500 text-xs"></i>
+                            </div>
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Journal</span>
+                            ` : `
+                            <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-folder-open text-emerald-500 text-xs"></i>
+                            </div>
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Dossier</span>
+                            `) : `
+                            <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
+                            </div>
+                            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+                            `}
+                        </button>
+                        
+                    </div>
+                </footer>
+                 
             </div>
         </div>
     `;
 
     setTimeout(() => {
-    updateBrandingColors();
-        }, 50);
-    
+        updateBrandingColors();
+    }, 50);
 }
 
 // ============================================================
