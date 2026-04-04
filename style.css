@@ -801,11 +801,7 @@ main {
     height: 32px;
     animation: pulse 1s ease-in-out infinite;
 }*/
-#loader-logo-img {
-    width: 64px;
-    height: 64px;
-    animation: pulse 1s ease-in-out infinite;
-}
+
 .global-loader .loader-text {
     margin-top: 1rem;
     font-size: 10px;
@@ -1727,4 +1723,14 @@ main::-webkit-scrollbar,
 #view-container::-webkit-scrollbar, 
 .overflow-y-auto::-webkit-scrollbar {
     display: none;
+}
+
+
+
+#loader-logo-img {
+    width: 64px;
+    height: 64px;
+    animation: pulse 1s ease-in-out infinite;
+    background: transparent;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
