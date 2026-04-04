@@ -202,7 +202,6 @@ async function initApp() {
     const onboardingSeen = localStorage.getItem("onboarding_seen");
     updatePWAIcon(localStorage.getItem("user_is_maman") === "true");
 
-    
     console.log("📝 Onboarding vu ?", onboardingSeen);
     
     // Initialisation des services
@@ -211,9 +210,6 @@ async function initApp() {
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
     updateThemeColor();
-    updateThemeColor();
-    
-
     
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
@@ -240,27 +236,77 @@ async function initApp() {
             }
             
             renderLayout();
-            setTimeout(() => {
-                window.startVisit = Visites.startVisit;
-                window.confirmStartVisit = Visites.startVisit;
-                console.log("✅ Fonctions window assignées après délai");
-            }, 500);
+            
+            // ✅ Vérifier les visites actives
             await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
             checkActiveVisit();
             setTimeout(() => updateBrandingColors(), 100);
 
-
-            
             const userRole = localStorage.getItem("user_role");
             const defaultView = window.innerWidth < 1024 ? "home" : (userRole === "COORDINATEUR" ? "dashboard" : "patients");
             const lastView = localStorage.getItem("last_view") || defaultView;
             
             await window.switchView(lastView);
 
+            // ✅ ASSIGNATION DES FONCTIONS GLOBALES APRÈS LE CHARGEMENT
+            console.log("🔍 Vérification des modules après chargement:");
+            console.log("🔍 Type de Visites.startVisit:", typeof Visites.startVisit);
+            console.log("🔍 Type de Visites.submitEndVisit:", typeof Visites.submitEndVisit);
+            console.log("🔍 Type de Commandes.confirmCommand:", typeof Commandes.confirmCommand);
+            console.log("🔍 Type de Commandes.markAsDelivered:", typeof Commandes.markAsDelivered);
+
+            // ✅ Assignation des fonctions Visites
+            if (Visites && typeof Visites.startVisit === 'function') {
+                window.startVisit = Visites.startVisit.bind(Visites);
+                window.confirmStartVisit = Visites.startVisit.bind(Visites);
+                console.log("✅ window.startVisit assignée avec succès");
+            } else {
+                console.error("❌ Visites.startVisit n'est pas une fonction");
+            }
+
+            if (Visites && typeof Visites.submitEndVisit === 'function') {
+                window.submitEndVisit = Visites.submitEndVisit.bind(Visites);
+                console.log("✅ window.submitEndVisit assignée");
+            }
+
+            if (Visites && typeof Visites.savePatientHomeGPS === 'function') {
+                window.savePatientHomeGPS = Visites.savePatientHomeGPS.bind(Visites);
+                console.log("✅ window.savePatientHomeGPS assignée");
+            }
+
+            if (Visites && typeof Visites.rateVisit === 'function') {
+                window.rateVisit = Visites.rateVisit.bind(Visites);
+                console.log("✅ window.rateVisit assignée");
+            }
+
+            // ✅ Assignation des fonctions Commandes
+            if (Commandes && typeof Commandes.confirmCommand === 'function') {
+                window.confirmCommand = Commandes.confirmCommand;
+                console.log("✅ window.confirmCommand assignée");
+            } else {
+                console.error("❌ Commandes.confirmCommand n'est pas une fonction");
+            }
+
+            if (Commandes && typeof Commandes.markAsDelivered === 'function') {
+                window.markAsDelivered = Commandes.markAsDelivered.bind(Commandes);
+                console.log("✅ window.markAsDelivered assignée");
+            } else {
+                console.error("❌ Commandes.markAsDelivered n'est pas une fonction");
+            }
+
+            // ✅ Assignation de quickValidate
+            if (typeof quickValidate === 'function') {
+                window.quickValidate = quickValidate;
+                console.log("✅ window.quickValidate assignée");
+            } else {
+                console.error("❌ quickValidate n'est pas une fonction");
+            }
+
+            // ✅ Vérification finale des fonctions critiques
             setTimeout(() => {
-                // Vérification des fonctions critiques
-                const requiredFunctions = ['startVisit', 'confirmCommand', 'quickValidate', 'markAsDelivered'];
+                console.log("🔍 Vérification finale des fonctions globales:");
+                const requiredFunctions = ['startVisit', 'confirmCommand', 'quickValidate', 'markAsDelivered', 'submitEndVisit'];
                 requiredFunctions.forEach(fn => {
                     if (typeof window[fn] !== 'function') {
                         console.error(`❌ Fonction manquante: ${fn}`);
@@ -268,7 +314,7 @@ async function initApp() {
                         console.log(`✅ ${fn} disponible`);
                     }
                 });
-            }, 1000);
+            }, 500);
             
             hideLoader();
         } else {
@@ -281,7 +327,6 @@ async function initApp() {
         hideLoader();
     }
 }
-
 // ============================================================
 // GESTION DE LA COULEUR DE LA BARRE D'ÉTAT (THEME COLOR)
 // ============================================================
