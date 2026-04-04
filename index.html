@@ -60,20 +60,24 @@
                 </div>
                 
                 <script>
-                    // ✅ Chargement IMMÉDIAT de la bonne icône selon le thème
-                    (function() {
+                // Chargement immédiat de l'icône du loader
+                (function() {
+                    // Petit délai pour s'assurer que localStorage est accessible
+                    setTimeout(function() {
                         try {
                             const isMaman = localStorage.getItem('user_is_maman') === 'true';
-                            const defaultIcon = '/sante-plus-frontend/assets/images/logo-general-icon.png';
-                            const mamanIcon = '/sante-plus-frontend/assets/images/logo-maman-icon.png';
+                            const logoSrc = isMaman 
+                                ? '/sante-plus-frontend/assets/images/logo-maman-icon.png'
+                                : '/sante-plus-frontend/assets/images/logo-general-icon.png';
                             const loaderImg = document.getElementById('loader-logo-img');
                             if (loaderImg) {
-                                loaderImg.src = isMaman ? mamanIcon : defaultIcon;
+                                loaderImg.src = logoSrc;
                             }
                         } catch(e) {
-                            console.warn("Loader: impossible de définir l'icône", e);
+                            console.warn("Loader: localStorage non disponible", e);
                         }
-                    })();
+                    }, 10);
+                })();
                 </script>
     <!-- ============================================ -->
     <!-- CONTENEUR PRINCIPAL -->
