@@ -162,65 +162,83 @@ window.confirmCommand = async (commandeId) => {
  * 📦 CONFIRMER LA LIVRAISON (Aidant)
  */
 export async function markAsDelivered(commandeId) {
-  const { value: file } = await Swal.fire({
-    title: "Preuve de livraison",
-    text: "Prenez une photo des médicaments déposés au domicile.",
-    input: "file",
-    inputAttributes: { accept: "image/*", capture: "camera" },
-    confirmButtonText: "VALIDER LA LIVRAISON",
-    confirmButtonColor: "#10B981",
-    showCancelButton: true,
-    cancelButtonText: "Annuler",
-  });
-
-  if (!file) return;
-
-  try {
-    Swal.fire({
-      title: "Envoi de la preuve...",
-      didOpen: () => Swal.showLoading(),
-      allowOutsideClick: false,
+    const { value: file } = await Swal.fire({
+        title: "Preuve de livraison",
+        text: "Prenez une photo des médicaments déposés au domicile.",
+        input: "file",
+        inputAttributes: { accept: "image/*", capture: "camera" },
+        confirmButtonText: "VALIDER LA LIVRAISON",
+        confirmButtonColor: "#10B981",
+        showCancelButton: true,
+        cancelButtonText: "Annuler",
     });
 
-    // ✅ Compression plus agressive (qualité 0.4)
-    const compressed = await compressImage(file, 800, 0.4);
-    
-    console.log(`📸 Taille originale: ${(file.size / 1024).toFixed(2)} KB`);
-    console.log(`📸 Taille compressée: ${(compressed.size / 1024).toFixed(2)} KB`);
-    
-    const fd = new FormData();
-    fd.append("commande_id", commandeId);
-    fd.append("photo_livraison", compressed);
+    if (!file) return;
 
-    const response = await fetch(`${CONFIG.API_URL}/commandes/deliver`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      body: fd,
-    });
-
-    const result = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(result.error || "Erreur lors de l'envoi");
+    if (file.size > 5 * 1024 * 1024) {
+        Swal.fire("Image trop lourde", "Maximum 5MB", "warning");
+        return;
     }
 
-    UI.success("Livraison confirmée !");
     Swal.fire({
-      icon: "success",
-      title: "Livré !",
-      timer: 2000,
-      showConfirmButton: false,
+        title: "Envoi...",
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false,
     });
-    loadCommandes();
-  } catch (err) {
-    console.error("❌ Erreur:", err);
-    UI.error(err.message);
-    Swal.fire({
-      title: "Erreur",
-      text: err.message,
-      icon: "error",
-    });
-  }
+
+    try {
+        const compressed = await compressImage(file, 800, 0.5);
+        
+        const fd = new FormData();
+        fd.append("commande_id", commandeId);
+        fd.append("photo_livraison", compressed);
+
+        // ✅ Ajouter un timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+        const response = await fetch(`${CONFIG.API_URL}/commandes/deliver`, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            },
+            body: fd,
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        let result;
+        const text = await response.text();
+        
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            console.error("Réponse non-JSON:", text.substring(0, 500));
+            throw new Error("Le serveur a retourné une réponse invalide");
+        }
+
+        if (!response.ok) {
+            throw new Error(result.error || "Erreur serveur");
+        }
+
+        Swal.fire({
+            icon: "success",
+            title: "Livraison confirmée !",
+            timer: 2000,
+            showConfirmButton: false,
+        });
+        
+        loadCommandes();
+        
+    } catch (err) {
+        console.error("❌ Erreur:", err);
+        Swal.fire({
+            title: "Erreur",
+            text: err.name === "AbortError" ? "Le serveur ne répond pas" : err.message,
+            icon: "error"
+        });
+    }
 }
 /**
  * 💊 OUVRIR LA MODALE DE COMMANDE (Famille)
