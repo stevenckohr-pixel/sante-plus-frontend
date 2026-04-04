@@ -1878,6 +1878,7 @@ window.openAssignModal = Planning.openAssignPage;
 
 
 
+
 // Événements pour la page d'assignation (dropdowns)
 document.addEventListener('click', (e) => {
     const aidantItem = e.target.closest('.aidant-item');
