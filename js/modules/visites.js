@@ -46,7 +46,7 @@ export function refreshAidantUI(patientId) {
     console.log("🔄 refreshAidantUI - activeVisitId:", activeVisitId);
     
     if (!activeVisitId) {
-        // État : Prêt à travailler
+        // ✅ Utiliser la fonction directement (pas window.startVisit)
         container.innerHTML = `
             <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                 <button onclick="window.startVisit('${patientId}')" 
@@ -56,7 +56,6 @@ export function refreshAidantUI(patientId) {
             </div>
         `;
     } else {
-        // État : Mission en cours
         container.innerHTML = `
             <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                 <button onclick="window.openEndVisit()" 
