@@ -72,9 +72,7 @@ export async function loadPlanning() {
     }
 }
 
-/**
- * 🗓️ MODALE D'ASSIGNATION
- */
+
 /**
  * 🗓️ PAGE D'ASSIGNATION INDÉPENDANTE (Remplace la modale)
  */
