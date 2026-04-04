@@ -432,7 +432,6 @@ export function resumeTrackingIfActive() {
 //------------------------------------------------------------------------
 
 
-
 export function refreshAidantUI(patientId) {
     const container = document.getElementById("aidant-active-area");
     if (!container) return;
@@ -440,9 +439,10 @@ export function refreshAidantUI(patientId) {
     const activeVisitId = localStorage.getItem("active_visit_id");
     
     console.log("🔄 refreshAidantUI - activeVisitId:", activeVisitId);
+    console.log("🔄 refreshAidantUI - patientId:", patientId);
     
     if (!activeVisitId) {
-        // ✅ Utiliser la fonction directement (pas window.startVisit)
+        // Pas de visite active → bouton "Démarrer"
         container.innerHTML = `
             <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                 <button onclick="window.startVisit('${patientId}')" 
@@ -452,18 +452,17 @@ export function refreshAidantUI(patientId) {
             </div>
         `;
     } else {
+        // Visite active → bouton "Clôturer"
         container.innerHTML = `
             <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                 <button onclick="window.openEndVisit()" 
-                        class="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3">
-                    <i class="fa-solid fa-camera"></i> Clôturer & Photo
+                        class="w-full py-5 bg-rose-500 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-rose-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-camera"></i> Clôturer la visite
                 </button>
             </div>
         `;
     }
 }
-
-
 
 //-----------------------------------------------------
 //-------------------------------------------------------------
