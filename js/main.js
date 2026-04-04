@@ -36,6 +36,10 @@ import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
 import * as Notifications from "./modules/notifications.js";
+console.log("🔍 [main.js] Imports vérifiés:");
+console.log("🔍 Visites module:", Visites);
+console.log("🔍 Visites.startVisit:", Visites?.startVisit);
+console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
 const { updateNotificationBadge } = Notifications;
 
 
