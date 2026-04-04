@@ -49,17 +49,32 @@
     </script>  
     -->
 
-
-        <!-- ============================================ -->
-        <!-- ============================================ -->
-        <!-- LOADER PREMIUM -->
-        <!-- ============================================ -->
-<div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
-    <div class="mb-4 bg-slate-100 rounded-2xl p-4 shadow-lg">
-        <img id="loader-logo-img" class="w-16 h-16 animate-pulse">
-    </div>
-    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Santé Plus Services</p>
-</div>
+                <!-- ============================================ -->
+                <!-- LOADER PREMIUM -->
+                <!-- ============================================ -->
+                <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
+                    <div class="mb-4 bg-slate-100 rounded-2xl p-4 shadow-lg">
+                        <img id="loader-logo-img" class="w-32 h-32 animate-pulse" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+                    </div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Santé Plus Services</p>
+                </div>
+                
+                <script>
+                    // ✅ Chargement IMMÉDIAT de la bonne icône selon le thème
+                    (function() {
+                        try {
+                            const isMaman = localStorage.getItem('user_is_maman') === 'true';
+                            const defaultIcon = '/sante-plus-frontend/assets/images/logo-general-icon.png';
+                            const mamanIcon = '/sante-plus-frontend/assets/images/logo-maman-icon.png';
+                            const loaderImg = document.getElementById('loader-logo-img');
+                            if (loaderImg) {
+                                loaderImg.src = isMaman ? mamanIcon : defaultIcon;
+                            }
+                        } catch(e) {
+                            console.warn("Loader: impossible de définir l'icône", e);
+                        }
+                    })();
+                </script>
     <!-- ============================================ -->
     <!-- CONTENEUR PRINCIPAL -->
     <!-- ============================================ -->
