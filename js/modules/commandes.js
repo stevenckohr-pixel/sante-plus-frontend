@@ -129,7 +129,6 @@ async function loadAidantsForSelect() {
     }
 }
 
-// ✅ Fonction pour confirmer la commande (Coordinateur)
 // ✅ Ajouter commandeId comme paramètre
 export async function confirmCommand(commandeId) {
     const prix = document.getElementById(`prix-${commandeId}`)?.value;
@@ -357,10 +356,3 @@ export async function openOrderModal() {
     }
 }
 
-
-export { 
-    loadCommandes, 
-    confirmCommand, 
-    markAsDelivered, 
-    openOrderModal 
-};
