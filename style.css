@@ -1942,6 +1942,43 @@ main::-webkit-scrollbar,
 
 
 
+/* ============================================
+   CHANGEMENT DE COULEUR DE FOND UNIQUEMENT
+   ============================================ */
 
+/* Fond principal - remplacer le blanc par un gris très clair */
+body {
+    background: #F1F5F9 !important;  /* Gris clair élégant */
+}
+
+/* Alternative : beige très clair */
+/* body {
+    background: #FEF9E6 !important;
+} */
+
+/* Alternative : vert d'eau très pâle */
+/* body {
+    background: #E8F4F0 !important;
+} */
+
+/* Alternative : bleu très pâle */
+/* body {
+    background: #EEF2FF !important;
+} */
+
+/* Garder le fond des cartes blanc pour le contraste */
+.bg-white, 
+.patient-card, 
+.menu-tile,
+.bento-card,
+.bg-white.rounded-2xl,
+.bg-white.rounded-3xl {
+    background: #FFFFFF !important;
+}
+
+/* Le fond de l'app reste cohérent */
+#app {
+    background: transparent;
+}
 
 
