@@ -1267,3 +1267,25 @@ aside {
 .btn-maman:hover {
   background-color: #BE185D !important;
 }
+
+
+
+/* Service cards */
+.service-card {
+    transition: all 0.2s ease;
+}
+.service-card:active {
+    transform: scale(0.98);
+}
+
+/* Thème Sénior */
+.service-card[data-type="SENIOR"]:hover {
+    border-color: #10B981;
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+}
+
+/* Thème Maman */
+.service-card[data-type="MAMAN"]:hover {
+    border-color: #DB2777;
+    background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%);
+}
