@@ -1,4 +1,5 @@
-import { secureFetch } from "../core/api.js";
+import { secureFetch, clearApiCache } from "../core/api.js";
+import { CONFIG } from "../core/config.js";
 import { UI } from "../core/utils.js";
 
 /**
@@ -212,6 +213,7 @@ window.payWithFeda = async (abonnementId, montant) => {
 };
 
  
+
 /**
  * ✅ VALIDATION MANUELLE (Coordinateur)
  */
@@ -243,8 +245,9 @@ window.markAsPaid = async (id, montant) => {
       
       UI.success("Paiement validé");
       
-      // ✅ FORCER LE RE-CHARGE DES DONNÉES (pas le cache)
-      await loadBilling(); // Recharge la liste
+      // ✅ FORCER LE VIDAGE DU CACHE ET RECHARGER
+      clearApiCache(); // Vide tout le cache
+      await loadBilling(); // Recharge les données
       
       Swal.fire({
         icon: "success",
