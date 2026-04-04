@@ -1726,12 +1726,176 @@ main::-webkit-scrollbar,
 }
 
 
-#loader-logo-img {
-    width: 200px;
-    height: 200px;
-    animation: pulse 1s ease-in-out infinite;
-    background: #f8fafc;
-    border-radius: 1rem;
-    padding: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+
+/* ============================================
+   LOADER PREMIUM - VERSION ÉLITE
+   ============================================ */
+
+/* Container principal du loader */
+#initial-loader {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animation de fondu pour la sortie */
+#initial-loader.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Anneau extérieur */
+.loader-ring-outer {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid rgba(16, 185, 129, 0.2);
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Cercle rotatif */
+.loader-spinner {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid #E2E8F0;
+    border-top-color: #10B981;
+    border-right-color: #34D399;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Version Maman */
+#initial-loader.maman .loader-spinner {
+    border-top-color: #DB2777;
+    border-right-color: #F472B6;
+}
+
+#initial-loader.maman .loader-ring-outer {
+    border-color: rgba(219, 39, 119, 0.2);
+}
+
+/* Points de chargement */
+.loader-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 20px;
+}
+
+.loader-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #10B981;
+    animation: bounce 0.6s ease-in-out infinite;
+}
+
+.loader-dot:nth-child(1) { animation-delay: 0s; }
+.loader-dot:nth-child(2) { animation-delay: 0.15s; }
+.loader-dot:nth-child(3) { animation-delay: 0.3s; }
+
+#initial-loader.maman .loader-dot {
+    background-color: #DB2777;
+}
+
+/* Texte du loader */
+.loader-text-main {
+    font-size: 8px;
+    font-weight: 800;
+    color: #CBD5E1;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-top: 16px;
+}
+
+.loader-text-sub {
+    font-size: 6px;
+    font-weight: 700;
+    color: #E2E8F0;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 6px;
+}
+
+/* Animation de la barre de progression (version minimaliste) */
+.loader-progress-bar {
+    width: 48px;
+    height: 2px;
+    background-color: #E2E8F0;
+    border-radius: 10px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+.loader-progress-fill {
+    width: 0%;
+    height: 100%;
+    background-color: #10B981;
+    border-radius: 10px;
+    animation: loadingBar 1.5s ease-in-out infinite;
+}
+
+#initial-loader.maman .loader-progress-fill {
+    background-color: #DB2777;
+}
+
+/* Animations */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes ping {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translateY(-6px);
+        opacity: 1;
+    }
+}
+
+@keyframes loadingBar {
+    0% { width: 0%; }
+    50% { width: 100%; }
+    100% { width: 0%; }
+}
+
+/* Version responsive mobile */
+@media (max-width: 640px) {
+    .loader-spinner {
+        width: 48px;
+        height: 48px;
+        border-width: 2.5px;
+    }
+    
+    .loader-ring-outer {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .loader-text-main {
+        font-size: 7px;
+        letter-spacing: 0.25em;
+    }
+    
+    .loader-text-sub {
+        font-size: 5px;
+    }
+    
+    .loader-dot {
+        width: 4px;
+        height: 4px;
+    }
 }
