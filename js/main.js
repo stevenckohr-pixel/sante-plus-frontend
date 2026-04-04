@@ -242,6 +242,8 @@ async function initApp() {
             await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
             checkActiveVisit();
+            setTimeout(() => updateBrandingColors(), 100);
+
 
             
             const userRole = localStorage.getItem("user_role");
@@ -1152,15 +1154,19 @@ function renderLayout() {
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
             <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-                <div class="flex items-center gap-4 mb-14 px-2">
-                    <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
-                        <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
+                    <div class="flex items-center gap-4 mb-14 px-2">
+                        <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
+                            <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
+                        </div>
+                        <div>
+                            <div class="brand-container">
+                                <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
+                                <span class="brand-plus-sidebar font-black">Plus</span>
+                                <span id="sidebar-service" class="brand-service-sidebar font-black"> Services</span>
+                            </div>
+                            <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80 block">Benin</span>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="font-[900] text-xl tracking-tighter uppercase leading-none italic">SPS</h2>
-                        <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80">Elite Management</span>
-                    </div>
-                </div>
                 <nav class="flex-1 space-y-3" id="nav-desktop">
                     ${getNavLinks(userRole, 'desktop')}
                 </nav>
@@ -1180,80 +1186,100 @@ function renderLayout() {
                 </div>
             </aside>
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
-                <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
-                        <div class="lg:hidden flex items-center">
+
+                        <header class="h-20 lg:h-24 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-4 lg:px-8 shrink-0 z-40">
                             <div class="lg:hidden flex items-center">
-                                <div class="w-10 h-10 ${isMaman ? 'bg-pink-500' : 'bg-slate-900'} rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
-                                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-6 h-6 object-contain">
+                                <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-xl rotate-[-5deg]">
+                                    <img id="header-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-6 h-6 object-contain">
                                 </div>
                             </div>
-                        </div>
-                    <div class="flex flex-col">
-                        <h2 id="view-title" class="text-xl lg:text-3xl font-[900] text-slate-900 tracking-tight leading-none">Tableau de bord</h2>
-                        <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Santé Plus • Protocole de confiance</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <button onclick="window.switchView('notifications')" 
-                                class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm group">
-                            <i class="fa-solid fa-bell text-sm"></i>
-                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
-                        </button>
-                        <button onclick="window.switchView('profile')" class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
-                            <div class="flex flex-col items-end">
-                                <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider hidden lg:block">Mon compte</span>
-                                <span class="text-xs font-black text-slate-800 hidden lg:block">${userName?.split(' ')[0] || 'Profil'}</span>
-                            </div>
-                            <div class="relative">
-                                <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-${themeColor}-100 to-${themeColor}-200 flex items-center justify-center shadow-md">
-                                    ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user-${userRole === 'AIDANT' ? 'nurse' : userRole === 'FAMILLE' ? 'family' : 'tie'} text-${themeColor}-600 text-lg"></i>`}
+                            
+                            <div class="flex flex-col">
+                                <div class="brand-container">
+                                    <span id="header-sante" class="brand-sante-md font-black hidden lg:inline">Santé</span>
+                                    <span class="brand-plus-md font-black hidden lg:inline">Plus</span>
+                                    <span id="header-service" class="brand-service-md font-black hidden lg:inline"> Services</span>
                                 </div>
-                                <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></div>
+                                <p class="hidden lg:block text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Protocole de confiance</p>
                             </div>
-                        </button>
-                    </div>
-                </header>
+                            
+                            <div class="flex items-center gap-3">
+                                <!-- Le reste du header (notifications, profil) reste identique -->
+                                <button onclick="window.switchView('notifications')" 
+                                        class="relative w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm group">
+                                    <i class="fa-solid fa-bell text-sm"></i>
+                                    <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                                </button>
+                                <button onclick="window.switchView('profile')" class="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm hover:shadow-md transition-all active:scale-95">
+                                    <div class="flex flex-col items-end">
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider hidden lg:block">Mon compte</span>
+                                        <span class="text-xs font-black text-slate-800 hidden lg:block">${userName?.split(' ')[0] || 'Profil'}</span>
+                                    </div>
+                                    <div class="relative">
+                                        <div class="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-br from-${themeColor}-100 to-${themeColor}-200 flex items-center justify-center shadow-md">
+                                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user-${userRole === 'AIDANT' ? 'nurse' : userRole === 'FAMILLE' ? 'family' : 'tie'} text-${themeColor}-600 text-lg"></i>`}
+                                        </div>
+                                        <div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white"></div>
+                                    </div>
+                                </button>
+                            </div>
+                        </header>
                 <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
                 <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
                 <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
                     <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                 </main>
-
-<footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
-    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-        <i class="fa-solid fa-house-chimney text-lg text-slate-400 group-[.active]:text-emerald-500"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400 group-[.active]:text-emerald-500">Accueil</span>
-    </button>
-    
-    ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
-    <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-        <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
-    </button>
-    ` : ''}
-    
-    ${userRole === 'COORDINATEUR' ? `
-    <button onclick="window.switchView('rh-dashboard')" data-view="rh-dashboard" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-        <i class="fa-solid fa-users text-lg text-slate-400"></i>
-        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">RH</span>
-    </button>
-    ` : ''}
-    
-    <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
-        <i class="fa-solid fa-plus text-xl"></i>
-    </button>
-    
-    <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
-        <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
-        </div>
-        <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-    </button>
-</footer>
+            
+            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-100 px-6 py-2 z-50 flex justify-between items-center shadow-lg">
+                <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
+                    <i class="fa-solid fa-house-chimney text-lg text-slate-400 group-[.active]:text-emerald-500"></i>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400 group-[.active]:text-emerald-500">Accueil</span>
+                </button>
+                
+                ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
+                <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
+                    <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Radar</span>
+                </button>
+                ` : ''}
+                
+                ${userRole === 'COORDINATEUR' ? `
+                <button onclick="window.switchView('rh-dashboard')" data-view="rh-dashboard" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
+                    <i class="fa-solid fa-users text-lg text-slate-400"></i>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">RH</span>
+                </button>
+                ` : ''}
+                
+                <button onclick="window.openAddPatient()" class="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-6 border-4 border-white active:scale-95 transition-all duration-200">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </button>
+                
+                <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 transition-all">
+                    <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                        ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
+                    </div>
+                    <span class="text-[8px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+                </button>
+            </footer>
+            
+            <!-- Ajoute le texte de marque sous le footer -->
+            <div class="lg:hidden fixed bottom-2 left-0 right-0 text-center z-50 pointer-events-none">
+                <div class="brand-container justify-center">
+                    <span id="footer-sante" class="brand-sante-footer font-black">Santé</span>
+                    <span class="brand-plus-footer font-black">Plus</span>
+                    <span id="footer-service" class="brand-service-footer font-black"> Services</span>
+                </div>
+            </div>
 
              
             </div>
         </div>
     `;
+
+    setTimeout(() => {
+    updateBrandingColors();
+        }, 50);
+    
 }
 
 // ============================================================
@@ -1715,6 +1741,34 @@ async function checkActiveVisit() {
     }
 }
 
+
+/**
+ * 🎨 Met à jour les couleurs du branding partout
+ */
+function updateBrandingColors() {
+    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    
+    // Mettre à jour la couleur de "Santé" partout
+    const santeElements = document.querySelectorAll('#header-sante, #sidebar-sante, #footer-sante, #loader-sante');
+    santeElements.forEach(el => {
+        if (el) {
+            el.style.color = isMaman ? '#DB2777' : '#10B981';
+        }
+    });
+    
+    // Mettre à jour les logos
+    const logoElements = document.querySelectorAll('#header-logo-img, #sidebar-logo-img, #loader-logo-img');
+    const logoSrc = isMaman 
+        ? '/sante-plus-frontend/assets/images/logo-maman-icon.png'
+        : '/sante-plus-frontend/assets/images/logo-general-icon.png';
+    
+    logoElements.forEach(img => {
+        if (img) img.src = logoSrc;
+    });
+}
+
+// Exporter la fonction
+window.updateBrandingColors = updateBrandingColors;
 
 window.nextOnboarding = () => {
     onboardingStep++;
