@@ -1068,8 +1068,8 @@ function renderMobileHub() {
             </h4>
             
             <div class="menu-grid">
-                ${filteredMenu.map(item => `
-                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer">
+                ${filteredMenu.map((item, index) => `
+                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer hover-lift" style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
                         <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center">
                             <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
                         </div>
@@ -1543,7 +1543,7 @@ async function performViewSwitch(viewName) {
         // Animation d'entrée
         container.style.opacity = "0";
         container.style.transform = "translateY(8px)";
-        container.style.transition = "opacity 0.15s ease, transform 0.15s ease";
+        container.style.transition = "opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
         setTimeout(() => {
             container.style.opacity = "1";
             container.style.transform = "translateY(0)";
