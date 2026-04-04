@@ -870,8 +870,9 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     const progressColor = isMamanFlow ? 'bg-rose-primary' : 'bg-gold-primary';
 
     let dynamicContent = "";
-    let stepTitle = mode === 'login' ? "Espace Sécurisé" : (mode === 'otp' ? "Sécurité Avancée" : `Étape ${currentStep} / 6`);
-
+    let stepTitle = mode === 'login' ? "Espace Sécurisé" : 
+                (mode === 'otp' ? "Sécurité Avancée" : 
+                (currentStep === 0 ? "Bienvenue" : `Étape ${currentStep} / 6`));
     if (mode === 'login') {
         dynamicContent = `
             <div class="px-8 pb-8 space-y-4 animate-fadeIn flex flex-col justify-center min-h-full">
@@ -937,7 +938,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                         Connexion
                     </button>
-                    <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                    <button onclick="window.renderAuthView('register', 0)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                         Admission
                     </button>
                 </div>`;
@@ -977,7 +978,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                         <button onclick="window.renderAuthView('login')" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                             Connexion
                         </button>
-                        <button onclick="window.renderAuthView('register', 1)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
+                        <button onclick="window.renderAuthView('register', 0)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
                             Admission
                         </button>
                     </div>
