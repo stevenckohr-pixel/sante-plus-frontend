@@ -1867,8 +1867,7 @@ window.openActivationPage = Admin.openActivationPage;
 window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
 window.confirmStartVisit = Visites.startVisit;
-window.startVisit = Visites.startVisit; 
-console.log("✅ window.startVisit assignée:", typeof window.startVisit);
+
 
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
@@ -2011,5 +2010,7 @@ window.processValidation = async (id, email, nom, role) => {
         });
     }
 };
-// Lancement de l'application
+
+window.startVisit = Visites.startVisit; 
+console.log("✅ window.startVisit assignée:", typeof window.startVisit);
 initApp();
