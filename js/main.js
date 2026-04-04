@@ -1319,15 +1319,15 @@ window.switchView = async function(viewName) {
     await new Promise(r => setTimeout(r, 150));
     
         // Loader élégant avec logo local
-        const isMaman = localStorage.getItem('user_is_maman') === 'true';
-        const loaderIcon = isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON;
-        
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
-                <img src="${loaderIcon}" class="w-12 h-12 animate-pulse">
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
-            </div>
-        `;
+            const isMaman = localStorage.getItem('user_is_maman') === 'true';
+            const loaderIcon = isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON;
+            
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
+                    <img src="${loaderIcon}" class="w-12 h-12 animate-pulse">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
+                </div>
+            `;
     await new Promise(r => setTimeout(r, 50));
     
     try {
