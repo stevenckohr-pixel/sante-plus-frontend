@@ -1227,13 +1227,13 @@ function renderLayout() {
            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 px-4 py-2 z-50 shadow-lg">
     <div class="flex justify-between items-center gap-1">
         
-        <!-- 1. Accueil -->
+        <!-- 1. Accueil (toujours visible) -->
         <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
             <i class="fa-solid fa-house-chimney text-lg text-slate-400"></i>
             <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
         </button>
         
-        <!-- 2. Radar (si aidant ou famille) -->
+        <!-- 2. Radar (visible pour aidant ou famille) -->
         ${(userRole === 'AIDANT' || userRole === 'FAMILLE') ? `
         <button onclick="window.switchView('map')" data-view="map" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
             <i class="fa-solid fa-location-dot text-lg text-slate-400"></i>
@@ -1241,23 +1241,41 @@ function renderLayout() {
         </button>
         ` : '<div class="flex-1"></div>'}
         
-        <!-- 3. BOUTON CENTRAL (PLUS) -->
-        <button onclick="window.openAddPatient()" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid fa-plus text-xl"></i>
+        <!-- 3. BOUTON CENTRAL (PLUS) - Adapté selon le rôle -->
+        ${userRole === 'COORDINATEUR' ? `
+        <button onclick="window.switchView('add-patient')" class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
+            <i class="fa-solid fa-user-plus text-xl"></i>
         </button>
+        ` : `
+        <button onclick="window.openOrderModal()" class="w-14 h-14 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-lg -mt-7 border-4 border-white active:scale-95 transition-all duration-200">
+            <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-xl"></i>
+        </button>
+        `}
         
-        <!-- 4. Visites / Historique -->
+        <!-- 4. Visites / Journal (adapté selon Maman ou Sénior) -->
         <button onclick="window.switchView('visits')" data-view="visits" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
             <i class="fa-solid fa-calendar-check text-lg text-slate-400"></i>
             <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Visites</span>
         </button>
         
-        <!-- 5. Profil -->
-        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+        <!-- 5. Profil / Suivi (adapté selon Maman ou Sénior) -->
+        <button onclick="window.switchView('${isFamily ? (isMaman ? 'feed' : 'patients') : 'profile'}')" data-view="${isFamily ? (isMaman ? 'feed' : 'patients') : 'profile'}" class="nav-btn flex flex-col items-center gap-0.5 flex-1 py-1 rounded-xl transition-all">
+            ${isFamily ? (isMaman ? `
+            <div class="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
+                <i class="fa-solid fa-book-open text-pink-500 text-xs"></i>
+            </div>
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Journal</span>
+            ` : `
+            <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                <i class="fa-solid fa-folder-open text-emerald-500 text-xs"></i>
+            </div>
+            <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Dossier</span>
+            `) : `
             <div class="w-6 h-6 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
                 ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-xs"></i>`}
             </div>
             <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">Profil</span>
+            `}
         </button>
         
     </div>
