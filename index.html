@@ -49,50 +49,58 @@
     </script>  
     -->
 <!-- LOADER MINIMALISTE -->
-<!-- LOADER ÉPURÉ -->
+<!-- LOADER AVEC CERCLE + CŒUR + LOGO -->
 <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
     
-    <!-- Logo avec animation douce -->
-    <div class="mb-4">
-        <img id="loader-logo-img" class="w-16 h-16 object-contain animate-soft-pulse" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+    <!-- Cercle rotatif + Cœur pulsant + Logo -->
+    <div class="relative mb-6">
+        <!-- Cercle extérieur qui tourne -->
+        <div class="w-28 h-28 rounded-full border-4 border-slate-100 border-t-emerald-500 animate-spin-slow"></div>
+        
+        <!-- Cœur qui pulse -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            <i class="fa-solid fa-heart text-3xl text-emerald-500 animate-heart-pulse"></i>
+        </div>
+        
+        <!-- Logo (caché derrière le cœur, ou à côté ? Je le mets à côté) -->
+        <div class="absolute -right-8 -bottom-2 w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center">
+            <img id="loader-logo-img" class="w-7 h-7 object-contain" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+        </div>
     </div>
     
     <!-- Texte -->
     <div class="text-center">
-        <span id="loader-sante" class="text-base font-black">Santé</span>
-        <span class="text-base font-black text-gold-primary">Plus</span>
-        <span id="loader-service" class="text-base font-black text-slate-400"> Service</span>
-    </div>
-    
-    <!-- Petite barre discrète -->
-    <div class="w-16 h-0.5 bg-slate-100 rounded-full mt-4 overflow-hidden">
-        <div class="w-full h-full bg-emerald-500 rounded-full animate-bar"></div>
+        <span id="loader-sante" class="text-sm font-black">Santé</span>
+        <span class="text-sm font-black text-gold-primary">Plus</span>
+        <span id="loader-service" class="text-sm font-black text-slate-400"> Service</span>
     </div>
 </div>
 
 <style>
-/* Animation douce pour le logo */
-@keyframes soft-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(0.97); }
+/* Cercle qui tourne */
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
-.animate-soft-pulse {
-    animation: soft-pulse 1.2s ease-in-out infinite;
+.animate-spin-slow {
+    animation: spin-slow 1.2s linear infinite;
 }
 
-/* Animation de la barre */
-@keyframes bar {
-    0% { width: 0%; margin-left: 0; }
-    50% { width: 100%; margin-left: 0; }
-    100% { width: 0%; margin-left: 100%; }
+/* Cœur qui pulse */
+@keyframes heart-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
 }
-.animate-bar {
-    animation: bar 1.5s ease-in-out infinite;
+.animate-heart-pulse {
+    animation: heart-pulse 0.8s ease-in-out infinite;
 }
 
 /* Version Maman */
-#initial-loader.maman .bg-emerald-500 {
-    background-color: #DB2777 !important;
+#initial-loader.maman .border-t-emerald-500 {
+    border-top-color: #DB2777 !important;
+}
+#initial-loader.maman .text-emerald-500 {
+    color: #DB2777 !important;
 }
 
 .text-gold-primary {
