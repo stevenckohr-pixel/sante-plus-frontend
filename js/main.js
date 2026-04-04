@@ -1005,57 +1005,70 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // Texte de la bannière selon le profil
+    // Couleurs de branding
+    const primaryColor = isMaman ? '#DB2777' : '#10B981';
+    const primaryLight = isMaman ? '#FDF2F8' : '#ECFDF5';
+    const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const goldColor = '#D4AF37';
+    
+    // Texte de la bannière
     let bannerText = "";
     let bannerIcon = "";
     let bannerDesc = "";
+    let bannerBg = "";
     
     if (isMaman) {
         bannerText = "🌸 Programme Maman & Bébé";
-        bannerIcon = "fa-hand-holding-heart";
+        bannerIcon = "fa-baby-carriage";
         bannerDesc = "Soutien et bien-être pour maman et bébé";
+        bannerBg = "bg-gradient-to-r from-pink-50 to-pink-100 border-pink-200";
     } else if (isSenior) {
         bannerText = "⭐ Programme Sénior";
         bannerIcon = "fa-crown";
         bannerDesc = "Maintien à domicile et soins au quotidien";
+        bannerBg = "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200";
     } else {
         bannerText = "⭐ Programme Premium";
         bannerIcon = "fa-crown";
         bannerDesc = "Accès prioritaire aux soins";
+        bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // Menu complet avec tuiles
+    // Menu avec branding fort
     const menuItems = [
-        { id: 'map', label: 'Suivi GPS', desc: isMaman ? 'Où est l\'aidant ?' : 'Localisation', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Santé maman et bébé' : (isSenior ? 'Dossier médical' : 'Gestion'), icon: 'fa-hospital-user', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'visits', label: 'Visites', desc: 'Historique des passages', icon: 'fa-calendar-check', color: 'text-blue-500', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), desc: 'Photos et messages', icon: 'fa-rss', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements et abonnement', icon: 'fa-file-invoice-dollar', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'subscription', label: 'Abonnement', desc: 'Nos formules', icon: 'fa-ticket', color: 'text-emerald-500', bg: 'bg-emerald-50', roles: ['FAMILLE'] },
-        { id: 'profile', label: 'Mon compte', desc: 'Mes informations', icon: 'fa-user-circle', color: 'text-slate-600', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Carnet de santé' : 'Dossier médical', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: 'text-orange-500', bg: 'bg-orange-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', label: isMaman ? 'Commandes' : 'Commandes', desc: 'Produits', icon: 'fa-box', color: 'text-cyan-500', bg: 'bg-cyan-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-rose-500', bg: 'bg-rose-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
+        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: 'text-slate-500', bg: 'bg-slate-100', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     container.innerHTML = `
         <div class="animate-fadeIn pb-32">
-            <!-- Bannière élégante -->
-            <div class="${isMaman ? 'maman-banner' : 'premium-banner'} p-5 rounded-2xl mb-8 shadow-sm">
+            <!-- Bannière Branding -->
+            <div class="${bannerBg} p-5 rounded-2xl mb-8 shadow-md border">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[10px] font-black uppercase tracking-wider opacity-80">
-                            ${bannerText}
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
+                                <i class="fa-solid ${bannerIcon} ${isMaman ? 'text-pink-500' : 'text-emerald-500'} text-sm"></i>
+                            </div>
+                            <span class="text-[8px] font-black uppercase tracking-wider text-slate-500">${bannerText}</span>
+                        </div>
+                        <p class="text-xl font-black ${isMaman ? 'text-pink-600' : 'text-emerald-700'}">
+                            ${userName?.split(' ')[0] || 'Utilisateur'}
                         </p>
-                        <p class="text-lg font-black mt-1 ${isMaman ? 'text-pink-600' : 'text-slate-800'}">
-                            ${userName?.split(' ')[0] || 'Utilisateur'} 👋
-                        </p>
-                        <p class="text-[10px] font-medium opacity-70 mt-0.5">
+                        <p class="text-[10px] text-slate-500 mt-0.5">
                             ${bannerDesc}
                         </p>
                     </div>
-                    <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <i class="fa-solid ${bannerIcon} text-xl text-white"></i>
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br ${isMaman ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600'} flex items-center justify-center shadow-lg">
+                        <i class="fa-solid fa-star text-white text-lg"></i>
                     </div>
                 </div>
             </div>
@@ -1063,19 +1076,19 @@ function renderMobileHub() {
             <!-- Barre de recherche -->
             <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
                 <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
-                <input type="text" placeholder="${isMaman ? 'Rechercher dans le carnet de bébé...' : 'Rechercher un dossier...'}" class="bg-transparent border-none outline-none text-sm font-medium w-full">
+                <input type="text" placeholder="Rechercher..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
             </div>
             
-            <!-- Titre menu -->
-            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-4 ml-1">
-                ${isMaman ? 'Menu Maman & Bébé' : 'Menu Principal'}
+            <!-- Titre menu avec couleur brand -->
+            <h4 class="text-[10px] font-black uppercase tracking-wider mb-4 ml-1 ${isMaman ? 'text-pink-400' : 'text-emerald-400'}">
+                MENU PRINCIPAL
             </h4>
             
             <!-- Grille menu -->
             <div class="menu-grid">
                 ${filteredMenu.map((item, index) => `
-                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer hover-lift" style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
-                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center">
+                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer hover-lift border border-slate-100" style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
+                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center transition-all">
                             <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
                         </div>
                         <div>
@@ -1084,6 +1097,13 @@ function renderMobileHub() {
                         </div>
                     </div>
                 `).join('')}
+            </div>
+            
+            <!-- Badge de marque en bas -->
+            <div class="text-center mt-8 pt-4 border-t border-slate-100">
+                <p class="text-[8px] font-black uppercase tracking-wider text-slate-300">
+                    Santé Plus Services — <span class="${isMaman ? 'text-pink-400' : 'text-emerald-400'}">Élite</span>
+                </p>
             </div>
         </div>
     `;
