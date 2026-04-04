@@ -256,6 +256,19 @@ async function initApp() {
             const lastView = localStorage.getItem("last_view") || defaultView;
             
             await window.switchView(lastView);
+
+            setTimeout(() => {
+                // Vérification des fonctions critiques
+                const requiredFunctions = ['startVisit', 'confirmCommand', 'quickValidate', 'markAsDelivered'];
+                requiredFunctions.forEach(fn => {
+                    if (typeof window[fn] !== 'function') {
+                        console.error(`❌ Fonction manquante: ${fn}`);
+                    } else {
+                        console.log(`✅ ${fn} disponible`);
+                    }
+                });
+            }, 1000);
+            
             hideLoader();
         } else {
             renderAuthView('login');
@@ -284,6 +297,18 @@ function updateThemeColor() {
     const color = isMaman ? '#DB2777' : '#0F172A';
     setThemeColor(color);
 }
+
+
+
+window.selectServiceType = (type) => {
+    registrationData.categorie = type;
+    registrationData.user_is_maman = (type === 'MAMAN_BEBE');
+    currentStep = 1;
+    renderAuthView('register', currentStep);
+};
+
+
+
 // ============================================================
 // VUES DYNAMIQUES DU FORMULAIRE D'ADMISSION
 // ============================================================
@@ -561,12 +586,6 @@ function getStepHTML() {
 
 
 
-window.selectServiceType = (type) => {
-    registrationData.categorie = type;
-    registrationData.user_is_maman = (type === 'MAMAN_BEBE');
-    currentStep = 1;
-    renderAuthView('register', currentStep);
-};
 
 
 // ============================================================
@@ -2018,13 +2037,35 @@ console.log("🔍 Vérification des fonctions avant assignation:");
 console.log("Visites.startVisit:", typeof Visites.startVisit);
 console.log("Visites.submitEndVisit:", typeof Visites.submitEndVisit);
 
-window.startVisit = Visites.startVisit;
-window.confirmStartVisit = Visites.startVisit;
-window.submitEndVisit = Visites.submitEndVisit;
-window.savePatientHomeGPS = Visites.savePatientHomeGPS;
-window.rateVisit = Visites.rateVisit;
+// ✅ S'assurer que la fonction existe avant de l'assigner
+if (Visites && typeof Visites.startVisit === 'function') {
+    window.startVisit = Visites.startVisit.bind(Visites);
+    window.confirmStartVisit = Visites.startVisit.bind(Visites);
+    console.log("✅ window.startVisit assignée avec succès");
+} else {
+    console.error("❌ Visites.startVisit n'est pas une fonction");
+}
 
-console.log("✅ window.startVisit assignée:", typeof window.startVisit);
-console.log("✅ window.confirmStartVisit assignée:", typeof window.confirmStartVisit);
+if (Visites && typeof Visites.submitEndVisit === 'function') {
+    window.submitEndVisit = Visites.submitEndVisit.bind(Visites);
+}
+
+if (Visites && typeof Visites.savePatientHomeGPS === 'function') {
+    window.savePatientHomeGPS = Visites.savePatientHomeGPS.bind(Visites);
+}
+
+if (Visites && typeof Visites.rateVisit === 'function') {
+    window.rateVisit = Visites.rateVisit.bind(Visites);
+}
+
+if (Commandes && typeof Commandes.confirmCommand === 'function') {
+    window.confirmCommand = Commandes.confirmCommand;
+    console.log("✅ window.confirmCommand assignée");
+} else {
+    console.error("❌ Commandes.confirmCommand n'est pas une fonction");
+}
+
+window.markAsDelivered = markAsDelivered;
+
 
 initApp();
