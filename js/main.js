@@ -1159,12 +1159,11 @@ function renderLayout() {
                             <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
                         </div>
                         <div>
-                            <div class="brand-container">
-                                <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
-                                <span class="brand-plus-sidebar font-black">Plus</span>
-                                <span id="sidebar-service" class="brand-service-sidebar font-black"> Services</span>
+                            <div class="brand-container justify-center">
+                                <span id="footer-sante" class="brand-sante-footer font-black">Santé</span>
+                                <span class="brand-plus-footer font-black">Plus</span>
+                                <span id="footer-service" class="brand-service-footer font-black"> Service</span>
                             </div>
-                            <span class="text-[8px] text-green-400 font-black tracking-[0.4em] uppercase opacity-80 block">Benin</span>
                         </div>
                     </div>
                 <nav class="flex-1 space-y-3" id="nav-desktop">
