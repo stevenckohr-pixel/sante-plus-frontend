@@ -8,7 +8,11 @@ export const CONFIG = {
   APP_NAME: "Santé Plus Services",
   THEME_COLOR: "#16a34a",
   
-  // ✅ Logos locaux
-  LOGO_GENERAL: "/assets/images/logo-general.png",
-  LOGO_MAMAN: "/assets/images/logo-maman.png"
+  // Logos avec texte (pour emails et grands affichages)
+  LOGO_GENERAL_TEXT: "/assets/images/logo-general-text.png",
+  LOGO_MAMAN_TEXT: "/assets/images/logo-maman-text.png",
+  
+  // Icônes sans texte (cœur - pour loader, favicon, petits espaces)
+  LOGO_GENERAL_ICON: "/assets/images/logo-general-icon.png",
+  LOGO_MAMAN_ICON: "/assets/images/logo-maman-icon.png"
 };
