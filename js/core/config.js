@@ -8,6 +8,7 @@ export const CONFIG = {
   APP_NAME: "Santé Plus Services",
   THEME_COLOR: "#16a34a",
   
-  LOGO_GENERAL: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1775257930/ChatGPT_Image_Jan_7_2026_at_11_58_26_PM_1_hrty2z.png",
-  LOGO_MAMAN: "https://res.cloudinary.com/dglwrrvh3/image/upload/v1775257930/IMG-20260403-WA0007.jpg_yrxykl.jpg"
+  // ✅ Logos locaux
+  LOGO_GENERAL: "/assets/images/logo-general.png",
+  LOGO_MAMAN: "/assets/images/logo-maman.png"
 };
