@@ -1227,31 +1227,55 @@ async function initPushNotifications() {
                         <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                     </main>
                 
-<footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 px-6 py-3 z-50 shadow-lg">
-    <div class="flex justify-around items-center">
-        
-        <!-- 1. Accueil -->
-        <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-1 transition-all">
-            <i class="fa-solid fa-house-chimney text-2xl text-slate-400"></i>
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
-        </button>
-        
-        <!-- 2. Bouton central -->
-        <button onclick="${userRole === 'COORDINATEUR' ? "window.switchView('add-patient')" : "window.openOrderModal()"}" 
-                class="w-16 h-16 ${userRole === 'COORDINATEUR' ? 'bg-emerald-500' : (isMaman ? 'bg-pink-500' : 'bg-emerald-500')} text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
-            <i class="fa-solid ${userRole === 'COORDINATEUR' ? 'fa-user-plus' : (isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle')} text-2xl"></i>
-        </button>
-        
-        <!-- 3. Profil -->
-        <button onclick="window.switchView('profile')" data-view="profile" class="nav-btn flex flex-col items-center gap-1 transition-all">
-            <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-user text-slate-400 text-lg"></i>`}
-            </div>
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Profil</span>
-        </button>
-        
-    </div>
-</footer>
+            <footer class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-slate-100 px-6 py-3 z-50 shadow-lg">
+                <div class="flex justify-around items-center">
+                    
+                    <!-- 1. Accueil (toujours visible) -->
+                    <button onclick="window.switchView('home')" data-view="home" class="nav-btn flex flex-col items-center gap-1 transition-all">
+                        <i class="fa-solid fa-house-chimney text-2xl text-slate-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Accueil</span>
+                    </button>
+                    
+                    <!-- 2. Bouton central (adapté selon le rôle) -->
+                    ${userRole === 'COORDINATEUR' ? `
+                    <button onclick="window.switchView('add-patient')" class="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
+                        <i class="fa-solid fa-user-plus text-2xl"></i>
+                    </button>
+                    ` : userRole === 'AIDANT' ? `
+                    <button onclick="window.switchView('start-visit')" class="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
+                        <i class="fa-solid fa-play text-2xl"></i>
+                    </button>
+                    ` : `
+                    <button onclick="window.openOrderModal()" class="w-16 h-16 ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} text-white rounded-2xl flex items-center justify-center shadow-xl -mt-8 border-4 border-white active:scale-95 transition-all duration-200">
+                        <i class="fa-solid ${isMaman ? 'fa-baby-carriage' : 'fa-prescription-bottle'} text-2xl"></i>
+                    </button>
+                    `}
+                    
+                    <!-- 3. Dernier bouton (adapté selon le rôle) -->
+                    ${userRole === 'COORDINATEUR' ? `
+                    <button onclick="window.switchView('rh-dashboard')" data-view="rh-dashboard" class="nav-btn flex flex-col items-center gap-1 transition-all">
+                        <i class="fa-solid fa-users text-2xl text-slate-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Équipe</span>
+                    </button>
+                    ` : userRole === 'AIDANT' ? `
+                    <button onclick="window.switchView('planning')" data-view="planning" class="nav-btn flex flex-col items-center gap-1 transition-all">
+                        <i class="fa-solid fa-calendar-alt text-2xl text-slate-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Agenda</span>
+                    </button>
+                    ` : `
+                    <button onclick="window.switchView('${isMaman ? 'feed' : 'patients'}')" data-view="${isMaman ? 'feed' : 'patients'}" class="nav-btn flex flex-col items-center gap-1 transition-all">
+                        ${isMaman ? `
+                        <i class="fa-solid fa-book-open text-2xl text-pink-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Journal</span>
+                        ` : `
+                        <i class="fa-solid fa-folder-open text-2xl text-emerald-400"></i>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Dossier</span>
+                        `}
+                    </button>
+                    `}
+                    
+                </div>
+            </footer>
                      
                 </div>
             </div>
