@@ -801,7 +801,11 @@ main {
     height: 32px;
     animation: pulse 1s ease-in-out infinite;
 }*/
-
+#loader-logo-img {
+    width: 64px;
+    height: 64px;
+    animation: pulse 1s ease-in-out infinite;
+}
 .global-loader .loader-text {
     margin-top: 1rem;
     font-size: 10px;
