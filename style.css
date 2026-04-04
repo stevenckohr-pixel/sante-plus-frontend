@@ -1942,23 +1942,43 @@ main::-webkit-scrollbar,
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 /* ============================================
-   CHANGEMENT DE COULEUR DE FOND UNIQUEMENT
+   FOND VERT DOUX ET SUBTIL
    ============================================ */
 
-/* Fond principal - remplacer le blanc par un gris très clair */
+/* Fond principal - vert très doux et apaisant */
+body {
+    background: rgba(16, 185, 129, 0.06) !important;
+    /* 6% de vert émeraude - très subtil */
+}
 
-
-body, #app  {
-    background: #E8F4F0 !important;
-} 
-
-/* Alternative : bleu très pâle */
+/* Alternative 1 : vert un peu plus présent (8%) */
 /* body {
-    background: #EEF2FF !important;
+    background: rgba(16, 185, 129, 0.08) !important;
 } */
 
-/* Garder le fond des cartes blanc pour le contraste */
+/* Alternative 2 : vert sauge très doux */
+/* body {
+    background: rgba(74, 120, 85, 0.06) !important;
+} */
+
+/* Alternative 3 : vert menthe ultra doux */
+/* body {
+    background: rgba(52, 211, 153, 0.05) !important;
+} */
+
+/* Garder les cartes blanches pour le contraste */
 .bg-white, 
 .patient-card, 
 .menu-tile,
@@ -1968,4 +1988,7 @@ body, #app  {
     background: #FFFFFF !important;
 }
 
-
+/* Version Maman - fond rose très doux */
+body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
+    background: rgba(219, 39, 119, 0.05) !important;
+}
