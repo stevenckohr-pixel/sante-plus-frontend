@@ -755,7 +755,6 @@ export {
     renderEndVisitView, 
     renderStartVisitView,
     checkActiveVisitOnStart,
-    resumeTrackingIfActive,
     savePatientHomeGPS,
     rateVisit
 };
