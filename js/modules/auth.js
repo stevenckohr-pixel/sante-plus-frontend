@@ -54,10 +54,13 @@ export async function handleLogin() {
       localStorage.setItem("user_id", data.user_id);
     }
 
-    // 🎨 APPLIQUER LA COULEUR DE THÈME
+    // ✅ CORRECTION : Gérer correctement le flag user_is_maman
     if (data.role === 'FAMILLE') {
       const userCategorie = localStorage.getItem("user_categorie");
       const isMaman = userCategorie === 'MAMAN_BEBE';
+      
+      // 🔴 Important : mettre à jour le flag pour la famille
+      localStorage.setItem("user_is_maman", isMaman ? "true" : "false");
       
       if (isMaman) {
         window.setThemeColor('#DB2777'); // Rose pour Maman
@@ -65,8 +68,12 @@ export async function handleLogin() {
         window.setThemeColor('#D4AF37'); // Or pour les autres familles
       }
     } else {
+      // ✅ Pour les aidants et coordinateurs, désactiver le mode Maman
+      localStorage.setItem("user_is_maman", "false");
       window.setThemeColor('#0F172A'); // Noir pour Coordinateur/Aidant
     }
+
+    console.log("🌸 Mode Maman après connexion:", localStorage.getItem("user_is_maman") === "true");
 
     UI.success("Connexion réussie");
     window.location.reload();
