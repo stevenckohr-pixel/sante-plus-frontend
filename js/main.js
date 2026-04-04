@@ -2077,7 +2077,6 @@ if (Commandes && typeof Commandes.confirmCommand === 'function') {
     console.error("❌ Commandes.confirmCommand n'est pas une fonction");
 }
 
-window.markAsDelivered = markAsDelivered;
 
 
 initApp();
