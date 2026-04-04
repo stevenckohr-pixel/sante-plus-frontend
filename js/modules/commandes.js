@@ -62,8 +62,8 @@ function renderCommandes(list) {
         }
 
         return `
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn">
-                <div class="flex justify-between items-start mb-4">
+          <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate" style="animation-delay: ${index * 0.03}s">
+              <div class="flex justify-between items-start mb-4">
                     <div>
                         <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">#${c.id?.substring(0, 8)}</span>
                         <h4 class="font-black text-slate-800 text-sm mt-1">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
