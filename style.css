@@ -2059,7 +2059,7 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
 
 
 /* ============================================
-   MENU FLOTTANT - BOUTON EN BAS À DROITE
+   MENU FLOTTANT AVEC FLÈCHE ET DÉPLACEMENT
    ============================================ */
 
 .fab-container {
@@ -2067,17 +2067,24 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     bottom: 25px;
     left: 20px;
     z-index: 9999;
+    transition: all 0.1s ease;
+    cursor: grab;
 }
 
+.fab-container:active {
+    cursor: grabbing;
+}
+
+/* Bouton principal */
 .fab-button {
     width: 56px;
     height: 56px;
-    background: #10B981;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
     cursor: pointer;
     transition: all 0.3s ease;
     border: 3px solid white;
@@ -2097,62 +2104,155 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     transform: rotate(45deg);
 }
 
-/* Menu horizontal qui sort vers la GAUCHE */
+/* Flèche de liaison (reliée au bouton) */
+.fab-arrow {
+    position: absolute;
+    left: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.fab-arrow.open {
+    opacity: 1;
+    visibility: visible;
+    left: 65px;
+}
+
+.fab-arrow::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 3px;
+    background: linear-gradient(90deg, #10B981, #34D399);
+    border-radius: 3px;
+}
+
+.fab-arrow::after {
+    content: '';
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    border-right: 3px solid #34D399;
+    border-top: 3px solid #34D399;
+}
+
+/* Version Maman pour la flèche */
+.maman-mode .fab-arrow::before {
+    background: linear-gradient(90deg, #DB2777, #F472B6);
+}
+.maman-mode .fab-arrow::after {
+    border-right: 3px solid #F472B6;
+    border-top: 3px solid #F472B6;
+}
+
+/* Menu horizontal */
 .fab-menu {
     position: absolute;
-    left: 70px;
+    left: 95px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     gap: 12px;
-    background: white;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
     padding: 12px 20px;
-    border-radius: 50px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border-radius: 60px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    border: 1px solid #f1f5f9;
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .fab-menu.open {
     opacity: 1;
     visibility: visible;
-    left: 80px;
+    left: 105px;
 }
 
+/* Items du menu colorés */
 .fab-menu-item {
     width: 44px;
     height: 44px;
-    background: #f8fafc;
+    background: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .fab-menu-item:active {
     transform: scale(0.9);
-    background: #e2e8f0;
 }
 
-.fab-menu-item i {
-    font-size: 20px;
-    color: #64748B;
+/* Couleurs individuelles des icônes */
+.fab-menu-item[data-view="home"] i {
+    color: #10B981;
+}
+.fab-menu-item[data-view="visits"] i {
+    color: #F59E0B;
+}
+.fab-menu-item[data-view="feed"] i {
+    color: #3B82F6;
+}
+.fab-menu-item[data-view="profile"] i {
+    color: #8B5CF6;
+}
+.fab-menu-item[data-view="map"] i {
+    color: #EF4444;
 }
 
-/* Version Maman */
-.maman-mode .fab-button {
-    background: #DB2777 !important;
+/* Version Maman - couleurs des icônes */
+.maman-mode .fab-menu-item[data-view="home"] i {
+    color: #DB2777;
+}
+.maman-mode .fab-menu-item[data-view="visits"] i {
+    color: #F59E0B;
+}
+.maman-mode .fab-menu-item[data-view="feed"] i {
+    color: #3B82F6;
+}
+.maman-mode .fab-menu-item[data-view="profile"] i {
+    color: #8B5CF6;
+}
+.maman-mode .fab-menu-item[data-view="map"] i {
+    color: #EF4444;
+}
+
+/* Animation d'entrée */
+.fab-menu.open .fab-menu-item {
+    animation: menuPopIn 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+
+@keyframes menuPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Responsive */
 @media (max-width: 640px) {
     .fab-container {
         bottom: 20px;
-        right: 15px;
+        left: 15px;
     }
     .fab-button {
         width: 52px;
@@ -2171,12 +2271,23 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     .fab-menu {
         gap: 10px;
         padding: 10px 16px;
-        right: 65px;
+        left: 85px;
     }
     .fab-menu.open {
-        right: 72px;
+        left: 95px;
+    }
+    .fab-arrow {
+        left: 55px;
+    }
+    .fab-arrow.open {
+        left: 60px;
+    }
+    .fab-arrow::before {
+        width: 25px;
+    }
+    .fab-arrow::after {
+        left: 23px;
     }
 }
-
 
 
