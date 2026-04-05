@@ -1331,9 +1331,9 @@ async function initPushNotifications() {
                     <!-- Notifications -->
                     <div class="flex items-center gap-3">
                         <button onclick="window.switchView('notifications')" 
-                                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
-                            <i class="fa-solid fa-bell text-sm"></i>
-                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 transition-all shadow-sm flex items-center justify-center">
+                            <i class="fa-regular fa-bell text-base"></i>
+                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
                         </button>
                     </div>
                     
