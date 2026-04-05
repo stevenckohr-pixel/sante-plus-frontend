@@ -5,22 +5,6 @@ import ErrorHandler from './errorHandler.js';
 const apiCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-
-// Après chaque POST, PUT, DELETE
-if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-    // Invalider le cache de la liste
-    localStorage.removeItem(`cache_/commandes`);
-    localStorage.removeItem(`cache_/visites`);
-    localStorage.removeItem(`cache_/patients`);
-    
-    // Déclencher un rafraîchissement automatique après 500ms
-    setTimeout(() => {
-        if (window.refreshCurrentView) {
-            window.refreshCurrentView();
-        }
-    }, 500);
-}
-
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
   const method = options.method || 'GET';
@@ -40,6 +24,18 @@ export async function secureFetch(endpoint, options = {}) {
   if (method !== 'GET') {
     apiCache.delete(endpoint);
     console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+    
+    // ✅ Invalider les caches localStorage
+    localStorage.removeItem(`cache_/commandes`);
+    localStorage.removeItem(`cache_/visites`);
+    localStorage.removeItem(`cache_/patients`);
+    
+    // ✅ Déclencher un rafraîchissement automatique après 500ms
+    setTimeout(() => {
+      if (window.refreshCurrentView) {
+        window.refreshCurrentView();
+      }
+    }, 500);
   }
 
   const executeRequest = async () => {
