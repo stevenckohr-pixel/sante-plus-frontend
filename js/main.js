@@ -2306,68 +2306,69 @@ function incrementReminderCount() {
 }
 
 // Afficher la bannière d'installation
+// Afficher la bannière d'installation (version élégante)
 function showInstallBanner(message, isReminder = false) {
     // Ne pas montrer si déjà refusé
     if (hasDeclinedInstall()) return;
     
-    // Ne pas montrer si déjà montré récemment
-    if (installPromptShown && !isReminder) return;
+    // Ne pas montrer si déjà installé
+    if (isAppInstalled()) return;
     
     const banner = document.createElement('div');
     banner.id = 'pwa-install-banner';
     banner.style.cssText = `
         position: fixed;
-        bottom: 80px;
+        bottom: 20px;
         left: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-        color: white;
-        padding: 16px;
-        border-radius: 20px;
+        background: white;
+        border-radius: 16px;
+        padding: 12px 16px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
         z-index: 10001;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        animation: slideUp 0.3s ease;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.1);
+        animation: slideUpBanner 0.3s ease;
     `;
     
     banner.innerHTML = `
         <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-            <div style="background: #10B981; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
-                <i class="fa-solid fa-download" style="color: white; font-size: 20px;"></i>
+            <div style="background: #10B981; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-download" style="color: white; font-size: 16px;"></i>
             </div>
             <div style="flex: 1;">
-                <p style="font-weight: bold; margin: 0; font-size: 14px;">📱 Installer l'application</p>
-                <p style="margin: 0; font-size: 11px; opacity: 0.8;">${message || "Accédez plus vite à Santé Plus"}</p>
+                <p style="font-weight: 600; margin: 0; font-size: 13px; color: #1e293b;">Installer l'application</p>
+                <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b;">Accès rapide depuis l'écran d'accueil</p>
             </div>
         </div>
-        <div style="display: flex; gap: 8px;">
-            <button id="install-banner-install" style="background: #10B981; border: none; color: white; padding: 8px 16px; border-radius: 40px; font-weight: bold; font-size: 12px; cursor: pointer;">Installer</button>
-            <button id="install-banner-close" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 12px; border-radius: 40px; font-size: 12px; cursor: pointer;">Plus tard</button>
-        </div>
+        <button id="install-banner-install" style="background: #10B981; border: none; color: white; padding: 8px 16px; border-radius: 40px; font-weight: 600; font-size: 12px; cursor: pointer;">Installer</button>
+        <button id="install-banner-close" style="background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">&times;</button>
     `;
     
     document.body.appendChild(banner);
     
-    // Animation CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(100px);
+    // Ajouter l'animation CSS
+    if (!document.getElementById('banner-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'banner-animation-style';
+        style.textContent = `
+            @keyframes slideUpBanner {
+                from {
+                    opacity: 0;
+                    transform: translateY(100px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    `;
-    document.head.appendChild(style);
+        `;
+        document.head.appendChild(style);
+    }
     
     document.getElementById('install-banner-install').onclick = () => {
         if (deferredPrompt) {
@@ -2376,6 +2377,7 @@ function showInstallBanner(message, isReminder = false) {
                 if (choiceResult.outcome === 'accepted') {
                     console.log('✅ PWA installée');
                     localStorage.setItem(INSTALL_DECLINED_KEY, 'false');
+                    showToast("Application installée avec succès !", "success");
                 } else {
                     console.log('❌ Installation refusée');
                     setDeclinedInstall();
@@ -2385,6 +2387,7 @@ function showInstallBanner(message, isReminder = false) {
             });
         } else {
             showToast("L'installation sera disponible dans quelques instants", "info");
+            banner.remove();
         }
     };
     
@@ -2396,8 +2399,14 @@ function showInstallBanner(message, isReminder = false) {
     };
     
     installPromptShown = true;
+    
+    // Auto-fermeture après 8 secondes
+    setTimeout(() => {
+        if (document.getElementById('pwa-install-banner')) {
+            banner.remove();
+        }
+    }, 8000);
 }
-
 // Vérifier si l'application est déjà installée
 function isAppInstalled() {
     // Sur mobile, vérifier si en mode standalone
