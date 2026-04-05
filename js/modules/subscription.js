@@ -348,44 +348,35 @@ export async function renderSubscriptionPage() {
  * 💳 SÉLECTION D'UN PACK ET PAIEMENT
  */
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
-    const result = await Swal.fire({
-        title: '<span class="text-xl font-black">Confirmer l\'abonnement</span>',
-        html: `
-            <div class="text-center">
-                <div class="text-4xl mb-3">${packId.includes('CONFORT') || packId.includes('REGULIER') ? '⭐' : '💎'}</div>
-                <p class="text-sm font-bold text-slate-800">${packId.replace(/_/g, ' ')}</p>
-                <p class="text-2xl font-black text-emerald-600 mt-2">${price.toLocaleString()} CFA</p>
-                <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
-            </div>
-        `,
+    // Confirmation
+    const confirm = await Swal.fire({
+        title: 'Confirmer le paiement',
+        text: `Payer ${price.toLocaleString()} CFA ?`,
         icon: 'question',
         showCancelButton: true,
-        confirmButtonText: '💰 Payer maintenant',
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#10B981',
-        customClass: { popup: 'rounded-2xl p-6' }
+        confirmButtonText: 'OUI, PAYER',
+        confirmButtonColor: '#10B981'
     });
     
-    if (!result.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
     
+    // Chargement
     Swal.fire({
-        title: "Préparation du paiement...",
+        title: 'Chargement...',
         didOpen: () => Swal.showLoading(),
         allowOutsideClick: false
     });
     
     try {
+        // Récupérer le patient
         const patients = await secureFetch("/patients");
-        if (!patients || patients.length === 0) {
-            throw new Error("Aucun patient trouvé");
-        }
-        const patient = patients[0];
+        if (!patients || patients.length === 0) throw new Error("Aucun patient");
         
-        // Créer l'abonnement
+        // Créer la facture
         await secureFetch("/billing/generate", {
             method: "POST",
             body: JSON.stringify({
-                patient_id: patient.id,
+                patient_id: patients[0].id,
                 montant: price,
                 pack: packId
             })
@@ -393,30 +384,24 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         
         Swal.close();
         
-        const publicKey = 'pk_live_UBwlV8_cBo4flahLGMfvIqZG';
+        // ⚠️ LA LIGNE MAGIQUE - Teste d'abord avec un simple alert
+        alert("FedaPay va s'ouvrir. Cliquez OK");
         
-        // ✅ OUVERTURE DIRECTE DE FEDAPAY
-        const widget = FedaPay.init({
-            public_key: publicKey,
+        // OUVERTURE FEDAPAY
+        FedaPay.init({
+            public_key: 'pk_live_UBwlV8_cBo4flahLGMfvIqZG',
             transaction: {
                 amount: price,
-                description: `Abonnement ${packId} - Santé Plus`
+                description: `Pack ${packId}`
             },
             customer: {
                 email: localStorage.getItem("user_email")
             }
         });
         
-        console.log("✅ Widget FedaPay ouvert");
-        
-    } catch (err) {
+    } catch(err) {
         Swal.close();
-        console.error("Erreur:", err);
-        Swal.fire({
-            title: "Erreur",
-            text: err.message,
-            icon: "error"
-        });
+        alert("Erreur: " + err.message);
     }
 };
 
