@@ -348,60 +348,33 @@ export async function renderSubscriptionPage() {
  * 💳 SÉLECTION D'UN PACK ET PAIEMENT
  */
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
-    // Confirmation
     const confirm = await Swal.fire({
-        title: 'Confirmer le paiement',
-        text: `Payer ${price.toLocaleString()} CFA ?`,
-        icon: 'question',
+        title: 'Test FedaPay',
+        text: `Cliquez pour tester l'ouverture`,
+        icon: 'info',
         showCancelButton: true,
-        confirmButtonText: 'OUI, PAYER',
-        confirmButtonColor: '#10B981'
+        confirmButtonText: 'TESTER'
     });
     
     if (!confirm.isConfirmed) return;
     
-    // Chargement
-    Swal.fire({
-        title: 'Chargement...',
-        didOpen: () => Swal.showLoading(),
-        allowOutsideClick: false
-    });
+    // Test direct sans aucun appel backend
+    console.log("1. Tentative d'ouverture FedaPay");
+    console.log("2. Type de FedaPay:", typeof FedaPay);
     
     try {
-        // Récupérer le patient
-        const patients = await secureFetch("/patients");
-        if (!patients || patients.length === 0) throw new Error("Aucun patient");
-        
-        // Créer la facture
-        await secureFetch("/billing/generate", {
-            method: "POST",
-            body: JSON.stringify({
-                patient_id: patients[0].id,
-                montant: price,
-                pack: packId
-            })
-        });
-        
-        Swal.close();
-        
-        // ⚠️ LA LIGNE MAGIQUE - Teste d'abord avec un simple alert
-        alert("FedaPay va s'ouvrir. Cliquez OK");
-        
-        // OUVERTURE FEDAPAY
+        // Version 1 - La plus simple possible
         FedaPay.init({
             public_key: 'pk_live_UBwlV8_cBo4flahLGMfvIqZG',
             transaction: {
-                amount: price,
-                description: `Pack ${packId}`
-            },
-            customer: {
-                email: localStorage.getItem("user_email")
+                amount: 100,
+                description: 'Test'
             }
         });
-        
-    } catch(err) {
-        Swal.close();
-        alert("Erreur: " + err.message);
+        console.log("3. FedaPay.init exécuté");
+    } catch(e) {
+        console.error("Erreur:", e);
+        alert("Erreur: " + e.message);
     }
 };
 
