@@ -2448,3 +2448,22 @@ button.bg-slate-900 {
 button.bg-slate-900:hover {
     background-color: #0f172a !important;
 }
+
+
+/* ============================================
+   MENU FLOTTANT - UNIQUEMENT SUR MOBILE
+   ============================================ */
+
+/* Masquer sur desktop (écran >= 1024px) */
+@media (min-width: 1024px) {
+    .fab-container {
+        display: none !important;
+    }
+}
+
+/* Afficher uniquement sur mobile (écran < 1024px) */
+@media (max-width: 1023px) {
+    .fab-container {
+        display: block;
+    }
+}
