@@ -367,7 +367,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         
         // ✅ Utiliser FedaPay Checkout.js directement
         // ⚠️ IMPORTANT : Remplacez par VOTRE clé publique FedaPay
-        const publicKey = 'pk_sandbox_VOTRE_CLE_ICI'; // Mettez votre clé publique sandbox
+        const publicKey = 'pk_live_UBwlV8_cBo4flahLGMfvIqZG'; 
         
         // Vérifier que FedaPay est chargé
         if (typeof FedaPay === 'undefined') {
