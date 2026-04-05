@@ -2230,5 +2230,23 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     }
 }
 
+/* Améliorations pour le clic mobile */
+.fab-button {
+    cursor: pointer;
+    touch-action: manipulation; /* Améliore la réactivité tactile */
+}
 
+.fab-menu-item {
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+/* S'assurer que le menu est cliquable sur mobile */
+.fab-menu {
+    pointer-events: none;
+}
+
+.fab-menu.open {
+    pointer-events: auto;
+}
 
