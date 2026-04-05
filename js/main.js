@@ -1216,12 +1216,11 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // Couleurs de branding (PAS DE BLEU)
+    // Couleurs de branding
     const primaryColor = isMaman ? '#DB2777' : '#10B981';
     const primaryLight = isMaman ? '#FDF2F8' : '#ECFDF5';
     const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
     const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
-    const goldColor = '#D4AF37';
     
     // Texte de la bannière
     let bannerText = "";
@@ -1239,6 +1238,11 @@ function renderMobileHub() {
         bannerIcon = "fa-crown";
         bannerDesc = "Maintien à domicile et soins au quotidien";
         bannerBg = "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200";
+    } else if (userRole === "COORDINATEUR") {
+        bannerText = "📊 Tableau de bord";
+        bannerIcon = "fa-chart-pie";
+        bannerDesc = "Gestion complète de la plateforme";
+        bannerBg = "bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200";
     } else {
         bannerText = "⭐ Programme Premium";
         bannerIcon = "fa-crown";
@@ -1246,18 +1250,24 @@ function renderMobileHub() {
         bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // Menu avec BRANDING UNIQUEMENT (Vert/Rose + Or)
+    // ✅ MENU COMPLET - TOUS LES BLOCS SELON LE RÔLE
     const menuItems = [
+        // Pour COORDINATEUR (Admin)
+        { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['COORDINATEUR'] },
         { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), desc: isMaman ? 'Carnet de santé' : 'Dossier médical', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes' : 'Commandes', desc: 'Produits', icon: 'fa-box', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', color: 'text-blue-600', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', color: 'text-purple-600', bg: 'bg-purple-50', roles: ['COORDINATEUR'] },
+        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', color: 'text-indigo-600', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
         { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
         { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
+    // Filtrer selon le rôle
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     container.innerHTML = `
@@ -1288,19 +1298,21 @@ function renderMobileHub() {
             <!-- Barre de recherche -->
             <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
                 <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
-                <input type="text" placeholder="Rechercher..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
+                <input type="text" id="mobile-search" placeholder="Rechercher..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
             </div>
             
-            <!-- Titre menu avec couleur brand -->
+            <!-- Titre menu -->
             <h4 class="text-[10px] font-black uppercase tracking-wider mb-4 ml-1 ${isMaman ? 'text-pink-400' : 'text-emerald-400'}">
                 MENU PRINCIPAL
             </h4>
             
             <!-- Grille menu -->
-            <div class="menu-grid">
+            <div class="grid grid-cols-2 gap-4">
                 ${filteredMenu.map((item, index) => `
-                    <div onclick="window.switchView('${item.id}')" class="menu-tile cursor-pointer hover-lift border border-slate-100" style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
-                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center transition-all">
+                    <div onclick="window.switchView('${item.id}')" 
+                         class="menu-tile cursor-pointer hover-lift bg-white border border-slate-100 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md active:scale-95" 
+                         style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
+                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all">
                             <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
                         </div>
                         <div>
@@ -1319,6 +1331,24 @@ function renderMobileHub() {
             </div>
         </div>
     `;
+    
+    // Ajouter la fonction de recherche
+    const searchInput = document.getElementById('mobile-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const tiles = document.querySelectorAll('.menu-tile');
+            tiles.forEach(tile => {
+                const label = tile.querySelector('p.font-black')?.innerText.toLowerCase() || '';
+                const desc = tile.querySelector('p.text-slate-400')?.innerText.toLowerCase() || '';
+                if (label.includes(searchTerm) || desc.includes(searchTerm)) {
+                    tile.style.display = 'flex';
+                } else {
+                    tile.style.display = 'none';
+                }
+            });
+        });
+    }
 }
 // ============================================================
 // NOTIFICATIONS PUSH
