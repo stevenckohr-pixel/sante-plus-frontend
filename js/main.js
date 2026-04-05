@@ -2040,25 +2040,50 @@ window.startOnboarding = () => {
     onboardingStep = 0;
     
     // ✅ Récupérer la catégorie de l'utilisateur depuis localStorage
-    const userCategorie = localStorage.getItem("user_categorie");
+    // Essaye d'abord user_categorie, puis déduis de user_is_maman
+    let userCategorie = localStorage.getItem("user_categorie");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    
+    // ✅ Si user_categorie n'existe pas mais isMaman est true, c'est MAMAN_BEBE
+    if (!userCategorie && isMaman) {
+        userCategorie = 'MAMAN_BEBE';
+    }
+    // ✅ Si ce n'est pas MAMAN_BEBE et que le rôle est FAMILLE, c'est SENIOR
+    else if (!userCategorie && localStorage.getItem("user_role") === "FAMILLE") {
+        userCategorie = 'SENIOR';
+    }
+    
+    console.log("🎯 Catégorie détectée pour onboarding:", userCategorie);
     
     // ✅ Choisir les bonnes slides
     if (userCategorie === 'MAMAN_BEBE') {
         ONBOARDING_STEPS = ONBOARDING_STEPS_BABY;
+        console.log("🌸 Onboarding MAMAN & BÉBÉ chargé");
     } else if (userCategorie === 'SENIOR') {
         ONBOARDING_STEPS = ONBOARDING_STEPS_SENIOR;
+        console.log("👴 Onboarding SENIOR chargé");
     } else {
         ONBOARDING_STEPS = ONBOARDING_STEPS_GENERAL;
+        console.log("🌍 Onboarding GÉNÉRAL chargé");
     }
     
     renderOnboarding();
 };
 
+
 function renderOnboarding() {
     const app = document.getElementById("app");
-    const userCategorie = localStorage.getItem("user_categorie");
     
-    // ✅ Choisir les slides selon la catégorie de l'utilisateur
+    // ✅ Même logique pour être sûr
+    let userCategorie = localStorage.getItem("user_categorie");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    
+    if (!userCategorie && isMaman) {
+        userCategorie = 'MAMAN_BEBE';
+    } else if (!userCategorie && localStorage.getItem("user_role") === "FAMILLE") {
+        userCategorie = 'SENIOR';
+    }
+    
     if (userCategorie === 'MAMAN_BEBE') {
         ONBOARDING_STEPS = ONBOARDING_STEPS_BABY;
     } else if (userCategorie === 'SENIOR') {
@@ -2069,6 +2094,7 @@ function renderOnboarding() {
     
     const step = ONBOARDING_STEPS[onboardingStep];
     const isLast = onboardingStep === ONBOARDING_STEPS.length - 1;
+
 
     app.innerHTML = `
         <div class="absolute inset-0 z-[10000] animate-fadeIn font-sans bg-white flex flex-col">
