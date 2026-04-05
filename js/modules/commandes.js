@@ -880,15 +880,26 @@ export async function openOrderModal() {
 /**
  * 📦 AIDANT - LIVRAISON AVEC MULTIPLES PHOTOS
  */
+/**
+ * 📦 AIDANT - LIVRAISON AVEC MULTIPLES PHOTOS (VERSION CORRIGÉE)
+ */
 window.deliverCommand = async (commandeId) => {
+    if (!commandeId) {
+        Swal.fire("Erreur", "ID de commande invalide", "error");
+        return;
+    }
+
     const { value: formData } = await Swal.fire({
         title: "📸 Livraison de la commande",
         html: `
             <div class="text-left">
                 <div class="mb-4">
-                    <label class="text-[10px] font-black text-slate-400 block mb-2">Photos de livraison (max 5)</label>
-                    <input type="file" id="delivery-photos" accept="image/*" multiple class="w-full p-2 border border-slate-200 rounded-lg">
-                    <div id="photo-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                    <label class="text-[10px] font-black text-slate-400 block mb-2">
+                        <span class="text-red-500">*</span> Photos de livraison (max 5)
+                    </label>
+                    <input type="file" id="delivery-photos" accept="image/jpeg,image/jpg,image/png,image/webp" multiple class="w-full p-2 border border-slate-200 rounded-lg">
+                    <div id="photo-preview" class="flex flex-wrap gap-2 mt-2 max-h-32 overflow-y-auto"></div>
+                    <p class="text-[9px] text-slate-400 mt-1">📸 JPG, PNG, WebP - Max 5MB par photo</p>
                 </div>
                 <div>
                     <label class="text-[10px] font-black text-slate-400 block mb-2">Notes de livraison</label>
@@ -899,23 +910,35 @@ window.deliverCommand = async (commandeId) => {
         showCancelButton: true,
         confirmButtonText: "✅ Confirmer la livraison",
         confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler",
+        width: '500px',
         didOpen: () => {
             const fileInput = document.getElementById('delivery-photos');
             const previewDiv = document.getElementById('photo-preview');
             
             fileInput.onchange = () => {
                 previewDiv.innerHTML = '';
-                const files = Array.from(fileInput.files);
-                files.forEach(file => {
+                const files = Array.from(fileInput.files).slice(0, 5);
+                
+                for (const file of files) {
+                    // Vérifier la taille
+                    if (file.size > 5 * 1024 * 1024) {
+                        Swal.fire("Photo trop lourde", `${file.name} dépasse 5MB`, "warning");
+                        continue;
+                    }
+                    
                     const reader = new FileReader();
                     reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'relative w-16 h-16';
                         const img = document.createElement('img');
                         img.src = e.target.result;
-                        img.className = 'w-16 h-16 object-cover rounded-lg border';
-                        previewDiv.appendChild(img);
+                        img.className = 'w-full h-full object-cover rounded-lg border';
+                        div.appendChild(img);
+                        previewDiv.appendChild(div);
                     };
                     reader.readAsDataURL(file);
-                });
+                }
             };
         },
         preConfirm: () => {
@@ -923,7 +946,12 @@ window.deliverCommand = async (commandeId) => {
             const notes = document.getElementById('delivery-notes').value;
             
             if (!photos || photos.length === 0) {
-                Swal.showValidationMessage("Veuillez ajouter au moins une photo");
+                Swal.showValidationMessage("📸 Veuillez ajouter au moins une photo de livraison");
+                return false;
+            }
+            
+            if (photos.length > 5) {
+                Swal.showValidationMessage("Maximum 5 photos");
                 return false;
             }
             
@@ -933,34 +961,86 @@ window.deliverCommand = async (commandeId) => {
     
     if (!formData) return;
     
-    Swal.fire({ title: "Envoi en cours...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    // Afficher le chargement
+    Swal.fire({ 
+        title: "Envoi en cours...", 
+        text: "Upload des photos...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
     
     try {
         const fd = new FormData();
-        fd.append("commande_id", commandeId);
-        fd.append("notes_livraison", formData.notes);
+        
+        // ⚠️ IMPORTANT: Ne PAS ajouter commande_id dans le FormData
+        // L'ID est dans l'URL, pas dans le body
+        fd.append("notes_livraison", formData.notes || "");
+        
+        // Ajouter les photos avec le bon nom de champ "photos"
         for (let i = 0; i < formData.photos.length; i++) {
             fd.append("photos", formData.photos[i]);
         }
         
+        console.log(`📤 Envoi de ${formData.photos.length} photo(s) pour la commande ${commandeId}`);
+        
+        // Afficher le contenu du FormData pour déboguer
+        for (let pair of fd.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+        
         const response = await fetch(`${CONFIG.API_URL}/commandes/${commandeId}/deliver`, {
             method: "POST",
-            headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+            headers: { 
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+                // ⚠️ NE PAS mettre Content-Type - le navigateur le fait automatiquement avec FormData
+            },
             body: fd
         });
         
+        // Vérifier le type de réponse
+        const contentType = response.headers.get("content-type");
+        
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Erreur");
+            let errorMessage;
+            if (contentType && contentType.includes("application/json")) {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorData.message;
+            } else {
+                const text = await response.text();
+                console.error("Réponse non-JSON:", text.substring(0, 500));
+                errorMessage = `Erreur serveur (${response.status})`;
+            }
+            throw new Error(errorMessage);
         }
         
-        Swal.fire({ icon: "success", title: "Livré !", timer: 2000, showConfirmButton: false });
-        loadCommandes();
+        const result = await response.json();
+        
+        console.log("✅ Réponse serveur:", result);
+        
+        Swal.fire({ 
+            icon: "success", 
+            title: "✅ Livré !", 
+            text: `${formData.photos.length} photo(s) de livraison enregistrée(s)`,
+            timer: 2000, 
+            showConfirmButton: false 
+        });
+        
+        // Recharger la liste des commandes
+        if (typeof loadCommandes === 'function') {
+            loadCommandes();
+        } else {
+            setTimeout(() => location.reload(), 1500);
+        }
         
     } catch (err) {
-        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
+        console.error("❌ Erreur deliverCommand:", err);
+        Swal.fire({ 
+            title: "Erreur", 
+            text: err.message || "Une erreur est survenue lors de la livraison", 
+            icon: "error",
+            confirmButtonText: "OK"
+        });
     }
 };
-
 
 window.openImageModal = openImageModal;
