@@ -2250,3 +2250,176 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     pointer-events: auto;
 }
 
+//----------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/******
+***/
+
+/* ============================================
+   LOADER PLUS DOUX
+   ============================================ */
+
+#initial-loader {
+    background: #f5f7fa !important;
+    /* Fond doux, pas blanc pur */
+}
+
+/* Cercle rotatif plus discret */
+.loader-spinner {
+    border: 3px solid #e2e8f0;
+    border-top-color: #10B981;
+    border-right-color: #a7f3d0;
+}
+
+/* Version Maman */
+#initial-loader.maman .loader-spinner {
+    border-top-color: #DB2777;
+    border-right-color: #fbcfe8;
+}
+
+/* Logo avec ombre très légère */
+#loader-logo-img {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+}
+
+/* ============================================
+   FOND PLUS DOUX POUR LES YEUX
+   ============================================ */
+
+/* Fond principal - très doux, presque pastel */
+body {
+    background: #f5f7fa !important;
+    /* Fond gris très clair, reposant pour les yeux */
+}
+
+/* Dégradé très subtil en arrière-plan */
+#app {
+    background: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.03) 0%, rgba(255,255,255,0) 80%);
+}
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   AUTH CARD - PLUS DOUCE
+   ============================================ */
+
+.auth-card {
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(16, 185, 129, 0.1);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.08);
+}
+
+/* Champs de saisie plus doux */
+.auth-card .app-input {
+    background-color: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.auth-card .app-input:focus {
+    background-color: #ffffff !important;
+    border-color: #10B981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   CARTES PLUS DOUCES
+   ============================================ */
+
+.bg-white, 
+.patient-card, 
+.menu-tile,
+.bento-card,
+.bg-white.rounded-2xl,
+.bg-white.rounded-3xl {
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+    border: 1px solid #f0f2f5 !important;
+}
+
+/* Header plus doux */
+header {
+    background: rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #eef2f6 !important;
+}
+
+
+
+/* ============================================
+   SUPPRESSION DES FONDS AGRESSIFS
+   ============================================ */
+
+/* Supprimer l'ancien fond vert */
+body {
+    background: #f5f7fa !important;
+}
+
+/* Supprimer les blobs flous inutiles */
+.absolute.top-40.left-\[-5\%\],
+.absolute.bottom-\[-10\%\].right-\[-5\%\] {
+    display: none !important;
+}
+
+
+
+/* ============================================
+   CONFORT VISUEL MAXIMUM
+   ============================================ */
+
+/* Réduire les contrastes forts */
+h1, h2, h3, h4, .font-black {
+    letter-spacing: -0.01em;
+    opacity: 0.85;
+}
+
+/* Ombres très légères uniquement */
+.shadow-sm, .shadow-md, .shadow-lg {
+    --tw-shadow-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Boutons moins agressifs */
+button.bg-slate-900 {
+    background-color: #1e293b !important;
+}
+
+button.bg-slate-900:hover {
+    background-color: #0f172a !important;
+}
