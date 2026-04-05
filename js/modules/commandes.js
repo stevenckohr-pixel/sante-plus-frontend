@@ -2,6 +2,19 @@ import { secureFetch } from "../core/api.js";
 import { CONFIG } from "../core/config.js";
 import { UI, compressImage } from "../core/utils.js";
 
+
+
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * 📋 CHARGER LA LISTE DES COMMANDES
  */
