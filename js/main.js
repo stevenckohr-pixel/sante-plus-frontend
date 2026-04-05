@@ -75,32 +75,128 @@ let loaderTimeout = null;            // Timeout pour le loader global
 // ============================================================
 // DONNÉES DU TUTORIEL D'ACCUEIL (ONBOARDING)
 // ============================================================
-const ONBOARDING_STEPS = [
+// ============================================================
+// ONBOARDING GÉNÉRAL (affiché si aucune catégorie n'est encore choisie)
+// ============================================================
+const ONBOARDING_STEPS_GENERAL = [
     {
-        title: "L'Excellence à domicile",
-        desc: "Bénéficiez d'un accompagnement médical de prestige pour vos parents restés au pays.",
+        title: "👀 Suivez vos proches en temps réel",
+        desc: "Chaque visite, chaque livraison apparaît ici avec l'heure, les actions réalisées et les observations.",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+        accent: "border-emerald-500"
+    },
+    {
+        title: "📸 Des preuves à chaque intervention",
+        desc: "Photos, notes et comptes-rendus sont ajoutés après chaque visite ou livraison.",
+        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
+        accent: "border-blue-500"
+    },
+    {
+        title: "📦 Deux offres, un seul objectif",
+        desc: "👵 Senior/Aide : accompagnement des personnes âgées | 👶 Maman & Bébé : suivi périnatal",
+        image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
+        accent: "border-indigo-500"
+    },
+    {
+        title: "💬 Agissez à distance",
+        desc: "Envoyez un message ou faites une demande directement depuis l'application.",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
+        accent: "border-amber-500"
+    },
+    {
+        title: "🚀 Accédez au suivi",
+        desc: "Consultez maintenant les dernières activités de vos proches.",
+        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=800",
+        accent: "border-emerald-600"
+    }
+];
+
+// ============================================================
+// ONBOARDING SENIOR / AIDE
+// ============================================================
+const ONBOARDING_STEPS_SENIOR = [
+    {
+        title: "🏠 Visites à domicile tracées",
+        desc: "Chaque passage de l'aidant est enregistré avec l'heure de début et de fin.",
         image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
         accent: "border-emerald-500"
     },
     {
-        title: "Suivi Live Diaspora",
-        desc: "Consultez le carnet de santé numérique et recevez les photos des visites en temps réel.",
-        image: "https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?auto=format&fit=crop&q=80&w=800",
+        title: "✅ Suivi des actions réalisées",
+        desc: "Aide quotidienne, prise de médicaments, accompagnement... tout est indiqué.",
+        image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&q=80&w=800",
         accent: "border-blue-500"
     },
     {
-        title: "Radar de Présence",
-        desc: "Notre technologie GPS certifie la présence réelle de l'aidant à chaque intervention.",
-        image: "https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?auto=format&fit=crop&q=80&w=800",
+        title: "📸 Preuves de chaque visite",
+        desc: "Photos et notes sont ajoutées après chaque intervention pour vous rassurer.",
+        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
         accent: "border-indigo-500"
     },
     {
-        title: "Transactions Sécurisées",
-        desc: "Abonnements simplifiés via Mobile Money avec facturation automatique et transparente.",
+        title: "💊 Commandes de médicaments",
+        desc: "Besoin d'une ordonnance ? Commandez et faites livrer à domicile.",
+        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=800",
+        accent: "border-amber-500"
+    },
+    {
+        title: "📞 Intervenez rapidement",
+        desc: "Contactez le coordinateur ou demandez une action à tout moment.",
         image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
-        accent: "border-slate-900"
+        accent: "border-slate-700"
+    },
+    {
+        title: "👀 Voir les dernières visites",
+        desc: "Accédez maintenant au suivi en cours de votre proche.",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+        accent: "border-emerald-600"
     }
 ];
+
+// ============================================================
+// ONBOARDING MAMAN & BÉBÉ
+// ============================================================
+const ONBOARDING_STEPS_BABY = [
+    {
+        title: "🤰 Suivi grossesse serein",
+        desc: "Un aidant spécialisé vous rend visite : prise de poids, tension, bien-être de bébé.",
+        image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&q=80&w=800",
+        accent: "border-rose-500"
+    },
+    {
+        title: "👶 Visites post-natales",
+        desc: "Après l'accouchement, on veille sur vous et bébé : allaitement, sommeil, soins.",
+        image: "https://images.unsplash.com/photo-1504181592499-5b1a6f8b9b2a?auto=format&fit=crop&q=80&w=800",
+        accent: "border-pink-500"
+    },
+    {
+        title: "📸 Photos de bébé reçues",
+        desc: "Recevez des photos de chaque visite pour suivre l'évolution de votre enfant.",
+        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
+        accent: "border-purple-500"
+    },
+    {
+        title: "🍼 Commandes bébé",
+        desc: "Couches, lait 1er âge, vêtements, puériculture... Livraison rapide avec preuve photo.",
+        image: "https://images.unsplash.com/photo-1544717304-6fdb4e2a0b5d?auto=format&fit=crop&q=80&w=800",
+        accent: "border-amber-500"
+    },
+    {
+        title: "💬 Suivi personnalisé",
+        desc: "Posez vos questions au coordinateur et recevez des conseils adaptés.",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
+        accent: "border-emerald-500"
+    },
+    {
+        title: "👀 Voir le suivi de bébé",
+        desc: "Accédez maintenant au fil d'actualité de votre enfant.",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+        accent: "border-rose-600"
+    }
+];
+
+// Variable globale pour stocker les slides actuelles
+let ONBOARDING_STEPS = ONBOARDING_STEPS_GENERAL;
 
 // ============================================================
 // LOADER GLOBAL (ÉCRAN DE CHARGEMENT INITIAL)
@@ -1942,11 +2038,35 @@ window.installPWA = () => {
 window.startOnboarding = () => {
     if (localStorage.getItem("onboarding_seen")) return;
     onboardingStep = 0;
+    
+    // ✅ Récupérer la catégorie de l'utilisateur depuis localStorage
+    const userCategorie = localStorage.getItem("user_categorie");
+    
+    // ✅ Choisir les bonnes slides
+    if (userCategorie === 'MAMAN_BEBE') {
+        ONBOARDING_STEPS = ONBOARDING_STEPS_BABY;
+    } else if (userCategorie === 'SENIOR') {
+        ONBOARDING_STEPS = ONBOARDING_STEPS_SENIOR;
+    } else {
+        ONBOARDING_STEPS = ONBOARDING_STEPS_GENERAL;
+    }
+    
     renderOnboarding();
 };
 
 function renderOnboarding() {
     const app = document.getElementById("app");
+    const userCategorie = localStorage.getItem("user_categorie");
+    
+    // ✅ Choisir les slides selon la catégorie de l'utilisateur
+    if (userCategorie === 'MAMAN_BEBE') {
+        ONBOARDING_STEPS = ONBOARDING_STEPS_BABY;
+    } else if (userCategorie === 'SENIOR') {
+        ONBOARDING_STEPS = ONBOARDING_STEPS_SENIOR;
+    } else {
+        ONBOARDING_STEPS = ONBOARDING_STEPS_GENERAL;
+    }
+    
     const step = ONBOARDING_STEPS[onboardingStep];
     const isLast = onboardingStep === ONBOARDING_STEPS.length - 1;
 
@@ -1970,7 +2090,6 @@ function renderOnboarding() {
         </div>
     `;
 }
-
 
 
 // Vérifier si une visite est en cours au chargement
