@@ -348,9 +348,35 @@ export async function renderSubscriptionPage() {
  * 💳 SÉLECTION D'UN PACK ET PAIEMENT
  */
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
-    // Ouvre directement une page de paiement FedaPay (sans checkout.js)
-    const paymentUrl = `https://fedapay.com/pay/pk_live_UBwlV8_cBo4flahLGMfvIqZG?amount=${price}&description=Abonnement%20Sante%20Plus`;
-    window.open(paymentUrl, '_blank');
+    const result = await Swal.fire({
+        title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
+        html: `
+            <div class="text-center">
+                <div class="w-16 h-16 mx-auto bg-amber-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-clock text-amber-500 text-3xl"></i>
+                </div>
+                <p class="text-sm text-slate-600 mb-2">Le paiement en ligne arrive bientôt !</p>
+                <p class="text-xs text-slate-400">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
+                <p class="text-xs text-slate-400 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
+                <div class="mt-4 p-3 bg-slate-50 rounded-xl">
+                    <p class="text-[10px] text-slate-500">📱 Paiement Mobile Money disponible prochainement</p>
+                    <p class="text-[10px] text-slate-500 mt-1">💳 Carte bancaire à venir</p>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'OK, j\'attends',
+        cancelButtonText: 'Fermer',
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#94A3B8',
+        customClass: { popup: 'rounded-2xl p-6' }
+    });
+    
+    if (result.isConfirmed) {
+        // Optionnel : rediriger vers la page de demande de rappel
+        showToast("Nous vous informerons dès que le paiement en ligne sera disponible !", "info");
+    }
 };
 
 // ✅ Fonction pour charger FedaPay dynamiquement
