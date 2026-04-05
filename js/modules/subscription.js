@@ -1,6 +1,30 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 
+
+
+// Fonction pour charger FedaPay
+function loadFedaPay() {
+    return new Promise((resolve, reject) => {
+        if (typeof FedaPay !== 'undefined') {
+            console.log("✅ FedaPay déjà chargé");
+            return resolve();
+        }
+        
+        console.log("📦 Chargement de FedaPay...");
+        const script = document.createElement('script');
+        script.src = 'https://cdn.fedapay.com/checkout.js?v=1.1.7';
+        script.onload = () => {
+            console.log("✅ FedaPay chargé avec succès");
+            resolve();
+        };
+        script.onerror = () => {
+            reject(new Error("Impossible de charger FedaPay"));
+        };
+        document.head.appendChild(script);
+    });
+}
+
 /**
  * 📋 PAGE D'ABONNEMENT (Choix du pack)
  */
@@ -372,6 +396,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
         
         console.log("✅ Abonnement créé:", bill);
+        await loadFedaPay();
         
         // ✅ Vérifier/charger FedaPay
         if (typeof FedaPay === 'undefined') {
