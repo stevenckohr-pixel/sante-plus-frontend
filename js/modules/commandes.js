@@ -34,22 +34,24 @@ export async function loadCommandes() {
 /**
  * 🖼️ OUVRIRE UNE IMAGE EN MODALE (grand format)
  */
+/**
+ * 🖼️ OUVRIRE UNE IMAGE EN MODALE (grand format)
+ */
 window.openImageModal = (imageUrl, title = "📸 Image") => {
     Swal.fire({
         title: title,
         imageUrl: imageUrl,
-        imageAlt: 'Image',
+        imageAlt: 'Image de livraison',
         imageWidth: '90%',
         imageHeight: 'auto',
         showCloseButton: true,
         showConfirmButton: false,
         customClass: {
             popup: 'rounded-2xl bg-black/95',
-            title: 'text-white text-sm'
+            title: 'text-white text-sm font-black'
         }
     });
 };
-
 /**
  * 🎨 AFFICHER LES COMMANDES (Version améliorée avec galeries horizontales)
  */
@@ -135,45 +137,58 @@ function renderCommandes(list) {
         ` : '';
         
         // 📸 GALERIE DES PHOTOS DE LIVRAISON (défilement horizontal)
-        const deliveryPhotos = c.photos_livraison || (c.photo_livraison ? [c.photo_livraison] : []);
-        const deliveryPhotosHtml = deliveryPhotos.length > 0 ? `
-            <div class="mt-3 pt-3 border-t border-slate-100">
-                <p class="text-[9px] font-black text-slate-400 mb-2">
-                    📸 Preuves de livraison (${deliveryPhotos.length}) :
-                    ${isDelivered && isCoordinateur ? '<span class="text-amber-600 ml-2">⚠️ À valider</span>' : ''}
-                    ${isValidated ? '<span class="text-emerald-600 ml-2">✓ Validée</span>' : ''}
-                </p>
-                <div class="overflow-x-auto pb-2">
-                    <div class="flex gap-2 min-w-min" style="width: max-content;">
-                        ${deliveryPhotos.map(img => `
-                            <div class="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group flex-shrink-0 hover:scale-105 transition-transform" 
-                                 onclick="window.openImageModal('${img}', '📸 Preuve de livraison')">
-                                <img src="${img}" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                    <i class="fa-solid fa-magnifying-glass-plus text-white text-sm"></i>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                ${c.notes_livraison ? `
-                    <div class="mt-2 p-2 bg-slate-50 rounded-lg">
-                        <p class="text-[9px] font-black text-slate-500">📝 Notes de livraison :</p>
-                        <p class="text-xs text-slate-600">${escapeHtml(c.notes_livraison)}</p>
-                    </div>
-                ` : ''}
-            </div>
-        ` : (isDelivered || isValidated ? `
-            <div class="mt-3 pt-3 border-t border-slate-100">
-                <p class="text-[9px] font-black text-amber-600">⚠️ Aucune photo de livraison</p>
-            </div>
-        ` : '');
+        // Supporte à la fois photos_livraison (tableau) et photo_livraison (ancien format)
+        const deliveryPhotos = c.photos_livraison && c.photos_livraison.length > 0 
+            ? c.photos_livraison 
+            : (c.photo_livraison ? [c.photo_livraison] : []);
         
-        // 📍 INFOS COMPLÉMENTAIRES
+        let deliveryPhotosHtml = '';
+        if (deliveryPhotos.length > 0) {
+            deliveryPhotosHtml = `
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <p class="text-[10px] font-black text-slate-500 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-camera-retro"></i> 
+                        Preuves de livraison (${deliveryPhotos.length} photo${deliveryPhotos.length > 1 ? 's' : ''})
+                        ${isDelivered && isCoordinateur ? '<span class="text-amber-500 text-[8px] ml-2">⚠️ En attente de validation</span>' : ''}
+                        ${isValidated ? '<span class="text-emerald-500 text-[8px] ml-2">✓ Validée</span>' : ''}
+                    </p>
+                    <div class="overflow-x-auto pb-2 -mx-1 px-1">
+                        <div class="flex gap-3" style="width: max-content; min-width: 100%;">
+                            ${deliveryPhotos.map(img => `
+                                <div class="relative flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden border-2 border-slate-100 cursor-pointer group hover:scale-105 transition-transform" 
+                                     onclick="window.openImageModal('${img}', '📸 Preuve de livraison')">
+                                    <img src="${img}" class="w-full h-full object-cover" loading="lazy">
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                        <i class="fa-solid fa-magnifying-glass-plus text-white text-xl"></i>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ${c.notes_livraison ? `
+                        <div class="mt-3 p-3 bg-slate-50 rounded-xl">
+                            <p class="text-[9px] font-black text-slate-500 mb-1">📝 Notes de livraison :</p>
+                            <p class="text-xs text-slate-600">${escapeHtml(c.notes_livraison)}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else if (isDelivered || isValidated) {
+            deliveryPhotosHtml = `
+                <div class="mt-4 pt-3 border-t border-slate-100">
+                    <p class="text-[10px] font-black text-amber-500 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Aucune photo de livraison disponible
+                    </p>
+                </div>
+            `;
+        }
+        
+        // 📍 INFOS COMPLÉMENTAIRES (visibles par tous)
         const infoHtml = `
             <div class="mt-3 grid grid-cols-2 gap-2 text-[9px] text-slate-500 bg-slate-50 p-2 rounded-lg">
                 <div><span class="font-black">👤 Demandeur:</span> ${c.demandeur?.nom || 'Inconnu'}</div>
-                <div><span class="font-black">📅 Date:</span> ${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
+                <div><span class="font-black">📅 Date commande:</span> ${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
                 ${c.date_livraison ? `<div><span class="font-black">🚚 Livrée le:</span> ${new Date(c.date_livraison).toLocaleDateString('fr-FR')}</div>` : ''}
                 ${c.aidant?.nom ? `<div><span class="font-black">👨‍⚕️ Livreur:</span> ${c.aidant.nom}</div>` : ''}
             </div>
@@ -199,16 +214,16 @@ function renderCommandes(list) {
                     <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
                 </div>
                 
-                <!-- Images de la commande -->
+                <!-- Images de la commande (documents joints) -->
                 ${imagesHtml}
                 
-                <!-- Notes coordinateur -->
+                <!-- Notes du coordinateur -->
                 ${notesHtml}
                 
                 <!-- Infos complémentaires -->
                 ${infoHtml}
 
-                <!-- Photos de livraison -->
+                <!-- Photos de livraison (avec défilement horizontal) -->
                 ${deliveryPhotosHtml}
 
                 <!-- BOUTON POUR AIDANT - Livrer -->
@@ -264,7 +279,6 @@ function renderCommandes(list) {
         loadAidantsForSelect();
     }
 }
-
 // ✅ Fonction pour assigner une commande (Coordinateur)
 window.assignCommand = async (commandeId) => {
     const aidantId = document.getElementById(`aidant-${commandeId}`)?.value;
@@ -947,3 +961,6 @@ window.deliverCommand = async (commandeId) => {
         Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
     }
 };
+
+
+window.openImageModal = openImageModal;
