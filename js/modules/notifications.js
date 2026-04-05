@@ -129,17 +129,17 @@ async function loadNotifications() {
  * 🔔 METTRE À JOUR LE BADGE DANS LE HEADER
  */
 export function updateNotificationBadge() {
-    const badge = document.querySelector('header .bg-rose-500');
+    // Chercher par ID ou par classe
+    const badge = document.getElementById('notification-badge') || document.querySelector('header .bg-rose-500');
     if (badge) {
         if (unreadCount > 0) {
-            badge.style.display = 'block';
+            badge.style.display = 'flex';
             badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
         } else {
             badge.style.display = 'none';
         }
     }
 }
-
 /**
  * ✅ MARQUER TOUT COMME LU
  */
