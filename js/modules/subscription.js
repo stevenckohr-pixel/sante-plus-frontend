@@ -348,52 +348,9 @@ export async function renderSubscriptionPage() {
  * 💳 SÉLECTION D'UN PACK ET PAIEMENT
  */
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
-    const confirm = await Swal.fire({
-        title: 'Confirmer',
-        text: `Payer ${price.toLocaleString()} CFA ?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'PAYER'
-    });
-    
-    if (!confirm.isConfirmed) return;
-    
-    Swal.fire({ title: 'Préparation...', didOpen: () => Swal.showLoading() });
-    
-    try {
-        const patients = await secureFetch("/patients");
-        const patient = patients[0];
-        
-        const bill = await secureFetch("/billing/generate", {
-            method: "POST",
-            body: JSON.stringify({
-                patient_id: patient.id,
-                montant: price,
-                pack: packId
-            })
-        });
-        
-        const payment = await secureFetch("/billing/generate-payment", {
-            method: "POST",
-            body: JSON.stringify({
-                abonnement_id: bill.id,
-                montant: price,
-                email_client: localStorage.getItem("user_email")
-            })
-        });
-        
-        Swal.close();
-        
-        if (payment.url) {
-            window.open(payment.url, '_blank');
-        } else {
-            throw new Error("Pas d'URL de paiement");
-        }
-        
-    } catch(err) {
-        Swal.close();
-        alert("Erreur: " + err.message);
-    }
+    // Ouvre directement une page de paiement FedaPay (sans checkout.js)
+    const paymentUrl = `https://fedapay.com/pay/pk_live_UBwlV8_cBo4flahLGMfvIqZG?amount=${price}&description=Abonnement%20Sante%20Plus`;
+    window.open(paymentUrl, '_blank');
 };
 
 // ✅ Fonction pour charger FedaPay dynamiquement
