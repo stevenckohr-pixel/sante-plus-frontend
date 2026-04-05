@@ -35,6 +35,16 @@
     <!-- ============================================ -->
     <script type="module" src="js/main.js"></script>
 
+    <script>
+    setTimeout(function() {
+        if (!document.querySelector('link[href*="fontawesome"]')) {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://use.fontawesome.com/releases/v6.4.0/css/all.css';
+            document.head.appendChild(link);
+        }
+    }, 1000);
+</script>
     <!-- ============================================ -->
     <!-- SERVICE WORKER -->
     <!-- ============================================ -->
