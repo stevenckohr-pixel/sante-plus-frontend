@@ -345,6 +345,9 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     if (!result.isConfirmed) return;
     
     try {
+        // ✅ Définir isMaman ici
+        const isMaman = localStorage.getItem('user_is_maman') === 'true';
+        
         // Récupérer l'ID du patient
         const patients = await secureFetch("/patients");
         if (!patients || patients.length === 0) {
@@ -363,8 +366,13 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
         
         // ✅ Utiliser FedaPay Checkout.js directement
-        const publicKey = isMaman ? 'VOTRE_CLE_PUBLIQUE_MAMAN' : 'VOTRE_CLE_PUBLIQUE_GENERALE';
-        // Remplacez par votre clé publique FedaPay (celle qui commence par "pk_")
+        // ⚠️ IMPORTANT : Remplacez par VOTRE clé publique FedaPay
+        const publicKey = 'pk_sandbox_VOTRE_CLE_ICI'; // Mettez votre clé publique sandbox
+        
+        // Vérifier que FedaPay est chargé
+        if (typeof FedaPay === 'undefined') {
+            throw new Error("FedaPay n'est pas chargé. Vérifiez votre connexion internet.");
+        }
         
         FedaPay.init({
             public_key: publicKey,
@@ -385,7 +393,21 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             },
             onComplete: async (response) => {
                 console.log("✅ Paiement réussi", response);
-                // Ici, vous pouvez appeler votre webhook ou une route pour confirmer le paiement
+                
+                // ✅ Optionnel : appeler votre backend pour confirmer
+                try {
+                    await secureFetch("/billing/confirm-payment", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            abonnement_id: bill.id,
+                            transaction_id: response.transaction?.id,
+                            montant: price
+                        })
+                    });
+                } catch(e) {
+                    console.warn("Erreur confirmation backend:", e);
+                }
+                
                 Swal.fire({
                     icon: "success",
                     title: "Paiement réussi !",
