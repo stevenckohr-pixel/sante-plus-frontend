@@ -32,7 +32,26 @@ export async function loadCommandes() {
 }
 
 /**
- * 🎨 AFFICHER LES COMMANDES
+ * 🖼️ OUVRIRE UNE IMAGE EN MODALE (grand format)
+ */
+window.openImageModal = (imageUrl, title = "📸 Image") => {
+    Swal.fire({
+        title: title,
+        imageUrl: imageUrl,
+        imageAlt: 'Image',
+        imageWidth: '90%',
+        imageHeight: 'auto',
+        showCloseButton: true,
+        showConfirmButton: false,
+        customClass: {
+            popup: 'rounded-2xl bg-black/95',
+            title: 'text-white text-sm'
+        }
+    });
+};
+
+/**
+ * 🎨 AFFICHER LES COMMANDES (Version améliorée avec galeries horizontales)
  */
 function renderCommandes(list) {
     const container = document.getElementById("commandes-list");
@@ -87,57 +106,84 @@ function renderCommandes(list) {
         };
         const typeLabel = typeLabels[c.type_commande] || '📦 Commande';
         
+        // 📸 GALERIE DES IMAGES DE LA COMMANDE (défilement horizontal)
         const imagesHtml = c.images && c.images.length > 0 ? `
             <div class="mt-3">
                 <p class="text-[9px] font-black text-slate-400 mb-2">📸 Documents joints (${c.images.length}) :</p>
-                <div class="flex flex-wrap gap-2">
-                    ${c.images.map(img => `
-                        <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group" onclick="window.openImageGallery('${c.id}', ${JSON.stringify(c.images)})">
-                            <img src="${img}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <i class="fa-solid fa-eye text-white text-xs"></i>
+                <div class="overflow-x-auto pb-2">
+                    <div class="flex gap-2 min-w-min" style="width: max-content;">
+                        ${c.images.map(img => `
+                            <div class="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group flex-shrink-0 hover:scale-105 transition-transform" 
+                                 onclick="window.openImageModal('${img}', '📸 Document de la commande')">
+                                <img src="${img}" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <i class="fa-solid fa-eye text-white text-sm"></i>
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `).join('')}
+                    </div>
                 </div>
             </div>
         ` : '';
         
+        // 📋 NOTES DU COORDINATEUR
         const notesHtml = c.notes_coordinateur ? `
-            <div class="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                <p class="text-[9px] font-black text-blue-600">📋 Note :</p>
-                <p class="text-xs text-slate-600">${escapeHtml(c.notes_coordinateur)}</p>
+            <div class="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                <p class="text-[9px] font-black text-blue-600 mb-1">📋 Note du coordinateur :</p>
+                <p class="text-xs text-slate-700">${escapeHtml(c.notes_coordinateur)}</p>
             </div>
         ` : '';
         
-        // Photos de livraison (multiples)
-        const deliveryPhotosHtml = c.photos_livraison && c.photos_livraison.length > 0 ? `
+        // 📸 GALERIE DES PHOTOS DE LIVRAISON (défilement horizontal)
+        const deliveryPhotos = c.photos_livraison || (c.photo_livraison ? [c.photo_livraison] : []);
+        const deliveryPhotosHtml = deliveryPhotos.length > 0 ? `
             <div class="mt-3 pt-3 border-t border-slate-100">
-                <p class="text-[9px] font-black text-slate-400 mb-2">📸 Preuves de livraison (${c.photos_livraison.length}) :</p>
-                <div class="flex flex-wrap gap-2">
-                    ${c.photos_livraison.map(img => `
-                        <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group" onclick="window.open('${img}', '_blank')">
-                            <img src="${img}" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                <i class="fa-solid fa-magnifying-glass-plus text-white text-xs"></i>
+                <p class="text-[9px] font-black text-slate-400 mb-2">
+                    📸 Preuves de livraison (${deliveryPhotos.length}) :
+                    ${isDelivered && isCoordinateur ? '<span class="text-amber-600 ml-2">⚠️ À valider</span>' : ''}
+                    ${isValidated ? '<span class="text-emerald-600 ml-2">✓ Validée</span>' : ''}
+                </p>
+                <div class="overflow-x-auto pb-2">
+                    <div class="flex gap-2 min-w-min" style="width: max-content;">
+                        ${deliveryPhotos.map(img => `
+                            <div class="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group flex-shrink-0 hover:scale-105 transition-transform" 
+                                 onclick="window.openImageModal('${img}', '📸 Preuve de livraison')">
+                                <img src="${img}" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <i class="fa-solid fa-magnifying-glass-plus text-white text-sm"></i>
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `).join('')}
+                    </div>
                 </div>
-                ${c.notes_livraison ? `<p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-pen"></i> ${escapeHtml(c.notes_livraison)}</p>` : ''}
+                ${c.notes_livraison ? `
+                    <div class="mt-2 p-2 bg-slate-50 rounded-lg">
+                        <p class="text-[9px] font-black text-slate-500">📝 Notes de livraison :</p>
+                        <p class="text-xs text-slate-600">${escapeHtml(c.notes_livraison)}</p>
+                    </div>
+                ` : ''}
             </div>
-        ` : (c.photo_livraison ? `
+        ` : (isDelivered || isValidated ? `
             <div class="mt-3 pt-3 border-t border-slate-100">
-                <p class="text-[9px] font-black text-slate-400 mb-1">📸 Preuve de livraison</p>
-                <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-xl border cursor-pointer" onclick="window.open('${c.photo_livraison}')">
+                <p class="text-[9px] font-black text-amber-600">⚠️ Aucune photo de livraison</p>
             </div>
         ` : '');
+        
+        // 📍 INFOS COMPLÉMENTAIRES
+        const infoHtml = `
+            <div class="mt-3 grid grid-cols-2 gap-2 text-[9px] text-slate-500 bg-slate-50 p-2 rounded-lg">
+                <div><span class="font-black">👤 Demandeur:</span> ${c.demandeur?.nom || 'Inconnu'}</div>
+                <div><span class="font-black">📅 Date:</span> ${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
+                ${c.date_livraison ? `<div><span class="font-black">🚚 Livrée le:</span> ${new Date(c.date_livraison).toLocaleDateString('fr-FR')}</div>` : ''}
+                ${c.aidant?.nom ? `<div><span class="font-black">👨‍⚕️ Livreur:</span> ${c.aidant.nom}</div>` : ''}
+            </div>
+        `;
 
         return `
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4" style="animation-delay: ${index * 0.03}s">
+            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4" style="animation-delay: ${index * 0.03}s">
                 <!-- En-tête -->
-                <div class="flex justify-between items-start mb-4">
-                    <div>
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">#${c.id?.substring(0, 8)}</span>
                             ${urgentBadge}
@@ -145,11 +191,11 @@ function renderCommandes(list) {
                         <h4 class="font-black text-slate-800 text-sm mt-1">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
                         <p class="text-[9px] text-slate-400">${typeLabel}</p>
                     </div>
-                    <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase ${statusColor}">${statusIcon} ${statusText}</span>
+                    <span class="px-2 py-1 rounded-md text-[8px] font-black uppercase ${statusColor} whitespace-nowrap ml-2">${statusIcon} ${statusText}</span>
                 </div>
 
                 <!-- Description -->
-                <div class="p-4 bg-slate-50 rounded-xl mb-4">
+                <div class="p-3 bg-slate-50 rounded-xl mb-3">
                     <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
                 </div>
                 
@@ -158,19 +204,17 @@ function renderCommandes(list) {
                 
                 <!-- Notes coordinateur -->
                 ${notesHtml}
+                
+                <!-- Infos complémentaires -->
+                ${infoHtml}
 
-                <!-- Demandeur -->
-                <div class="mt-3 flex items-center gap-2 text-[10px] text-slate-400">
-                    <i class="fa-solid fa-user"></i>
-                    <span>Demandeur: ${c.demandeur?.nom || 'Inconnu'}</span>
-                    <span class="w-1 h-1 rounded-full bg-slate-300"></span>
-                    <span>${new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
-                </div>
+                <!-- Photos de livraison -->
+                ${deliveryPhotosHtml}
 
-                <!-- BOUTON POUR AIDANT - Livrer directement -->
+                <!-- BOUTON POUR AIDANT - Livrer -->
                 ${isAidant && (isPending || isInProgress) && (!c.aidant_id || c.aidant_id === currentUserId) ? `
                     <button onclick="window.deliverCommand('${c.id}')" 
-                            class="w-full mt-4 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                            class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
                         📸 Confirmer la livraison (avec photos)
                     </button>
                 ` : ''}
@@ -183,7 +227,7 @@ function renderCommandes(list) {
                     </button>
                 ` : ''}
 
-                <!-- BOUTON POUR COORDINATEUR - Assigner (si pas encore assignée) -->
+                <!-- BOUTON POUR COORDINATEUR - Assigner -->
                 ${isCoordinateur && isPending ? `
                     <div class="space-y-3 mt-4 pt-3 border-t border-slate-100">
                         <div>
@@ -193,7 +237,7 @@ function renderCommandes(list) {
                             </select>
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-slate-400">📝 Instructions (optionnel)</label>
+                            <label class="text-[9px] font-black text-slate-400">📝 Instructions</label>
                             <textarea id="notes-${c.id}" rows="2" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Instructions pour l'aidant..."></textarea>
                         </div>
                         <button onclick="window.assignCommand('${c.id}')" 
@@ -202,9 +246,6 @@ function renderCommandes(list) {
                         </button>
                     </div>
                 ` : ''}
-
-                <!-- PREUVE DE LIVRAISON -->
-                ${deliveryPhotosHtml}
             </div>
         `;
     }).join("");
@@ -220,7 +261,6 @@ function renderCommandes(list) {
             </button>
         `;
         container.parentNode.insertBefore(todayBtn, container);
-        
         loadAidantsForSelect();
     }
 }
