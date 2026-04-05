@@ -2176,3 +2176,152 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   MENU FLOTTANT - SORTIE DU BOUTON
+   ============================================ */
+
+.fab-container {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+}
+
+.fab-button {
+    width: 56px;
+    height: 56px;
+    background: #10B981;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid white;
+}
+
+.fab-button:active {
+    transform: scale(0.95);
+}
+
+.fab-button i {
+    font-size: 24px;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.fab-button.active i {
+    transform: rotate(45deg);
+}
+
+/* Menu qui sort du bouton - COLLÉ */
+.fab-menu {
+    position: absolute;
+    bottom: 70px;  /* Juste au-dessus du bouton */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    background: white;
+    padding: 10px 18px;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    border: 1px solid #f1f5f9;
+}
+
+/* Menu ouvert - remonte légèrement */
+.fab-menu.open {
+    opacity: 1;
+    visibility: visible;
+    bottom: 75px;  /* Effet de sortie */
+}
+
+/* Petite flèche/pointe vers le bouton */
+.fab-menu::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid white;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05));
+}
+
+.fab-menu-item {
+    width: 44px;
+    height: 44px;
+    background: #f8fafc;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fab-menu-item:active {
+    transform: scale(0.9);
+    background: #e2e8f0;
+}
+
+.fab-menu-item i {
+    font-size: 20px;
+    color: #64748B;
+}
+
+/* Version Maman */
+.maman-mode .fab-button {
+    background: #DB2777 !important;
+}
+
+.maman-mode .fab-menu::after {
+    border-top-color: white;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .fab-button {
+        width: 52px;
+        height: 52px;
+    }
+    .fab-button i {
+        font-size: 22px;
+    }
+    .fab-menu-item {
+        width: 40px;
+        height: 40px;
+    }
+    .fab-menu-item i {
+        font-size: 18px;
+    }
+    .fab-menu {
+        gap: 10px;
+        padding: 8px 14px;
+        bottom: 65px;
+    }
+    .fab-menu.open {
+        bottom: 70px;
+    }
+}
+
+
