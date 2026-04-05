@@ -821,7 +821,113 @@ export async function openOrderModal() {
             confirmButtonColor: "#F43F5E"
         });
     }
-}
+}window.deliverCommand = async (commandeId) => {
+    const { value: formData } = await Swal.fire({
+        title: "📸 Livraison de la commande",
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <label class="text-[10px] font-black text-slate-400 block mb-2">Photos de livraison (max 5)</label>
+                    <input type="file" id="delivery-photos" accept="image/*" multiple class="w-full p-2 border border-slate-200 rounded-lg">
+                    <div id="photo-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 block mb-2">Notes de livraison</label>
+                    <textarea id="delivery-notes" rows="3" class="w-full p-2 border border-slate-200 rounded-lg" placeholder="État de la livraison, observations..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "✅ Confirmer la livraison",
+        confirmButtonColor: "#10B981",
+        didOpen: () => {
+            const fileInput = document.getElementById('delivery-photos');
+            const previewDiv = document.getElementById('photo-preview');
+            
+            fileInput.onchange = () => {
+                previewDiv.innerHTML = '';
+                const files = Array.from(fileInput.files).slice(0, 5); // Max 5 photos
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'relative';
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'w-16 h-16 object-cover rounded-lg border';
+                        div.appendChild(img);
+                        previewDiv.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            };
+        },
+        preConfirm: () => {
+            const photos = document.getElementById('delivery-photos').files;
+            const notes = document.getElementById('delivery-notes').value;
+            
+            if (!photos || photos.length === 0) {
+                Swal.showValidationMessage("Veuillez ajouter au moins une photo");
+                return false;
+            }
+            
+            return { photos, notes };
+        }
+    });
+    
+    if (!formData) return;
+    
+    Swal.fire({ title: "Envoi en cours...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        const fd = new FormData();
+        fd.append("commande_id", commandeId);
+        fd.append("notes_livraison", formData.notes);
+        for (let i = 0; i < formData.photos.length; i++) {
+            fd.append("photos", formData.photos[i]);
+        }
+        
+        // Important: N'ajoutez PAS 'Content-Type' header avec FormData
+        // Le navigateur le définit automatiquement avec la boundary
+        const response = await fetch(`${CONFIG.API_URL}/commandes/${commandeId}/deliver`, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+                // NE PAS mettre 'Content-Type': 'multipart/form-data'
+            },
+            body: fd
+        });
+        
+        // Vérifiez si la réponse est du JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error("Réponse non-JSON:", text.substring(0, 500));
+            throw new Error(`Le serveur a retourné ${response.status} (page HTML au lieu de JSON). Vérifiez l'URL de l'API.`);
+        }
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || error.message || "Erreur lors de la livraison");
+        }
+        
+        const data = await response.json();
+        Swal.fire({ icon: "success", title: "Livré !", timer: 2000, showConfirmButton: false });
+        
+        if (typeof loadCommandes === 'function') {
+            loadCommandes();
+        }
+        
+    } catch (err) {
+        console.error("Erreur deliverCommand:", err);
+        Swal.fire({ 
+            title: "Erreur", 
+            text: err.message, 
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+    }
+};
 
 
 /**
