@@ -344,8 +344,14 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     
     if (!result.isConfirmed) return;
     
+    // ✅ Afficher un loader
+    Swal.fire({
+        title: "Préparation du paiement...",
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+    });
+    
     try {
-        // ✅ Définir isMaman ici
         const isMaman = localStorage.getItem('user_is_maman') === 'true';
         
         // Récupérer l'ID du patient
@@ -365,15 +371,22 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             })
         });
         
-        // ✅ Utiliser FedaPay Checkout.js directement
-        // ⚠️ IMPORTANT : Remplacez par VOTRE clé publique FedaPay
-        const publicKey = 'pk_live_UBwlV8_cBo4flahLGMfvIqZG'; 
+        console.log("✅ Abonnement créé:", bill);
         
-        // Vérifier que FedaPay est chargé
+        // ✅ Vérifier/charger FedaPay
         if (typeof FedaPay === 'undefined') {
-            throw new Error("FedaPay n'est pas chargé. Vérifiez votre connexion internet.");
+            console.log("📦 Chargement de FedaPay...");
+            await loadFedaPayScript();
         }
         
+        // Fermer le loader
+        Swal.close();
+        
+        const publicKey = 'pk_live_UBwlV8_cBo4flahLGMfvIqZG';
+        
+        console.log("🚀 Ouverture FedaPay avec clé:", publicKey.substring(0, 15) + "...");
+        
+        // ✅ Initialiser FedaPay
         FedaPay.init({
             public_key: publicKey,
             transaction: {
@@ -393,8 +406,6 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             },
             onComplete: async (response) => {
                 console.log("✅ Paiement réussi", response);
-                
-                // ✅ Optionnel : appeler votre backend pour confirmer
                 try {
                     await secureFetch("/billing/confirm-payment", {
                         method: "POST",
@@ -407,7 +418,6 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 } catch(e) {
                     console.warn("Erreur confirmation backend:", e);
                 }
-                
                 Swal.fire({
                     icon: "success",
                     title: "Paiement réussi !",
@@ -423,6 +433,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
         
     } catch (err) {
+        Swal.close();
         console.error("Erreur:", err);
         Swal.fire({
             title: "Erreur",
@@ -432,6 +443,22 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
     }
 };
+
+// ✅ Fonction pour charger FedaPay dynamiquement
+function loadFedaPayScript() {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.fedapay.com/checkout.js?v=1.1.7';
+        script.onload = () => {
+            console.log("✅ FedaPay chargé avec succès");
+            resolve();
+        };
+        script.onerror = () => {
+            reject(new Error("Impossible de charger FedaPay"));
+        };
+        document.head.appendChild(script);
+    });
+}
 /**
  * 🔧 Échapper les caractères HTML
  */
