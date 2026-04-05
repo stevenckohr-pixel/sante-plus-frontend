@@ -53,12 +53,6 @@ function renderCommandes(list) {
     }
 
     container.innerHTML = list.map((c, index) => {
-        // Statuts possibles:
-        // "En attente" = commande créée, pas encore assignée
-        // "En cours" = assignée à un aidant, en livraison
-        // "Livrée" = livrée, en attente validation coordinateur
-        // "Validée" = validée par coordinateur
-        
         const isPending = c.statut === "En attente";
         const isInProgress = c.statut === "En cours";
         const isDelivered = c.statut === "Livrée";
@@ -82,10 +76,8 @@ function renderCommandes(list) {
             statusIcon = "🚚";
         }
         
-        // Badge urgent
         const urgentBadge = c.urgent ? `<span class="ml-2 px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[8px] font-black uppercase"><i class="fa-solid fa-bell"></i> Urgent</span>` : '';
         
-        // Type de commande
         const typeLabels = {
             'MEDICAMENTS': '💊 Médicaments',
             'MATERIEL': '🩺 Matériel médical',
@@ -95,7 +87,6 @@ function renderCommandes(list) {
         };
         const typeLabel = typeLabels[c.type_commande] || '📦 Commande';
         
-        // Images de la commande
         const imagesHtml = c.images && c.images.length > 0 ? `
             <div class="mt-3">
                 <p class="text-[9px] font-black text-slate-400 mb-2">📸 Documents joints (${c.images.length}) :</p>
@@ -112,13 +103,35 @@ function renderCommandes(list) {
             </div>
         ` : '';
         
-        // Notes
         const notesHtml = c.notes_coordinateur ? `
             <div class="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-100">
                 <p class="text-[9px] font-black text-blue-600">📋 Note :</p>
                 <p class="text-xs text-slate-600">${escapeHtml(c.notes_coordinateur)}</p>
             </div>
         ` : '';
+        
+        // Photos de livraison (multiples)
+        const deliveryPhotosHtml = c.photos_livraison && c.photos_livraison.length > 0 ? `
+            <div class="mt-3 pt-3 border-t border-slate-100">
+                <p class="text-[9px] font-black text-slate-400 mb-2">📸 Preuves de livraison (${c.photos_livraison.length}) :</p>
+                <div class="flex flex-wrap gap-2">
+                    ${c.photos_livraison.map(img => `
+                        <div class="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group" onclick="window.open('${img}', '_blank')">
+                            <img src="${img}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                <i class="fa-solid fa-magnifying-glass-plus text-white text-xs"></i>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                ${c.notes_livraison ? `<p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-pen"></i> ${escapeHtml(c.notes_livraison)}</p>` : ''}
+            </div>
+        ` : (c.photo_livraison ? `
+            <div class="mt-3 pt-3 border-t border-slate-100">
+                <p class="text-[9px] font-black text-slate-400 mb-1">📸 Preuve de livraison</p>
+                <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-xl border cursor-pointer" onclick="window.open('${c.photo_livraison}')">
+            </div>
+        ` : '');
 
         return `
             <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4" style="animation-delay: ${index * 0.03}s">
@@ -140,10 +153,10 @@ function renderCommandes(list) {
                     <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
                 </div>
                 
-                <!-- Images -->
+                <!-- Images de la commande -->
                 ${imagesHtml}
                 
-                <!-- Notes -->
+                <!-- Notes coordinateur -->
                 ${notesHtml}
 
                 <!-- Demandeur -->
@@ -154,19 +167,11 @@ function renderCommandes(list) {
                     <span>${new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
                 </div>
 
-                <!-- BOUTON POUR AIDANT - Prendre en charge -->
-                ${isAidant && isPending ? `
-                    <button onclick="window.acceptCommand('${c.id}')" 
-                            class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
-                        🚚 Prendre en charge cette commande
-                    </button>
-                ` : ''}
-
-                <!-- BOUTON POUR AIDANT - Confirmer livraison -->
-                ${isAidant && c.aidant_id === currentUserId && isInProgress ? `
-                    <button onclick="window.markAsDelivered('${c.id}')" 
-                            class="w-full mt-4 py-4 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-                        📸 Confirmer la Livraison
+                <!-- BOUTON POUR AIDANT - Livrer directement -->
+                ${isAidant && (isPending || isInProgress) && (!c.aidant_id || c.aidant_id === currentUserId) ? `
+                    <button onclick="window.deliverCommand('${c.id}')" 
+                            class="w-full mt-4 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                        📸 Confirmer la livraison (avec photos)
                     </button>
                 ` : ''}
 
@@ -199,17 +204,23 @@ function renderCommandes(list) {
                 ` : ''}
 
                 <!-- PREUVE DE LIVRAISON -->
-                ${c.photo_livraison ? `
-                    <div class="mt-3 pt-3 border-t border-slate-100">
-                        <p class="text-[9px] font-black text-slate-400 mb-1">📸 Preuve de livraison</p>
-                        <img src="${c.photo_livraison}" class="w-full h-32 object-cover rounded-xl border cursor-pointer" onclick="window.open('${c.photo_livraison}')">
-                    </div>
-                ` : ''}
+                ${deliveryPhotosHtml}
             </div>
         `;
     }).join("");
     
+    // Bouton "Faire le point du jour" pour le coordinateur
     if (isCoordinateur) {
+        const todayBtn = document.createElement('div');
+        todayBtn.className = 'mb-4 flex justify-end';
+        todayBtn.innerHTML = `
+            <button onclick="window.validateAllDeliveries()" 
+                    class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-md hover:bg-emerald-700 transition">
+                📋 Faire le point du jour
+            </button>
+        `;
+        container.parentNode.insertBefore(todayBtn, container);
+        
         loadAidantsForSelect();
     }
 }
@@ -296,6 +307,34 @@ window.validateDelivery = async (commandeId) => {
         loadCommandes();
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
+    }
+};
+
+
+/**
+ * ✅ COORDINATEUR - VALIDATION RAPIDE DES LIVRAISONS DU JOUR
+ */
+window.validateAllDeliveries = async () => {
+    const result = await Swal.fire({
+        title: "📋 Point des livraisons du jour",
+        text: "Voulez-vous valider toutes les livraisons en attente ?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "✅ OUI, TOUT VALIDER",
+        confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler"
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Validation...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        await secureFetch("/commandes/validate-all", { method: "POST" });
+        Swal.fire({ icon: "success", title: "Point effectué !", timer: 2000, showConfirmButton: false });
+        loadCommandes();
+    } catch (err) {
+        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
     }
 };
 
@@ -783,3 +822,89 @@ export async function openOrderModal() {
         });
     }
 }
+
+
+/**
+ * 📦 AIDANT - LIVRAISON AVEC MULTIPLES PHOTOS
+ */
+window.deliverCommand = async (commandeId) => {
+    const { value: formData } = await Swal.fire({
+        title: "📸 Livraison de la commande",
+        html: `
+            <div class="text-left">
+                <div class="mb-4">
+                    <label class="text-[10px] font-black text-slate-400 block mb-2">Photos de livraison (max 5)</label>
+                    <input type="file" id="delivery-photos" accept="image/*" multiple class="w-full p-2 border border-slate-200 rounded-lg">
+                    <div id="photo-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 block mb-2">Notes de livraison</label>
+                    <textarea id="delivery-notes" rows="3" class="w-full p-2 border border-slate-200 rounded-lg" placeholder="État de la livraison, observations..."></textarea>
+                </div>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "✅ Confirmer la livraison",
+        confirmButtonColor: "#10B981",
+        didOpen: () => {
+            const fileInput = document.getElementById('delivery-photos');
+            const previewDiv = document.getElementById('photo-preview');
+            
+            fileInput.onchange = () => {
+                previewDiv.innerHTML = '';
+                const files = Array.from(fileInput.files);
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'w-16 h-16 object-cover rounded-lg border';
+                        previewDiv.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            };
+        },
+        preConfirm: () => {
+            const photos = document.getElementById('delivery-photos').files;
+            const notes = document.getElementById('delivery-notes').value;
+            
+            if (!photos || photos.length === 0) {
+                Swal.showValidationMessage("Veuillez ajouter au moins une photo");
+                return false;
+            }
+            
+            return { photos, notes };
+        }
+    });
+    
+    if (!formData) return;
+    
+    Swal.fire({ title: "Envoi en cours...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        const fd = new FormData();
+        fd.append("commande_id", commandeId);
+        fd.append("notes_livraison", formData.notes);
+        for (let i = 0; i < formData.photos.length; i++) {
+            fd.append("photos", formData.photos[i]);
+        }
+        
+        const response = await fetch(`${CONFIG.API_URL}/commandes/deliver`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` },
+            body: fd
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur");
+        }
+        
+        Swal.fire({ icon: "success", title: "Livré !", timer: 2000, showConfirmButton: false });
+        loadCommandes();
+        
+    } catch (err) {
+        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
+    }
+};
