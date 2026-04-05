@@ -300,7 +300,7 @@ window.validateDelivery = async (commandeId) => {
     try {
         await secureFetch("/commandes/validate", {
             method: "POST",
-            body: JSON.stringify({ commande_id: commandeId })
+            body: JSON.stringify({ commandeId: commandeId }) 
         });
         
         Swal.fire("Succès", "Livraison validée", "success");
@@ -309,8 +309,6 @@ window.validateDelivery = async (commandeId) => {
         Swal.fire("Erreur", err.message, "error");
     }
 };
-
-
 /**
  * ✅ COORDINATEUR - VALIDATION RAPIDE DES LIVRAISONS DU JOUR
  */
