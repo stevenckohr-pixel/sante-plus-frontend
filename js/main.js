@@ -1777,43 +1777,37 @@ window.switchView = async function(viewName) {
         return;
     }
     
-    // Animation de sortie
-    container.style.transition = "opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)";
-    container.style.opacity = "0";
-    container.style.transform = "translateY(10px)";
-    await new Promise(r => setTimeout(r, 150));
+    // ✅ AFFICHER LE LOADER IMMÉDIATEMENT (sans attendre)
+    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    const loaderIcon = isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON;
     
-        // Loader élégant avec logo local
-            const isMaman = localStorage.getItem('user_is_maman') === 'true';
-            const loaderIcon = isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON;
-            
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-16 min-h-[300px]">
-                    <img src="${loaderIcon}" class="w-12 h-12 animate-pulse">
-                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">Chargement...</p>
-                </div>
-            `;
-    await new Promise(r => setTimeout(r, 50));
+    // Changer le contenu instantanément (pas d'animation de sortie qui crée un blanc)
+    container.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-16 min-h-[300px] animate-fadeIn">
+            <div class="relative">
+                <div class="w-16 h-16 border-4 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                <img src="${loaderIcon}" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-7 h-7 object-contain">
+            </div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mt-4">Chargement...</p>
+            <p class="text-[8px] text-slate-300 mt-1">Santé Plus Services</p>
+        </div>
+    `;
     
     try {
         await performViewSwitch(viewName);
+        
+        // ✅ La nouvelle vue est déjà chargée, plus besoin de transformation
+        // On s'assure juste que la vue est visible
         container.style.opacity = "1";
-        container.style.transform = "translateY(0)";
-        setTimeout(() => {
-            if (container) {
-                container.style.transition = "";
-                container.style.transform = "";
-            }
-        }, 250);
+        
     } catch (err) {
         console.error("❌ Erreur switchView:", err);
-        container.innerHTML = `<div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm">
+        container.innerHTML = `<div class="p-10 text-center bg-white rounded-2xl border border-rose-100 shadow-sm animate-fadeIn">
                                     <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-4"></i>
                                     <h3 class="text-rose-500 font-black text-lg uppercase">Erreur de chargement</h3>
                                     <p class="text-xs text-slate-500 mt-2">${err.message || "Le serveur n'a pas pu répondre."}</p>
                                     <button onclick="window.switchView('${viewName}')" class="mt-6 px-6 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase">Réessayer</button>
                                 </div>`;
-        container.style.opacity = "1";
     }
     
     isTransitioning = false;
@@ -1823,7 +1817,6 @@ window.switchView = async function(viewName) {
         window.switchView(next);
     }
 };
-
 // ============================================================
 // CHARGEMENT D'UNE VUE SPÉCIFIQUE
 // ============================================================
