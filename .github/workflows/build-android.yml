@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'  # ← CHANGÉ : 17 → 21
       
       - name: Create package.json
         run: echo '{"name":"app","version":"1.0.0"}' > package.json
