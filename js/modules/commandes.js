@@ -128,6 +128,7 @@ function renderCommandes(list) {
             </div>
         ` : '';
         
+        
         // 📋 NOTES DU COORDINATEUR
         const notesHtml = c.notes_coordinateur ? `
             <div class="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
