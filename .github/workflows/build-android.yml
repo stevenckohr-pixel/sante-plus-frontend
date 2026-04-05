@@ -24,14 +24,30 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       
-      - name: Install dependencies
-        run: npm install
+      - name: Create package.json
+        run: echo '{"name":"app","version":"1.0.0"}' > package.json
       
       - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Santé Plus Services" "com.santeplus.app" --web-dir=.
+          npx cap init "Sante Plus" "com.santeplus.app"
           npx cap add android
+      
+      - name: Copy web files to www
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp -r assets www/ 2>/dev/null || true
+          cp -r core www/ 2>/dev/null || true
+          cp -r modules www/ 2>/dev/null || true
+      
+      - name: Update capacitor config
+        run: |
+          echo '{
+            "appId": "com.santeplus.app",
+            "appName": "Sante Plus",
+            "webDir": "www"
+          }' > capacitor.config.json
       
       - name: Sync Capacitor
         run: npx cap sync android
@@ -47,5 +63,3 @@ jobs:
         with:
           name: SantePlus-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          compression-level: 0
-          if-no-files-found: error
