@@ -571,9 +571,6 @@ export async function markAsDelivered(commandeId) {
         });
     }
 }
-/**
- * 💊 OUVRIR LA MODALE DE COMMANDE (Famille)
-*/ 
 
 
 /**
@@ -632,6 +629,9 @@ export async function openOrderModal() {
         placeholder = "Listez les produits nécessaires...\n\nExemples:\n- Médicaments (joindre ordonnance)\n- Matériel médical\n- Aliments spécifiques\n- Produits d'hygiène";
         confirmButtonText = "📤 Envoyer";
     }
+    
+    // Variable pour stocker les fichiers dans le bon scope
+    let selectedFiles = [];
     
     // HTML du formulaire avec upload d'images
     const modalHtml = `
@@ -706,12 +706,14 @@ export async function openOrderModal() {
             cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
         },
         didOpen: () => {
+            // Réinitialiser les fichiers
+            selectedFiles = [];
+            
             // Gestion de l'upload d'images
             const uploadArea = document.getElementById('image-upload-area');
             const fileInput = document.getElementById('order-images');
             const previewList = document.getElementById('image-preview-list');
             const placeholder = document.getElementById('upload-placeholder');
-            let selectedFiles = [];
             
             // Fonction pour afficher les aperçus
             const updatePreviews = () => {
@@ -784,9 +786,6 @@ export async function openOrderModal() {
                 selectedFiles.forEach(f => dt.items.add(f));
                 fileInput.files = dt.files;
             };
-            
-            // Stocker les fichiers pour l'envoi
-            window._orderFiles = selectedFiles;
         },
         preConfirm: () => {
             const description = document.getElementById('order-description')?.value.trim();
@@ -798,11 +797,13 @@ export async function openOrderModal() {
                 return false;
             }
             
+            console.log("📸 Fichiers sélectionnés:", selectedFiles.length);
+            
             return {
                 description: description,
                 type: orderType,
                 urgent: isUrgent,
-                files: window._orderFiles || []
+                files: [...selectedFiles]  // Copie des fichiers
             };
         }
     });
@@ -821,10 +822,15 @@ export async function openOrderModal() {
     try {
         // D'abord, uploader les images si présentes
         let uploadedImages = [];
-        for (const file of files) {
+        
+        console.log(`📤 Upload de ${files.length} image(s)...`);
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
             const formData = new FormData();
             formData.append("image", file);
-            formData.append("patient_id", patientId);
+            
+            console.log(`📸 Upload image ${i+1}/${files.length}:`, file.name, file.size);
             
             const uploadRes = await fetch(`${CONFIG.API_URL}/commandes/upload-image`, {
                 method: "POST",
@@ -834,22 +840,33 @@ export async function openOrderModal() {
                 body: formData
             });
             
-            if (uploadRes.ok) {
-                const uploadData = await uploadRes.json();
-                uploadedImages.push(uploadData.url);
+            if (!uploadRes.ok) {
+                const errorText = await uploadRes.text();
+                console.error("❌ Erreur upload:", errorText);
+                throw new Error(`Upload échoué: ${uploadRes.status}`);
             }
+            
+            const uploadData = await uploadRes.json();
+            console.log(`✅ Upload réussi:`, uploadData.url);
+            uploadedImages.push(uploadData.url);
         }
         
+        console.log("📸 Toutes les images uploadées:", uploadedImages);
+        
         // Envoyer la commande
+        const commandeData = {
+            patient_id: patientId,
+            liste_medocs: description,
+            type_commande: type,
+            urgent: urgent,
+            images: uploadedImages
+        };
+        
+        console.log("📦 Envoi commande:", commandeData);
+        
         await secureFetch("/commandes/add", {
             method: "POST",
-            body: JSON.stringify({
-                patient_id: patientId,
-                liste_medocs: description,
-                type_commande: type,
-                urgent: urgent,
-                images: uploadedImages
-            })
+            body: JSON.stringify(commandeData)
         });
         
         UI.success("Commande envoyée avec succès !");
@@ -875,8 +892,6 @@ export async function openOrderModal() {
         });
     }
 }
-
-
 
 /**
  * 📦 AIDANT - LIVRAISON AVEC MULTIPLES PHOTOS
