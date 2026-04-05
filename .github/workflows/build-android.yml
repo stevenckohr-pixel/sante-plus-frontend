@@ -1,8 +1,6 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -30,37 +28,33 @@ jobs:
       - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Santé Plus Services" "com.santeplus.app"
+          npx cap init "SantePlus" "com.santeplus.app"
           npx cap add android
       
-      - name: Copy web files to www
+      - name: Copy web files
         run: |
           mkdir -p www
-          cp index.html www/
-          cp -r assets www/ 2>/dev/null || true
-          cp -r core www/ 2>/dev/null || true
-          cp -r modules www/ 2>/dev/null || true
-          cp manifest.json www/ 2>/dev/null || true
-          cp styles.css www/ 2>/dev/null || true
+          cp -r * www/ 2>/dev/null || true
+          rm -rf www/android www/.github www/node_modules www/www 2>/dev/null || true
       
-      - name: Update capacitor config
+      - name: Update config
         run: |
           echo '{
             "appId": "com.santeplus.app",
-            "appName": "Santé Plus Services",
+            "appName": "SantePlus",
             "webDir": "www"
           }' > capacitor.config.json
       
-      - name: Sync Capacitor
+      - name: Sync
         run: npx cap sync android
-
+      
       - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
       
-      - name: Upload APK
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: SantePlus-App
