@@ -66,7 +66,7 @@ function updatePWAIcon(isMaman) {
 // ============================================================
 // VARIABLES GLOBALES
 // ============================================================
-let deferredPrompt = null;          // Stocke l'invite d'installation PWA
+          // Stocke l'invite d'installation PWA
 let onboardingStep = 0;              // Étape actuelle du tutoriel
 let registrationData = {};           // Données d'inscription temporaires
 let currentStep = 1;                 // Étape actuelle du formulaire d'inscription
@@ -2213,12 +2213,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Détection de l'installation PWA
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    window.deferredPrompt = e;
-    console.log('📱 PWA installable détectée');
-});
+
 
 // Met à jour la couleur des icônes du menu du bas
 function updateActiveNavButtons(viewName) {
@@ -2286,7 +2281,188 @@ window.processValidation = async (id, email, nom, role) => {
 
 
 
+// ============================================================
+// GESTION DE L'INSTALLATION PWA
+// ============================================================
 
+let deferredPrompt = null;
+let installPromptShown = false;
+let installReminderShown = false;
+
+// Stocker si l'utilisateur a déjà refusé
+const INSTALL_DECLINED_KEY = 'pwa_install_declined';
+const INSTALL_REMINDER_COUNT = 'pwa_reminder_count';
+
+// Vérifier si l'utilisateur a déjà refusé
+function hasDeclinedInstall() {
+    return localStorage.getItem(INSTALL_DECLINED_KEY) === 'true';
+}
+
+// Marquer que l'utilisateur a refusé
+function setDeclinedInstall() {
+    localStorage.setItem(INSTALL_DECLINED_KEY, 'true');
+}
+
+// Incrémenter le compteur de rappels
+function incrementReminderCount() {
+    const count = parseInt(localStorage.getItem(INSTALL_REMINDER_COUNT) || '0');
+    localStorage.setItem(INSTALL_REMINDER_COUNT, count + 1);
+    return count + 1;
+}
+
+// Afficher la bannière d'installation
+function showInstallBanner(message, isReminder = false) {
+    // Ne pas montrer si déjà refusé
+    if (hasDeclinedInstall()) return;
+    
+    // Ne pas montrer si déjà montré récemment
+    if (installPromptShown && !isReminder) return;
+    
+    const banner = document.createElement('div');
+    banner.id = 'pwa-install-banner';
+    banner.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        left: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        z-index: 10001;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+    `;
+    
+    banner.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+            <div style="background: #10B981; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-download" style="color: white; font-size: 20px;"></i>
+            </div>
+            <div style="flex: 1;">
+                <p style="font-weight: bold; margin: 0; font-size: 14px;">📱 Installer l'application</p>
+                <p style="margin: 0; font-size: 11px; opacity: 0.8;">${message || "Accédez plus vite à Santé Plus"}</p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <button id="install-banner-install" style="background: #10B981; border: none; color: white; padding: 8px 16px; border-radius: 40px; font-weight: bold; font-size: 12px; cursor: pointer;">Installer</button>
+            <button id="install-banner-close" style="background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 12px; border-radius: 40px; font-size: 12px; cursor: pointer;">Plus tard</button>
+        </div>
+    `;
+    
+    document.body.appendChild(banner);
+    
+    // Animation CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.getElementById('install-banner-install').onclick = () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('✅ PWA installée');
+                    localStorage.setItem(INSTALL_DECLINED_KEY, 'false');
+                } else {
+                    console.log('❌ Installation refusée');
+                    setDeclinedInstall();
+                }
+                deferredPrompt = null;
+                banner.remove();
+            });
+        } else {
+            showToast("L'installation sera disponible dans quelques instants", "info");
+        }
+    };
+    
+    document.getElementById('install-banner-close').onclick = () => {
+        banner.remove();
+        if (!isReminder) {
+            setDeclinedInstall();
+        }
+    };
+    
+    installPromptShown = true;
+}
+
+// Vérifier si l'application est déjà installée
+function isAppInstalled() {
+    // Sur mobile, vérifier si en mode standalone
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        return true;
+    }
+    // Sur iOS
+    if (window.navigator.standalone === true) {
+        return true;
+    }
+    return false;
+}
+
+// Écouter l'événement d'installation
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Ne pas montrer si déjà installé
+    if (isAppInstalled()) return;
+    
+    // Montrer la bannière après un court délai
+    setTimeout(() => {
+        showInstallBanner("Installez l'application pour un accès rapide", false);
+    }, 2000);
+});
+
+// Rappel après 3 visites si non installé
+function checkReminderForInstall() {
+    if (isAppInstalled()) return;
+    if (hasDeclinedInstall()) return;
+    if (installReminderShown) return;
+    
+    const reminderCount = parseInt(localStorage.getItem(INSTALL_REMINDER_COUNT) || '0');
+    
+    // Rappel après la 3ème visite
+    if (reminderCount >= 2 && reminderCount < 5) {
+        setTimeout(() => {
+            showInstallBanner("Pensez à installer l'application pour y accéder plus facilement !", true);
+            installReminderShown = true;
+        }, 3000);
+    }
+    
+    // Incrémenter le compteur de visites
+    incrementReminderCount();
+}
+
+// Exécuter le rappel au chargement
+setTimeout(() => {
+    checkReminderForInstall();
+}, 5000);
+
+// Détecter si l'app a été installée (sur iOS)
+window.addEventListener('appinstalled', () => {
+    console.log('✅ PWA installée avec succès');
+    localStorage.setItem(INSTALL_DECLINED_KEY, 'false');
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.remove();
+    showToast("Merci d'avoir installé l'application !", "success");
+});
 
 
 
