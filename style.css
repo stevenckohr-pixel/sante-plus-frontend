@@ -2062,6 +2062,13 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
 
 
 
+
+
+
+
+
+
+
 /* ============================================
    MENU CIRCULAIRE FLOTTANT (FAB) - CORRIGÉ
    ============================================ */
@@ -2086,6 +2093,8 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     cursor: pointer;
     transition: all 0.3s ease;
     border: 3px solid white;
+    position: relative;
+    z-index: 10;
 }
 
 .fab-button:active {
@@ -2102,22 +2111,13 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     transform: rotate(45deg);
 }
 
-/* Menu items */
+/* Menu items - CHAQUE ITEM A SA PROPRE POSITION */
 .fab-menu {
     position: absolute;
     bottom: 70px;
     left: 50%;
     transform: translateX(-50%);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
     pointer-events: none;
-}
-
-.fab-menu.open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: all;
 }
 
 .fab-menu-item {
@@ -2133,14 +2133,38 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid #f1f5f9;
-    left: 50%;
-    bottom: 0;
-    transform-origin: center;
     opacity: 0;
-    transform: scale(0);
+    visibility: hidden;
+    pointer-events: none;
 }
 
+/* POSITIONS INDIVIDUELLES - IMPORTANT ! */
+.fab-menu-item[data-view="home"] {
+    left: -80px;
+    bottom: -30px;
+}
+.fab-menu-item[data-view="visits"] {
+    left: -40px;
+    bottom: -70px;
+}
+.fab-menu-item[data-view="feed"] {
+    left: 0px;
+    bottom: -85px;
+}
+.fab-menu-item[data-view="profile"] {
+    left: 40px;
+    bottom: -70px;
+}
+.fab-menu-item[data-view="map"] {
+    left: 80px;
+    bottom: -30px;
+}
+
+/* Quand le menu est ouvert */
 .fab-menu.open .fab-menu-item {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
     animation: fabPopIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
 }
 
@@ -2151,23 +2175,6 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
 .fab-menu-item i {
     font-size: 20px;
     color: #64748B;
-}
-
-/* Positions individuelles des items */
-.fab-menu-item[data-view="home"] {
-    transform: translateX(-80px) translateY(-30px);
-}
-.fab-menu-item[data-view="visits"] {
-    transform: translateX(-40px) translateY(-70px);
-}
-.fab-menu-item[data-view="feed"] {
-    transform: translateX(0px) translateY(-85px);
-}
-.fab-menu-item[data-view="profile"] {
-    transform: translateX(40px) translateY(-70px);
-}
-.fab-menu-item[data-view="map"] {
-    transform: translateX(80px) translateY(-30px);
 }
 
 /* Animation d'entrée */
@@ -2211,18 +2218,23 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     }
     
     .fab-menu-item[data-view="home"] {
-        transform: translateX(-70px) translateY(-25px);
+        left: -70px;
+        bottom: -25px;
     }
     .fab-menu-item[data-view="visits"] {
-        transform: translateX(-35px) translateY(-60px);
+        left: -35px;
+        bottom: -60px;
     }
     .fab-menu-item[data-view="feed"] {
-        transform: translateX(0px) translateY(-75px);
+        left: 0px;
+        bottom: -75px;
     }
     .fab-menu-item[data-view="profile"] {
-        transform: translateX(35px) translateY(-60px);
+        left: 35px;
+        bottom: -60px;
     }
     .fab-menu-item[data-view="map"] {
-        transform: translateX(70px) translateY(-25px);
+        left: 70px;
+        bottom: -25px;
     }
 }
