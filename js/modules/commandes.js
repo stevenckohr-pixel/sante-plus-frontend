@@ -41,6 +41,7 @@ function renderCommandes(list) {
     const isFamily = role === "FAMILLE";
     const isAidant = role === "AIDANT";
     const isCoordinateur = role === "COORDINATEUR";
+    const currentUserId = localStorage.getItem("user_id");
 
     if (!list.length) {
         let emptyMessage = "Aucune commande";
@@ -52,28 +53,33 @@ function renderCommandes(list) {
     }
 
     container.innerHTML = list.map((c, index) => {
-        const isPending = c.statut === "En attente";
-        const isConfirmed = c.statut === "Confirmée";
-        const isDelivered = c.statut === "Livrée";
+        // Statuts possibles:
+        // "En attente" = commande créée, pas encore assignée
+        // "En cours" = assignée à un aidant, en livraison
+        // "Livrée" = livrée, en attente validation coordinateur
+        // "Validée" = validée par coordinateur
         
-        let statusColor = "bg-blue-100 text-blue-700";
-        let statusText = c.statut || "En attente";
+        const isPending = c.statut === "En attente";
+        const isInProgress = c.statut === "En cours";
+        const isDelivered = c.statut === "Livrée";
+        const isValidated = c.statut === "Validée";
+        
+        let statusColor = "bg-slate-100 text-slate-700";
+        let statusText = "En attente";
         let statusIcon = "⏳";
         
-        if (isDelivered) {
+        if (isValidated) {
             statusColor = "bg-emerald-100 text-emerald-700";
-            statusText = "Livrée ✅";
+            statusText = "Validée ✅";
             statusIcon = "✅";
-        }
-        if (isConfirmed) {
+        } else if (isDelivered) {
             statusColor = "bg-amber-100 text-amber-700";
-            statusText = "Confirmée - En livraison";
+            statusText = "Livrée - À valider";
+            statusIcon = "📦";
+        } else if (isInProgress) {
+            statusColor = "bg-blue-100 text-blue-700";
+            statusText = "En cours de livraison";
             statusIcon = "🚚";
-        }
-        if (isPending) {
-            statusColor = "bg-slate-100 text-slate-700";
-            statusText = "En attente de validation";
-            statusIcon = "⏳";
         }
         
         // Badge urgent
@@ -106,10 +112,10 @@ function renderCommandes(list) {
             </div>
         ` : '';
         
-        // Notes du coordinateur
+        // Notes
         const notesHtml = c.notes_coordinateur ? `
             <div class="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-100">
-                <p class="text-[9px] font-black text-blue-600">📋 Note coordinateur :</p>
+                <p class="text-[9px] font-black text-blue-600">📋 Note :</p>
                 <p class="text-xs text-slate-600">${escapeHtml(c.notes_coordinateur)}</p>
             </div>
         ` : '';
@@ -132,13 +138,12 @@ function renderCommandes(list) {
                 <!-- Description -->
                 <div class="p-4 bg-slate-50 rounded-xl mb-4">
                     <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
-                    ${c.prix_total ? `<p class="mt-2 text-xs font-black text-emerald-600">💰 Total: ${UI.formatMoney(c.prix_total)}</p>` : ''}
                 </div>
                 
                 <!-- Images -->
                 ${imagesHtml}
                 
-                <!-- Notes coordinateur -->
+                <!-- Notes -->
                 ${notesHtml}
 
                 <!-- Demandeur -->
@@ -149,13 +154,33 @@ function renderCommandes(list) {
                     <span>${new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
                 </div>
 
-                <!-- BOUTONS POUR COORDINATEUR -->
+                <!-- BOUTON POUR AIDANT - Prendre en charge -->
+                ${isAidant && isPending ? `
+                    <button onclick="window.acceptCommand('${c.id}')" 
+                            class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
+                        🚚 Prendre en charge cette commande
+                    </button>
+                ` : ''}
+
+                <!-- BOUTON POUR AIDANT - Confirmer livraison -->
+                ${isAidant && c.aidant_id === currentUserId && isInProgress ? `
+                    <button onclick="window.markAsDelivered('${c.id}')" 
+                            class="w-full mt-4 py-4 bg-amber-500 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                        📸 Confirmer la Livraison
+                    </button>
+                ` : ''}
+
+                <!-- BOUTON POUR COORDINATEUR - Valider livraison -->
+                ${isCoordinateur && isDelivered ? `
+                    <button onclick="window.validateDelivery('${c.id}')" 
+                            class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
+                        ✅ Valider la livraison
+                    </button>
+                ` : ''}
+
+                <!-- BOUTON POUR COORDINATEUR - Assigner (si pas encore assignée) -->
                 ${isCoordinateur && isPending ? `
                     <div class="space-y-3 mt-4 pt-3 border-t border-slate-100">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400">💰 Montant total (CFA)</label>
-                            <input type="number" id="prix-${c.id}" placeholder="Ex: 5000" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
-                        </div>
                         <div>
                             <label class="text-[9px] font-black text-slate-400">👨‍⚕️ Assigner à un aidant</label>
                             <select id="aidant-${c.id}" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
@@ -163,22 +188,14 @@ function renderCommandes(list) {
                             </select>
                         </div>
                         <div>
-                            <label class="text-[9px] font-black text-slate-400">📝 Notes (optionnel)</label>
+                            <label class="text-[9px] font-black text-slate-400">📝 Instructions (optionnel)</label>
                             <textarea id="notes-${c.id}" rows="2" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Instructions pour l'aidant..."></textarea>
                         </div>
-                        <button onclick="window.confirmCommand('${c.id}')" 
+                        <button onclick="window.assignCommand('${c.id}')" 
                                 class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md hover:bg-emerald-700 transition">
-                            ✅ Confirmer et assigner
+                            📋 Assigner à l'aidant
                         </button>
                     </div>
-                ` : ''}
-
-                <!-- BOUTON POUR AIDANT -->
-                ${isAidant && isConfirmed && !isDelivered ? `
-                    <button onclick="window.markAsDelivered('${c.id}')" 
-                            class="w-full mt-4 py-4 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-                        📸 Confirmer la Livraison
-                    </button>
                 ` : ''}
 
                 <!-- PREUVE DE LIVRAISON -->
@@ -196,6 +213,119 @@ function renderCommandes(list) {
         loadAidantsForSelect();
     }
 }
+
+// ✅ Fonction pour assigner une commande (Coordinateur)
+window.assignCommand = async (commandeId) => {
+    const aidantId = document.getElementById(`aidant-${commandeId}`)?.value;
+    const notes = document.getElementById(`notes-${commandeId}`)?.value;
+    
+    if (!aidantId) {
+        Swal.fire("Champs manquants", "Veuillez sélectionner un aidant", "warning");
+        return;
+    }
+    
+    Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        await secureFetch("/commandes/assign", {
+            method: "POST",
+            body: JSON.stringify({
+                commande_id: commandeId,
+                aidant_id: aidantId,
+                notes: notes
+            })
+        });
+        
+        Swal.fire("Succès", "Commande assignée à l'aidant", "success");
+        loadCommandes();
+    } catch (err) {
+        Swal.fire("Erreur", err.message, "error");
+    }
+};
+
+// ✅ Fonction pour accepter une commande (Aidant)
+window.acceptCommand = async (commandeId) => {
+    const result = await Swal.fire({
+        title: "Prendre en charge",
+        text: "Voulez-vous prendre cette commande en charge ?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "OUI, JE PRENDS",
+        confirmButtonColor: "#10B981"
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        await secureFetch("/commandes/accept", {
+            method: "POST",
+            body: JSON.stringify({ commande_id: commandeId })
+        });
+        
+        Swal.fire("Succès", "Commande prise en charge", "success");
+        loadCommandes();
+    } catch (err) {
+        Swal.fire("Erreur", err.message, "error");
+    }
+};
+
+// ✅ Fonction pour valider la livraison (Coordinateur)
+window.validateDelivery = async (commandeId) => {
+    const result = await Swal.fire({
+        title: "Valider la livraison",
+        text: "Confirmez-vous que cette livraison est conforme ?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "OUI, VALIDER",
+        confirmButtonColor: "#10B981"
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Validation...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        await secureFetch("/commandes/validate", {
+            method: "POST",
+            body: JSON.stringify({ commande_id: commandeId })
+        });
+        
+        Swal.fire("Succès", "Livraison validée", "success");
+        loadCommandes();
+    } catch (err) {
+        Swal.fire("Erreur", err.message, "error");
+    }
+};
+
+
+window.acceptCommand = async (commandeId) => {
+    const result = await Swal.fire({
+        title: "Prendre en charge",
+        text: "Voulez-vous prendre cette commande en charge ?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "OUI, JE PRENDS",
+        confirmButtonColor: "#10B981"
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        await secureFetch("/commandes/accept", {
+            method: "POST",
+            body: JSON.stringify({ commande_id: commandeId })
+        });
+        
+        Swal.fire("Succès", "Commande prise en charge", "success");
+        loadCommandes();
+    } catch (err) {
+        Swal.fire("Erreur", err.message, "error");
+    }
+};
 
 // ✅ Fonction pour ouvrir la galerie d'images
 window.openImageGallery = (commandeId, images) => {
