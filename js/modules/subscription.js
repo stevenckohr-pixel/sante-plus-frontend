@@ -349,32 +349,50 @@ export async function renderSubscriptionPage() {
  */
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const confirm = await Swal.fire({
-        title: 'Test FedaPay',
-        text: `Cliquez pour tester l'ouverture`,
-        icon: 'info',
+        title: 'Confirmer',
+        text: `Payer ${price.toLocaleString()} CFA ?`,
+        icon: 'question',
         showCancelButton: true,
-        confirmButtonText: 'TESTER'
+        confirmButtonText: 'PAYER'
     });
     
     if (!confirm.isConfirmed) return;
     
-    // Test direct sans aucun appel backend
-    console.log("1. Tentative d'ouverture FedaPay");
-    console.log("2. Type de FedaPay:", typeof FedaPay);
+    Swal.fire({ title: 'Préparation...', didOpen: () => Swal.showLoading() });
     
     try {
-        // Version 1 - La plus simple possible
-        FedaPay.init({
-            public_key: 'pk_live_UBwlV8_cBo4flahLGMfvIqZG',
-            transaction: {
-                amount: 100,
-                description: 'Test'
-            }
+        const patients = await secureFetch("/patients");
+        const patient = patients[0];
+        
+        const bill = await secureFetch("/billing/generate", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: patient.id,
+                montant: price,
+                pack: packId
+            })
         });
-        console.log("3. FedaPay.init exécuté");
-    } catch(e) {
-        console.error("Erreur:", e);
-        alert("Erreur: " + e.message);
+        
+        const payment = await secureFetch("/billing/generate-payment", {
+            method: "POST",
+            body: JSON.stringify({
+                abonnement_id: bill.id,
+                montant: price,
+                email_client: localStorage.getItem("user_email")
+            })
+        });
+        
+        Swal.close();
+        
+        if (payment.url) {
+            window.open(payment.url, '_blank');
+        } else {
+            throw new Error("Pas d'URL de paiement");
+        }
+        
+    } catch(err) {
+        Swal.close();
+        alert("Erreur: " + err.message);
     }
 };
 
