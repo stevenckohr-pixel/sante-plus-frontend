@@ -934,9 +934,7 @@ export async function openOrderModal() {
     }
 }
 
-/**
- * 📦 AIDANT - LIVRAISON AVEC MULTIPLES PHOTOS
- */
+
 /**
  * 📦 AIDANT - LIVRAISON AVEC MULTIPLES PHOTOS (VERSION CORRIGÉE)
  */
@@ -946,11 +944,26 @@ window.deliverCommand = async (commandeId) => {
         return;
     }
 
-    if (commande.statut !== "En cours de livraison") {
-        Swal.fire("Action non autorisée", "Vous devez d'abord prendre en charge cette commande.", "warning");
+    // Vérifier d'abord le statut de la commande
+    try {
+        const commandes = await secureFetch("/commandes");
+        const commande = commandes.find(c => c.id === commandeId);
+        
+        if (!commande) {
+            Swal.fire("Erreur", "Commande introuvable", "error");
+            return;
+        }
+        
+        if (commande.statut !== "En cours de livraison") {
+            Swal.fire("Action non autorisée", "Vous devez d'abord prendre en charge cette commande.", "warning");
+            return;
+        }
+    } catch (err) {
+        console.error("Erreur vérification commande:", err);
+        Swal.fire("Erreur", "Impossible de vérifier le statut de la commande", "error");
         return;
     }
-    
+        
     const { value: formData } = await Swal.fire({
         title: "📸 Livraison de la commande",
         html: `
