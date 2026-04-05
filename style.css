@@ -2060,14 +2060,13 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
 
 
 
-
 /* ============================================
-   MENU CIRCULAIRE FLOTTANT (FAB) - VERSION STABLE
+   MENU FLOTTANT SIMPLE (FAB)
    ============================================ */
 
 .fab-container {
     position: fixed;
-    bottom: 20px;
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
@@ -2081,12 +2080,10 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: all 0.3s ease;
     border: 3px solid white;
-    position: relative;
-    z-index: 10;
 }
 
 .fab-button:active {
@@ -2103,100 +2100,46 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     transform: rotate(45deg);
 }
 
-/* Conteneur du menu */
+/* Menu horizontal */
 .fab-menu {
     position: absolute;
     bottom: 70px;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px;
-    height: 200px;
-    pointer-events: none;
+    display: flex;
+    gap: 15px;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    border: 1px solid #f1f5f9;
 }
 
-/* Items du menu - positionnés en cercle autour du centre */
+.fab-menu.open {
+    opacity: 1;
+    visibility: visible;
+    bottom: 80px;
+}
+
 .fab-menu-item {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    background: white;
+    width: 44px;
+    height: 44px;
+    background: #f8fafc;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
     cursor: pointer;
     transition: all 0.2s ease;
-    border: 1px solid #f1f5f9;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* Positions en cercle - calculées depuis le centre (0,0) */
-.fab-menu-item[data-view="home"] {
-    transform: translate(-50%, -50%) translate(-70px, -70px);
-}
-.fab-menu-item[data-view="visits"] {
-    transform: translate(-50%, -50%) translate(0px, -95px);
-}
-.fab-menu-item[data-view="feed"] {
-    transform: translate(-50%, -50%) translate(70px, -70px);
-}
-.fab-menu-item[data-view="profile"] {
-    transform: translate(-50%, -50%) translate(70px, 0px);
-}
-.fab-menu-item[data-view="map"] {
-    transform: translate(-50%, -50%) translate(0px, 0px);
-}
-
-/* Version avec 5 items en arc de cercle (plus naturel) */
-.fab-menu[data-items="5"] .fab-menu-item[data-view="home"] {
-    transform: translate(-50%, -50%) translate(-80px, -30px);
-}
-.fab-menu[data-items="5"] .fab-menu-item[data-view="visits"] {
-    transform: translate(-50%, -50%) translate(-40px, -75px);
-}
-.fab-menu[data-items="5"] .fab-menu-item[data-view="feed"] {
-    transform: translate(-50%, -50%) translate(0px, -90px);
-}
-.fab-menu[data-items="5"] .fab-menu-item[data-view="profile"] {
-    transform: translate(-50%, -50%) translate(40px, -75px);
-}
-.fab-menu[data-items="5"] .fab-menu-item[data-view="map"] {
-    transform: translate(-50%, -50%) translate(80px, -30px);
-}
-
-/* Utilisons cette version (la plus stable) */
-.fab-menu .fab-menu-item[data-view="home"] {
-    transform: translate(-50%, -50%) translate(-80px, -30px);
-}
-.fab-menu .fab-menu-item[data-view="visits"] {
-    transform: translate(-50%, -50%) translate(-40px, -75px);
-}
-.fab-menu .fab-menu-item[data-view="feed"] {
-    transform: translate(-50%, -50%) translate(0px, -90px);
-}
-.fab-menu .fab-menu-item[data-view="profile"] {
-    transform: translate(-50%, -50%) translate(40px, -75px);
-}
-.fab-menu .fab-menu-item[data-view="map"] {
-    transform: translate(-50%, -50%) translate(80px, -30px);
-}
-
-/* Quand le menu est ouvert */
-.fab-menu.open .fab-menu-item {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: all;
-    animation: fabPopIn 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
 }
 
 .fab-menu-item:active {
-    transform: translate(-50%, -50%) scale(0.9) !important;
+    transform: scale(0.9);
+    background: #e2e8f0;
 }
 
 .fab-menu-item i {
@@ -2204,27 +2147,12 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     color: #64748B;
 }
 
-/* Animation */
-@keyframes fabPopIn {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0);
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(1.1);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-}
-
 /* Version Maman */
 .maman-mode .fab-button {
     background: #DB2777 !important;
 }
 
-/* Responsive mobile */
+/* Responsive */
 @media (max-width: 640px) {
     .fab-button {
         width: 52px;
@@ -2234,32 +2162,17 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
         font-size: 22px;
     }
     .fab-menu-item {
-        width: 44px;
-        height: 44px;
+        width: 40px;
+        height: 40px;
     }
     .fab-menu-item i {
         font-size: 18px;
     }
-    .fab-menu .fab-menu-item[data-view="home"] {
-        transform: translate(-50%, -50%) translate(-65px, -25px);
-    }
-    .fab-menu .fab-menu-item[data-view="visits"] {
-        transform: translate(-50%, -50%) translate(-30px, -65px);
-    }
-    .fab-menu .fab-menu-item[data-view="feed"] {
-        transform: translate(-50%, -50%) translate(0px, -80px);
-    }
-    .fab-menu .fab-menu-item[data-view="profile"] {
-        transform: translate(-50%, -50%) translate(30px, -65px);
-    }
-    .fab-menu .fab-menu-item[data-view="map"] {
-        transform: translate(-50%, -50%) translate(65px, -25px);
+    .fab-menu {
+        gap: 12px;
+        padding: 10px 16px;
     }
 }
-
-
-
-
 
 
 
