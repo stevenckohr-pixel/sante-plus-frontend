@@ -1347,34 +1347,28 @@ async function initPushNotifications() {
                     </main>
                 
                   <!-- Menu flottant -->
-                    <div class="fab-menu" id="fab-menu">
-                        ${userRole === 'COORDINATEUR' ? `
-                            <div class="fab-menu-item" data-view="dashboard">
-                                <i class="fa-solid fa-chart-pie"></i>
+                    <div class="fab-container">
+                        <div class="fab-menu" id="fab-menu">
+                            <div class="fab-menu-item" data-view="home">
+                                <i class="fa-solid fa-house-chimney"></i>
                             </div>
-                            <div class="fab-menu-item" data-view="rh-dashboard">
-                                <i class="fa-solid fa-users"></i>
+                            <div class="fab-menu-item" data-view="visits">
+                                <i class="fa-solid fa-calendar-check"></i>
                             </div>
-                        ` : ''}
-                        <div class="fab-menu-item" data-view="home">
-                            <i class="fa-solid fa-house-chimney"></i>
-                        </div>
-                        <div class="fab-menu-item" data-view="visits">
-                            <i class="fa-solid fa-calendar-check"></i>
-                        </div>
-                        ${userRole !== 'COORDINATEUR' ? `
                             <div class="fab-menu-item" data-view="feed">
                                 <i class="fa-regular fa-newspaper"></i>
+                            </div>
+                            <div class="fab-menu-item" data-view="profile">
+                                <i class="fa-solid fa-user"></i>
                             </div>
                             <div class="fab-menu-item" data-view="map">
                                 <i class="fa-solid fa-location-dot"></i>
                             </div>
-                        ` : ''}
-                        <div class="fab-menu-item" data-view="profile">
-                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="fab-button" id="fab-button">
+                            <i class="fa-solid fa-plus"></i>
                         </div>
                     </div>
-
                      
                 </div>
             </div>
