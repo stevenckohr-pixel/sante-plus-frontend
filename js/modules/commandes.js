@@ -227,13 +227,21 @@ function renderCommandes(list) {
                 <!-- Photos de livraison (avec défilement horizontal) -->
                 ${deliveryPhotosHtml}
 
-                <!-- BOUTON POUR AIDANT - Livrer -->
-                ${isAidant && (isPending || isInProgress) && (!c.aidant_id || c.aidant_id === currentUserId) ? `
-                    <button onclick="window.deliverCommand('${c.id}')" 
-                            class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-                        📸 Confirmer la livraison (avec photos)
-                    </button>
-                ` : ''}
+
+            ${isAidant && isPending && (!c.aidant_id || c.aidant_id !== currentUserId) ? `
+                <button onclick="window.takeCommand('${c.id}')" 
+                        class="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                    🚚 Prendre en charge cette commande
+                </button>
+            ` : ''}
+            
+            <!-- BOUTON POUR AIDANT - Livrer (si commande en cours ET assignée à lui) -->
+            ${isAidant && isInProgress && c.aidant_id === currentUserId ? `
+                <button onclick="window.deliverCommand('${c.id}')" 
+                        class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                    📸 Confirmer la livraison (avec photos)
+                </button>
+            ` : ''}
 
                 <!-- BOUTON POUR COORDINATEUR - Valider livraison -->
                 ${isCoordinateur && isDelivered ? `
@@ -280,6 +288,39 @@ function renderCommandes(list) {
         loadAidantsForSelect();
     }
 }
+
+
+/**
+ * 🚚 AIDANT - PRENDRE EN CHARGE UNE COMMANDE
+ */
+window.takeCommand = async (commandeId) => {
+    const result = await Swal.fire({
+        title: "Prendre en charge",
+        text: "Voulez-vous prendre cette commande en charge ?",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "OUI, JE PRENDS EN CHARGE",
+        confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler"
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Prise en charge...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        await secureFetch("/commandes/accept", {
+            method: "POST",
+            body: JSON.stringify({ commandeId: commandeId })
+        });
+        
+        Swal.fire("Succès", "Commande prise en charge. Vous pouvez maintenant la livrer.", "success");
+        loadCommandes(); // Recharger la liste
+    } catch (err) {
+        Swal.fire("Erreur", err.message, "error");
+    }
+};
+
 // ✅ Fonction pour assigner une commande (Coordinateur)
 window.assignCommand = async (commandeId) => {
     const aidantId = document.getElementById(`aidant-${commandeId}`)?.value;
@@ -905,6 +946,11 @@ window.deliverCommand = async (commandeId) => {
         return;
     }
 
+    if (commande.statut !== "En cours de livraison") {
+        Swal.fire("Action non autorisée", "Vous devez d'abord prendre en charge cette commande.", "warning");
+        return;
+    }
+    
     const { value: formData } = await Swal.fire({
         title: "📸 Livraison de la commande",
         html: `
