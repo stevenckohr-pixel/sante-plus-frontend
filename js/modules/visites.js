@@ -578,11 +578,6 @@ window.rateVisit = async (visiteId) => {
 };
 
 
-
-/**
- * ▶️ DÉMARRER UNE VISITE (Version Élite avec Surveillance Live)
- */
-
 /**
  * 📡 MOTEUR DE SURVEILLANCE LIVE
  * Envoie des signaux "ping" au serveur avec la position actuelle
@@ -652,30 +647,26 @@ function startBackgroundTracking(visiteId) {
 async function sendPosition(position, visiteId) {
     const { latitude, longitude, accuracy } = position.coords;
     
-    // Vérifier si la position a changé de façon significative (> 5m)
+    // ✅ Assouplir le seuil de précision (100m -> 150m)
+    if (accuracy > 150) {
+        console.warn(`🛰️ [GPS] Point ignoré : précision trop faible (${Math.round(accuracy)}m)`);
+        return;
+    }
+
+    // Vérifier si la position a changé de façon significative (> 10m au lieu de 5m)
     if (lastSentPosition) {
         const lastLat = lastSentPosition.lat;
         const lastLng = lastSentPosition.lng;
-        const distance = Math.sqrt(
-            Math.pow(latitude - lastLat, 2) + 
-            Math.pow(longitude - lastLng, 2)
-        ) * 111000; // Conversion en mètres (approximative)
+        const distance = calculateDistance(latitude, longitude, lastLat, lastLng);
         
-        if (distance < 5) {
+        if (distance < 10) {
             // Position trop proche de la précédente, on ignore
             return;
         }
     }
     
-    // Vérifier la précision
-    if (accuracy > 100) {
-        console.warn(`🛰️ [GPS] Point ignoré : précision trop faible (${Math.round(accuracy)}m)`);
-        return;
-    }
-
     console.log(`🛰️ [GPS] Point envoyé : ${latitude.toFixed(6)}, ${longitude.toFixed(6)} (Précision: ${Math.round(accuracy)}m)`);
     
-    // Mettre à jour la dernière position envoyée
     lastSentPosition = { lat: latitude, lng: longitude };
 
     try {
@@ -697,23 +688,66 @@ async function sendPosition(position, visiteId) {
     }
 }
 
+
+
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3; // Rayon de la Terre en mètres
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+}
+
 /**
  * 📍 UTILITAIRE : RÉCUPÉRER LA POSITION GPS ACTUELLE
  */
 async function getCurrentLocation() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error("GPS non supporté par ce téléphone"));
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            return reject(new Error("GPS non supporté par ce téléphone"));
+        }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      (err) => {
-          let msg = "Erreur GPS";
-          if (err.code === 1) msg = "Merci d'autoriser le partage de position dans vos réglages.";
-          reject(new Error(msg));
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  });
+        // ✅ Options pour une meilleure précision
+        const options = {
+            enableHighAccuracy: true,  // Forcer la haute précision
+            timeout: 30000,            // 30 secondes
+            maximumAge: 0              // Pas de cache
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const accuracy = pos.coords.accuracy;
+                console.log(`📍 Position obtenue avec précision: ${Math.round(accuracy)}m`);
+                
+                // ✅ Accepter même avec précision moyenne (moins de 100m)
+                if (accuracy > 150) {
+                    console.warn(`⚠️ Précision faible (${Math.round(accuracy)}m), mais on accepte`);
+                }
+                
+                resolve({ 
+                    lat: pos.coords.latitude, 
+                    lon: pos.coords.longitude,
+                    accuracy: accuracy 
+                });
+            },
+            (err) => {
+                let msg = "Erreur GPS";
+                if (err.code === 1) msg = "Merci d'autoriser le partage de position";
+                if (err.code === 2) msg = "Position indisponible, réessayez";
+                if (err.code === 3) msg = "Délai dépassé, vérifiez votre connexion";
+                reject(new Error(msg));
+            },
+            options
+        );
+    });
 }
 
 
