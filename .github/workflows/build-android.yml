@@ -30,7 +30,7 @@ jobs:
       - name: Install Capacitor
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Sante Plus" "com.santeplus.app"
+          npx cap init "Santé Plus Services" "com.santeplus.app"
           npx cap add android
       
       - name: Copy web files to www
@@ -45,7 +45,7 @@ jobs:
         run: |
           echo '{
             "appId": "com.santeplus.app",
-            "appName": "Sante Plus",
+            "appName": "Santé Plus Services",
             "webDir": "www"
           }' > capacitor.config.json
       
