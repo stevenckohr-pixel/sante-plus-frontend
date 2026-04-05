@@ -1,6 +1,9 @@
 import { CONFIG } from "./config.js";
 import ErrorHandler from './errorHandler.js';
 
+// ✅ Détection de l'environnement Capacitor (application native)
+const isCapacitor = typeof window !== 'undefined' && window.hasOwnProperty('Capacitor');
+
 // Cache pour les réponses GET
 const apiCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -10,6 +13,7 @@ export async function secureFetch(endpoint, options = {}) {
   const method = options.method || 'GET';
   
   console.log(`📡 Appel API : ${method} ${endpoint}`);
+  console.log(`📱 Environnement: ${isCapacitor ? 'Capacitor (Natife)' : 'Web'}`);
 
   const headers = {
     "Content-Type": "application/json",
@@ -20,17 +24,15 @@ export async function secureFetch(endpoint, options = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // ✅ Vider le cache pour cet endpoint si ce n'est pas un GET
+  // Vider le cache pour les méthodes non-GET
   if (method !== 'GET') {
     apiCache.delete(endpoint);
     console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
     
-    // ✅ Invalider les caches localStorage
     localStorage.removeItem(`cache_/commandes`);
     localStorage.removeItem(`cache_/visites`);
     localStorage.removeItem(`cache_/patients`);
     
-    // ✅ Déclencher un rafraîchissement automatique après 500ms
     setTimeout(() => {
       if (window.refreshCurrentView) {
         window.refreshCurrentView();
@@ -43,7 +45,10 @@ export async function secureFetch(endpoint, options = {}) {
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
-      const response = await fetch(`${CONFIG.API_URL}${endpoint}`, {
+      const url = `${CONFIG.API_URL}${endpoint}`;
+      console.log(`🌐 Requête vers: ${url}`);
+      
+      const response = await fetch(url, {
         ...options,
         headers,
         signal: controller.signal
