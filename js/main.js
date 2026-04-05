@@ -43,6 +43,69 @@ console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
 const { updateNotificationBadge } = Notifications;
 
 
+/**
+ * 🔄 RAFRAÎCHIR LA VUE ACTUELLE
+ */
+window.refreshCurrentView = async () => {
+    const currentView = localStorage.getItem("last_view") || "home";
+    console.log("🔄 Rafraîchissement de la vue:", currentView);
+    
+    // Afficher un indicateur de chargement
+    const container = document.getElementById("view-container");
+    if (container) {
+        const refreshIndicator = document.createElement('div');
+        refreshIndicator.className = 'refresh-indicator';
+        refreshIndicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Mise à jour...';
+        container.prepend(refreshIndicator);
+        setTimeout(() => refreshIndicator.remove(), 1000);
+    }
+    
+    // Recharger la vue actuelle
+    await window.switchView(currentView);
+};
+
+/**
+ * 📱 PULL-TO-REFRESH
+ */
+function initPullToRefresh() {
+    const mainContent = document.getElementById("main-content");
+    if (!mainContent) return;
+    
+    let touchStartY = 0;
+    let isRefreshing = false;
+    
+    mainContent.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+    });
+    
+    mainContent.addEventListener('touchmove', (e) => {
+        const scrollTop = mainContent.scrollTop;
+        const touchY = e.touches[0].clientY;
+        const pullDistance = touchY - touchStartY;
+        
+        // Si on est en haut de la page et qu'on tire vers le bas
+        if (scrollTop === 0 && pullDistance > 50 && !isRefreshing) {
+            e.preventDefault();
+            isRefreshing = true;
+            
+            // Afficher l'indicateur
+            const refreshEl = document.createElement('div');
+            refreshEl.id = 'pull-to-refresh';
+            refreshEl.className = 'flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-500 text-xs font-black';
+            refreshEl.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Actualisation...';
+            mainContent.prepend(refreshEl);
+            
+            // Rafraîchir
+            window.refreshCurrentView().then(() => {
+                setTimeout(() => {
+                    const el = document.getElementById('pull-to-refresh');
+                    if (el) el.remove();
+                    isRefreshing = false;
+                }, 500);
+            });
+        }
+    });
+}
 
 // Met à jour l'icône PWA selon le thème (Maman ou général)
 // Met à jour l'icône PWA selon le thème (Maman ou général)
@@ -350,6 +413,8 @@ async function initApp() {
             await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
             checkActiveVisit();
+            initPullToRefresh();
+
 
                         // ✅ FORCER la mise à jour de l'UI de l'aidant
             const userRole = localStorage.getItem("user_role");
@@ -1453,7 +1518,9 @@ async function initPushNotifications() {
                     
                     <!-- Espace vide pour équilibre sur mobile -->
                     <div class="lg:hidden"></div>
-                    
+
+
+
                     <!-- Notifications -->
                     <div class="flex items-center gap-3">
                         <button onclick="window.switchView('notifications')" 
@@ -1462,6 +1529,12 @@ async function initPushNotifications() {
                             <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
                         </button>
                     </div>
+
+                <!-- Bouton rafraîchissement -->
+                <button onclick="window.refreshCurrentView()" 
+                        class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 transition-all shadow-sm flex items-center justify-center">
+                    <i class="fa-solid fa-arrow-rotate-right text-base"></i>
+                </button>
                     
                 </header>
                 
