@@ -145,34 +145,34 @@ const ONBOARDING_STEPS_GENERAL = [
     {
         title: "👀 Suivez vos proches en temps réel",
         desc: "Chaque visite ou livraison est visible instantanément, avec l'heure, les actions réalisées et les observations.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
         accent: "border-emerald-500"
     },
     {
         title: "📸 Des preuves à chaque intervention",
         desc: "Photos, notes et comptes-rendus sont ajoutés après chaque passage pour vous rassurer en toute transparence.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
         accent: "border-blue-500"
     },
     {
         title: "📦 Deux offres, un seul objectif",
         desc: "👵 Aide aux seniors : accompagnement quotidien | 👶 Maman & Bébé : suivi avant et après la naissance.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
         accent: "border-indigo-500"
     },
     {
         title: "💬 Agissez à distance",
         desc: "Envoyez un message ou faites une demande à tout moment, où que vous soyez.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
         accent: "border-amber-500"
     },
     {
         title: "🚀 Accédez au suivi",
         desc: "Consultez dès maintenant les dernières activités et gardez l'esprit tranquille.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=800",
         accent: "border-emerald-600"
     }
-];;
+];
 
 // ============================================================
 // ONBOARDING SENIOR / AIDE
@@ -181,37 +181,37 @@ const ONBOARDING_STEPS_SENIOR = [
     {
         title: "🏠 Des visites à domicile suivies",
         desc: "Chaque passage de l'aidant est enregistré avec précision : heure d'arrivée et de départ.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
         accent: "border-emerald-500"
     },
     {
         title: "✅ Toutes les actions tracées",
         desc: "Aide quotidienne, prise de médicaments, accompagnement… tout est clairement indiqué.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&q=80&w=800",
         accent: "border-blue-500"
     },
     {
         title: "📸 Des preuves après chaque visite",
         desc: "Photos et notes sont ajoutées pour vous rassurer et garder une trace complète.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
         accent: "border-indigo-500"
     },
     {
         title: "💊 Commandez les médicaments",
         desc: "Envoyez une demande et faites livrer les traitements directement à domicile.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=800",
         accent: "border-amber-500"
     },
     {
         title: "📞 Réagissez rapidement",
         desc: "Contactez le coordinateur ou demandez une intervention en quelques secondes.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
         accent: "border-slate-700"
     },
     {
         title: "👀 Accédez au suivi",
         desc: "Consultez les dernières visites et restez informé en temps réel.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
         accent: "border-emerald-600"
     }
 ];
@@ -223,37 +223,37 @@ const ONBOARDING_STEPS_BABY = [
     {
         title: "🤰 Un suivi de grossesse rassurant",
         desc: "Un professionnel vous accompagne à domicile : suivi de santé, bien-être et évolution de bébé.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&q=80&w=800",
         accent: "border-rose-500"
     },
     {
         title: "👶 Un accompagnement après la naissance",
         desc: "Nous veillons sur vous et votre bébé : allaitement, sommeil, soins et conseils.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1504181592499-5b1a6f8b9b2a?auto=format&fit=crop&q=80&w=800",
         accent: "border-pink-500"
     },
     {
         title: "📸 Des souvenirs à chaque visite",
         desc: "Recevez des photos et des nouvelles pour suivre l'évolution de votre enfant.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
         accent: "border-purple-500"
     },
     {
         title: "🍼 Commandez facilement",
         desc: "Couches, lait, vêtements… faites-vous livrer rapidement avec preuve à l'appui.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1544717304-6fdb4e2a0b5d?auto=format&fit=crop&q=80&w=800",
         accent: "border-amber-500"
     },
     {
         title: "💬 Un suivi personnalisé",
         desc: "Posez vos questions et recevez des conseils adaptés à votre situation.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
         accent: "border-emerald-500"
     },
     {
         title: "👀 Suivez votre bébé",
         desc: "Accédez au fil d'actualité et ne manquez aucun moment important.",
-        image: "...",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
         accent: "border-rose-600"
     }
 ];
