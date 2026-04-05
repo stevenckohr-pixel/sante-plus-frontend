@@ -33,13 +33,10 @@ jobs:
           npx cap init "Santé Plus Services" "com.santeplus.app"
           npx cap add android
       
-      - name: Copy web files to www
-        run: |
-          mkdir -p www
-          cp index.html www/
-          cp -r assets www/ 2>/dev/null || true
-          cp -r core www/ 2>/dev/null || true
-          cp -r modules www/ 2>/dev/null || true
+      - name: Prepare web files    👈🏽 AJOUTE ICI (cette ligne)
+        run: |                     👈🏽 AJOUTE ICI
+          mkdir -p www             👈🏽 AJOUTE ICI
+          cp -r assets/ core/ modules/ index.html manifest.json styles.css www/  👈🏽 AJOUTE ICI
       
       - name: Update capacitor config
         run: |
