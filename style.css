@@ -2061,21 +2061,13 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
 
 
 
-
-
-
-
-
-
-
-
 /* ============================================
-   MENU CIRCULAIRE FLOTTANT (FAB) - CORRIGÉ
+   MENU CIRCULAIRE FLOTTANT (FAB) - VERSION STABLE
    ============================================ */
 
 .fab-container {
     position: fixed;
-    bottom: 25px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 9999;
@@ -2089,7 +2081,7 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     cursor: pointer;
     transition: all 0.3s ease;
     border: 3px solid white;
@@ -2111,15 +2103,18 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     transform: rotate(45deg);
 }
 
-/* Menu items - CHAQUE ITEM A SA PROPRE POSITION */
+/* Conteneur du menu */
 .fab-menu {
     position: absolute;
     bottom: 70px;
     left: 50%;
     transform: translateX(-50%);
+    width: 200px;
+    height: 200px;
     pointer-events: none;
 }
 
+/* Items du menu - positionnés en cercle autour du centre */
 .fab-menu-item {
     position: absolute;
     width: 48px;
@@ -2136,28 +2131,60 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
 }
 
-/* POSITIONS INDIVIDUELLES - IMPORTANT ! */
+/* Positions en cercle - calculées depuis le centre (0,0) */
 .fab-menu-item[data-view="home"] {
-    left: -80px;
-    bottom: -30px;
+    transform: translate(-50%, -50%) translate(-70px, -70px);
 }
 .fab-menu-item[data-view="visits"] {
-    left: -40px;
-    bottom: -70px;
+    transform: translate(-50%, -50%) translate(0px, -95px);
 }
 .fab-menu-item[data-view="feed"] {
-    left: 0px;
-    bottom: -85px;
+    transform: translate(-50%, -50%) translate(70px, -70px);
 }
 .fab-menu-item[data-view="profile"] {
-    left: 40px;
-    bottom: -70px;
+    transform: translate(-50%, -50%) translate(70px, 0px);
 }
 .fab-menu-item[data-view="map"] {
-    left: 80px;
-    bottom: -30px;
+    transform: translate(-50%, -50%) translate(0px, 0px);
+}
+
+/* Version avec 5 items en arc de cercle (plus naturel) */
+.fab-menu[data-items="5"] .fab-menu-item[data-view="home"] {
+    transform: translate(-50%, -50%) translate(-80px, -30px);
+}
+.fab-menu[data-items="5"] .fab-menu-item[data-view="visits"] {
+    transform: translate(-50%, -50%) translate(-40px, -75px);
+}
+.fab-menu[data-items="5"] .fab-menu-item[data-view="feed"] {
+    transform: translate(-50%, -50%) translate(0px, -90px);
+}
+.fab-menu[data-items="5"] .fab-menu-item[data-view="profile"] {
+    transform: translate(-50%, -50%) translate(40px, -75px);
+}
+.fab-menu[data-items="5"] .fab-menu-item[data-view="map"] {
+    transform: translate(-50%, -50%) translate(80px, -30px);
+}
+
+/* Utilisons cette version (la plus stable) */
+.fab-menu .fab-menu-item[data-view="home"] {
+    transform: translate(-50%, -50%) translate(-80px, -30px);
+}
+.fab-menu .fab-menu-item[data-view="visits"] {
+    transform: translate(-50%, -50%) translate(-40px, -75px);
+}
+.fab-menu .fab-menu-item[data-view="feed"] {
+    transform: translate(-50%, -50%) translate(0px, -90px);
+}
+.fab-menu .fab-menu-item[data-view="profile"] {
+    transform: translate(-50%, -50%) translate(40px, -75px);
+}
+.fab-menu .fab-menu-item[data-view="map"] {
+    transform: translate(-50%, -50%) translate(80px, -30px);
 }
 
 /* Quand le menu est ouvert */
@@ -2165,11 +2192,11 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     opacity: 1;
     visibility: visible;
     pointer-events: all;
-    animation: fabPopIn 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    animation: fabPopIn 0.25s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
 }
 
 .fab-menu-item:active {
-    transform: scale(0.9);
+    transform: translate(-50%, -50%) scale(0.9) !important;
 }
 
 .fab-menu-item i {
@@ -2177,18 +2204,18 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     color: #64748B;
 }
 
-/* Animation d'entrée */
+/* Animation */
 @keyframes fabPopIn {
     0% {
         opacity: 0;
-        transform: scale(0);
+        transform: translate(-50%, -50%) scale(0);
     }
     50% {
-        transform: scale(1.1);
+        transform: translate(-50%, -50%) scale(1.1);
     }
     100% {
         opacity: 1;
-        transform: scale(1);
+        transform: translate(-50%, -50%) scale(1);
     }
 }
 
@@ -2203,38 +2230,36 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
         width: 52px;
         height: 52px;
     }
-    
     .fab-button i {
         font-size: 22px;
     }
-    
     .fab-menu-item {
         width: 44px;
         height: 44px;
     }
-    
     .fab-menu-item i {
         font-size: 18px;
     }
-    
-    .fab-menu-item[data-view="home"] {
-        left: -70px;
-        bottom: -25px;
+    .fab-menu .fab-menu-item[data-view="home"] {
+        transform: translate(-50%, -50%) translate(-65px, -25px);
     }
-    .fab-menu-item[data-view="visits"] {
-        left: -35px;
-        bottom: -60px;
+    .fab-menu .fab-menu-item[data-view="visits"] {
+        transform: translate(-50%, -50%) translate(-30px, -65px);
     }
-    .fab-menu-item[data-view="feed"] {
-        left: 0px;
-        bottom: -75px;
+    .fab-menu .fab-menu-item[data-view="feed"] {
+        transform: translate(-50%, -50%) translate(0px, -80px);
     }
-    .fab-menu-item[data-view="profile"] {
-        left: 35px;
-        bottom: -60px;
+    .fab-menu .fab-menu-item[data-view="profile"] {
+        transform: translate(-50%, -50%) translate(30px, -65px);
     }
-    .fab-menu-item[data-view="map"] {
-        left: 70px;
-        bottom: -25px;
+    .fab-menu .fab-menu-item[data-view="map"] {
+        transform: translate(-50%, -50%) translate(65px, -25px);
     }
 }
+
+
+
+
+
+
+
