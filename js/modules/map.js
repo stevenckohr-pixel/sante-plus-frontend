@@ -128,19 +128,64 @@ function createCoordinatorIcon(color, iconName, isAnimated) {
 // ============================================================
 
 export async function initLiveMap() {
-    const userRole = localStorage.getItem("user_role");
+    console.log("🗺️ Initialisation de la carte...");
     
-    if (userRole === "COORDINATEUR") {
-        await initCoordinatorMap();
-    } else if (userRole === "FAMILLE") {
-        await initFamilyMap();
-    } else if (userRole === "AIDANT") {
-        await initAidantMap();
-    } else {
-        await initAidantMap();
+    const container = document.getElementById("view-container");
+    if (!container) {
+        console.error("❌ view-container non trouvé");
+        return;
     }
+    
+    // Vérifier si on est sur mobile (menu flottant)
+    const isMobile = window.innerWidth < 1024;
+    
+    // Créer le HTML de la carte
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-32">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">📍 Radar GPS</h3>
+                    <p class="text-xs text-slate-400 font-bold uppercase mt-1">Position des aidants en temps réel</p>
+                </div>
+                <button onclick="window.refreshCurrentView()" 
+                        class="w-10 h-10 bg-white rounded-xl shadow-md flex items-center justify-center active:scale-95 transition-all">
+                    <i class="fa-solid fa-arrow-rotate-right text-slate-500"></i>
+                </button>
+            </div>
+            <div id="map-container" style="height: 60vh; border-radius: 24px; overflow: hidden; background: #f1f5f9;">
+                <div id="map" style="height: 100%; width: 100%;"></div>
+            </div>
+            <div class="mt-4 p-4 bg-white rounded-xl shadow-sm">
+                <p class="text-xs text-slate-500 text-center">
+                    <i class="fa-solid fa-circle-info text-emerald-500"></i> 
+                    La position des aidants s'affiche lorsqu'ils sont en intervention
+                </p>
+            </div>
+        </div>
+    `;
+    
+    // Attendre que le DOM soit prêt
+    setTimeout(() => {
+        const mapElement = document.getElementById("map");
+        if (!mapElement) {
+            console.error("❌ Élément #map non trouvé après création");
+            return;
+        }
+        
+        // Initialiser la carte Leaflet
+        if (typeof L !== 'undefined') {
+            const map = L.map('map').setView([6.3703, 2.3912], 13); // Cotonou
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+            }).addTo(map);
+            
+            // Stocker la carte globalement
+            window._currentMap = map;
+        } else {
+            console.error("❌ Leaflet (L) n'est pas chargé");
+        }
+    }, 100);
 }
-
 // ============================================================
 // 🗺️ VUE COORDINATEUR
 // ============================================================
