@@ -1258,275 +1258,275 @@ async function initPushNotifications() {
 // ============================================================
 // LAYOUT PRINCIPAL (HEADER, SIDEBAR, FOOTER)
 // ============================================================
-    function renderLayout() {
-        const userRole = localStorage.getItem("user_role");
-        const userName = localStorage.getItem("user_name");
-        const userPhoto = localStorage.getItem("user_photo");
-        const isMaman = localStorage.getItem("user_is_maman") === "true";
-        const isFamily = userRole === "FAMILLE";  // ← AJOUT OBLIGATOIRE
-        const themeColor = isMaman ? 'pink' : 'emerald';
-    
-        document.getElementById("app").innerHTML = `
-            <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
-                <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-                    <div class="flex items-center gap-4 mb-14 px-2">
-                        <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
-                            <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
-                        </div>
-                        <div>
-                            <div class="brand-container">
-                                <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
-                                <span class="brand-plus-sidebar font-black">Plus</span>
-                                <span id="sidebar-service" class="brand-service-sidebar font-black"> Service</span>
-                            </div>
+ function renderLayout() {
+    const userRole = localStorage.getItem("user_role");
+    const userName = localStorage.getItem("user_name");
+    const userPhoto = localStorage.getItem("user_photo");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isFamily = userRole === "FAMILLE";
+    const themeColor = isMaman ? 'pink' : 'emerald';
+    const isMobile = window.innerWidth < 1024; // ✅ Détection mobile
+
+    document.getElementById("app").innerHTML = `
+        <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
+            <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
+                <div class="flex items-center gap-4 mb-14 px-2">
+                    <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
+                        <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
+                    </div>
+                    <div>
+                        <div class="brand-container">
+                            <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
+                            <span class="brand-plus-sidebar font-black">Plus</span>
+                            <span id="sidebar-service" class="brand-service-sidebar font-black"> Service</span>
                         </div>
                     </div>
-                    <nav class="flex-1 space-y-3" id="nav-desktop">
-                        ${getNavLinks(userRole, 'desktop')}
-                    </nav>
-                    <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20 overflow-hidden">
-                                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<span>${userName ? userName.charAt(0).toUpperCase() : 'S'}</span>`}
-                            </div>
-                            <div class="overflow-hidden">
-                                <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
-                                <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
-                            </div>
+                </div>
+                <nav class="flex-1 space-y-3" id="nav-desktop">
+                    ${getNavLinks(userRole, 'desktop')}
+                </nav>
+                <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20 overflow-hidden">
+                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<span>${userName ? userName.charAt(0).toUpperCase() : 'S'}</span>`}
                         </div>
-                        <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-power-off"></i> Fermer la session
+                        <div class="overflow-hidden">
+                            <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
+                        </div>
+                    </div>
+                    <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-power-off"></i> Fermer la session
+                    </button>
+                </div>
+            </aside>
+            <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
+    
+                <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
+                    
+                <!-- Logo mobile avec texte dynamique -->
+                    <div class="lg:hidden flex items-center gap-2">
+                        <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
+                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
+                        </div>
+                        <div class="flex items-baseline gap-0">
+                            <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
+                            <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
+                            <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Titre desktop uniquement -->
+                    <div class="hidden lg:block">
+                        <div class="brand-container">
+                            <span id="header-sante" class="brand-sante-md font-black">Santé</span>
+                            <span class="brand-plus-md font-black">Plus</span>
+                            <span id="header-service" class="brand-service-md font-black"> Service</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                    </div>
+                    
+                    <!-- Espace vide pour équilibre sur mobile -->
+                    <div class="lg:hidden"></div>
+                    
+                    <!-- Notifications -->
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.switchView('notifications')" 
+                                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
+                            <i class="fa-solid fa-bell text-sm"></i>
+                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
                         </button>
                     </div>
-                </aside>
-                <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
-    
-                    <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
-                        
-                    <!-- Logo mobile avec texte dynamique -->
-                        <div class="lg:hidden flex items-center gap-2">
-                            <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
-                                <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
-                            </div>
-                            <div class="flex items-baseline gap-0">
-                                <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
-                                <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
-                                <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Titre desktop uniquement -->
-                        <div class="hidden lg:block">
-                            <div class="brand-container">
-                                <span id="header-sante" class="brand-sante-md font-black">Santé</span>
-                                <span class="brand-plus-md font-black">Plus</span>
-                                <span id="header-service" class="brand-service-md font-black"> Service</span>
-                            </div>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
-                        </div>
-                        
-                        <!-- Espace vide pour équilibre sur mobile -->
-                        <div class="lg:hidden"></div>
-                        
-                        <!-- Notifications -->
-                        <div class="flex items-center gap-3">
-                            <button onclick="window.switchView('notifications')" 
-                                    class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm">
-                                <i class="fa-solid fa-bell text-sm"></i>
-                                <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
-                            </button>
-                        </div>
-                        
-                    </header>
                     
-                    <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
-                    <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
-                    
-                    <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
-                        <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
-                    </main>
+                </header>
                 
-                  <!-- Menu flottant -->
-                    <div class="fab-container">
-                        <div class="fab-menu" id="fab-menu">
-                            <div class="fab-menu-item" data-view="home">
-                                <i class="fa-solid fa-house-chimney"></i>
-                            </div>
-                            <div class="fab-menu-item" data-view="visits">
-                                <i class="fa-solid fa-calendar-check"></i>
-                            </div>
-                            <div class="fab-menu-item" data-view="feed">
-                                <i class="fa-regular fa-newspaper"></i>
-                            </div>
-                            <div class="fab-menu-item" data-view="profile">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div class="fab-menu-item" data-view="map">
-                                <i class="fa-solid fa-location-dot"></i>
-                            </div>
+                <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
+                <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
+                
+                <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
+                    <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
+                </main>
+                
+                <!-- ✅ Menu flottant - UNIQUEMENT SUR MOBILE -->
+                ${isMobile ? `
+                <div class="fab-container">
+                    <div class="fab-menu" id="fab-menu">
+                        <div class="fab-menu-item" data-view="home">
+                            <i class="fa-solid fa-house-chimney"></i>
                         </div>
-                        <div class="fab-button" id="fab-button">
-                            <i class="fa-solid fa-plus"></i>
+                        <div class="fab-menu-item" data-view="visits">
+                            <i class="fa-solid fa-calendar-check"></i>
+                        </div>
+                        <div class="fab-menu-item" data-view="feed">
+                            <i class="fa-regular fa-newspaper"></i>
+                        </div>
+                        <div class="fab-menu-item" data-view="profile">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="fab-menu-item" data-view="map">
+                            <i class="fa-solid fa-location-dot"></i>
                         </div>
                     </div>
-                     
+                    <div class="fab-button" id="fab-button">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
                 </div>
+                ` : ''}
+                 
             </div>
-        `;
+        </div>
+    `;
 
-// Initialisation du menu
-// Initialisation du menu pour mobile
-setTimeout(() => {
-    const fabContainer = document.querySelector('.fab-container');
-    const fabButton = document.getElementById('fab-button');
-    const fabMenu = document.getElementById('fab-menu');
-    const isMaman = localStorage.getItem('user_is_maman') === 'true';
-    let currentView = localStorage.getItem('last_view') || 'home';
-    let longPressTimer = null;
-    let isDragging = false;
-    let startX, startY, startLeft, startBottom;
-    let isLongPress = false;
-    
-    if (!fabButton || !fabMenu) return;
-    
-    // Appliquer la couleur Maman
-    if (isMaman) {
-        document.body.classList.add('maman-mode');
-        fabButton.style.background = 'linear-gradient(135deg, #DB2777 0%, #BE185D 100%)';
-    }
-    
-    // Mettre à jour l'élément actif
-    function updateActiveMenuItem(viewName) {
-        document.querySelectorAll('.fab-menu-item').forEach(item => {
-            if (item.getAttribute('data-view') === viewName) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    }
-    updateActiveMenuItem(currentView);
-    
-    // Restaurer la position sauvegardée
-    const savedLeft = localStorage.getItem('fab_left');
-    const savedBottom = localStorage.getItem('fab_bottom');
-    if (savedLeft && savedBottom) {
-        fabContainer.style.left = savedLeft;
-        fabContainer.style.bottom = savedBottom;
-        fabContainer.style.right = 'auto';
-    }
-    
-    // === GESTION DU DÉPLACEMENT (APPUI LONG) ===
-    const startLongPress = (clientX, clientY) => {
-        startX = clientX;
-        startY = clientY;
-        const rect = fabContainer.getBoundingClientRect();
-        startLeft = rect.left;
-        startBottom = window.innerHeight - rect.bottom;
-        
-        longPressTimer = setTimeout(() => {
-            isLongPress = true;
-            isDragging = true;
-            fabContainer.style.opacity = '0.7';
-            if (navigator.vibrate) navigator.vibrate(50);
-        }, 800); // 800ms au lieu de 2000 pour mobile
-    };
-    
-    const onMove = (clientX, clientY) => {
-        if (!isDragging) return;
-        
-        const deltaX = clientX - startX;
-        const deltaY = startY - clientY;
-        
-        let newLeft = startLeft + deltaX;
-        let newBottom = startBottom + deltaY;
-        
-        newLeft = Math.max(10, Math.min(window.innerWidth - 70, newLeft));
-        newBottom = Math.max(10, Math.min(window.innerHeight - 80, newBottom));
-        
-        fabContainer.style.left = newLeft + 'px';
-        fabContainer.style.bottom = newBottom + 'px';
-        fabContainer.style.right = 'auto';
-    };
-    
-    const endDrag = () => {
-        if (longPressTimer) clearTimeout(longPressTimer);
-        if (isDragging) {
-            isDragging = false;
-            fabContainer.style.opacity = '1';
-            const left = fabContainer.style.left;
-            const bottom = fabContainer.style.bottom;
-            if (left && bottom) {
-                localStorage.setItem('fab_left', left);
-                localStorage.setItem('fab_bottom', bottom);
-            }
-        }
-        isLongPress = false;
-        longPressTimer = null;
-    };
-    
-    // === ÉVÉNEMENTS SOURIS (Desktop) ===
-    fabContainer.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        startLongPress(e.clientX, e.clientY);
-    });
-    window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', endDrag);
-    
-    // === ÉVÉNEMENTS TACTILES (Mobile) - SANS preventDefault bloquant ===
-    fabContainer.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        startLongPress(touch.clientX, touch.clientY);
-    }, { passive: false });
-    
-    window.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        onMove(touch.clientX, touch.clientY);
-    }, { passive: false });
-    
-    window.addEventListener('touchend', endDrag);
-    
-    // === CLIC POUR OUVRIR/FERMER LE MENU (sans conflit avec le déplacement) ===
-    fabButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Ne pas ouvrir/fermer si on est en train de déplacer
-        if (isLongPress || isDragging) return;
-        
-        fabMenu.classList.toggle('open');
-        fabButton.classList.toggle('active');
-    });
-    
-    // === CLIC SUR LES ITEMS DU MENU ===
-    document.querySelectorAll('.fab-menu-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const view = item.getAttribute('data-view');
-            if (view) {
-                currentView = view;
-                updateActiveMenuItem(view);
-                window.switchView(view);
-                // Ne pas fermer le menu
-            }
-        });
-    });
-    
-    // Fermer le menu si on clique ailleurs (optionnel, mais pratique)
-    document.addEventListener('click', (e) => {
-        if (!fabButton.contains(e.target) && !fabMenu.contains(e.target)) {
-            fabMenu.classList.remove('open');
-            fabButton.classList.remove('active');
-        }
-    });
-    
-}, 100);
-
+    // ✅ Initialisation du menu UNIQUEMENT sur mobile
+    if (isMobile) {
         setTimeout(() => {
-            updateBrandingColors();
-        }, 50);
+            const fabContainer = document.querySelector('.fab-container');
+            const fabButton = document.getElementById('fab-button');
+            const fabMenu = document.getElementById('fab-menu');
+            const isMaman = localStorage.getItem('user_is_maman') === 'true';
+            let currentView = localStorage.getItem('last_view') || 'home';
+            let longPressTimer = null;
+            let isDragging = false;
+            let startX, startY, startLeft, startBottom;
+            let isLongPress = false;
+            
+            if (!fabButton || !fabMenu) return;
+            
+            // Appliquer la couleur Maman
+            if (isMaman) {
+                document.body.classList.add('maman-mode');
+                fabButton.style.background = 'linear-gradient(135deg, #DB2777 0%, #BE185D 100%)';
+            }
+            
+            // Mettre à jour l'élément actif
+            function updateActiveMenuItem(viewName) {
+                document.querySelectorAll('.fab-menu-item').forEach(item => {
+                    if (item.getAttribute('data-view') === viewName) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+            }
+            updateActiveMenuItem(currentView);
+            
+            // Restaurer la position sauvegardée
+            const savedLeft = localStorage.getItem('fab_left');
+            const savedBottom = localStorage.getItem('fab_bottom');
+            if (savedLeft && savedBottom) {
+                fabContainer.style.left = savedLeft;
+                fabContainer.style.bottom = savedBottom;
+                fabContainer.style.right = 'auto';
+            }
+            
+            // GESTION DU DÉPLACEMENT (APPUI LONG)
+            const startLongPress = (clientX, clientY) => {
+                startX = clientX;
+                startY = clientY;
+                const rect = fabContainer.getBoundingClientRect();
+                startLeft = rect.left;
+                startBottom = window.innerHeight - rect.bottom;
+                
+                longPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    isDragging = true;
+                    fabContainer.style.opacity = '0.7';
+                    if (navigator.vibrate) navigator.vibrate(50);
+                }, 800);
+            };
+            
+            const onMove = (clientX, clientY) => {
+                if (!isDragging) return;
+                
+                const deltaX = clientX - startX;
+                const deltaY = startY - clientY;
+                
+                let newLeft = startLeft + deltaX;
+                let newBottom = startBottom + deltaY;
+                
+                newLeft = Math.max(10, Math.min(window.innerWidth - 70, newLeft));
+                newBottom = Math.max(10, Math.min(window.innerHeight - 80, newBottom));
+                
+                fabContainer.style.left = newLeft + 'px';
+                fabContainer.style.bottom = newBottom + 'px';
+                fabContainer.style.right = 'auto';
+            };
+            
+            const endDrag = () => {
+                if (longPressTimer) clearTimeout(longPressTimer);
+                if (isDragging) {
+                    isDragging = false;
+                    fabContainer.style.opacity = '1';
+                    const left = fabContainer.style.left;
+                    const bottom = fabContainer.style.bottom;
+                    if (left && bottom) {
+                        localStorage.setItem('fab_left', left);
+                        localStorage.setItem('fab_bottom', bottom);
+                    }
+                }
+                isLongPress = false;
+                longPressTimer = null;
+            };
+            
+            // Événements souris (Desktop)
+            fabContainer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                startLongPress(e.clientX, e.clientY);
+            });
+            window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+            window.addEventListener('mouseup', endDrag);
+            
+            // Événements tactiles (Mobile)
+            fabContainer.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                startLongPress(touch.clientX, touch.clientY);
+            }, { passive: false });
+            
+            window.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                onMove(touch.clientX, touch.clientY);
+            }, { passive: false });
+            
+            window.addEventListener('touchend', endDrag);
+            
+            // Clic pour ouvrir/fermer le menu
+            fabButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (isLongPress || isDragging) return;
+                fabMenu.classList.toggle('open');
+                fabButton.classList.toggle('active');
+            });
+            
+            // Clic sur les items du menu
+            document.querySelectorAll('.fab-menu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const view = item.getAttribute('data-view');
+                    if (view) {
+                        currentView = view;
+                        updateActiveMenuItem(view);
+                        window.switchView(view);
+                    }
+                });
+            });
+            
+            // Fermer le menu si on clique ailleurs
+            document.addEventListener('click', (e) => {
+                if (!fabButton.contains(e.target) && !fabMenu.contains(e.target)) {
+                    fabMenu.classList.remove('open');
+                    fabButton.classList.remove('active');
+                }
+            });
+            
+        }, 100);
     }
 
+    setTimeout(() => {
+        updateBrandingColors();
+    }, 50);
+}
 // ============================================================
 // LIENS DE NAVIGATION (DESKTOP)
 // ============================================================
