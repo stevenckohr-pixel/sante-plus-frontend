@@ -1265,7 +1265,6 @@ async function initPushNotifications() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isFamily = userRole === "FAMILLE";
     const themeColor = isMaman ? 'pink' : 'emerald';
-    const isMobile = window.innerWidth < 1024; // ✅ Détection mobile
 
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
@@ -1348,8 +1347,7 @@ async function initPushNotifications() {
                 </main>
                 
                 <!-- ✅ Menu flottant - UNIQUEMENT SUR MOBILE -->
-                ${isMobile ? `
-                <div class="fab-container">
+                                <div class="fab-container">
                     <div class="fab-menu" id="fab-menu">
                         <div class="fab-menu-item" data-view="home">
                             <i class="fa-solid fa-house-chimney"></i>
@@ -1371,158 +1369,155 @@ async function initPushNotifications() {
                         <i class="fa-solid fa-plus"></i>
                     </div>
                 </div>
-                ` : ''}
                  
             </div>
         </div>
     `;
 
     // ✅ Initialisation du menu UNIQUEMENT sur mobile
-    if (isMobile) {
-        setTimeout(() => {
-            const fabContainer = document.querySelector('.fab-container');
-            const fabButton = document.getElementById('fab-button');
-            const fabMenu = document.getElementById('fab-menu');
-            const isMaman = localStorage.getItem('user_is_maman') === 'true';
-            let currentView = localStorage.getItem('last_view') || 'home';
-            let longPressTimer = null;
-            let isDragging = false;
-            let startX, startY, startLeft, startBottom;
-            let isLongPress = false;
-            
-            if (!fabButton || !fabMenu) return;
-            
-            // Appliquer la couleur Maman
-            if (isMaman) {
-                document.body.classList.add('maman-mode');
-                fabButton.style.background = 'linear-gradient(135deg, #DB2777 0%, #BE185D 100%)';
-            }
-            
-            // Mettre à jour l'élément actif
-            function updateActiveMenuItem(viewName) {
-                document.querySelectorAll('.fab-menu-item').forEach(item => {
-                    if (item.getAttribute('data-view') === viewName) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                });
-            }
-            updateActiveMenuItem(currentView);
-            
-            // Restaurer la position sauvegardée
-            const savedLeft = localStorage.getItem('fab_left');
-            const savedBottom = localStorage.getItem('fab_bottom');
-            if (savedLeft && savedBottom) {
-                fabContainer.style.left = savedLeft;
-                fabContainer.style.bottom = savedBottom;
-                fabContainer.style.right = 'auto';
-            }
-            
-            // GESTION DU DÉPLACEMENT (APPUI LONG)
-            const startLongPress = (clientX, clientY) => {
-                startX = clientX;
-                startY = clientY;
-                const rect = fabContainer.getBoundingClientRect();
-                startLeft = rect.left;
-                startBottom = window.innerHeight - rect.bottom;
-                
-                longPressTimer = setTimeout(() => {
-                    isLongPress = true;
-                    isDragging = true;
-                    fabContainer.style.opacity = '0.7';
-                    if (navigator.vibrate) navigator.vibrate(50);
-                }, 800);
-            };
-            
-            const onMove = (clientX, clientY) => {
-                if (!isDragging) return;
-                
-                const deltaX = clientX - startX;
-                const deltaY = startY - clientY;
-                
-                let newLeft = startLeft + deltaX;
-                let newBottom = startBottom + deltaY;
-                
-                newLeft = Math.max(10, Math.min(window.innerWidth - 70, newLeft));
-                newBottom = Math.max(10, Math.min(window.innerHeight - 80, newBottom));
-                
-                fabContainer.style.left = newLeft + 'px';
-                fabContainer.style.bottom = newBottom + 'px';
-                fabContainer.style.right = 'auto';
-            };
-            
-            const endDrag = () => {
-                if (longPressTimer) clearTimeout(longPressTimer);
-                if (isDragging) {
-                    isDragging = false;
-                    fabContainer.style.opacity = '1';
-                    const left = fabContainer.style.left;
-                    const bottom = fabContainer.style.bottom;
-                    if (left && bottom) {
-                        localStorage.setItem('fab_left', left);
-                        localStorage.setItem('fab_bottom', bottom);
-                    }
-                }
-                isLongPress = false;
-                longPressTimer = null;
-            };
-            
-            // Événements souris (Desktop)
-            fabContainer.addEventListener('mousedown', (e) => {
-                e.preventDefault();
-                startLongPress(e.clientX, e.clientY);
-            });
-            window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
-            window.addEventListener('mouseup', endDrag);
-            
-            // Événements tactiles (Mobile)
-            fabContainer.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                startLongPress(touch.clientX, touch.clientY);
-            }, { passive: false });
-            
-            window.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                e.preventDefault();
-                const touch = e.touches[0];
-                onMove(touch.clientX, touch.clientY);
-            }, { passive: false });
-            
-            window.addEventListener('touchend', endDrag);
-            
-            // Clic pour ouvrir/fermer le menu
-            fabButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (isLongPress || isDragging) return;
-                fabMenu.classList.toggle('open');
-                fabButton.classList.toggle('active');
-            });
-            
-            // Clic sur les items du menu
-            document.querySelectorAll('.fab-menu-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const view = item.getAttribute('data-view');
-                    if (view) {
-                        currentView = view;
-                        updateActiveMenuItem(view);
-                        window.switchView(view);
-                    }
-                });
-            });
-            
-            // Fermer le menu si on clique ailleurs
-            document.addEventListener('click', (e) => {
-                if (!fabButton.contains(e.target) && !fabMenu.contains(e.target)) {
-                    fabMenu.classList.remove('open');
-                    fabButton.classList.remove('active');
-                }
-            });
-            
-        }, 100);
+  // Initialisation du menu (toujours exécuté)
+setTimeout(() => {
+    const fabContainer = document.querySelector('.fab-container');
+    const fabButton = document.getElementById('fab-button');
+    const fabMenu = document.getElementById('fab-menu');
+    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+    let currentView = localStorage.getItem('last_view') || 'home';
+    let longPressTimer = null;
+    let isDragging = false;
+    let startX, startY, startLeft, startBottom;
+    let isLongPress = false;
+    
+    if (!fabButton || !fabMenu) return;
+    
+    // Appliquer la couleur Maman
+    if (isMaman) {
+        document.body.classList.add('maman-mode');
+        fabButton.style.background = 'linear-gradient(135deg, #DB2777 0%, #BE185D 100%)';
     }
-
+    
+    // Mettre à jour l'élément actif
+    function updateActiveMenuItem(viewName) {
+        document.querySelectorAll('.fab-menu-item').forEach(item => {
+            if (item.getAttribute('data-view') === viewName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+    updateActiveMenuItem(currentView);
+    
+    // Restaurer la position sauvegardée
+    const savedLeft = localStorage.getItem('fab_left');
+    const savedBottom = localStorage.getItem('fab_bottom');
+    if (savedLeft && savedBottom) {
+        fabContainer.style.left = savedLeft;
+        fabContainer.style.bottom = savedBottom;
+        fabContainer.style.right = 'auto';
+    }
+    
+    // GESTION DU DÉPLACEMENT (APPUI LONG)
+    const startLongPress = (clientX, clientY) => {
+        startX = clientX;
+        startY = clientY;
+        const rect = fabContainer.getBoundingClientRect();
+        startLeft = rect.left;
+        startBottom = window.innerHeight - rect.bottom;
+        
+        longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            isDragging = true;
+            fabContainer.style.opacity = '0.7';
+            if (navigator.vibrate) navigator.vibrate(50);
+        }, 800);
+    };
+    
+    const onMove = (clientX, clientY) => {
+        if (!isDragging) return;
+        
+        const deltaX = clientX - startX;
+        const deltaY = startY - clientY;
+        
+        let newLeft = startLeft + deltaX;
+        let newBottom = startBottom + deltaY;
+        
+        newLeft = Math.max(10, Math.min(window.innerWidth - 70, newLeft));
+        newBottom = Math.max(10, Math.min(window.innerHeight - 80, newBottom));
+        
+        fabContainer.style.left = newLeft + 'px';
+        fabContainer.style.bottom = newBottom + 'px';
+        fabContainer.style.right = 'auto';
+    };
+    
+    const endDrag = () => {
+        if (longPressTimer) clearTimeout(longPressTimer);
+        if (isDragging) {
+            isDragging = false;
+            fabContainer.style.opacity = '1';
+            const left = fabContainer.style.left;
+            const bottom = fabContainer.style.bottom;
+            if (left && bottom) {
+                localStorage.setItem('fab_left', left);
+                localStorage.setItem('fab_bottom', bottom);
+            }
+        }
+        isLongPress = false;
+        longPressTimer = null;
+    };
+    
+    // Événements souris (Desktop)
+    fabContainer.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        startLongPress(e.clientX, e.clientY);
+    });
+    window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', endDrag);
+    
+    // Événements tactiles (Mobile)
+    fabContainer.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        startLongPress(touch.clientX, touch.clientY);
+    }, { passive: false });
+    
+    window.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        onMove(touch.clientX, touch.clientY);
+    }, { passive: false });
+    
+    window.addEventListener('touchend', endDrag);
+    
+    // Clic pour ouvrir/fermer le menu
+    fabButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isLongPress || isDragging) return;
+        fabMenu.classList.toggle('open');
+        fabButton.classList.toggle('active');
+    });
+    
+    // Clic sur les items du menu
+    document.querySelectorAll('.fab-menu-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const view = item.getAttribute('data-view');
+            if (view) {
+                currentView = view;
+                updateActiveMenuItem(view);
+                window.switchView(view);
+            }
+        });
+    });
+    
+    // Fermer le menu si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        if (!fabButton.contains(e.target) && !fabMenu.contains(e.target)) {
+            fabMenu.classList.remove('open');
+            fabButton.classList.remove('active');
+        }
+    });
+    
+}, 100);
     setTimeout(() => {
         updateBrandingColors();
     }, 50);
