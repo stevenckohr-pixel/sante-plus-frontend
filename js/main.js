@@ -1254,7 +1254,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                             Connexion
                         </button>
                         <button onclick="window.renderAuthView('register', 0)" class="flex-1 py-2.5 rounded-[1.2rem] text-[9px] font-[800] uppercase tracking-widest transition-all ${mode === 'register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
-                            Admission
+                            inscription
                         </button>
                     </div>
                 </div>
