@@ -2144,7 +2144,7 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     transform: scale(0.9);
 }
 
-/* Couleurs des icônes */
+/* Couleurs des icônes par défaut */
 .fab-menu-item[data-view="home"] i {
     color: #10B981;
 }
@@ -2161,12 +2161,27 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
     color: #EF4444;
 }
 
+/* Couleur pour l'élément ACTIF */
+.fab-menu-item.active {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.fab-menu-item.active i {
+    color: white !important;
+}
+
 /* Version Maman */
 .maman-mode .fab-button {
     background: linear-gradient(135deg, #DB2777 0%, #BE185D 100%) !important;
 }
+
 .maman-mode .fab-menu-item[data-view="home"] i {
     color: #DB2777;
+}
+
+.maman-mode .fab-menu-item.active {
+    background: linear-gradient(135deg, #DB2777 0%, #BE185D 100%);
 }
 
 /* Animation */
@@ -2214,3 +2229,6 @@ body:has(.brand-sante-footer[style*="color: rgb(219, 39, 119)"]) {
         left: 66px;
     }
 }
+
+
+
