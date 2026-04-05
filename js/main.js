@@ -1346,37 +1346,29 @@ async function initPushNotifications() {
                         <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                     </main>
                 
-<!-- Menu circulaire flottant -->
-<!-- Menu circulaire flottant -->
-<div class="fab-container">
-    <div class="fab-menu" id="fab-menu">
-        <!-- Accueil -->
-        <div class="fab-menu-item" data-view="home">
-            <i class="fa-solid fa-house-chimney"></i>
-        </div>
-        <!-- Visites -->
-        <div class="fab-menu-item" data-view="visits">
-            <i class="fa-solid fa-calendar-check"></i>
-        </div>
-        <!-- Journal -->
-        <div class="fab-menu-item" data-view="feed">
-            <i class="fa-regular fa-newspaper"></i>
-        </div>
-        <!-- Profil -->
-        <div class="fab-menu-item" data-view="profile">
-            <i class="fa-solid fa-user"></i>
-        </div>
-        <!-- Radar/Map -->
-        <div class="fab-menu-item" data-view="map">
-            <i class="fa-solid fa-location-dot"></i>
-        </div>
-    </div>
-    
-    <!-- Bouton central -->
-    <div class="fab-button" id="fab-button">
-        <i class="fa-solid fa-plus"></i>
-    </div>
-</div>
+                    <!-- Menu flottant - bouton en bas à droite -->
+                    <div class="fab-container">
+                        <div class="fab-menu" id="fab-menu">
+                            <div class="fab-menu-item" data-view="home">
+                                <i class="fa-solid fa-house-chimney"></i>
+                            </div>
+                            <div class="fab-menu-item" data-view="visits">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <div class="fab-menu-item" data-view="feed">
+                                <i class="fa-regular fa-newspaper"></i>
+                            </div>
+                            <div class="fab-menu-item" data-view="profile">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div class="fab-menu-item" data-view="map">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                        </div>
+                        <div class="fab-button" id="fab-button">
+                            <i class="fa-solid fa-plus"></i>
+                        </div>
+                    </div>
                      
                 </div>
             </div>
