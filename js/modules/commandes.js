@@ -75,7 +75,7 @@ function renderCommandes(list) {
 
     container.innerHTML = list.map((c, index) => {
         const isPending = c.statut === "En attente";
-        const isInProgress = c.statut === "En cours";
+        const isInProgress = c.statut === "En cours de livraison";
         const isDelivered = c.statut === "Livrée";
         const isValidated = c.statut === "Validée";
         
