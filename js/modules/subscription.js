@@ -332,7 +332,6 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 <p class="text-sm font-bold text-slate-800">${packId.replace(/_/g, ' ')}</p>
                 <p class="text-2xl font-black text-emerald-600 mt-2">${price.toLocaleString()} CFA</p>
                 <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
-                <p class="text-xs text-slate-400 mt-3">Paiement sécurisé via FedaPay</p>
             </div>
         `,
         icon: 'question',
@@ -340,98 +339,77 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         confirmButtonText: '💰 Payer maintenant',
         cancelButtonText: 'Annuler',
         confirmButtonColor: '#10B981',
-        cancelButtonColor: '#94A3B8',
-        customClass: {
-            popup: 'rounded-2xl p-6',
-            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
-            cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
-        }
+        customClass: { popup: 'rounded-2xl p-6' }
     });
     
     if (!result.isConfirmed) return;
     
-    Swal.fire({
-        title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i><br><span class="text-base font-black">Préparation de votre abonnement...</span>',
-        allowOutsideClick: false,
-        showConfirmButton: false,
-        customClass: { popup: 'rounded-2xl p-6' }
-    });
-    
     try {
-        const userRole = localStorage.getItem("user_role");
-        
-        if (userRole === "FAMILLE") {
-            const patients = await secureFetch("/patients");
-            
-            if (patients && patients.length > 0) {
-                const patient = patients[0];
-                
-                await secureFetch(`/patients/${patient.id}/update-pack`, {
-                    method: "PUT",
-                    body: JSON.stringify({ 
-                        type_pack: packId, 
-                        montant_prevu: price,
-                        duree_abonnement_mois: durationMonths
-                    })
-                });
-                
-                const bill = await secureFetch("/billing/generate", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        patient_id: patient.id,
-                        montant: price,
-                        pack: packId,
-                        duree_mois: durationMonths
-                    })
-                });
-                
-                const payment = await secureFetch("/billing/generate-payment", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        abonnement_id: bill.id,
-                        montant: price,
-                        email_client: localStorage.getItem("user_email")
-                    })
-                });
-                
-                Swal.fire({
-                    title: "Redirection...",
-                    text: "Vous allez être redirigé vers la page de paiement sécurisée",
-                    icon: "info",
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                
-                setTimeout(() => {
-                    window.location.href = payment.url;
-                }, 1500);
-                
-            } else {
-                throw new Error("Aucun dossier patient trouvé");
-            }
-        } else {
-            Swal.fire({
-                title: "Création de compte",
-                text: "Vous devez d'abord créer un compte famille",
-                icon: "info",
-                confirmButtonText: "Créer un compte"
-            }).then(() => {
-                window.renderAuthView('register', 1);
-            });
+        // Récupérer l'ID du patient
+        const patients = await secureFetch("/patients");
+        if (!patients || patients.length === 0) {
+            throw new Error("Aucun patient trouvé");
         }
+        const patient = patients[0];
+        
+        // Créer l'abonnement dans la base
+        const bill = await secureFetch("/billing/generate", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: patient.id,
+                montant: price,
+                pack: packId
+            })
+        });
+        
+        // ✅ Utiliser FedaPay Checkout.js directement
+        const publicKey = isMaman ? 'VOTRE_CLE_PUBLIQUE_MAMAN' : 'VOTRE_CLE_PUBLIQUE_GENERALE';
+        // Remplacez par votre clé publique FedaPay (celle qui commence par "pk_")
+        
+        FedaPay.init({
+            public_key: publicKey,
+            transaction: {
+                amount: price,
+                description: `Abonnement ${packId} - Santé Plus`,
+                custom_metadata: {
+                    abonnement_id: bill.id,
+                    patient_id: patient.id,
+                    pack: packId,
+                    duree_mois: durationMonths
+                }
+            },
+            customer: {
+                email: localStorage.getItem("user_email"),
+                firstname: localStorage.getItem("user_name")?.split(' ')[0] || '',
+                lastname: localStorage.getItem("user_name")?.split(' ')[1] || ''
+            },
+            onComplete: async (response) => {
+                console.log("✅ Paiement réussi", response);
+                // Ici, vous pouvez appeler votre webhook ou une route pour confirmer le paiement
+                Swal.fire({
+                    icon: "success",
+                    title: "Paiement réussi !",
+                    text: "Votre abonnement est actif.",
+                    confirmButtonColor: "#10B981"
+                }).then(() => {
+                    window.location.reload();
+                });
+            },
+            onClose: () => {
+                console.log("Modal fermé");
+            }
+        });
         
     } catch (err) {
-        Swal.close();
-        UI.error(err.message);
+        console.error("Erreur:", err);
         Swal.fire({
             title: "Erreur",
             text: err.message,
             icon: "error",
-            customClass: { popup: 'rounded-2xl' }
+            confirmButtonColor: "#F43F5E"
         });
     }
 };
-
 /**
  * 🔧 Échapper les caractères HTML
  */
