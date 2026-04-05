@@ -368,7 +368,6 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     
     if (!result.isConfirmed) return;
     
-    // ✅ Afficher un loader
     Swal.fire({
         title: "Préparation du paiement...",
         didOpen: () => Swal.showLoading(),
@@ -376,17 +375,14 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     });
     
     try {
-        const isMaman = localStorage.getItem('user_is_maman') === 'true';
-        
-        // Récupérer l'ID du patient
         const patients = await secureFetch("/patients");
         if (!patients || patients.length === 0) {
             throw new Error("Aucun patient trouvé");
         }
         const patient = patients[0];
         
-        // Créer l'abonnement dans la base
-        const bill = await secureFetch("/billing/generate", {
+        // Créer l'abonnement
+        await secureFetch("/billing/generate", {
             method: "POST",
             body: JSON.stringify({
                 patient_id: patient.id,
@@ -395,67 +391,23 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             })
         });
         
-        console.log("✅ Abonnement créé:", bill);
-        await loadFedaPay();
-        
-        // ✅ Vérifier/charger FedaPay
-        if (typeof FedaPay === 'undefined') {
-            console.log("📦 Chargement de FedaPay...");
-            await loadFedaPayScript();
-        }
-        
-        // Fermer le loader
         Swal.close();
         
         const publicKey = 'pk_live_UBwlV8_cBo4flahLGMfvIqZG';
         
-        console.log("🚀 Ouverture FedaPay avec clé:", publicKey.substring(0, 15) + "...");
-        
-        // ✅ Initialiser FedaPay
-        FedaPay.init({
+        // ✅ OUVERTURE DIRECTE DE FEDAPAY
+        const widget = FedaPay.init({
             public_key: publicKey,
             transaction: {
                 amount: price,
-                description: `Abonnement ${packId} - Santé Plus`,
-                custom_metadata: {
-                    abonnement_id: bill.id,
-                    patient_id: patient.id,
-                    pack: packId,
-                    duree_mois: durationMonths
-                }
+                description: `Abonnement ${packId} - Santé Plus`
             },
             customer: {
-                email: localStorage.getItem("user_email"),
-                firstname: localStorage.getItem("user_name")?.split(' ')[0] || '',
-                lastname: localStorage.getItem("user_name")?.split(' ')[1] || ''
-            },
-            onComplete: async (response) => {
-                console.log("✅ Paiement réussi", response);
-                try {
-                    await secureFetch("/billing/confirm-payment", {
-                        method: "POST",
-                        body: JSON.stringify({
-                            abonnement_id: bill.id,
-                            transaction_id: response.transaction?.id,
-                            montant: price
-                        })
-                    });
-                } catch(e) {
-                    console.warn("Erreur confirmation backend:", e);
-                }
-                Swal.fire({
-                    icon: "success",
-                    title: "Paiement réussi !",
-                    text: "Votre abonnement est actif.",
-                    confirmButtonColor: "#10B981"
-                }).then(() => {
-                    window.location.reload();
-                });
-            },
-            onClose: () => {
-                console.log("Modal fermé");
+                email: localStorage.getItem("user_email")
             }
         });
+        
+        console.log("✅ Widget FedaPay ouvert");
         
     } catch (err) {
         Swal.close();
@@ -463,8 +415,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         Swal.fire({
             title: "Erreur",
             text: err.message,
-            icon: "error",
-            confirmButtonColor: "#F43F5E"
+            icon: "error"
         });
     }
 };
