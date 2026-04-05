@@ -2510,3 +2510,12 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
     font-weight: 500;
     letter-spacing: -0.01em;
 }
+
+
+
+/* Cacher le menu flottant sur desktop */
+@media (min-width: 1024px) {
+    .fab-container {
+        display: none !important;
+    }
+}
