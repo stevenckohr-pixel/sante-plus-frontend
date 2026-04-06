@@ -2638,7 +2638,7 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 
 /* Supprimer l'ancien fond vert */
 body {
-    background: #1A1A2E !important;  /* ← Change cette couleur selon ton choix */
+    background: #013d26 !important;  /* ← Change cette couleur selon ton choix */
 }
 
 #app {
