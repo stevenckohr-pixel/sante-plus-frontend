@@ -2638,11 +2638,11 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 
 /* Supprimer l'ancien fond vert */
 body {
-    background: #013d26 !important;  /* ← Change cette couleur selon ton choix */
+    background: blue;  /* ← Change cette couleur selon ton choix */
 }
 
 #app {
-    background: #013d26;
+    background: blue;
 }
 
 /* Supprimer les blobs flous */
