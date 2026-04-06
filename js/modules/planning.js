@@ -528,56 +528,40 @@ function escapeHtml(str) {
  * 🗑️ SUPPRIMER UNE ASSIGNATION (Délier aidant-patient)
  */
 window.unassignAidant = async (planningId, patientName, aidantName) => {
-    // Confirmation avant suppression
     const result = await Swal.fire({
-        title: "Confirmer la suppression",
-        html: `Voulez-vous vraiment retirer <b>${escapeHtml(aidantName)}</b> de <b>${escapeHtml(patientName)}</b> ?`,
+        title: "Confirmer",
+        html: `Retirer <b>${escapeHtml(aidantName)}</b> de <b>${escapeHtml(patientName)}</b> ?`,
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "OUI, SUPPRIMER",
-        confirmButtonColor: "#F43F5E",
-        cancelButtonText: "Annuler"
+        confirmButtonColor: "#F43F5E"
     });
     
     if (!result.isConfirmed) return;
     
-    Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading() });
     
     try {
-        // ✅ CORRECTION : Utiliser la bonne route POST /unassign
+        // ✅ Utiliser la route POST /unassign (soft delete)
         await secureFetch("/planning/unassign", {
             method: "POST",
             body: JSON.stringify({ 
                 assignment_id: planningId,
-                raison: "Supprimé par le coordinateur"
+                raison: "Désassigné par le coordinateur"
             })
         });
         
-        Swal.fire({ 
-            icon: "success", 
-            title: "Assignation supprimée", 
-            text: `${escapeHtml(aidantName)} n'est plus assigné à ${escapeHtml(patientName)}`,
-            timer: 2000, 
-            showConfirmButton: false 
-        });
+        Swal.fire({ icon: "success", title: "Assignation supprimée", timer: 1500, showConfirmButton: false });
         
-        // Recharger la vue RH
+        // Recharger la vue
         if (typeof loadRHAssignments === 'function') {
             loadRHAssignments();
-        } else if (typeof window.loadRHAssignments === 'function') {
-            window.loadRHAssignments();
         } else {
-            setTimeout(() => window.switchView('rh-dashboard'), 500);
+            window.switchView('rh-dashboard');
         }
         
     } catch (err) {
         Swal.close();
-        console.error("❌ Erreur suppression:", err);
-        Swal.fire({ 
-            title: "Erreur", 
-            text: err.message || "Impossible de supprimer cette assignation", 
-            icon: "error",
-            confirmButtonText: "OK"
-        });
+        Swal.fire("Erreur", err.message, "error");
     }
 };
