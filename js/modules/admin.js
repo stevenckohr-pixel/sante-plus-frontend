@@ -463,20 +463,23 @@ function renderPatientsList() {
         return;
     }
 
-    // 🔧 Créer un Map des assignations par patient_id pour accès rapide
-    const assignmentByPatientId = {};
-    if (rhData.assignments) {
-        rhData.assignments.forEach(assign => {
-            assignmentByPatientId[assign.patient_id] = assign;
+    // 🔧 Créer un map des assignations par patient_id
+    const assignmentMap = {};
+    if (rhData.aidants) {
+        rhData.aidants.forEach(aidant => {
+            if (aidant.patients_assignes) {
+                aidant.patients_assignes.forEach(assign => {
+                    assignmentMap[assign.patient_id] = assign.assignment_id;
+                });
+            }
         });
     }
 
     container.innerHTML = `
         <div class="space-y-4">
             ${rhData.patients.map(patient => {
-                // 🔧 Récupérer l'assignation correspondante
-                const assignment = assignmentByPatientId[patient.id];
-                const assignmentId = assignment?.id || null;
+                // 🔧 Récupérer l'ID d'assignation depuis le map
+                const assignmentId = assignmentMap[patient.id];
                 
                 return `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -555,7 +558,6 @@ function renderPatientsList() {
         </div>
     `;
 }
-
 // ============================================
 // ASSIGNATIONS - MODALE ET FONCTIONS
 // ============================================
