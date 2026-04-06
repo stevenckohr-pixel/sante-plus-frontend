@@ -2598,3 +2598,24 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 .animate-fadeIn {
     animation: fadeIn 0.2s ease-out forwards;
 }
+/* Pull to refresh amélioré */
+#pull-to-refresh-indicator {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+/* Animation pour le loader */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
