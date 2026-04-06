@@ -86,14 +86,21 @@ export async function secureFetch(endpoint, options = {}) {
         localStorage.removeItem(`cache_/visites`);
         localStorage.removeItem(`cache_/patients`);
         
-        // Recharger la vue actuelle
-        setTimeout(() => {
-          const currentView = localStorage.getItem("last_view") || "home";
-          console.log(`🔄 Rechargement automatique de la vue: ${currentView}`);
-          if (window.switchView) {
-            window.switchView(currentView);
-          }
-        }, 300);
+                  // Recharger la vue actuelle
+           // Dans le bloc if (method !== 'GET'), remplace le setTimeout par :
+          
+          setTimeout(() => {
+              const currentView = localStorage.getItem("last_view") || "home";
+              
+              // Afficher un toast visible à l'écran
+              if (window.showToast) {
+                  window.showToast("✓ Mise à jour", "success", 1500);
+              }
+              
+              if (window.switchView) {
+                  window.switchView(currentView);
+              }
+          }, 300);
       }
 
       return responseData;
