@@ -1,19 +1,16 @@
 import { CONFIG } from "./config.js";
 import ErrorHandler from './errorHandler.js';
 
-// ✅ Détection de l'environnement Capacitor (application native)
 const isCapacitor = typeof window !== 'undefined' && window.hasOwnProperty('Capacitor');
 
-// Cache pour les réponses GET
 const apiCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
   const method = options.method || 'GET';
   
   console.log(`📡 Appel API : ${method} ${endpoint}`);
-  console.log(`📱 Environnement: ${isCapacitor ? 'Capacitor (Natife)' : 'Web'}`);
 
   const headers = {
     "Content-Type": "application/json",
@@ -32,12 +29,6 @@ export async function secureFetch(endpoint, options = {}) {
     localStorage.removeItem(`cache_/commandes`);
     localStorage.removeItem(`cache_/visites`);
     localStorage.removeItem(`cache_/patients`);
-    
-    setTimeout(() => {
-      if (window.refreshCurrentView) {
-        window.refreshCurrentView();
-      }
-    }, 500);
   }
 
   const executeRequest = async () => {
@@ -84,16 +75,27 @@ export async function secureFetch(endpoint, options = {}) {
         throw error;
       }
 
+      let responseData;
       if (method === 'GET') {
-        const data = await response.json();
+        responseData = await response.json();
         apiCache.set(endpoint, {
-          data: data,
+          data: responseData,
           timestamp: Date.now()
         });
-        return data;
+      } else {
+        responseData = await response.json();
       }
 
-      return await response.json();
+      // ✅ Déclencher le rafraîchissement APRÈS les actions POST/PUT/DELETE
+      if (method !== 'GET') {
+        setTimeout(() => {
+          if (window.reloadCurrentData) {
+            window.reloadCurrentData();
+          }
+        }, 100);
+      }
+
+      return responseData;
 
     } catch (error) {
       clearTimeout(timeoutId);
