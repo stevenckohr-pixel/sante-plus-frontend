@@ -2221,6 +2221,7 @@ window.openProfileMenu = () => {
 
 
 
+
 /**
  * 🌙 ACTIVER/DÉSACTIVER LE MODE NUIT
  */
@@ -2231,8 +2232,14 @@ window.toggleDarkMode = () => {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     
-    // Mettre à jour l'icône de la météo dans le header (optionnel)
-    updateThemeIcon(newTheme);
+    // ✅ Supprime ou commente cette ligne :
+    // updateThemeIcon(newTheme);
+    
+    // Optionnel : changer l'icône dans le header si elle existe
+    const themeIcon = document.querySelector('.theme-toggle-icon, [onclick="window.toggleDarkMode()"] i');
+    if (themeIcon) {
+        themeIcon.className = `fa-solid ${newTheme === 'dark' ? 'fa-moon' : 'fa-sun'} text-base`;
+    }
     
     showToast(newTheme === 'dark' ? '🌙 Mode nuit activé' : '☀️ Mode jour activé', 'success', 1500);
 };
