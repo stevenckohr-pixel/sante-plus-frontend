@@ -219,7 +219,115 @@ async function quickValidate(visiteId, statut) {
 /**
  * 📋 CHARGER LES ASSIGNATIONS RH (Pour le planning)
  */
+/**
+ * 📋 CHARGER LES ASSIGNATIONS RH (Pour le planning)
+ */
+export async function loadRHAssignments() {
+    const container = document.getElementById('view-container');
+    if (!container) return;
+    
+    try {
+        const assignments = await secureFetch('/planning/active');
+        
+        if (!assignments?.length) {
+            container.innerHTML = `
+                <div class="text-center py-20">
+                    <i class="fa-solid fa-handshake text-5xl text-slate-300 mb-4"></i>
+                    <p class="text-xs font-black text-slate-400">Aucune assignation active</p>
+                    <button onclick="window.openAssignPage()" 
+                            class="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-xl text-[10px] font-black">
+                        + Nouvelle assignation
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        // Grouper par patient
+        const groupedByPatient = assignments.reduce((acc, a) => {
+            const patientId = a.patient?.id;
+            if (!acc[patientId]) {
+                acc[patientId] = {
+                    patient: a.patient,
+                    assignments: []
+                };
+            }
+            acc[patientId].assignments.push(a);
+            return acc;
+        }, {});
+        
+        container.innerHTML = `
+            <div class="animate-fadeIn pb-32">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="font-black text-2xl text-slate-800 tracking-tight">👥 Assignations</h3>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Aidants liés aux patients</p>
+                    </div>
+                    <button onclick="window.openAssignPage()" 
+                            class="w-12 h-12 bg-emerald-500 text-white rounded-2xl shadow-lg flex items-center justify-center active:scale-95 transition-all">
+                        <i class="fa-solid fa-plus text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-6">
+                    ${Object.values(groupedByPatient).map(group => `
+                        <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+                            <div class="p-4 bg-slate-50 border-b border-slate-100">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h4 class="font-black text-slate-800">${escapeHtml(group.patient?.nom_complet || 'Patient inconnu')}</h4>
+                                        <p class="text-[9px] text-slate-400 mt-0.5">${escapeHtml(group.patient?.adresse || 'Adresse non renseignée')}</p>
+                                    </div>
+                                    <span class="text-[9px] font-black px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                                        ${group.assignments.length} aidant(s)
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="divide-y divide-slate-50">
+                                ${group.assignments.map(assign => `
+                                    <div class="p-4 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                                <i class="fa-solid fa-user-nurse text-emerald-600"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-slate-800 text-sm">${escapeHtml(assign.aidant?.nom || 'Aidant inconnu')}</p>
+                                                <p class="text-[9px] text-slate-400">
+                                                    ${assign.type_assignation === 'permanente' ? '📌 Permanent' : 
+                                                      assign.type_assignation === 'temporelle' ? '📅 Temporaire' : '📍 Ponctuel'}
+                                                    ${assign.date_fin ? ` • Jusqu'au ${new Date(assign.date_fin).toLocaleDateString('fr-FR')}` : ''}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button onclick="window.unassignAidant('${assign.id}', '${escapeHtml(group.patient?.nom_complet)}', '${escapeHtml(assign.aidant?.nom)}')" 
+                                                class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center active:scale-95 transition-all">
+                                            <i class="fa-solid fa-unlink text-xs"></i>
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        
+    } catch (err) {
+        console.error("❌ Erreur chargement RH:", err);
+        container.innerHTML = `<p class="text-rose-500 text-center p-10">Erreur : ${err.message}</p>`;
+    }
+}
 
+// Fonction escapeHtml si pas déjà présente
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 
 // ✅ Exposer la fonction globalement pour les appels HTML
