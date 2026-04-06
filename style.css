@@ -2636,27 +2636,4 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 
 
 
-/* Supprimer l'ancien fond vert */
-body {
-    background: blue;  /* ← Change cette couleur selon ton choix */
-}
-
-#app {
-    background: blue;
-}
-
-/* Supprimer les blobs flous */
-.absolute.top-40.left-\[-5\%\],
-.absolute.bottom-\[-10\%\].right-\[-5\%\] {
-    display: none !important;
-}
-
-/* Pour que les cartes restent lisibles */
-.bg-white, 
-.patient-card, 
-.menu-tile,
-.bento-card {
-    background: #FFFFFF !important;
-}
-
 
