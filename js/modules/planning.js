@@ -528,6 +528,15 @@ function escapeHtml(str) {
  * 🗑️ SUPPRIMER UNE ASSIGNATION (Délier aidant-patient)
  */
 window.unassignAidant = async (planningId, patientName, aidantName) => {
+    console.log("🔍 ID reçu:", planningId);
+    console.log("👤 Patient:", patientName);
+    console.log("👨‍⚕️ Aidant:", aidantName);
+    
+    if (!planningId) {
+        Swal.fire("Erreur", "ID d'assignation manquant", "error");
+        return;
+    }
+    
     const result = await Swal.fire({
         title: "Confirmer",
         html: `Retirer <b>${escapeHtml(aidantName)}</b> de <b>${escapeHtml(patientName)}</b> ?`,
@@ -542,14 +551,22 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
     Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading() });
     
     try {
-        // ✅ Utiliser la bonne route DELETE (pas POST /unassign)
-        await secureFetch(`/planning/${planningId}`, {
-            method: "DELETE"
+        const response = await fetch(`${CONFIG.API_URL}/planning/${planningId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            }
         });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur");
+        }
         
         Swal.fire({ icon: "success", title: "Assignation supprimée", timer: 1500, showConfirmButton: false });
         
-        // Recharger la vue RH
+        // Recharger la vue
         if (typeof loadRHAssignments === 'function') {
             loadRHAssignments();
         } else {
@@ -558,6 +575,7 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
         
     } catch (err) {
         Swal.close();
+        console.error("❌ Erreur:", err);
         Swal.fire("Erreur", err.message, "error");
     }
 };
