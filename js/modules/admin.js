@@ -451,6 +451,7 @@ function renderAidantsList() {
  */
 function renderPatientsList() {
     const container = document.getElementById("rh-content");
+    console.log("Patient:", patient, "Assignment ID:", patient.assignment_id);
     
     if (!rhData?.patients?.length) {
         container.innerHTML = `
@@ -504,10 +505,10 @@ function renderPatientsList() {
                                 <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
                             </div>
                         </div>
-                        <button onclick="window.unassignPatientFromPatient('${assign.id}', '${escapeHtml(patient.nom_complet)}', '${escapeHtml(patient.aidant_assigne.nom)}')" 
-                                class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
-                            <i class="fa-solid fa-link-slash"></i> Délier
-                        </button>
+                                <button onclick="window.unassignPatientFromPatient('${patient.assignment_id}', '${escapeHtml(patient.nom_complet)}', '${escapeHtml(patient.aidant_assigne.nom)}')" 
+                                        class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-link-slash"></i> Délier
+                                </button>
                     </div>
                 ` : `
                         
