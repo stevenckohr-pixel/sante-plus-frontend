@@ -273,7 +273,6 @@ async function initCoordinatorMap() {
         }, 500);
     }
 
-    requestLocation();
 
     
     // ✅ Événements
