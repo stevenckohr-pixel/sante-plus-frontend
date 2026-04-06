@@ -542,18 +542,14 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
     Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading() });
     
     try {
-        // ✅ Utiliser la route POST /unassign (soft delete)
-        await secureFetch("/planning/unassign", {
-            method: "POST",
-            body: JSON.stringify({ 
-                assignment_id: planningId,
-                raison: "Désassigné par le coordinateur"
-            })
+        // ✅ Utiliser la bonne route DELETE (pas POST /unassign)
+        await secureFetch(`/planning/${planningId}`, {
+            method: "DELETE"
         });
         
         Swal.fire({ icon: "success", title: "Assignation supprimée", timer: 1500, showConfirmButton: false });
         
-        // Recharger la vue
+        // Recharger la vue RH
         if (typeof loadRHAssignments === 'function') {
             loadRHAssignments();
         } else {
