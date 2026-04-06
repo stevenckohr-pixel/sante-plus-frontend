@@ -76,16 +76,15 @@ export async function secureFetch(endpoint, options = {}) {
         responseData = await response.json();
       }
 
-// Vider le cache pour les méthodes non-GET
-if (method !== 'GET') {
-    apiCache.delete(endpoint);
-    console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
-    
-    localStorage.removeItem(`cache_/commandes`);
-    localStorage.removeItem(`cache_/visites`);
-    localStorage.removeItem(`cache_/patients`);
-    // ✅ Plus de rafraîchissement automatique
-}
+      // Vider le cache pour les méthodes non-GET (sans rechargement)
+      if (method !== 'GET') {
+        apiCache.delete(endpoint);
+        console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+        
+        localStorage.removeItem(`cache_/commandes`);
+        localStorage.removeItem(`cache_/visites`);
+        localStorage.removeItem(`cache_/patients`);
+      }
 
       return responseData;
 
