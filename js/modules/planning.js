@@ -523,3 +523,54 @@ function escapeHtml(str) {
 }
 
 
+/**
+ * 🗑️ SUPPRIMER UNE ASSIGNATION (Délier aidant-patient)
+ */
+window.unassignAidant = async (planningId, patientName, aidantName) => {
+    // Confirmation avant suppression
+    const result = await Swal.fire({
+        title: "Confirmer la suppression",
+        html: `Voulez-vous vraiment retirer <b>${escapeHtml(aidantName)}</b> de <b>${escapeHtml(patientName)}</b> ?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "OUI, SUPPRIMER",
+        confirmButtonColor: "#F43F5E",
+        cancelButtonText: "Annuler"
+    });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    
+    try {
+        await secureFetch(`/planning/${planningId}`, {
+            method: "DELETE"
+        });
+        
+        Swal.fire({ 
+            icon: "success", 
+            title: "Assignation supprimée", 
+            text: `${escapeHtml(aidantName)} n'est plus assigné à ${escapeHtml(patientName)}`,
+            timer: 2000, 
+            showConfirmButton: false 
+        });
+        
+        // Recharger la vue RH
+        if (typeof loadRHAssignments === 'function') {
+            loadRHAssignments();
+        } else {
+            // Fallback: recharger la page
+            setTimeout(() => location.reload(), 1500);
+        }
+        
+    } catch (err) {
+        Swal.close();
+        console.error("❌ Erreur suppression:", err);
+        Swal.fire({ 
+            title: "Erreur", 
+            text: err.message || "Impossible de supprimer cette assignation", 
+            icon: "error",
+            confirmButtonText: "OK"
+        });
+    }
+};
