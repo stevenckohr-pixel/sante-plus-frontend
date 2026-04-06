@@ -67,46 +67,136 @@ window.refreshCurrentView = async () => {
 /**
  * 📱 PULL-TO-REFRESH
  */
+/**
+ * 📱 PULL-TO-REFRESH (Version qui fonctionne vraiment)
+ */
 function initPullToRefresh() {
     const mainContent = document.getElementById("main-content");
-    if (!mainContent) return;
+    if (!mainContent) {
+        console.warn("⚠️ main-content non trouvé");
+        return;
+    }
     
     let touchStartY = 0;
+    let touchStartX = 0;
     let isRefreshing = false;
+    let pullDistance = 0;
+    let refreshIndicator = null;
+    
+    // Créer l'indicateur visuel
+    const createIndicator = () => {
+        const indicator = document.createElement('div');
+        indicator.id = 'pull-to-refresh-indicator';
+        indicator.className = 'flex items-center justify-center gap-2 py-3 bg-emerald-50 text-emerald-600 text-xs font-black';
+        indicator.style.cssText = `
+            transform: translateY(-100%);
+            transition: transform 0.2s ease;
+            margin: -10px 0 10px 0;
+            border-radius: 12px;
+        `;
+        indicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Relâchez pour actualiser';
+        return indicator;
+    };
     
     mainContent.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
+        if (mainContent.scrollTop === 0) {
+            touchStartY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+        }
     });
     
     mainContent.addEventListener('touchmove', (e) => {
-        const scrollTop = mainContent.scrollTop;
-        const touchY = e.touches[0].clientY;
-        const pullDistance = touchY - touchStartY;
-        
-        // Si on est en haut de la page et qu'on tire vers le bas
-        if (scrollTop === 0 && pullDistance > 50 && !isRefreshing) {
-            e.preventDefault();
-            isRefreshing = true;
+        if (mainContent.scrollTop === 0 && touchStartY > 0 && !isRefreshing) {
+            const currentY = e.touches[0].clientY;
+            const currentX = e.touches[0].clientX;
             
-            // Afficher l'indicateur
-            const refreshEl = document.createElement('div');
-            refreshEl.id = 'pull-to-refresh';
-            refreshEl.className = 'flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-500 text-xs font-black';
-            refreshEl.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Actualisation...';
-            mainContent.prepend(refreshEl);
+            // Vérifier si le mouvement est vertical (pas horizontal)
+            const diffX = Math.abs(currentX - touchStartX);
+            const diffY = currentY - touchStartY;
             
-            // Rafraîchir
-            window.refreshCurrentView().then(() => {
-                setTimeout(() => {
-                    const el = document.getElementById('pull-to-refresh');
-                    if (el) el.remove();
-                    isRefreshing = false;
-                }, 500);
-            });
+            if (diffY > 20 && diffX < 50) {
+                e.preventDefault();
+                pullDistance = Math.min(diffY, 150);
+                
+                if (!refreshIndicator) {
+                    refreshIndicator = createIndicator();
+                    mainContent.insertBefore(refreshIndicator, mainContent.firstChild);
+                }
+                
+                if (pullDistance > 80) {
+                    refreshIndicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Relâchez pour actualiser...';
+                    refreshIndicator.style.backgroundColor = '#d1fae5';
+                    refreshIndicator.style.transform = `translateY(${pullDistance * 0.3}px)`;
+                } else {
+                    refreshIndicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Tirer pour actualiser';
+                    refreshIndicator.style.backgroundColor = '#f0fdf4';
+                    refreshIndicator.style.transform = `translateY(${pullDistance * 0.3}px)`;
+                }
+            }
         }
     });
+    
+    mainContent.addEventListener('touchend', async (e) => {
+        if (pullDistance > 80 && !isRefreshing && mainContent.scrollTop === 0) {
+            isRefreshing = true;
+            
+            // Mettre à jour l'indicateur
+            if (refreshIndicator) {
+                refreshIndicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Actualisation en cours...';
+                refreshIndicator.style.backgroundColor = '#fef3c7';
+            }
+            
+            // Afficher un toast de chargement
+            showToast("Actualisation en cours...", "info", 1000);
+            
+            try {
+                // Recharger la vue actuelle
+                const currentView = localStorage.getItem("last_view") || "home";
+                await window.switchView(currentView);
+                
+                // Succès
+                if (refreshIndicator) {
+                    refreshIndicator.innerHTML = '<i class="fa-solid fa-check-circle"></i> Actualisation terminée !';
+                    refreshIndicator.style.backgroundColor = '#d1fae5';
+                    refreshIndicator.style.color = '#059669';
+                }
+                showToast("✓ Données actualisées", "success", 1500);
+                
+                setTimeout(() => {
+                    if (refreshIndicator) refreshIndicator.remove();
+                    refreshIndicator = null;
+                    isRefreshing = false;
+                    pullDistance = 0;
+                }, 800);
+                
+            } catch (err) {
+                console.error("Erreur refresh:", err);
+                if (refreshIndicator) {
+                    refreshIndicator.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Erreur, réessayez';
+                    refreshIndicator.style.backgroundColor = '#fee2e2';
+                    refreshIndicator.style.color = '#dc2626';
+                }
+                showToast("Erreur lors de l'actualisation", "error", 2000);
+                
+                setTimeout(() => {
+                    if (refreshIndicator) refreshIndicator.remove();
+                    refreshIndicator = null;
+                    isRefreshing = false;
+                    pullDistance = 0;
+                }, 1500);
+            }
+        } else {
+            // Effacer l'indicateur si on n'a pas assez tiré
+            if (refreshIndicator) {
+                refreshIndicator.remove();
+                refreshIndicator = null;
+            }
+        }
+        
+        touchStartY = 0;
+        pullDistance = 0;
+    });
 }
-
 // Met à jour l'icône PWA selon le thème (Maman ou général)
 // Met à jour l'icône PWA selon le thème (Maman ou général)
 function updatePWAIcon(isMaman) {
