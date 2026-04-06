@@ -21,16 +21,6 @@ export async function secureFetch(endpoint, options = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // Vider le cache pour les méthodes non-GET
-  if (method !== 'GET') {
-    apiCache.delete(endpoint);
-    console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
-    
-    localStorage.removeItem(`cache_/commandes`);
-    localStorage.removeItem(`cache_/visites`);
-    localStorage.removeItem(`cache_/patients`);
-  }
-
   const executeRequest = async () => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -86,21 +76,24 @@ export async function secureFetch(endpoint, options = {}) {
         responseData = await response.json();
       }
 
-      // ✅ Déclencher le rafraîchissement APRÈS les actions POST/PUT/DELETE
-    // Dans le bloc if (method !== 'GET'), après la fin de la requête
+      // ✅ UNIQUEMENT ICI : Invalider le cache et recharger la vue
       if (method !== 'GET') {
-          apiCache.delete(endpoint);
-          console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
-          
-          localStorage.removeItem(`cache_/commandes`);
-          localStorage.removeItem(`cache_/visites`);
-          localStorage.removeItem(`cache_/patients`);
-          
-          // ✅ Recharger uniquement la vue actuelle
-          setTimeout(() => {
-              const currentView = localStorage.getItem("last_view") || "home";
-              window.switchView(currentView);
-          }, 500);
+        // Vider le cache
+        apiCache.delete(endpoint);
+        console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+        
+        localStorage.removeItem(`cache_/commandes`);
+        localStorage.removeItem(`cache_/visites`);
+        localStorage.removeItem(`cache_/patients`);
+        
+        // Recharger la vue actuelle
+        setTimeout(() => {
+          const currentView = localStorage.getItem("last_view") || "home";
+          console.log(`🔄 Rechargement automatique de la vue: ${currentView}`);
+          if (window.switchView) {
+            window.switchView(currentView);
+          }
+        }, 300);
       }
 
       return responseData;
