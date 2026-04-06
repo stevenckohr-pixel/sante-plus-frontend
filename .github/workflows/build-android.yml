@@ -14,66 +14,27 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
       
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: 'zulu'
+          java-version: '11'
       
       - name: Create package.json
         run: echo '{"name":"app","version":"1.0.0"}' > package.json
       
-      - name: Install Capacitor
+      - name: Install Capacitor 5
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "SantePlus" "com.santeplus.app"
+          npm install @capacitor/core@5.7.0 @capacitor/cli@5.7.0 @capacitor/android@5.7.0
+          npx cap init "SantePlus" "com.santeplus.app" --web-dir=www
           npx cap add android
       
       - name: Copy web files
         run: |
           mkdir -p www
           cp -r * www/ 2>/dev/null || true
-          rm -rf www/android www/.github www/node_modules www/www 2>/dev/null || true
-      
-      - name: Update config
-        run: |
-          echo '{
-            "appId": "com.santeplus.app",
-            "appName": "SantePlus",
-            "webDir": "www"
-          }' > capacitor.config.json
-      
-      - name: Fix Kotlin conflict
-        run: |
-          # Supprimer les dépendances Kotlin en conflit
-          rm -f android/app/build.gradle
-          cat > android/app/build.gradle << 'EOF'
-          apply plugin: 'com.android.application'
-
-          android {
-              compileSdkVersion 34
-              defaultConfig {
-                  applicationId "com.santeplus.app"
-                  minSdkVersion 23
-                  targetSdkVersion 34
-                  versionCode 1
-                  versionName "1.0"
-              }
-              compileOptions {
-                  sourceCompatibility JavaVersion.VERSION_17
-                  targetCompatibility JavaVersion.VERSION_17
-              }
-          }
-
-          dependencies {
-              implementation project(':capacitor-android')
-              implementation 'androidx.core:core:1.12.0'
-              implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'com.google.android.material:material:1.11.0'
-          }
-          EOF
       
       - name: Sync
         run: npx cap sync android
@@ -82,7 +43,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug
       
       - name: Upload
         uses: actions/upload-artifact@v4
