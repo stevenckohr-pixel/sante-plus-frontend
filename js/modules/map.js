@@ -1127,12 +1127,14 @@ function checkIfArrived() {
 
 async function fixCurrentLocationAsPatientHome() {
     const selector = document.getElementById('patient-selector');
-    const patientId = selector.value;
-    const patientName = selector.options[selector.selectedIndex]?.text?.split(' -')[0];
+    const patientId = selector?.value;
+    const patientName = selector?.options[selector.selectedIndex]?.text?.split(' -')[0];
     
-    if (!patientId) return UI.warning("Sélectionnez d'abord un patient");
+    if (!patientId) {
+        UI.warning("Sélectionnez d'abord un patient");
+        return;
+    }
 
-    // ✅ 1. Vérifier si le GPS est supporté
     if (!navigator.geolocation) {
         return Swal.fire({
             title: "GPS non supporté",
@@ -1141,18 +1143,17 @@ async function fixCurrentLocationAsPatientHome() {
         });
     }
 
-    // ✅ 2. Vérifier l'état de l'autorisation
+    // Vérifier la permission
     let permissionStatus = null;
     if (navigator.permissions && navigator.permissions.query) {
         try {
             permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
-            console.log("État de la permission GPS :", permissionStatus.state);
+            console.log("État permission GPS :", permissionStatus.state);
         } catch (e) {
-            console.warn("Impossible de vérifier l'état de la permission", e);
+            console.warn("Erreur permission", e);
         }
     }
 
-    // ✅ 3. Si déjà refusé, proposer un guide
     if (permissionStatus && permissionStatus.state === 'denied') {
         Swal.fire({
             title: "📍 Accès GPS refusé",
@@ -1167,12 +1168,11 @@ async function fixCurrentLocationAsPatientHome() {
                 </div>
             `,
             icon: "warning",
-            confirmButtonText: "OK, j'ai compris"
+            confirmButtonText: "OK"
         });
         return;
     }
 
-    // ✅ 4. Demander la position
     const confirm = await Swal.fire({
         title: "📍 Enregistrer le domicile",
         text: `Voulez-vous utiliser votre position actuelle comme domicile de ${patientName} ?`,
@@ -1185,7 +1185,6 @@ async function fixCurrentLocationAsPatientHome() {
     
     if (!confirm.isConfirmed) return;
 
-    // ✅ 5. Afficher le loader avec instruction
     Swal.fire({
         title: "Recherche GPS...",
         html: `
@@ -1195,14 +1194,13 @@ async function fixCurrentLocationAsPatientHome() {
                     <i class="fa-solid fa-location-dot absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-500"></i>
                 </div>
                 <p class="text-xs text-slate-600">Recherche du signal GPS...</p>
-                <p class="text-[9px] text-slate-400 mt-2">Déplacez-vous dans un espace dégagé pour une meilleure précision</p>
+                <p class="text-[9px] text-slate-400 mt-2">Déplacez-vous dans un espace dégagé</p>
             </div>
         `,
         allowOutsideClick: false,
         showConfirmButton: false
     });
 
-    // ✅ 6. Options optimisées pour la meilleure précision
     const options = {
         enableHighAccuracy: true,
         timeout: 30000,
@@ -1212,41 +1210,35 @@ async function fixCurrentLocationAsPatientHome() {
     navigator.geolocation.getCurrentPosition(
         async (position) => {
             const accuracy = position.coords.accuracy;
-            console.log(`✅ Position obtenue : ${position.coords.latitude}, ${position.coords.longitude} (précision: ${Math.round(accuracy)}m)`);
+            console.log(`✅ Position: ${position.coords.latitude}, ${position.coords.longitude} (précision: ${Math.round(accuracy)}m)`);
             
-            // ✅ Message selon la précision
+            // Message selon la précision
             let precisionText = "";
             let precisionColor = "";
-            let precisionIcon = "";
             
             if (accuracy < 20) {
                 precisionText = "Précision excellente ! 🎯";
                 precisionColor = "text-emerald-600";
-                precisionIcon = "fa-star";
             } else if (accuracy < 50) {
                 precisionText = "Bonne précision 👍";
                 precisionColor = "text-blue-600";
-                precisionIcon = "fa-check-circle";
             } else if (accuracy < 100) {
                 precisionText = "Précision moyenne ⚠️";
                 precisionColor = "text-amber-600";
-                precisionIcon = "fa-exclamation-triangle";
             } else {
                 precisionText = "Précision faible 📡";
                 precisionColor = "text-rose-600";
-                precisionIcon = "fa-satellite-dish";
             }
             
-            // ✅ Proposer de réessayer si précision faible
+            // Si précision faible, proposer de réessayer
             if (accuracy > 100) {
                 const retry = await Swal.fire({
                     title: "📍 Signal GPS faible",
                     html: `
                         <div class="text-center">
-                            <i class="fa-solid ${precisionIcon} ${precisionColor} text-4xl mb-3"></i>
                             <p class="text-sm font-bold ${precisionColor}">${precisionText}</p>
                             <p class="text-xs text-slate-500 mt-2">Précision: ${Math.round(accuracy)} mètres</p>
-                            <p class="text-[10px] text-slate-400 mt-3">Pour une meilleure précision, déplacez-vous dans un espace dégagé.</p>
+                            <p class="text-[10px] text-slate-400 mt-3">Déplacez-vous dans un espace dégagé.</p>
                         </div>
                     `,
                     icon: "warning",
@@ -1258,29 +1250,16 @@ async function fixCurrentLocationAsPatientHome() {
                 });
                 
                 if (retry.isConfirmed) {
-                    // Relancer la recherche
-                    Swal.fire({
-                        title: "Nouvelle recherche...",
-                        didOpen: () => Swal.showLoading(),
-                        allowOutsideClick: false
-                    });
-                    return fixCurrentLocationAsPatientHome(); // Rappel récursif
+                    Swal.fire({ title: "Nouvelle recherche...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+                    return fixCurrentLocationAsPatientHome();
                 }
             }
             
-            // ✅ Afficher le résultat avant enregistrement
             await Swal.fire({
                 title: "📍 Position capturée",
-                html: `
-                    <div class="text-center">
-                        <i class="fa-solid ${precisionIcon} ${precisionColor} text-3xl mb-2"></i>
-                        <p class="text-sm font-bold ${precisionColor}">${precisionText}</p>
-                        <p class="text-xs text-slate-500">Précision: ${Math.round(accuracy)} mètres</p>
-                        <p class="text-[9px] text-slate-400 mt-2">Lat: ${position.coords.latitude.toFixed(6)}<br>Lng: ${position.coords.longitude.toFixed(6)}</p>
-                    </div>
-                `,
+                html: `<div class="text-center"><p class="text-sm font-bold ${precisionColor}">${precisionText}</p><p class="text-xs text-slate-500">Précision: ${Math.round(accuracy)} mètres</p></div>`,
                 icon: accuracy < 100 ? "success" : "warning",
-                timer: 2000,
+                timer: 1500,
                 showConfirmButton: false
             });
             
@@ -1294,14 +1273,7 @@ async function fixCurrentLocationAsPatientHome() {
                     })
                 });
                 
-                Swal.fire({
-                    icon: "success",
-                    title: "✅ Domicile enregistré !",
-                    text: `La position de ${patientName} a été mise à jour`,
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
+                Swal.fire({ icon: "success", title: "✅ Domicile enregistré !", timer: 2000, showConfirmButton: false });
                 await loadPatientLocation(patientId);
                 await calculateAndDisplayRoute();
                 
@@ -1311,32 +1283,18 @@ async function fixCurrentLocationAsPatientHome() {
             }
         },
         (error) => {
-            console.error("Erreur GPS :", error);
-            
+            console.error("Erreur GPS:", error);
             let message = "Impossible d'obtenir votre position";
             let title = "Erreur GPS";
-            
             switch(error.code) {
-                case 1:
-                    title = "❌ Accès refusé";
-                    message = "Vous devez autoriser l'accès à votre position.\n\nRafraîchissez la page et cliquez sur 'Autoriser'.";
+                case 1: title = "❌ Accès refusé"; message = "Autorisez l'accès à votre position.";
                     break;
-                case 2:
-                    title = "📍 Position indisponible";
-                    message = "Activez votre GPS et réessayez.\n\nAssurez-vous d'être dans un espace dégagé.";
+                case 2: title = "📍 Position indisponible"; message = "Activez votre GPS.";
                     break;
-                case 3:
-                    title = "⏱️ Délai dépassé";
-                    message = "Vérifiez votre connexion et réessayez.\n\nSi le problème persiste, activez le GPS haute précision.";
+                case 3: title = "⏱️ Délai dépassé"; message = "Vérifiez votre connexion.";
                     break;
             }
-            
-            Swal.fire({
-                title: title,
-                text: message,
-                icon: "error",
-                confirmButtonText: "OK"
-            });
+            Swal.fire({ title: title, text: message, icon: "error" });
         },
         options
     );
@@ -1403,6 +1361,8 @@ function clearRoute() {
 window.copyAddressToClipboard = (address) => { if (address) { navigator.clipboard.writeText(address); showToast("Adresse copiée !", "success"); } };
 window.zoomToLocation = (lat, lng) => map?.setView([lat, lng], 16);
 window.openGoogleMaps = (lat, lng) => window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`, '_blank');
+
+
 async function getCurrentLocation() {
     return new Promise((resolve, reject) => {
         if (!navigator.geolocation) {
@@ -1410,25 +1370,16 @@ async function getCurrentLocation() {
             return;
         }
 
-        // ✅ Options optimisées pour la meilleure précision
         const options = {
-            enableHighAccuracy: true,  // Force la haute précision
-            timeout: 30000,           // 30 secondes max
-            maximumAge: 0,            // Pas de position en cache
-            // Pour Android : forcer le GPS
-            // Pour iOS : demande la meilleure précision possible
+            enableHighAccuracy: true,
+            timeout: 30000,
+            maximumAge: 0
         };
 
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 const accuracy = pos.coords.accuracy;
                 console.log(`📍 Position obtenue avec précision: ${Math.round(accuracy)}m`);
-                
-                // Accepter même si précision > 100m (pas idéal mais mieux que rien)
-                if (accuracy > 500) {
-                    console.warn(`⚠️ Précision faible (${Math.round(accuracy)}m), mais on accepte`);
-                }
-                
                 resolve({ 
                     lat: pos.coords.latitude, 
                     lon: pos.coords.longitude,
@@ -1447,4 +1398,5 @@ async function getCurrentLocation() {
         );
     });
 }
+
 export { initCoordinatorMap, initFamilyMap, initAidantMap };
