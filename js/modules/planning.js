@@ -598,3 +598,6 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
         });
     }
 };
+
+
+window.unassignAidant = unassignAidant;
