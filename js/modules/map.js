@@ -272,6 +272,9 @@ async function initCoordinatorMap() {
             setTimeout(() => mapLoading.style.display = 'none', 300);
         }, 500);
     }
+
+    requestLocation();
+
     
     // ✅ Événements
     document.getElementById('refresh-map-btn')?.addEventListener('click', () => loadCoordinatorData());
@@ -773,6 +776,12 @@ async function initAidantMap() {
                     <button id="center-map-btn" class="bg-white p-2 rounded-xl shadow-md border border-slate-100">
                         <i class="fa-solid fa-location-crosshairs text-slate-600"></i>
                     </button>
+                    // Ajoute ce bouton à côté des autres boutons
+                    <button id="improve-gps-btn" 
+                            class="bg-blue-500 text-white p-2 rounded-xl shadow-md border border-slate-100 active:scale-95 transition-all"
+                            title="Améliorer la précision GPS">
+                        <i class="fa-solid fa-satellite-dish text-sm"></i>
+                    </button>
                     <button id="clear-trajectory-btn" class="bg-slate-100 p-2 rounded-xl shadow-md border border-slate-100">
                         <i class="fa-solid fa-eraser text-slate-600"></i>
                     </button>
@@ -861,8 +870,26 @@ async function initAidantMap() {
         // ============================================
         map = L.map('map', { zoomControl: false, attributionControl: false, zoomSnap: 0.5 });
         L.control.zoom({ position: 'bottomright' }).addTo(map);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
         
+        // Option 1 : OpenStreetMap classique (précis, gratuit)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 20,
+            subdomains: ['a', 'b', 'c']
+        }).addTo(map);
+        
+        // Option 2 : Satellite (très précis pour les repères visuels)
+        // L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        //     attribution: 'Tiles &copy; Esri',
+        //     maxZoom: 19
+        // }).addTo(map);
+        
+        // Option 3 : Google Maps-like (gratuit, bonne précision)
+        // L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        //     attribution: 'Google',
+        //     maxZoom: 20,
+        //     subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        // }).addTo(map);        
         // ============================================
         // ✅ FORCER LA TAILLE DE LA CARTE (AJOUTÉ ICI)
         // ============================================
@@ -976,14 +1003,264 @@ async function initAidantMap() {
                 setTimeout(() => mapLoading.style.display = 'none', 300);
             }, 500);
         }
-        
-        // Démarrer la demande GPS
-        requestLocation();
+
+
+
+        // Cacher loader
+const mapLoading = document.getElementById('map-loading');
+if (mapLoading) {
+    setTimeout(() => {
+        mapLoading.style.opacity = '0';
+        setTimeout(() => mapLoading.style.display = 'none', 300);
+    }, 500);
+}
+
+// ✅ Ajoute l'écouteur du bouton "Améliorer la précision" ICI
+const improveGpsBtn = document.getElementById('improve-gps-btn');
+if (improveGpsBtn) {
+    improveGpsBtn.addEventListener('click', async () => {
+        try {
+            const result = await improveGPSAccuracy();
+            if (result && result.position) {
+                const { latitude, longitude } = result.position.coords;
+                if (markers['aidant']) {
+                    markers['aidant'].setLatLng([latitude, longitude]);
+                    map.setView([latitude, longitude], 18);
+                }
+                showToast(`🎯 Précision optimisée à ${Math.round(result.accuracy)} mètres`, "success");
+            }
+        } catch (err) {
+            showToast("Impossible d'améliorer la précision", "error");
+        }
+    });
+}
+
+// Démarrer la demande GPS
+requestLocation();
+
         
     }, 100);
 }
 
+
+
+
+
+
+/**
+ * 📍 AJOUTER UN CERCLE DE PRÉCISION SUR LA CARTE
+ */
+function addAccuracyCircle(lat, lng, accuracy, color = '#3B82F6') {
+    // Supprimer l'ancien cercle s'il existe
+    if (window._accuracyCircle) {
+        map.removeLayer(window._accuracyCircle);
+    }
+    
+    // Créer le cercle de précision
+    const circle = L.circle([lat, lng], {
+        radius: accuracy,
+        color: color,
+        fillColor: color,
+        fillOpacity: 0.15,
+        weight: 2,
+        opacity: 0.6
+    }).addTo(map);
+    
+    window._accuracyCircle = circle;
+    return circle;
+}
+
+/**
+ * 📍 AJOUTER UN MARQUEUR DE POSITION AVEC CERCLE DE PRÉCISION
+ */
+function addPositionMarkerWithAccuracy(lat, lng, accuracy, label = "Ma position") {
+    // Supprimer l'ancien marqueur
+    if (window._positionMarker) {
+        map.removeLayer(window._positionMarker);
+    }
+    if (window._positionCircle) {
+        map.removeLayer(window._positionCircle);
+    }
+    
+    // Icône personnalisée
+    const icon = L.divIcon({
+        className: 'position-marker',
+        html: `
+            <div class="relative">
+                <div class="w-5 h-5 bg-blue-500 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-blue-500 rounded-full opacity-30 animate-ping"></div>
+            </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+    
+    window._positionMarker = L.marker([lat, lng], { icon }).addTo(map);
+    window._positionCircle = L.circle([lat, lng], {
+        radius: accuracy,
+        color: '#3B82F6',
+        fillColor: '#60A5FA',
+        fillOpacity: 0.15,
+        weight: 2
+    }).addTo(map);
+    
+    // Popup avec infos
+    window._positionMarker.bindPopup(`
+        <div class="text-center p-1">
+            <p class="font-black text-xs">${label}</p>
+            <p class="text-[9px] text-slate-500">Précision: ${Math.round(accuracy)} mètres</p>
+        </div>
+    `);
+}
+
+
+/**
+ * 🎯 AMÉLIORER LA PRÉCISION GPS (mode dédié)
+ */
+async function improveGPSAccuracy() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            Swal.fire("Erreur", "GPS non supporté", "error");
+            reject();
+            return;
+        }
         
+        let bestAccuracy = Infinity;
+        let bestPosition = null;
+        let attempts = 0;
+        let watchId = null;
+        
+        Swal.fire({
+            title: "📍 Amélioration de la précision",
+            html: `
+                <div class="text-center">
+                    <div class="relative w-20 h-20 mx-auto mb-4">
+                        <div class="absolute inset-0 border-4 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                        <i class="fa-solid fa-satellite-dish absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-emerald-500 text-2xl"></i>
+                    </div>
+                    <p class="text-sm font-bold">Recherche du signal GPS...</p>
+                    <p class="text-xs text-slate-500 mt-2">Déplacez-vous lentement</p>
+                    <div class="mt-4 w-full bg-slate-200 rounded-full h-2">
+                        <div id="gps-accuracy-bar" class="bg-emerald-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                    </div>
+                    <p id="gps-accuracy-value" class="text-[10px] text-slate-400 mt-2">En attente...</p>
+                    <p id="gps-advice" class="text-[9px] text-amber-500 mt-3">⚡ Déplacez-vous vers un espace dégagé</p>
+                </div>
+            `,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const accuracy = position.coords.accuracy;
+                        attempts++;
+                        
+                        // Mettre à jour l'affichage
+                        const percent = Math.min(100, (100 - accuracy) * 1.5);
+                        document.getElementById('gps-accuracy-bar').style.width = `${Math.max(0, percent)}%`;
+                        document.getElementById('gps-accuracy-value').innerHTML = `Précision: ${Math.round(accuracy)} mètres`;
+                        
+                        // Conseils selon la précision
+                        const adviceEl = document.getElementById('gps-advice');
+                        if (accuracy > 100) {
+                            adviceEl.innerHTML = '⚠️ Précision faible - Déplacez-vous vers un espace dégagé';
+                            adviceEl.className = 'text-[9px] text-amber-500 mt-3';
+                        } else if (accuracy > 50) {
+                            adviceEl.innerHTML = '👍 Précision moyenne - Encore un peu...';
+                            adviceEl.className = 'text-[9px] text-blue-500 mt-3';
+                        } else if (accuracy > 20) {
+                            adviceEl.innerHTML = '✅ Bonne précision - Attendez la stabilisation';
+                            adviceEl.className = 'text-[9px] text-emerald-500 mt-3';
+                        } else {
+                            adviceEl.innerHTML = '🎯 Précision excellente ! Position prête';
+                            adviceEl.className = 'text-[9px] text-emerald-600 font-bold mt-3';
+                        }
+                        
+                        if (accuracy < bestAccuracy) {
+                            bestAccuracy = accuracy;
+                            bestPosition = position;
+                        }
+                        
+                        // Condition d'arrêt
+                        if (accuracy < 20 && attempts > 5) {
+                            navigator.geolocation.clearWatch(watchId);
+                            Swal.close();
+                            resolve({ position: bestPosition, accuracy: bestAccuracy });
+                        } else if (attempts > 30) {
+                            navigator.geolocation.clearWatch(watchId);
+                            Swal.close();
+                            if (bestPosition) {
+                                resolve({ position: bestPosition, accuracy: bestAccuracy });
+                            } else {
+                                reject();
+                            }
+                        }
+                    },
+                    (error) => {
+                        console.error("Erreur GPS:", error);
+                        navigator.geolocation.clearWatch(watchId);
+                        Swal.close();
+                        reject();
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            }
+        }).then(() => {
+            if (bestPosition) {
+                Swal.fire({
+                    title: "✅ Précision optimisée !",
+                    html: `Précision finale: <b>${Math.round(bestAccuracy)} mètres</b>`,
+                    icon: bestAccuracy < 50 ? "success" : "warning",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+    });
+}
+
+/**
+ * 📍 LISSAGE DES POSITIONS GPS (filtre des positions aberrantes)
+ */
+let positionHistory = [];
+let lastValidPosition = null;
+
+function smoothPosition(lat, lng, accuracy, maxHistory = 5) {
+    // Ignorer les positions trop imprécises
+    if (accuracy > 100) {
+        console.log(`📍 Position ignorée (précision: ${Math.round(accuracy)}m)`);
+        return lastValidPosition || { lat, lng };
+    }
+    
+    // Ignorer les sauts trop grands (> 50m)
+    if (lastValidPosition) {
+        const distance = calculateDistance(
+            lat, lng, 
+            lastValidPosition.lat, lastValidPosition.lng
+        );
+        if (distance > 50) {
+            console.log(`📍 Saut de position détecté (${Math.round(distance)}m), ignoré`);
+            return lastValidPosition;
+        }
+    }
+    
+    // Ajouter à l'historique
+    positionHistory.push({ lat, lng, accuracy, timestamp: Date.now() });
+    if (positionHistory.length > maxHistory) positionHistory.shift();
+    
+    // Calculer la moyenne des positions récentes
+    if (positionHistory.length >= 3) {
+        const recent = positionHistory.slice(-3);
+        const avgLat = recent.reduce((sum, p) => sum + p.lat, 0) / 3;
+        const avgLng = recent.reduce((sum, p) => sum + p.lng, 0) / 3;
+        lastValidPosition = { lat: avgLat, lng: avgLng };
+        return lastValidPosition;
+    }
+    
+    lastValidPosition = { lat, lng };
+    return lastValidPosition;
+}
+
+
 async function loadAssignedPatients() {
     try {
         const patients = await secureFetch('/patients');
@@ -1316,27 +1593,41 @@ function startAidantTracking() {
     if (!navigator.geolocation) return;
     const aidantIcon = createCustomIcon('#10B981', true, 'lg', 'user-nurse');
     
-    navigator.geolocation.getCurrentPosition((pos) => {
-        markers['aidant'] = L.marker([pos.coords.latitude, pos.coords.longitude], { icon: aidantIcon }).addTo(map);
-        map.setView([pos.coords.latitude, pos.coords.longitude], 15);
-    });
+    // Options haute précision
+    const options = {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000
+    };
     
     watchId = navigator.geolocation.watchPosition(
         (position) => {
-            const { latitude, longitude } = position.coords;
-            if (markers['aidant']) markers['aidant'].setLatLng([latitude, longitude]);
-            else markers['aidant'] = L.marker([latitude, longitude], { icon: aidantIcon }).addTo(map);
-            trajectoryPoints.push([latitude, longitude]);
+            const rawLat = position.coords.latitude;
+            const rawLng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            
+            // ✅ Lissage de la position
+            const smoothed = smoothPosition(rawLat, rawLng, accuracy);
+            
+            // ✅ Ajouter le cercle de précision
+            addPositionMarkerWithAccuracy(smoothed.lat, smoothed.lng, accuracy, "Votre position");
+            
+            if (markers['aidant']) {
+                markers['aidant'].setLatLng([smoothed.lat, smoothed.lng]);
+            } else {
+                markers['aidant'] = L.marker([smoothed.lat, smoothed.lng], { icon: aidantIcon }).addTo(map);
+            }
+            
+            trajectoryPoints.push([smoothed.lat, smoothed.lng]);
             updateTrajectoryLine();
             
-            // ✅ Recalculer l'itinéraire à chaque mouvement si un patient est sélectionné
             const selector = document.getElementById('patient-selector');
             if (selector && selector.value && isNavigating) {
-                calculateAndDisplayRoute();  // ← Déjà présent mais vérifie qu'il est appelé
+                calculateAndDisplayRoute();
             }
         },
         (error) => console.warn("Erreur tracking:", error.message),
-        { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+        options
     );
 }
 
