@@ -6,6 +6,16 @@ import { UI, openModernSelector } from "../core/utils.js";
 let rhData = null;
 let currentRHTab = 'aidants';
 
+// Ajoute cette fonction au début du fichier admin.js
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 // Fonction sécurisée pour formater les dates
 function formatDateSafe(dateString) {
@@ -1018,3 +1028,6 @@ async function refreshPendingRegistrations() {
         console.error("Erreur rafraîchissement:", e);
     }
 }
+
+
+
