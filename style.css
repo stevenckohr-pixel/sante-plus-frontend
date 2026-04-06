@@ -2634,78 +2634,91 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 
 
 
+
+
+
+
+
 /* ============================================
-   MODE NUIT (DARK MODE)
+   MODE NUIT SIMPLIFIÉ ET STABLE
    ============================================ */
 
-/* Variables du mode clair (par défaut) */
+/* Variables du mode clair */
 :root {
-    --bg-primary: #F8FAFC;
-    --bg-secondary: #FFFFFF;
-    --text-primary: #0F172A;
-    --text-secondary: #64748B;
-    --border-color: #E2E8F0;
-    --card-bg: #FFFFFF;
-    --header-bg: rgba(255, 255, 255, 0.85);
-    --sidebar-bg: #0F172A;
-    --sidebar-text: #FFFFFF;
+    --bg-page: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --header-bg: rgba(255, 255, 255, 0.9);
 }
 
 /* Variables du mode nuit */
 [data-theme="dark"] {
-    --bg-primary: #0F172A;
-    --bg-secondary: #1E293B;
-    --text-primary: #F1F5F9;
-    --text-secondary: #94A3B8;
-    --border-color: #334155;
-    --card-bg: #1E293B;
-    --header-bg: rgba(30, 41, 59, 0.85);
-    --sidebar-bg: #020617;
-    --sidebar-text: #E2E8F0;
+    --bg-page: #0F172A;
+    --bg-card: #1E293B;
+    --text-main: #F1F5F9;
+    --text-muted: #94A3B8;
+    --border: #334155;
+    --header-bg: rgba(15, 23, 42, 0.95);
 }
 
-/* Application des variables */
+/* Application */
 body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    background-color: var(--bg-page) !important;
 }
 
-.bg-white, 
-.patient-card, 
-.menu-tile,
-.bento-card,
+.bg-white,
 .bg-white.rounded-2xl,
 .bg-white.rounded-3xl,
+.bg-white.p-4,
+.bg-white.p-5,
+.bg-white.p-6,
+.patient-card,
+.menu-tile,
+.bento-card,
 .auth-card {
-    background-color: var(--card-bg) !important;
-    border-color: var(--border-color) !important;
+    background-color: var(--bg-card) !important;
 }
 
-.text-slate-800, .text-slate-900, .font-black.text-slate-800 {
-    color: var(--text-primary) !important;
+/* Textes */
+.text-slate-800,
+.text-slate-900,
+.font-black.text-slate-800,
+.hover\:text-slate-900:hover {
+    color: var(--text-main) !important;
 }
 
-.text-slate-400, .text-slate-500, .text-slate-600 {
-    color: var(--text-secondary) !important;
+.text-slate-400,
+.text-slate-500,
+.text-slate-600,
+.text-slate-700 {
+    color: var(--text-muted) !important;
 }
 
-.border-slate-100, .border-slate-200 {
-    border-color: var(--border-color) !important;
+/* Bordures */
+.border-slate-100,
+.border-slate-200,
+.border-slate-50 {
+    border-color: var(--border) !important;
 }
 
-.bg-slate-50, .bg-slate-100 {
-    background-color: var(--bg-secondary) !important;
+/* Fonds */
+.bg-slate-50,
+.bg-slate-100,
+.bg-slate-100\/50 {
+    background-color: var(--bg-card) !important;
 }
 
+/* Header */
 header {
     background: var(--header-bg) !important;
-    border-bottom-color: var(--border-color) !important;
+    backdrop-filter: blur(10px);
 }
 
-/* Sidebar en mode nuit */
+/* Sidebar */
 [data-theme="dark"] aside {
-    background: linear-gradient(180deg, #020617 0%, #0F172A 100%) !important;
+    background: #020617 !important;
 }
 
 [data-theme="dark"] .sidebar-link {
@@ -2717,37 +2730,38 @@ header {
     color: white !important;
 }
 
-/* Footer mobile */
-[data-theme="dark"] .fab-button {
-    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-}
-
-[data-theme="dark"] .fab-menu {
-    background: #1E293B;
-    border-color: #334155;
-}
-
-[data-theme="dark"] .fab-menu-item {
-    background: #334155;
-}
-
-[data-theme="dark"] .fab-menu-item i {
-    color: #E2E8F0;
-}
-
-/* Inputs en mode nuit */
-[data-theme="dark"] .app-input {
-    background-color: #334155;
-    border-color: #475569;
-    color: #F1F5F9;
+/* Inputs */
+[data-theme="dark"] .app-input,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+    color: #F1F5F9 !important;
 }
 
 [data-theme="dark"] .app-input:focus {
-    background-color: #3B4252;
-    border-color: #10B981;
+    border-color: #10B981 !important;
+    outline: none;
 }
 
-/* Modales SweetAlert en mode nuit */
+/* LOADER en mode nuit - NE PAS CASSER LE LOADER */
+[data-theme="dark"] #initial-loader,
+[data-theme="dark"] .global-loader {
+    background: #0F172A !important;
+}
+
+[data-theme="dark"] .loader-spinner {
+    border-color: #334155 !important;
+    border-top-color: #10B981 !important;
+}
+
+[data-theme="dark"] .loader-text,
+[data-theme="dark"] .loader-text-main {
+    color: #94A3B8 !important;
+}
+
+/* SweetAlert en mode nuit */
 [data-theme="dark"] .swal2-popup {
     background: #1E293B !important;
 }
@@ -2757,7 +2771,25 @@ header {
     color: #F1F5F9 !important;
 }
 
-/* Toast en mode nuit */
-[data-theme="dark"] .toast-notification {
-    background: rgba(30, 41, 59, 0.95) !important;
+[data-theme="dark"] .swal2-confirm {
+    background-color: #10B981 !important;
+}
+
+/* Menu flottant */
+[data-theme="dark"] .fab-menu {
+    background: #1E293B !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .fab-menu-item {
+    background: #334155 !important;
+}
+
+[data-theme="dark"] .fab-menu-item i {
+    color: #E2E8F0 !important;
+}
+
+/* Animation de transition douce */
+body, .bg-white, .patient-card, .menu-tile, .bento-card {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
