@@ -43,7 +43,13 @@ console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
 const { updateNotificationBadge } = Notifications;
 
 
-
+/**
+ * 🔄 FORCER LE REChARGEMENT DE LA PAGE APRÈS UNE ACTION
+ */
+window.forceRefresh = () => {
+    console.log("🔄 Rechargement forcé de la page...");
+    window.location.reload();
+};
 /**
  * 🔄 FORCER LE RAFRAÎCHISSEMENT DE LA VUE ACTUELLE
  */
