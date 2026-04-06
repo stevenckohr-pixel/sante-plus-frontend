@@ -524,13 +524,12 @@ function escapeHtml(str) {
 
 
  
+
 /**
  * 🗑️ SUPPRIMER UNE ASSIGNATION (Délier aidant-patient)
  */
 window.unassignAidant = async (planningId, patientName, aidantName) => {
-    console.log("🔍 ID reçu:", planningId);
-    console.log("👤 Patient:", patientName);
-    console.log("👨‍⚕️ Aidant:", aidantName);
+    console.log("🔍 [DEBUG] unassignAidant appelée avec:", { planningId, patientName, aidantName });
     
     if (!planningId) {
         Swal.fire("Erreur", "ID d'assignation manquant", "error");
@@ -543,14 +542,16 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
         icon: "warning",
         showCancelButton: true,
         confirmButtonText: "OUI, SUPPRIMER",
-        confirmButtonColor: "#F43F5E"
+        confirmButtonColor: "#F43F5E",
+        cancelButtonText: "Annuler"
     });
     
     if (!result.isConfirmed) return;
     
-    Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     
     try {
+        // ✅ Utiliser fetch directement pour plus de contrôle
         const response = await fetch(`${CONFIG.API_URL}/planning/${planningId}`, {
             method: "DELETE",
             headers: {
@@ -559,23 +560,41 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
             }
         });
         
+        console.log("📥 Réponse status:", response.status);
+        
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Erreur");
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Erreur ${response.status}`);
         }
         
-        Swal.fire({ icon: "success", title: "Assignation supprimée", timer: 1500, showConfirmButton: false });
+        const resultData = await response.json();
+        console.log("✅ Réponse:", resultData);
         
-        // Recharger la vue
+        Swal.fire({ 
+            icon: "success", 
+            title: "Assignation supprimée", 
+            text: `${escapeHtml(aidantName)} n'est plus assigné à ${escapeHtml(patientName)}`,
+            timer: 2000, 
+            showConfirmButton: false 
+        });
+        
+        // Recharger la vue RH
         if (typeof loadRHAssignments === 'function') {
-            loadRHAssignments();
+            await loadRHAssignments();
+        } else if (typeof window.loadRHAssignments === 'function') {
+            await window.loadRHAssignments();
         } else {
             window.switchView('rh-dashboard');
         }
         
     } catch (err) {
         Swal.close();
-        console.error("❌ Erreur:", err);
-        Swal.fire("Erreur", err.message, "error");
+        console.error("❌ Erreur suppression:", err);
+        Swal.fire({ 
+            title: "Erreur", 
+            text: err.message || "Impossible de supprimer cette assignation", 
+            icon: "error",
+            confirmButtonText: "OK"
+        });
     }
 };
