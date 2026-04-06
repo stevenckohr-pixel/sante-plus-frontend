@@ -333,6 +333,8 @@ function escapeHtml(str) {
 // ✅ Exposer la fonction globalement pour les appels HTML
 window.quickValidate = quickValidate;
 window.fetchStats = fetchStats;
+window.loadRHAssignments = loadRHAssignments; 
+
 
 // ✅ Exporter la fonction pour l'import dans main.js
 export { quickValidate, fetchStats};
