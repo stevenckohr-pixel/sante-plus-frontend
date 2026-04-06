@@ -354,7 +354,6 @@ async function initApp() {
             await Visites.checkActiveVisitOnStart();
             Visites.resumeTrackingIfActive();
             checkActiveVisit();
-            initPullToRefresh();
 
 
                         // ✅ FORCER la mise à jour de l'UI de l'aidant
