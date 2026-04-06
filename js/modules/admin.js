@@ -451,7 +451,6 @@ function renderAidantsList() {
  */
 function renderPatientsList() {
     const container = document.getElementById("rh-content");
-    console.log("Patient:", patient, "Assignment ID:", patient.assignment_id);
     
     if (!rhData?.patients?.length) {
         container.innerHTML = `
@@ -464,9 +463,22 @@ function renderPatientsList() {
         return;
     }
 
+    // 🔧 Créer un Map des assignations par patient_id pour accès rapide
+    const assignmentByPatientId = {};
+    if (rhData.assignments) {
+        rhData.assignments.forEach(assign => {
+            assignmentByPatientId[assign.patient_id] = assign;
+        });
+    }
+
     container.innerHTML = `
         <div class="space-y-4">
-            ${rhData.patients.map(patient => `
+            ${rhData.patients.map(patient => {
+                // 🔧 Récupérer l'assignation correspondante
+                const assignment = assignmentByPatientId[patient.id];
+                const assignmentId = assignment?.id || null;
+                
+                return `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                     <div class="px-5 py-4 ${patient.aidant_assigne ? 'bg-gradient-to-r from-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-slate-600 to-slate-700'}">
                         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -493,7 +505,7 @@ function renderPatientsList() {
                     </div>
                     
                     <div class="p-4">
-                ${patient.aidant_assigne ? `
+                ${patient.aidant_assigne && assignmentId ? `
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
@@ -505,22 +517,27 @@ function renderPatientsList() {
                                 <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
                             </div>
                         </div>
-                                <button onclick="window.unassignPatientFromPatient('${patient.assignment_id}', '${escapeHtml(patient.nom_complet)}', '${escapeHtml(patient.aidant_assigne.nom)}')" 
+                                <button onclick="window.unassignPatientFromPatient('${assignmentId}', '${escapeHtml(patient.nom_complet)}', '${escapeHtml(patient.aidant_assigne.nom)}')" 
                                         class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
                                     <i class="fa-solid fa-link-slash"></i> Délier
                                 </button>
                     </div>
+                ` : patient.aidant_assigne && !assignmentId ? `
+                    <div class="text-center py-6 bg-amber-50 rounded-xl border border-amber-100">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-2xl mb-2"></i>
+                        <p class="text-xs text-amber-600">Erreur de liaison</p>
+                        <p class="text-[9px] text-amber-500">Veuillez contacter le support</p>
+                    </div>
                 ` : `
-                        
-                            <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
-                                <i class="fa-solid fa-user-plus text-slate-300 text-2xl mb-2"></i>
-                                <p class="text-xs text-slate-400 mb-3">Aucun aidant assigné</p>
-                                <button onclick="window.openAssignModalWithPatient('${patient.id}', '${patient.nom_complet.replace(/'/g, "\\'")}')" 
-                                        class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition">
-                                    + Assigner un aidant
-                                </button>
-                            </div>
-                        `}
+                    <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
+                        <i class="fa-solid fa-user-plus text-slate-300 text-2xl mb-2"></i>
+                        <p class="text-xs text-slate-400 mb-3">Aucun aidant assigné</p>
+                        <button onclick="window.openAssignModalWithPatient('${patient.id}', '${patient.nom_complet.replace(/'/g, "\\'")}')" 
+                                class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition">
+                            + Assigner un aidant
+                        </button>
+                    </div>
+                `}
                         
                         ${patient.famille ? `
                             <div class="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
@@ -534,7 +551,7 @@ function renderPatientsList() {
                         ` : ''}
                     </div>
                 </div>
-            `).join('')}
+            `}).join('')}
         </div>
     `;
 }
