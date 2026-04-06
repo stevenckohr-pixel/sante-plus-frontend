@@ -473,7 +473,8 @@ async function initApp() {
     initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
-    updateThemeColor();
+    updateThemeColor();            //Color auto
+    initTheme()            //Darkmode
     
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
@@ -1611,7 +1612,11 @@ async function initPushNotifications() {
                     <!-- Espace vide pour équilibre sur mobile -->
                     <div class="lg:hidden"></div>
 
-
+                    <!-- Bouton mode nuit -->
+                    <button onclick="window.toggleDarkMode()" 
+                            class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 transition-all shadow-sm flex items-center justify-center">
+                        <i class="fa-solid ${localStorage.getItem('theme') === 'dark' ? 'fa-moon' : 'fa-sun'} text-base"></i>
+                    </button>
 
                     <!-- Notifications -->
                     <div class="flex items-center gap-3">
@@ -2153,6 +2158,7 @@ window.openProfileMenu = () => {
     const userName = localStorage.getItem("user_name");
     const userRole = localStorage.getItem("user_role");
     const soundsEnabled = localStorage.getItem('sounds_enabled') === 'true';
+    const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
     
     Swal.fire({
         title: `<div class="text-sm font-black uppercase text-slate-400 tracking-widest mb-1">Mon Compte</div><div class="text-xl font-black text-slate-800">${userName}</div>`,
@@ -2160,6 +2166,18 @@ window.openProfileMenu = () => {
             <div class="text-center p-4">
                 <div class="inline-block px-4 py-1 bg-green-100 text-green-600 rounded-full text-[10px] font-black uppercase mb-6">${userRole}</div>
                 <div class="space-y-3">
+                    <!-- 🌙 Mode Nuit -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid ${isDarkMode ? 'fa-moon' : 'fa-sun'} text-slate-400"></i>
+                            <span class="text-xs font-bold text-slate-700">Mode ${isDarkMode ? 'Nuit' : 'Jour'}</span>
+                        </div>
+                        <button onclick="window.toggleDarkMode(); Swal.close();" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">
+                            ${isDarkMode ? '☀️ Activer le jour' : '🌙 Activer la nuit'}
+                        </button>
+                    </div>
+                    
+                    <!-- Effets sonores -->
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-volume-high text-slate-400"></i>
@@ -2170,6 +2188,7 @@ window.openProfileMenu = () => {
                             <div class="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                         </label>
                     </div>
+                    
                     <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-download text-slate-400"></i>
@@ -2199,6 +2218,38 @@ window.openProfileMenu = () => {
         }
     });
 };
+
+
+
+/**
+ * 🌙 ACTIVER/DÉSACTIVER LE MODE NUIT
+ */
+window.toggleDarkMode = () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Mettre à jour l'icône de la météo dans le header (optionnel)
+    updateThemeIcon(newTheme);
+    
+    showToast(newTheme === 'dark' ? '🌙 Mode nuit activé' : '☀️ Mode jour activé', 'success', 1500);
+};
+
+/**
+ * 🎨 INITIALISER LE THÈME AU CHARGEMENT
+ */
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    
+    document.documentElement.setAttribute('data-theme', theme);
+}
+
+// Appeler  dans initApp() après les autres initialisations
+
 
 window.installPWA = () => {
     if (window.deferredPrompt) {
