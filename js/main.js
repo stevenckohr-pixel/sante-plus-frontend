@@ -2232,18 +2232,14 @@ window.toggleDarkMode = () => {
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     
-    // ✅ Supprime ou commente cette ligne :
-    // updateThemeIcon(newTheme);
-    
-    // Optionnel : changer l'icône dans le header si elle existe
-    const themeIcon = document.querySelector('.theme-toggle-icon, [onclick="window.toggleDarkMode()"] i');
-    if (themeIcon) {
-        themeIcon.className = `fa-solid ${newTheme === 'dark' ? 'fa-moon' : 'fa-sun'} text-base`;
+    // Changer l'icône du bouton si présent
+    const themeBtn = document.querySelector('[onclick*="toggleDarkMode"] i');
+    if (themeBtn) {
+        themeBtn.className = `fa-solid ${newTheme === 'dark' ? 'fa-moon' : 'fa-sun'} text-base`;
     }
     
     showToast(newTheme === 'dark' ? '🌙 Mode nuit activé' : '☀️ Mode jour activé', 'success', 1500);
 };
-
 /**
  * 🎨 INITIALISER LE THÈME AU CHARGEMENT
  */
@@ -2255,7 +2251,6 @@ function initTheme() {
     document.documentElement.setAttribute('data-theme', theme);
 }
 
-// Appeler  dans initApp() après les autres initialisations
 
 
 window.installPWA = () => {
