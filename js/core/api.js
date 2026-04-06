@@ -76,32 +76,16 @@ export async function secureFetch(endpoint, options = {}) {
         responseData = await response.json();
       }
 
-      // ✅ UNIQUEMENT ICI : Invalider le cache et recharger la vue
-      if (method !== 'GET') {
-        // Vider le cache
-        apiCache.delete(endpoint);
-        console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
-        
-        localStorage.removeItem(`cache_/commandes`);
-        localStorage.removeItem(`cache_/visites`);
-        localStorage.removeItem(`cache_/patients`);
-        
-                  // Recharger la vue actuelle
-           // Dans le bloc if (method !== 'GET'), remplace le setTimeout par :
-          
-          setTimeout(() => {
-              const currentView = localStorage.getItem("last_view") || "home";
-              
-              // Afficher un toast visible à l'écran
-              if (window.showToast) {
-                  window.showToast("✓ Mise à jour", "success", 1500);
-              }
-              
-              if (window.switchView) {
-                  window.switchView(currentView);
-              }
-          }, 300);
-      }
+// Vider le cache pour les méthodes non-GET
+if (method !== 'GET') {
+    apiCache.delete(endpoint);
+    console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+    
+    localStorage.removeItem(`cache_/commandes`);
+    localStorage.removeItem(`cache_/visites`);
+    localStorage.removeItem(`cache_/patients`);
+    // ✅ Plus de rafraîchissement automatique
+}
 
       return responseData;
 
