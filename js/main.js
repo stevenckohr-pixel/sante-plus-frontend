@@ -43,24 +43,26 @@ console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
 const { updateNotificationBadge } = Notifications;
 
 
+
 /**
- * 🔄 RAFRAÎCHIR LA VUE ACTUELLE
+ * 🔄 FORCER LE RAFRAÎCHISSEMENT DE LA VUE ACTUELLE
  */
 window.refreshCurrentView = async () => {
     const currentView = localStorage.getItem("last_view") || "home";
-    console.log("🔄 Rafraîchissement de la vue:", currentView);
+    console.log("🔄 Rafraîchissement automatique de la vue:", currentView);
     
-    // Afficher un indicateur de chargement
+    // Afficher un indicateur visuel subtil
     const container = document.getElementById("view-container");
     if (container) {
         const refreshIndicator = document.createElement('div');
         refreshIndicator.className = 'refresh-indicator';
         refreshIndicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Mise à jour...';
-        container.prepend(refreshIndicator);
-        setTimeout(() => refreshIndicator.remove(), 1000);
+        refreshIndicator.style.cssText = 'position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: #10B981; color: white; padding: 8px 16px; border-radius: 40px; font-size: 11px; font-weight: bold; z-index: 9999; animation: fadeInOut 2s ease;';
+        document.body.appendChild(refreshIndicator);
+        setTimeout(() => refreshIndicator.remove(), 1500);
     }
     
-    // Recharger la vue actuelle
+    // Recharger la vue
     await window.switchView(currentView);
 };
 
