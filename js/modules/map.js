@@ -1126,23 +1126,139 @@ async function fixCurrentLocationAsPatientHome() {
     const selector = document.getElementById('patient-selector');
     const patientId = selector.value;
     const patientName = selector.options[selector.selectedIndex]?.text?.split(' -')[0];
+    
     if (!patientId) return UI.warning("Sélectionnez d'abord un patient");
-    if (!navigator.geolocation) return UI.error("GPS non disponible");
-    
-    const result = await Swal.fire({ title: "Fixer le domicile ?", text: `Voulez-vous enregistrer votre position actuelle comme domicile de ${patientName} ?`, icon: "question", showCancelButton: true, confirmButtonText: "OUI, ENREGISTRER", confirmButtonColor: "#10B981" });
-    if (!result.isConfirmed) return;
-    
-    Swal.fire({ title: "Enregistrement...", didOpen: () => Swal.showLoading() });
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        try {
-            await secureFetch('/patients/update-gps', { method: 'POST', body: JSON.stringify({ patient_id: patientId, lat: position.coords.latitude, lng: position.coords.longitude }) });
-            Swal.fire({ icon: "success", title: "Domicile enregistré !", timer: 2000, showConfirmButton: false });
-            await loadPatientLocation(patientId);
-            await calculateAndDisplayRoute();
-        } catch (err) { Swal.fire("Erreur", err.message, "error"); }
-    }, () => Swal.fire("Erreur GPS", "Impossible d'obtenir votre position", "error"));
-}
 
+    // ✅ 1. Vérifier si le GPS est supporté
+    if (!navigator.geolocation) {
+        return Swal.fire({
+            title: "GPS non supporté",
+            text: "Votre navigateur ne supporte pas la géolocalisation.",
+            icon: "error"
+        });
+    }
+
+    // ✅ 2. Vérifier l'état de l'autorisation (si l'API Permissions est disponible)
+    let permissionStatus = null;
+    if (navigator.permissions && navigator.permissions.query) {
+        try {
+            permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+            console.log("État de la permission GPS :", permissionStatus.state);
+        } catch (e) {
+            console.warn("Impossible de vérifier l'état de la permission", e);
+        }
+    }
+
+    // ✅ 3. Si déjà refusé, proposer un guide pour réactiver
+    if (permissionStatus && permissionStatus.state === 'denied') {
+        Swal.fire({
+            title: "📍 Accès GPS refusé",
+            html: `
+                <div class="text-left">
+                    <p class="mb-2">Vous avez refusé l'accès à votre position.</p>
+                    <p class="text-xs text-slate-500">Pour réactiver :</p>
+                    <ul class="text-xs text-left mt-2 space-y-1">
+                        <li>• <strong>Android (Chrome)</strong> : 🔒 Cadenas → Autorisations → Position → Autoriser</li>
+                        <li>• <strong>iPhone (Safari)</strong> : ⚙️ Réglages → Confidentialité → Localisation → Safari → Autoriser</li>
+                    </ul>
+                </div>
+            `,
+            icon: "warning",
+            confirmButtonText: "OK, j'ai compris"
+        });
+        return;
+    }
+
+    // ✅ 4. Demander la position avec un message clair
+    const confirm = await Swal.fire({
+        title: "📍 Enregistrer le domicile",
+        text: `Voulez-vous utiliser votre position actuelle comme domicile de ${patientName} ?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "OUI, ENREGISTRER",
+        confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler"
+    });
+    
+    if (!confirm.isConfirmed) return;
+
+    // ✅ 5. Afficher le loader
+    Swal.fire({
+        title: "Recherche de votre position...",
+        text: "Activez votre GPS si ce n'est pas déjà fait",
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+    });
+
+    // ✅ 6. Options pour mobile (plus de temps, haute précision)
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 30000,      // 30 secondes
+        maximumAge: 0        // Pas de position en cache
+    };
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            console.log("✅ Position obtenue :", position.coords);
+            
+            try {
+                await secureFetch('/patients/update-gps', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        patient_id: patientId,
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    })
+                });
+                
+                Swal.fire({
+                    icon: "success",
+                    title: "✅ Domicile enregistré !",
+                    text: `La position de ${patientName} a été mise à jour`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                // Recharger la position du patient sur la carte
+                await loadPatientLocation(patientId);
+                await calculateAndDisplayRoute();
+                
+            } catch (err) {
+                console.error(err);
+                Swal.fire("Erreur", err.message, "error");
+            }
+        },
+        (error) => {
+            console.error("Erreur GPS :", error);
+            
+            let message = "Impossible d'obtenir votre position";
+            let title = "Erreur GPS";
+            
+            switch(error.code) {
+                case 1: // PERMISSION_DENIED
+                    title = "❌ Accès refusé";
+                    message = "Vous devez autoriser l'accès à votre position.\n\nRafraîchissez la page et cliquez sur 'Autoriser'.";
+                    break;
+                case 2: // POSITION_UNAVAILABLE
+                    title = "📍 Position indisponible";
+                    message = "Activez votre GPS et réessayez.";
+                    break;
+                case 3: // TIMEOUT
+                    title = "⏱️ Délai dépassé";
+                    message = "Vérifiez votre connexion et réessayez.";
+                    break;
+            }
+            
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        },
+        options
+    );
+}
 async function loadPatientLocation(patientId) {
     try {
         const patient = await secureFetch(`/patients/${patientId}`);
