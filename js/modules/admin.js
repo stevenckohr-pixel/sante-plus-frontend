@@ -473,9 +473,17 @@ function renderPatientsList() {
         return;
     }
 
-    // 🔧 Créer un map des assignations par patient_id
+    // 🔧 Créer un map des assignations par patient_id en utilisant rhData.assignments
     const assignmentMap = {};
-    if (rhData.aidants) {
+    
+    // Méthode 1: Si rhData a un tableau assignments
+    if (rhData.assignments && rhData.assignments.length) {
+        rhData.assignments.forEach(assign => {
+            assignmentMap[assign.patient_id] = assign.id;
+        });
+    }
+    // Méthode 2: Sinon, parcourir les aidants
+    else if (rhData.aidants) {
         rhData.aidants.forEach(aidant => {
             if (aidant.patients_assignes) {
                 aidant.patients_assignes.forEach(assign => {
@@ -484,12 +492,17 @@ function renderPatientsList() {
             }
         });
     }
+    
+    console.log("📋 assignmentMap créé:", assignmentMap);
 
     container.innerHTML = `
         <div class="space-y-4">
             ${rhData.patients.map(patient => {
-                // 🔧 Récupérer l'ID d'assignation depuis le map
+                // 🔧 Récupérer l'ID d'assignation
                 const assignmentId = assignmentMap[patient.id];
+                
+                // 🔧 Pour debug
+                console.log(`Patient: ${patient.nom_complet}, ID: ${patient.id}, Assignment: ${assignmentId}`);
                 
                 return `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -530,7 +543,7 @@ function renderPatientsList() {
                                 <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
                             </div>
                         </div>
-                                <button onclick="window.unassignPatientFromPatient('${assignmentId}', '${escapeHtml(patient.nom_complet)}', '${escapeHtml(patient.aidant_assigne.nom)}')" 
+                                <button onclick="window.unassignPatientFromPatient('${assignmentId}', '${patient.nom_complet}', '${patient.aidant_assigne.nom}')" 
                                         class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
                                     <i class="fa-solid fa-link-slash"></i> Délier
                                 </button>
@@ -538,7 +551,7 @@ function renderPatientsList() {
                 ` : patient.aidant_assigne && !assignmentId ? `
                     <div class="text-center py-6 bg-amber-50 rounded-xl border border-amber-100">
                         <i class="fa-solid fa-triangle-exclamation text-amber-500 text-2xl mb-2"></i>
-                        <p class="text-xs text-amber-600">Erreur de liaison</p>
+                        <p class="text-xs text-amber-600">Erreur de liaison - ID manquant</p>
                         <p class="text-[9px] text-amber-500">Veuillez contacter le support</p>
                     </div>
                 ` : `
