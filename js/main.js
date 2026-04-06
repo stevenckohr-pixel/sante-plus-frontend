@@ -474,7 +474,6 @@ async function initApp() {
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
-    initTheme()            //Darkmode
     
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
@@ -1612,11 +1611,6 @@ async function initPushNotifications() {
                     <!-- Espace vide pour équilibre sur mobile -->
                     <div class="lg:hidden"></div>
 
-                    <!-- Bouton mode nuit -->
-                    <button onclick="window.toggleDarkMode()" 
-                            class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 transition-all shadow-sm flex items-center justify-center">
-                        <i class="fa-solid ${localStorage.getItem('theme') === 'dark' ? 'fa-moon' : 'fa-sun'} text-base"></i>
-                    </button>
 
                     <!-- Notifications -->
                     <div class="flex items-center gap-3">
@@ -2172,9 +2166,6 @@ window.openProfileMenu = () => {
                             <i class="fa-solid ${isDarkMode ? 'fa-moon' : 'fa-sun'} text-slate-400"></i>
                             <span class="text-xs font-bold text-slate-700">Mode ${isDarkMode ? 'Nuit' : 'Jour'}</span>
                         </div>
-                        <button onclick="window.toggleDarkMode(); Swal.close();" class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg">
-                            ${isDarkMode ? '☀️ Activer le jour' : '🌙 Activer la nuit'}
-                        </button>
                     </div>
                     
                     <!-- Effets sonores -->
@@ -2219,37 +2210,6 @@ window.openProfileMenu = () => {
     });
 };
 
-
-
-
-/**
- * 🌙 ACTIVER/DÉSACTIVER LE MODE NUIT
- */
-window.toggleDarkMode = () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    // Changer l'icône du bouton si présent
-    const themeBtn = document.querySelector('[onclick*="toggleDarkMode"] i');
-    if (themeBtn) {
-        themeBtn.className = `fa-solid ${newTheme === 'dark' ? 'fa-moon' : 'fa-sun'} text-base`;
-    }
-    
-    showToast(newTheme === 'dark' ? '🌙 Mode nuit activé' : '☀️ Mode jour activé', 'success', 1500);
-};
-/**
- * 🎨 INITIALISER LE THÈME AU CHARGEMENT
- */
-function initTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-    
-    document.documentElement.setAttribute('data-theme', theme);
-}
 
 
 
