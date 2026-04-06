@@ -634,12 +634,12 @@ async function initFamilyMap() {
             }
         }, 300);
         
-        // ✅ Cacher le loader
-        const mapLoading = document.getElementById('map-loading');
-        if (mapLoading) {
+        // ✅ Cacher le loader (corrigé : suppression de la redéclaration)
+        const loaderElement = document.getElementById('map-loading');
+        if (loaderElement) {
             setTimeout(() => {
-                mapLoading.style.opacity = '0';
-                setTimeout(() => mapLoading.style.display = 'none', 500);
+                loaderElement.style.opacity = '0';
+                setTimeout(() => loaderElement.style.display = 'none', 500);
             }, 1000);
         }
         
@@ -658,6 +658,7 @@ async function initFamilyMap() {
         
     }, 200);
 }
+
 
 async function loadFamilyData() {
     try {
@@ -1004,16 +1005,6 @@ async function initAidantMap() {
             }, 500);
         }
 
-
-
-        // Cacher loader
-const mapLoading = document.getElementById('map-loading');
-if (mapLoading) {
-    setTimeout(() => {
-        mapLoading.style.opacity = '0';
-        setTimeout(() => mapLoading.style.display = 'none', 300);
-    }, 500);
-}
 
 // ✅ Ajoute l'écouteur du bouton "Améliorer la précision" ICI
 const improveGpsBtn = document.getElementById('improve-gps-btn');
