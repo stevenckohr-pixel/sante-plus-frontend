@@ -510,22 +510,6 @@ window.startPlannedVisit = (patientId, planningId) => {
 };
 
 /**
- * 🔧 Échapper les caractères HTML
- */
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-
- 
-
-/**
  * 🗑️ SUPPRIMER UNE ASSIGNATION (Délier aidant-patient)
  */
 window.unassignAidant = async (planningId, patientName, aidantName) => {
@@ -551,7 +535,6 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
     Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     
     try {
-        // ✅ Utiliser fetch directement pour plus de contrôle
         const response = await fetch(`${CONFIG.API_URL}/planning/${planningId}`, {
             method: "DELETE",
             headers: {
@@ -566,9 +549,6 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
             const errorData = await response.json();
             throw new Error(errorData.error || `Erreur ${response.status}`);
         }
-        
-        const resultData = await response.json();
-        console.log("✅ Réponse:", resultData);
         
         Swal.fire({ 
             icon: "success", 
@@ -598,6 +578,17 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
         });
     }
 };
+
+// Fonction escapeHtml si pas déjà présente
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 
 window.unassignAidant = unassignAidant;
