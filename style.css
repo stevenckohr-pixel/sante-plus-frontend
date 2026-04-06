@@ -2631,3 +2631,133 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
     85% { opacity: 1; transform: translateX(-50%) translateY(0); }
     100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }
+
+
+
+/* ============================================
+   MODE NUIT (DARK MODE)
+   ============================================ */
+
+/* Variables du mode clair (par défaut) */
+:root {
+    --bg-primary: #F8FAFC;
+    --bg-secondary: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --border-color: #E2E8F0;
+    --card-bg: #FFFFFF;
+    --header-bg: rgba(255, 255, 255, 0.85);
+    --sidebar-bg: #0F172A;
+    --sidebar-text: #FFFFFF;
+}
+
+/* Variables du mode nuit */
+[data-theme="dark"] {
+    --bg-primary: #0F172A;
+    --bg-secondary: #1E293B;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --border-color: #334155;
+    --card-bg: #1E293B;
+    --header-bg: rgba(30, 41, 59, 0.85);
+    --sidebar-bg: #020617;
+    --sidebar-text: #E2E8F0;
+}
+
+/* Application des variables */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.bg-white, 
+.patient-card, 
+.menu-tile,
+.bento-card,
+.bg-white.rounded-2xl,
+.bg-white.rounded-3xl,
+.auth-card {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border-color) !important;
+}
+
+.text-slate-800, .text-slate-900, .font-black.text-slate-800 {
+    color: var(--text-primary) !important;
+}
+
+.text-slate-400, .text-slate-500, .text-slate-600 {
+    color: var(--text-secondary) !important;
+}
+
+.border-slate-100, .border-slate-200 {
+    border-color: var(--border-color) !important;
+}
+
+.bg-slate-50, .bg-slate-100 {
+    background-color: var(--bg-secondary) !important;
+}
+
+header {
+    background: var(--header-bg) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+/* Sidebar en mode nuit */
+[data-theme="dark"] aside {
+    background: linear-gradient(180deg, #020617 0%, #0F172A 100%) !important;
+}
+
+[data-theme="dark"] .sidebar-link {
+    color: #94A3B8;
+}
+
+[data-theme="dark"] .sidebar-link.active {
+    background-color: #10B981 !important;
+    color: white !important;
+}
+
+/* Footer mobile */
+[data-theme="dark"] .fab-button {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+[data-theme="dark"] .fab-menu {
+    background: #1E293B;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .fab-menu-item {
+    background: #334155;
+}
+
+[data-theme="dark"] .fab-menu-item i {
+    color: #E2E8F0;
+}
+
+/* Inputs en mode nuit */
+[data-theme="dark"] .app-input {
+    background-color: #334155;
+    border-color: #475569;
+    color: #F1F5F9;
+}
+
+[data-theme="dark"] .app-input:focus {
+    background-color: #3B4252;
+    border-color: #10B981;
+}
+
+/* Modales SweetAlert en mode nuit */
+[data-theme="dark"] .swal2-popup {
+    background: #1E293B !important;
+}
+
+[data-theme="dark"] .swal2-title,
+[data-theme="dark"] .swal2-html-container {
+    color: #F1F5F9 !important;
+}
+
+/* Toast en mode nuit */
+[data-theme="dark"] .toast-notification {
+    background: rgba(30, 41, 59, 0.95) !important;
+}
