@@ -492,24 +492,25 @@ function renderPatientsList() {
                     </div>
                     
                     <div class="p-4">
-                        ${patient.aidant_assigne ? `
-                            <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                        <i class="fa-solid fa-user-nurse text-emerald-600 text-sm"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Aidant assigné</p>
-                                        <p class="font-bold text-slate-800 text-sm">${patient.aidant_assigne.nom}</p>
-                                        <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
-                                    </div>
-                                </div>
-                                <button onclick="window.unassignPatientFromPatient('${patient.id}')" 
-                                        class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
-                                    <i class="fa-solid fa-link-slash"></i> Délier
-                                </button>
+                ${patient.aidant_assigne ? `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                <i class="fa-solid fa-user-nurse text-emerald-600 text-sm"></i>
                             </div>
-                        ` : `
+                            <div>
+                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider">Aidant assigné</p>
+                                <p class="font-bold text-slate-800 text-sm">${patient.aidant_assigne.nom}</p>
+                                <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
+                            </div>
+                        </div>
+                        <button onclick="window.unassignPatientFromPatient('${assign.id}', '${escapeHtml(patient.nom_complet)}', '${escapeHtml(patient.aidant_assigne.nom)}')" 
+                                class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-link-slash"></i> Délier
+                        </button>
+                    </div>
+                ` : `
+                        
                             <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
                                 <i class="fa-solid fa-user-plus text-slate-300 text-2xl mb-2"></i>
                                 <p class="text-xs text-slate-400 mb-3">Aucun aidant assigné</p>
