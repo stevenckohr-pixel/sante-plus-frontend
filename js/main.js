@@ -53,23 +53,29 @@ window.forceRefresh = () => {
 /**
  * 🔄 FORCER LE RAFRAÎCHISSEMENT DE LA VUE ACTUELLE
  */
+/**
+ * 🔄 FORCER LE RAFRAÎCHISSEMENT DE LA VUE ACTUELLE
+ */
 window.refreshCurrentView = async () => {
     const currentView = localStorage.getItem("last_view") || "home";
-    console.log("🔄 Rafraîchissement automatique de la vue:", currentView);
+    console.log("🔄 [refreshCurrentView] Rechargement de la vue:", currentView);
     
-    // Afficher un indicateur visuel subtil
-    const container = document.getElementById("view-container");
-    if (container) {
-        const refreshIndicator = document.createElement('div');
-        refreshIndicator.className = 'refresh-indicator';
-        refreshIndicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Mise à jour...';
-        refreshIndicator.style.cssText = 'position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: #10B981; color: white; padding: 8px 16px; border-radius: 40px; font-size: 11px; font-weight: bold; z-index: 9999; animation: fadeInOut 2s ease;';
-        document.body.appendChild(refreshIndicator);
-        setTimeout(() => refreshIndicator.remove(), 1500);
+    // Afficher un petit indicateur visuel
+    const indicator = document.createElement('div');
+    indicator.className = 'refresh-indicator';
+    indicator.innerHTML = '<i class="fa-solid fa-arrow-rotate-right fa-spin"></i> Mise à jour...';
+    indicator.style.cssText = 'position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: #10B981; color: white; padding: 8px 16px; border-radius: 40px; font-size: 11px; font-weight: bold; z-index: 9999;';
+    document.body.appendChild(indicator);
+    
+    try {
+        // Forcer le rechargement de la vue
+        await window.switchView(currentView);
+        console.log("✅ [refreshCurrentView] Vue rechargée avec succès");
+    } catch (err) {
+        console.error("❌ [refreshCurrentView] Erreur:", err);
+    } finally {
+        setTimeout(() => indicator.remove(), 1000);
     }
-    
-    // Recharger la vue
-    await window.switchView(currentView);
 };
 
 /**
