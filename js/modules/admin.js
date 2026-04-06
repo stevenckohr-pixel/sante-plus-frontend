@@ -787,42 +787,53 @@ window.unassignPatient = async (assignmentId, aidantNom, patientNom) => {
 /**
  * ❌ DÉLIER UN PATIENT DEPUIS LA VUE PATIENT
  */
-window.unassignPatientFromPatient = async (patientId) => {
-    const assignment = rhData?.assignments?.find(a => a.patient_id === patientId);
-    if (!assignment) {
-        Swal.fire({ title: "Erreur", text: "Assignation introuvable", icon: "error", customClass: { popup: 'rounded-2xl' } });
+window.unassignPatientFromPatient = async (assignmentId, patientName, aidantName) => {
+    console.log("🔍 Suppression appelée avec ID:", assignmentId);
+    
+    if (!assignmentId) {
+        Swal.fire("Erreur", "ID d'assignation manquant", "error");
         return;
     }
     
-    const aidant = rhData?.aidants?.find(a => a.id === assignment.aidant_id);
-    
     const result = await Swal.fire({
-        title: "Délier le patient",
-        text: `Retirer ce patient de ${aidant?.nom || "l'aidant"} ?`,
-        input: "textarea",
-        inputPlaceholder: "Raison (optionnel)",
+        title: "Confirmer",
+        html: `Retirer <b>${escapeHtml(aidantName)}</b> du dossier de <b>${escapeHtml(patientName)}</b> ?`,
+        icon: "warning",
         showCancelButton: true,
-        confirmButtonText: "Oui, délier",
+        confirmButtonText: "OUI, DÉLIER",
         confirmButtonColor: "#F43F5E",
-        cancelButtonText: "Annuler",
-        customClass: { popup: 'rounded-2xl', input: 'rounded-xl' }
+        cancelButtonText: "Annuler"
     });
-
-    if (result.isConfirmed) {
-        Swal.fire({ title: "Traitement...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-        try {
-            await secureFetch("/assignments/unassign", {
-                method: "POST",
-                body: JSON.stringify({ assignment_id: assignment.id, raison: result.value || "" })
-            });
-            Swal.fire({ icon: "success", title: "Succès", text: "Patient délié avec succès", timer: 2000, showConfirmButton: false });
-            renderRHDashboard();
-        } catch (err) {
-            Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
+    
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading() });
+    
+    try {
+        const response = await fetch(`${CONFIG.API_URL}/planning/${assignmentId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json"
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur");
         }
+        
+        Swal.fire({ icon: "success", title: "Assignation supprimée", timer: 1500, showConfirmButton: false });
+        
+        // Recharger la vue
+        renderRHDashboard();
+        
+    } catch (err) {
+        Swal.close();
+        console.error("❌ Erreur:", err);
+        Swal.fire("Erreur", err.message, "error");
     }
 };
-
 
 // Activation avec email par défaut
 window.activateWithDefaultEmail = async (id, email, nom, role) => {
