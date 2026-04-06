@@ -87,12 +87,20 @@ export async function secureFetch(endpoint, options = {}) {
       }
 
       // ✅ Déclencher le rafraîchissement APRÈS les actions POST/PUT/DELETE
+    // Dans le bloc if (method !== 'GET'), après la fin de la requête
       if (method !== 'GET') {
-        setTimeout(() => {
-          if (window.reloadCurrentData) {
-            window.reloadCurrentData();
-          }
-        }, 100);
+          apiCache.delete(endpoint);
+          console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+          
+          localStorage.removeItem(`cache_/commandes`);
+          localStorage.removeItem(`cache_/visites`);
+          localStorage.removeItem(`cache_/patients`);
+          
+          // ✅ Recharger uniquement la vue actuelle
+          setTimeout(() => {
+              const currentView = localStorage.getItem("last_view") || "home";
+              window.switchView(currentView);
+          }, 500);
       }
 
       return responseData;
