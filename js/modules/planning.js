@@ -523,6 +523,7 @@ function escapeHtml(str) {
 }
 
 
+ 
 /**
  * 🗑️ SUPPRIMER UNE ASSIGNATION (Délier aidant-patient)
  */
@@ -543,8 +544,13 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
     Swal.fire({ title: "Suppression...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
     
     try {
-        await secureFetch(`/planning/${planningId}`, {
-            method: "DELETE"
+        // ✅ CORRECTION : Utiliser la bonne route POST /unassign
+        await secureFetch("/planning/unassign", {
+            method: "POST",
+            body: JSON.stringify({ 
+                assignment_id: planningId,
+                raison: "Supprimé par le coordinateur"
+            })
         });
         
         Swal.fire({ 
@@ -558,9 +564,10 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
         // Recharger la vue RH
         if (typeof loadRHAssignments === 'function') {
             loadRHAssignments();
+        } else if (typeof window.loadRHAssignments === 'function') {
+            window.loadRHAssignments();
         } else {
-            // Fallback: recharger la page
-            setTimeout(() => location.reload(), 1500);
+            setTimeout(() => window.switchView('rh-dashboard'), 500);
         }
         
     } catch (err) {
