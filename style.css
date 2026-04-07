@@ -2780,3 +2780,18 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
         padding-left: 0.75rem;
     }
 }
+
+
+
+/* Animation pour l'expansion des réponses */
+.replies-container {
+    transition: all 0.2s ease;
+}
+
+.replies-container button {
+    cursor: pointer;
+}
+
+.replies-container button:active {
+    transform: scale(0.98);
+}
