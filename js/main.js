@@ -2668,87 +2668,69 @@ window.syncService = syncService;
 
 
 // ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION AMÉLIORÉE)
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION ROBUSTE)
 // ============================================================
 
 // ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION ROBUSTE)
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE
 // ============================================================
 
 window.addEventListener('app-data-updated', async (event) => {
     const { endpoint, method } = event.detail;
-    console.log(`📢 [Auto-Refresh] Données mises à jour: ${endpoint} (${method})`);
+    console.log(`📢 [Auto-Refresh] ${endpoint} (${method})`);
     
     const currentView = AppState?.currentView;
-    console.log(`📢 Vue actuelle: ${currentView}`);
     
-    // FORCER l'invalidation du cache
+    // Vider le cache pour toute modification
     if (window.clearApiCache) {
         window.clearApiCache();
-        console.log(`🗑️ Cache vidé`);
     }
     
-    // Déterminer quelle vue rafraîchir
-    let needRefresh = false;
-    let refreshType = null;
-    
+    // Messages
     if (endpoint.includes('/messages')) {
-        needRefresh = true;
-        refreshType = 'feed';
         if (currentView === 'feed' && window.renderFeed) {
-            console.log(`🔄 Rechargement du feed`);
+            console.log(`🔄 Rafraîchissement du feed`);
             await window.renderFeed();
         }
     } 
+    // Commandes
     else if (endpoint.includes('/commandes')) {
-        needRefresh = true;
-        refreshType = 'commandes';
-        console.log(`📦 Commande modifiée - Rechargement forcé`);
-        
-        // Recharger les données
+        console.log(`📦 Rafraîchissement des commandes`);
         if (window.loadCommandes) {
             await window.loadCommandes();
-            console.log(`✅ Commandes rechargées`);
         }
-        
-        // Si on est sur la vue commandes, recharger la vue
-        if (currentView === 'commandes') {
-            console.log(`🔄 Rechargement de la vue commandes`);
-            if (window.switchView) window.switchView('commandes');
+        // Si on est sur la page commandes, recharger la vue
+        if (currentView === 'commandes' && window.switchView) {
+            await window.switchView('commandes');
         }
     } 
+    // Visites
     else if (endpoint.includes('/visites')) {
-        needRefresh = true;
-        refreshType = 'visits';
+        console.log(`🩺 Rafraîchissement des visites`);
         if (currentView === 'visits' && window.loadVisits) {
             await window.loadVisits();
         }
     } 
+    // Patients
     else if (endpoint.includes('/patients')) {
-        needRefresh = true;
-        refreshType = 'patients';
+        console.log(`👤 Rafraîchissement des patients`);
         if (currentView === 'patients' && window.loadPatients) {
             await window.loadPatients();
         }
     }
+    // Assignations
     else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
-        needRefresh = true;
-        refreshType = 'rh-dashboard';
+        console.log(`👥 Rafraîchissement des assignations`);
         if (currentView === 'rh-dashboard' && window.renderRHDashboard) {
             await window.renderRHDashboard();
         }
     }
+    // Facturation
     else if (endpoint.includes('/billing')) {
-        needRefresh = true;
-        refreshType = 'billing';
+        console.log(`💰 Rafraîchissement de la facturation`);
         if (currentView === 'billing' && window.loadBilling) {
             await window.loadBilling();
         }
-    }
-    
-    // Si la vue n'est pas active, au moins les données sont mises à jour en cache
-    if (needRefresh && currentView !== refreshType) {
-        console.log(`ℹ️ Données ${refreshType} mises à jour (vue ${currentView} active)`);
     }
     
     // Mettre à jour le badge des notifications
