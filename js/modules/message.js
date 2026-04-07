@@ -487,11 +487,11 @@ function renderStoryCard(msg, isReply = false) {
                     <span class="text-[10px] font-medium">Répondre</span>
                 </button>
 
-                ${repliesByParent.get(msg.id)?.length ? `
-                    <span class="text-[9px] text-slate-400 ml-2">
-                        (${repliesByParent.get(msg.id).length} réponse${repliesByParent.get(msg.id).length > 1 ? 's' : ''})
-                    </span>
-                ` : ''}
+                          ${!isReply && (msg.reply_count || 0) > 0 ? `
+                <span class="text-[9px] text-slate-400 ml-2">
+                    (${msg.reply_count} réponse${msg.reply_count > 1 ? 's' : ''})
+                </span>
+            ` : ''}
                 
                 ${isAidant && msg.id ? `
                     <button onclick="window.reportIssue('${msg.id}')" 
