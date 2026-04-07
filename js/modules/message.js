@@ -83,7 +83,6 @@ async function addNewMessageToFeed(newMessage) {
 }
 
 
-
 export function renderFeed() {
     const content = document.getElementById('care-feed-content');
     const inputArea = document.getElementById('input-area');
@@ -111,14 +110,14 @@ export function renderFeed() {
     });
     
     if (activeTab === 'STORY') {
-        // Messages principaux (sans reply_to_id)
+        // Messages principaux
         const mainMessages = filtered.filter(m => !m.reply_to_id);
         
-        // RÉPONSES : seulement celles qui répondent DIRECTEMENT à un message principal
+        // RÉPONSES directes uniquement
         const mainIds = new Set(mainMessages.map(m => m.id));
         const directReplies = filtered.filter(m => m.reply_to_id && mainIds.has(m.reply_to_id));
         
-        // Grouper les réponses par message parent
+        // Grouper les réponses
         const repliesByParent = new Map();
         directReplies.forEach(reply => {
             if (!repliesByParent.has(reply.reply_to_id)) {
@@ -127,7 +126,7 @@ export function renderFeed() {
             repliesByParent.get(reply.reply_to_id).push(reply);
         });
 
-        // Ajouter le compteur de réponses
+        // Ajouter compteur
         mainMessages.forEach(msg => {
             msg.reply_count = (repliesByParent.get(msg.id) || []).length;
         });
@@ -137,16 +136,26 @@ export function renderFeed() {
             value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         }
         
-        // Générer le HTML - UN SEUL NIVEAU D'INDENTATION
+        // Générer le HTML avec limite d'affichage
         content.innerHTML = mainMessages.map(msg => {
-            const repliesHtml = (repliesByParent.get(msg.id) || [])
-                .map(reply => renderStoryCard(reply, true))  // isReply = true pour indentation
+            const allReplies = repliesByParent.get(msg.id) || [];
+            const hasMore = allReplies.length > 3;
+            const visibleReplies = allReplies.slice(0, 3);
+            
+            const repliesHtml = visibleReplies
+                .map(reply => renderStoryCard(reply, true))
                 .join('');
-            return renderStoryCard(msg, false) + repliesHtml;
+            
+            const moreButton = hasMore ? `
+                <button onclick="window.showAllReplies('${msg.id}')" 
+                        class="ml-8 mt-2 text-[10px] font-medium text-emerald-600 hover:text-emerald-700 transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-chevron-down text-[8px]"></i>
+                    Voir les ${allReplies.length - 3} autres réponse${allReplies.length - 3 > 1 ? 's' : ''}
+                </button>
+            ` : '';
+            
+            return renderStoryCard(msg, false) + `<div class="replies-container" data-parent="${msg.id}">${repliesHtml}${moreButton}</div>`;
         }).join('');
-        
-        // Aucune imbrication des réponses entre elles
-        // Les réponses aux réponses ne sont PAS affichées dans ce fil
         
     } else {
         content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
@@ -160,6 +169,68 @@ export function renderFeed() {
             </div>`;
     }
 }
+
+
+
+
+/**
+ * 📚 Afficher toutes les réponses d'un message
+ */
+window.showAllReplies = (parentMessageId) => {
+    const container = document.querySelector(`.replies-container[data-parent="${parentMessageId}"]`);
+    if (!container) return;
+    
+    // Trouver toutes les réponses à ce message
+    const allReplies = (AppState.messages || [])
+        .filter(m => m.reply_to_id === parentMessageId)
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    
+    if (allReplies.length === 0) return;
+    
+    // Générer le HTML de toutes les réponses
+    const allRepliesHtml = allReplies.map(reply => renderStoryCard(reply, true)).join('');
+    
+    // Remplacer le contenu
+    container.innerHTML = allRepliesHtml + `
+        <button onclick="window.collapseReplies('${parentMessageId}', ${allReplies.length})" 
+                class="ml-8 mt-2 text-[10px] font-medium text-amber-600 hover:text-amber-700 transition-all flex items-center gap-1">
+            <i class="fa-solid fa-chevron-up text-[8px]"></i>
+            Réduire (${allReplies.length} réponse${allReplies.length > 1 ? 's' : ''})
+        </button>
+    `;
+    
+    UI.vibrate('light');
+};
+
+/**
+ * 📚 Réduire l'affichage des réponses (afficher seulement les 3 premières)
+ */
+window.collapseReplies = (parentMessageId, totalCount) => {
+    const container = document.querySelector(`.replies-container[data-parent="${parentMessageId}"]`);
+    if (!container) return;
+    
+    const allReplies = (AppState.messages || [])
+        .filter(m => m.reply_to_id === parentMessageId)
+        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    
+    const visibleReplies = allReplies.slice(0, 3);
+    const hasMore = allReplies.length > 3;
+    
+    const repliesHtml = visibleReplies.map(reply => renderStoryCard(reply, true)).join('');
+    
+    const moreButton = hasMore ? `
+        <button onclick="window.showAllReplies('${parentMessageId}')" 
+                class="ml-8 mt-2 text-[10px] font-medium text-emerald-600 hover:text-emerald-700 transition-all flex items-center gap-1">
+            <i class="fa-solid fa-chevron-down text-[8px]"></i>
+            Voir les ${allReplies.length - 3} autre${allReplies.length - 3 > 1 ? 's' : ''} réponse${allReplies.length - 3 > 1 ? 's' : ''}
+        </button>
+    ` : '';
+    
+    container.innerHTML = repliesHtml + moreButton;
+    
+    UI.vibrate('light');
+};
+
 
 /**
  * Bip de notification
