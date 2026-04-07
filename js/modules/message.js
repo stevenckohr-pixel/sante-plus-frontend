@@ -138,6 +138,96 @@ let activeTab = 'STORY';
 let currentReplyTo = null;        // ✅ NOUVEAU : stocke l'ID du message auquel on répond
 let currentReplyToName = null;    // ✅ NOUVEAU : stocke le nom de l'auteur
 
+let currentEmojiMessageId = null;
+let emojiPickerVisible = false;
+
+/**
+ * 😊 Créer et afficher l'émoji picker pour un message
+ */
+function showEmojiPicker(messageId, buttonElement) {
+    // Fermer l'ancien picker s'il existe
+    closeEmojiPicker();
+    
+    currentEmojiMessageId = messageId;
+    
+    // Créer le conteneur du picker
+    const pickerContainer = document.createElement('div');
+    pickerContainer.id = 'emoji-picker-container';
+    pickerContainer.style.cssText = `
+        position: fixed;
+        z-index: 10000;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        border: 1px solid #e2e8f0;
+    `;
+    
+    // Positionner le picker près du bouton
+    const rect = buttonElement.getBoundingClientRect();
+    pickerContainer.style.bottom = `${window.innerHeight - rect.top + 10}px`;
+    pickerContainer.style.left = `${rect.left}px`;
+    
+    document.body.appendChild(pickerContainer);
+    
+    // Initialiser Emoji Mart
+    const picker = new window.EmojiMart.Picker({
+        data: async () => {
+            const response = await fetch('https://cdn.jsdelivr.net/npm/@emoji-mart/data@latest/sets/14/native.json');
+            return response.json();
+        },
+        onEmojiSelect: (emoji) => {
+            // Envoyer la réaction avec l'émoji sélectionné
+            sendEmojiReaction(currentEmojiMessageId, emoji.native);
+            closeEmojiPicker();
+        },
+        onClickOutside: () => closeEmojiPicker(),
+        autoFocus: true,
+        theme: 'light',
+        skin: 1,
+        set: 'native',
+        emojiSize: 24,
+        perLine: 8
+    });
+    
+    pickerContainer.appendChild(picker);
+    emojiPickerVisible = true;
+}
+
+/**
+ * Fermer l'émoji picker
+ */
+function closeEmojiPicker() {
+    const existingPicker = document.getElementById('emoji-picker-container');
+    if (existingPicker) {
+        existingPicker.remove();
+    }
+    currentEmojiMessageId = null;
+    emojiPickerVisible = false;
+}
+
+/**
+ * Envoyer une réaction avec émoji
+ */
+async function sendEmojiReaction(messageId, emoji) {
+    try {
+        UI.vibrate('light');
+        
+        await secureFetch('/messages/react', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                message_id: messageId, 
+                reaction_type: emoji 
+            })
+        });
+        
+        // Recharger le feed pour afficher la nouvelle réaction
+        await loadFeed();
+        
+    } catch (err) {
+        console.error("Erreur envoi réaction:", err);
+        UI.error("Impossible d'ajouter la réaction");
+    }
+}
 
 
 function escapeHtml(str) {
@@ -464,52 +554,55 @@ function renderStoryCard(msg, isReply = false) {
                 </div>
             ` : ''}
 
-            <!-- Réactions et interactions -->
-            <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                <div class="flex gap-2">
-                    <button onclick="window.sendReaction('${msg.id}', 'coeur')" 
-                            class="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 text-rose-500 rounded-full hover:bg-rose-500 hover:text-white transition-all active:scale-95">
-                        <i class="fa-solid fa-heart text-xs"></i>
-                        <span class="text-[10px] font-bold">${msg.reactions?.coeur || 0}</span>
-                    </button>
-                    <button onclick="window.sendReaction('${msg.id}', 'merci')" 
-                            class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-500 rounded-full hover:bg-blue-500 hover:text-white transition-all active:scale-95">
-                        <i class="fa-solid fa-hands-praying text-xs"></i>
-                        <span class="text-[10px] font-bold">${msg.reactions?.merci || 0}</span>
-                    </button>
-                    <button onclick="window.sendReaction('${msg.id}', 'like')" 
-                            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-slate-200 transition-all active:scale-95">
-                        <i class="fa-regular fa-thumbs-up text-xs"></i>
-                        <span class="text-[10px] font-bold">${msg.reactions?.like || 0}</span>
-                    </button>
-                </div>
-                
-                <!-- Bouton Répondre -->
-                <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
-                        class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
-                    <i class="fa-solid fa-reply text-xs"></i>
-                    <span class="text-[10px] font-medium">Répondre</span>
+<!-- Réactions et interactions avec émoji picker -->
+<div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+    <div class="flex items-center gap-2 flex-wrap">
+        <!-- Afficher les réactions existantes (dynamiques) -->
+        <div class="flex gap-1">
+            ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
+                <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
+                        class="flex items-center gap-0.5 px-2 py-1 bg-slate-50 hover:bg-slate-100 rounded-full text-sm transition-all active:scale-95">
+                    <span class="text-base">${emoji}</span>
+                    <span class="text-[10px] font-bold text-slate-500">${count}</span>
                 </button>
-            
-                <!-- ✅ Compteur de réponses CORRIGÉ -->
-                ${!isReply && msg.reply_count > 0 ? `
-                    <span class="text-[9px] text-slate-400 ml-2">
-                        (${msg.reply_count} réponse${msg.reply_count > 1 ? 's' : ''})
-                    </span>
-                ` : ''}
-                
-                ${isAidant && msg.id ? `
-                    <button onclick="window.reportIssue('${msg.id}')" 
-                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
-                        <i class="fa-regular fa-flag mr-1"></i> Signaler
-                    </button>
-                ` : ''}
+            `).join('')}
+        </div>
+        
+        <!-- Bouton + pour ouvrir le sélecteur d'émojis -->
+        <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
+                class="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all active:scale-95"
+                title="Ajouter une réaction">
+            <i class="fa-solid fa-plus text-xs"></i>
+        </button>
+        
+        <!-- Bouton Répondre -->
+        <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
+                class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
+            <i class="fa-solid fa-reply text-xs"></i>
+            <span class="text-[10px] font-medium">Répondre</span>
+        </button>
+    
+        <!-- Compteur de réponses -->
+        ${!isReply && msg.reply_count > 0 ? `
+            <span class="text-[9px] text-slate-400">
+                (${msg.reply_count} réponse${msg.reply_count > 1 ? 's' : ''})
+            </span>
+        ` : ''}
+        
+        <!-- Bouton Signaler (pour aidant) -->
+        ${isAidant && msg.id ? `
+            <button onclick="window.reportIssue('${msg.id}')" 
+                    class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                <i class="fa-regular fa-flag mr-1"></i>
+            </button>
+        ` : ''}
             </div>
             
             ${imageUrl && isAidant ? `
                 <div class="mt-3 text-right">
                     <span class="text-[8px] text-slate-400">
-                        <i class="fa-regular fa-camera mr-1"></i> Photo prise par ${msg.sender_name}
+                        <i class="fa-regular fa-camera mr-1"></i>
+                        Photo prise par ${msg.sender_name}
                     </span>
                 </div>
             ` : ''}
@@ -732,6 +825,20 @@ window.sendReaction = async (msgId, type) => {
         UI.error("Erreur lors de l'envoi de la réaction");
     }
 };
+
+
+
+// Exposer la fonction d'émoji picker globalement
+window.showEmojiPickerForMessage = (messageId, buttonElement) => {
+    showEmojiPicker(messageId, buttonElement);
+};
+
+// Fermer le picker quand on clique ailleurs
+document.addEventListener('click', (e) => {
+    if (emojiPickerVisible && !e.target.closest('#emoji-picker-container')) {
+        closeEmojiPicker();
+    }
+});
 
 // ✅ Exporter la fonction cancelReply pour qu'elle soit accessible
 window.cancelReply = window.cancelReply || cancelReply;
