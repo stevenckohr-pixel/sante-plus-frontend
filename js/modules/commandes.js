@@ -21,10 +21,7 @@ export async function loadCommandes() {
     if (!listContainer) return;
 
     try {
-        // ✅ FORCER l'invalidation du cache
-        clearApiCache();
-        console.log("🗑️ Cache vidé avant chargement des commandes");
-        
+           
         const data = await secureFetch("/commandes");
         console.log("📦 Commandes reçues:", data.length);
         renderCommandes(data);
@@ -34,9 +31,7 @@ export async function loadCommandes() {
     }
 }
 
-/**
- * 🖼️ OUVRIRE UNE IMAGE EN MODALE (grand format)
- */
+
 /**
  * 🖼️ OUVRIRE UNE IMAGE EN MODALE (grand format)
  */
