@@ -1,23 +1,23 @@
 // js/core/realtime.js
 // Module de gestion des connexions temps réel avec Supabase
+// Version compatible sans import/export
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-// Configuration Supabase (à mettre dans config.js plus tard)
-const SUPABASE_URL = 'https://tagqwwfbpfzluahboczh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3F3d2ZicGZ6bHVhaGJvY3poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDYxMDYsImV4cCI6MjA5MDM4MjEwNn0.I0HqBYPTrxPOg41sEWm_hU7YY3f9ZXCekUX5NlgIBWw';
+// Configuration Supabase
+const REALTIME_CONFIG = {
+    url: 'https://tagqwwfbpfzluahboczh.supabase.co',
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ3F3d2ZicGZ6bHVhaGJvY3poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4MDYxMDYsImV4cCI6MjA5MDM4MjEwNn0.I0HqBYPTrxPOg41sEWm_hU7YY3f9ZXCekUX5NlgIBWw'
+};
 
 let supabaseClient = null;
 let activeSubscription = null;
 let currentPatientId = null;
 let onMessageCallback = null;
 
-/**
- * 🔌 Initialiser le client Supabase
- */
-export function initSupabaseClient() {
-    if (!supabaseClient) {
-        supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+// Initialiser le client Supabase (utilise le CDN déjà chargé dans index.html)
+function initSupabaseClient() {
+    if (!supabaseClient && window.supabase) {
+        const { createClient } = window.supabase;
+        supabaseClient = createClient(REALTIME_CONFIG.url, REALTIME_CONFIG.key, {
             realtime: {
                 params: {
                     eventsPerSecond: 10
@@ -29,13 +29,8 @@ export function initSupabaseClient() {
     return supabaseClient;
 }
 
-/**
- * 📡 S'abonner aux nouveaux messages d'un patient
- * @param {string} patientId - ID du patient
- * @param {Function} callback - Fonction appelée à chaque nouveau message
- */
-export function subscribeToMessages(patientId, callback) {
-    // Nettoyer l'ancienne souscription
+// S'abonner aux nouveaux messages
+function subscribeToMessages(patientId, callback) {
     unsubscribeFromMessages();
     
     if (!patientId) {
@@ -47,6 +42,10 @@ export function subscribeToMessages(patientId, callback) {
     onMessageCallback = callback;
     
     const client = initSupabaseClient();
+    if (!client) {
+        console.error("❌ [Realtime] Impossible d'initialiser le client");
+        return;
+    }
     
     console.log(`📡 [Realtime] Abonnement aux messages du patient: ${patientId}`);
     
@@ -69,16 +68,11 @@ export function subscribeToMessages(patientId, callback) {
         )
         .subscribe((status) => {
             console.log(`📡 [Realtime] Statut: ${status}`);
-            if (status === 'SUBSCRIBED') {
-                console.log("✅ [Realtime] Connecté - en attente de nouveaux messages");
-            }
         });
 }
 
-/**
- * 🧹 Se désabonner
- */
-export function unsubscribeFromMessages() {
+// Se désabonner
+function unsubscribeFromMessages() {
     if (activeSubscription) {
         activeSubscription.unsubscribe();
         activeSubscription = null;
@@ -88,16 +82,13 @@ export function unsubscribeFromMessages() {
     onMessageCallback = null;
 }
 
-/**
- * 👤 Récupérer les infos d'un expéditeur
- */
-export async function fetchSenderInfo(senderId) {
-    if (!supabaseClient) {
-        initSupabaseClient();
-    }
+// Récupérer les infos d'un expéditeur
+async function fetchSenderInfoRealtime(senderId) {
+    const client = initSupabaseClient();
+    if (!client) return { nom: "Utilisateur", role: "COORDINATEUR", photo_url: null };
     
     try {
-        const { data, error } = await supabaseClient
+        const { data, error } = await client
             .from('profiles')
             .select('nom, role, photo_url')
             .eq('id', senderId)
@@ -115,9 +106,16 @@ export async function fetchSenderInfo(senderId) {
     }
 }
 
-/**
- * Vérifier si Realtime est actif
- */
-export function isRealtimeActive() {
+// Vérifier si Realtime est actif
+function isRealtimeActive() {
     return activeSubscription !== null;
 }
+
+// Exposer les fonctions globalement
+window.Realtime = {
+    initClient: initSupabaseClient,
+    subscribe: subscribeToMessages,
+    unsubscribe: unsubscribeFromMessages,
+    fetchSenderInfo: fetchSenderInfoRealtime,
+    isActive: isRealtimeActive
+};
