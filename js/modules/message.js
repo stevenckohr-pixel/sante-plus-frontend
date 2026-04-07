@@ -1,6 +1,8 @@
 import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI, compressImage } from "../core/utils.js";
+import { syncService } from "../core/syncService.js";
+
 
 
 
@@ -473,6 +475,7 @@ async function sendDocumentMessage() {
             showConfirmButton: false
         });
         
+        await syncService.refresh('messages');
         await loadFeed();
         
     } catch (err) {
@@ -1021,6 +1024,8 @@ async function sendPhotoMessage() {
         
         const result = await response.json();
         console.log("✅ Réponse serveur:", result);
+        await syncService.refresh('messages');
+
         
         // Réinitialiser
         photoInput.value = '';
@@ -1034,6 +1039,7 @@ async function sendPhotoMessage() {
         });
         
         await loadFeed();
+
         
     } catch (err) {
         console.error("❌ Erreur sendPhotoMessage:", err);
@@ -1064,6 +1070,7 @@ window.filterFeed = (type) => {
     renderFeed();
 };
 
+
 window.sendQuickMessage = async () => {
     const input = document.getElementById('quick-msg');
     const content = input?.value?.trim();
@@ -1072,7 +1079,6 @@ window.sendQuickMessage = async () => {
     try {
         UI.vibrate();
         
-        // ✅ Ajout de reply_to_id si on répond à un message
         const body = {
             patient_id: AppState.currentPatient,
             content: content,
@@ -1092,7 +1098,9 @@ window.sendQuickMessage = async () => {
         if (res.status === "success" || res.ok) {
             input.value = '';
             window.cancelReply();
-            await loadFeed();
+            
+            // ✅ FORCER LE RAFRAÎCHISSEMENT DES MESSAGES
+            await syncService.refresh('messages');
         }
     } catch (err) {
         console.error(err);
