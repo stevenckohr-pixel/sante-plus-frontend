@@ -1,8 +1,6 @@
-import { secureFetch } from "../core/api.js";
 import { CONFIG } from "../core/config.js";
 import { UI, compressImage } from "../core/utils.js";
-
-
+import { secureFetch, clearApiCache } from "../core/api.js";
 
 
 function escapeHtml(str) {
@@ -24,10 +22,8 @@ export async function loadCommandes() {
 
     try {
         // ✅ FORCER l'invalidation du cache
-        if (window.clearApiCache) {
-            window.clearApiCache();
-            console.log("🗑️ Cache vidé avant chargement des commandes");
-        }
+        clearApiCache();
+        console.log("🗑️ Cache vidé avant chargement des commandes");
         
         const data = await secureFetch("/commandes");
         console.log("📦 Commandes reçues:", data.length);
