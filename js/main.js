@@ -2671,74 +2671,87 @@ window.syncService = syncService;
 // 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION AMÉLIORÉE)
 // ============================================================
 
-window.addEventListener('app-data-updated', (event) => {
+// ============================================================
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION ROBUSTE)
+// ============================================================
+
+window.addEventListener('app-data-updated', async (event) => {
     const { endpoint, method } = event.detail;
     console.log(`📢 [Auto-Refresh] Données mises à jour: ${endpoint} (${method})`);
     
     const currentView = AppState?.currentView;
+    console.log(`📢 Vue actuelle: ${currentView}`);
     
-    // Déterminer quelle vue rafraîchir selon l'endpoint
-    let viewToRefresh = null;
-    let refreshFunction = null;
+    // FORCER l'invalidation du cache
+    if (window.clearApiCache) {
+        window.clearApiCache();
+        console.log(`🗑️ Cache vidé`);
+    }
+    
+    // Déterminer quelle vue rafraîchir
+    let needRefresh = false;
+    let refreshType = null;
     
     if (endpoint.includes('/messages')) {
-        viewToRefresh = 'feed';
-        refreshFunction = () => {
-            if (window.renderFeed) window.renderFeed();
-        };
+        needRefresh = true;
+        refreshType = 'feed';
+        if (currentView === 'feed' && window.renderFeed) {
+            console.log(`🔄 Rechargement du feed`);
+            await window.renderFeed();
+        }
     } 
     else if (endpoint.includes('/commandes')) {
-        viewToRefresh = 'commandes';
-        refreshFunction = () => {
-            if (window.loadCommandes) window.loadCommandes();
-        };
+        needRefresh = true;
+        refreshType = 'commandes';
+        console.log(`📦 Commande modifiée - Rechargement forcé`);
+        
+        // Recharger les données
+        if (window.loadCommandes) {
+            await window.loadCommandes();
+            console.log(`✅ Commandes rechargées`);
+        }
+        
+        // Si on est sur la vue commandes, recharger la vue
+        if (currentView === 'commandes') {
+            console.log(`🔄 Rechargement de la vue commandes`);
+            if (window.switchView) window.switchView('commandes');
+        }
     } 
     else if (endpoint.includes('/visites')) {
-        viewToRefresh = 'visits';
-        refreshFunction = () => {
-            if (window.loadVisits) window.loadVisits();
-        };
+        needRefresh = true;
+        refreshType = 'visits';
+        if (currentView === 'visits' && window.loadVisits) {
+            await window.loadVisits();
+        }
     } 
     else if (endpoint.includes('/patients')) {
-        viewToRefresh = 'patients';
-        refreshFunction = () => {
-            if (window.loadPatients) window.loadPatients();
-        };
-    } 
+        needRefresh = true;
+        refreshType = 'patients';
+        if (currentView === 'patients' && window.loadPatients) {
+            await window.loadPatients();
+        }
+    }
     else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
-        viewToRefresh = 'rh-dashboard';
-        refreshFunction = () => {
-            if (window.renderRHDashboard) window.renderRHDashboard();
-        };
-    } 
+        needRefresh = true;
+        refreshType = 'rh-dashboard';
+        if (currentView === 'rh-dashboard' && window.renderRHDashboard) {
+            await window.renderRHDashboard();
+        }
+    }
     else if (endpoint.includes('/billing')) {
-        viewToRefresh = 'billing';
-        refreshFunction = () => {
-            if (window.loadBilling) window.loadBilling();
-        };
-    } 
-    else if (endpoint.includes('/auth/update') || endpoint.includes('/profile')) {
-        viewToRefresh = 'profile';
-        refreshFunction = () => {
-            if (window.renderProfilePage) window.renderProfilePage();
-        };
-    }
-    else if (endpoint.includes('/admin/validate') || endpoint.includes('/admin/pending')) {
-        viewToRefresh = 'dashboard';
-        refreshFunction = () => {
-            if (window.loadAdminDashboard) window.loadAdminDashboard();
-        };
+        needRefresh = true;
+        refreshType = 'billing';
+        if (currentView === 'billing' && window.loadBilling) {
+            await window.loadBilling();
+        }
     }
     
-    // Si la vue actuelle est celle qui doit être rafraîchie, on recharge
-    if (viewToRefresh && currentView === viewToRefresh && refreshFunction) {
-        console.log(`🔄 Rechargement de la vue: ${currentView}`);
-        refreshFunction();
-    } else if (viewToRefresh) {
-        console.log(`ℹ️ Vue ${viewToRefresh} modifiée mais non active (active: ${currentView})`);
+    // Si la vue n'est pas active, au moins les données sont mises à jour en cache
+    if (needRefresh && currentView !== refreshType) {
+        console.log(`ℹ️ Données ${refreshType} mises à jour (vue ${currentView} active)`);
     }
     
-    // Bonus : mettre à jour le badge des notifications
+    // Mettre à jour le badge des notifications
     if (window.updateNotificationBadge) {
         window.updateNotificationBadge();
     }
