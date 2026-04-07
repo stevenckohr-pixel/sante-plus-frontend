@@ -122,4 +122,42 @@ class SyncService {
     }
 }
 
+
+
+// ============================================================
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE
+// ============================================================
+
+window.addEventListener('app-data-updated', (event) => {
+    console.log("📢 [Auto-Refresh] Données mises à jour:", event.detail);
+    
+    const currentView = AppState?.currentView;
+    const endpoint = event.detail?.endpoint || '';
+    
+    // Rafraîchir le feed si on est dessus
+    if (currentView === 'feed' && window.renderFeed) {
+        console.log("🔄 Rafraîchissement du feed");
+        window.renderFeed();
+    }
+    
+    // Rafraîchir les commandes si on est dessus
+    if (currentView === 'commandes' && window.loadCommandes) {
+        console.log("🔄 Rafraîchissement des commandes");
+        window.loadCommandes();
+    }
+    
+    // Rafraîchir les visites si on est dessus
+    if (currentView === 'visits' && window.loadVisits) {
+        console.log("🔄 Rafraîchissement des visites");
+        window.loadVisits();
+    }
+    
+    // Rafraîchir les patients si on est dessus
+    if (currentView === 'patients' && window.loadPatients) {
+        console.log("🔄 Rafraîchissement des patients");
+        window.loadPatients();
+    }
+});
+
+ 
 export const syncService = new SyncService();
