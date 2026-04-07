@@ -475,7 +475,6 @@ async function sendDocumentMessage() {
             showConfirmButton: false
         });
         
-        await syncService.refresh('messages');
         await loadFeed();
         
     } catch (err) {
@@ -1024,8 +1023,7 @@ async function sendPhotoMessage() {
         
         const result = await response.json();
         console.log("✅ Réponse serveur:", result);
-        await syncService.refresh('messages');
-
+ 
         
         // Réinitialiser
         photoInput.value = '';
