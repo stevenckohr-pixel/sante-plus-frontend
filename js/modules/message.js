@@ -354,6 +354,12 @@ function renderStoryCard(msg, isReply = false) {
                     <i class="fa-solid fa-reply text-xs"></i>
                     <span class="text-[10px] font-medium">Répondre</span>
                 </button>
+
+                ${repliesByParent.get(msg.id)?.length ? `
+                    <span class="text-[9px] text-slate-400 ml-2">
+                        (${repliesByParent.get(msg.id).length} réponse${repliesByParent.get(msg.id).length > 1 ? 's' : ''})
+                    </span>
+                ` : ''}
                 
                 ${isAidant && msg.id ? `
                     <button onclick="window.reportIssue('${msg.id}')" 
