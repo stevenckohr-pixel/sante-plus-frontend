@@ -7,6 +7,18 @@ let activeTab = 'STORY';
 let currentReplyTo = null;        // ✅ NOUVEAU : stocke l'ID du message auquel on répond
 let currentReplyToName = null;    // ✅ NOUVEAU : stocke le nom de l'auteur
 
+
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * 📥 CHARGER LE JOURNAL DE SOINS
  */
