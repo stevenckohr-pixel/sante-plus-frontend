@@ -19,16 +19,23 @@ function escapeHtml(str) {
  * 📋 CHARGER LA LISTE DES COMMANDES
  */
 export async function loadCommandes() {
-  const listContainer = document.getElementById("commandes-list");
-  if (!listContainer) return;
+    const listContainer = document.getElementById("commandes-list");
+    if (!listContainer) return;
 
-  try {
-    const data = await secureFetch("/commandes");
-    renderCommandes(data);
-  } catch (err) {
-    console.error("Erreur chargement commandes:", err);
-    listContainer.innerHTML = `<p class="text-rose-500 text-center p-10">Erreur : ${err.message}</p>`;
-  }
+    try {
+        // ✅ FORCER l'invalidation du cache
+        if (window.clearApiCache) {
+            window.clearApiCache();
+            console.log("🗑️ Cache vidé avant chargement des commandes");
+        }
+        
+        const data = await secureFetch("/commandes");
+        console.log("📦 Commandes reçues:", data.length);
+        renderCommandes(data);
+    } catch (err) {
+        console.error("Erreur chargement commandes:", err);
+        listContainer.innerHTML = `<p class="text-rose-500 text-center p-10">Erreur : ${err.message}</p>`;
+    }
 }
 
 /**
