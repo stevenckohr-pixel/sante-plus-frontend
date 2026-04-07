@@ -1,9 +1,11 @@
 import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
-import { UI } from "../core/utils.js";
+import { UI, compressImage } from "../core/utils.js";
 
 // État local pour gérer l'onglet actif
 let activeTab = 'STORY';
+let currentReplyTo = null;        // ✅ NOUVEAU : stocke l'ID du message auquel on répond
+let currentReplyToName = null;    // ✅ NOUVEAU : stocke le nom de l'auteur
 
 /**
  * 📥 CHARGER LE JOURNAL DE SOINS
@@ -39,13 +41,31 @@ export async function loadFeed() {
                 </button>
             </div>
 
-            <!-- Zone de saisie rapide -->
+            <!-- Zone de saisie rapide (MODIFIÉE) -->
             <div id="input-area" class="mb-8">
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-3">
-                    <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-100 transition-all" placeholder="Écrire un message à l'équipe...">
-                    <button onclick="window.sendQuickMessage()" class="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                <!-- Indicateur de réponse (NOUVEAU) -->
+                <div id="reply-indicator" class="hidden mb-3 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-reply-all text-amber-500 text-sm"></i>
+                        <span class="text-xs font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
+                    </div>
+                    <button onclick="window.cancelReply()" class="text-amber-500 hover:text-amber-700">
+                        <i class="fa-solid fa-times"></i>
                     </button>
+                </div>
+                
+                <!-- Zone de saisie avec bouton photo -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <button id="photo-btn" class="w-11 h-11 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition-all flex items-center justify-center">
+                            <i class="fa-solid fa-camera text-base"></i>
+                        </button>
+                        <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-100 transition-all" placeholder="Écrire un message à l'équipe...">
+                        <button id="send-btn" class="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="photo-input" accept="image/*" class="hidden">
                 </div>
             </div>
 
@@ -60,8 +80,21 @@ export async function loadFeed() {
         </div>
     `;
 
+    // ✅ NOUVEAU : Brancher les événements
+    const photoBtn = document.getElementById('photo-btn');
+    const photoInput = document.getElementById('photo-input');
+    const sendBtn = document.getElementById('send-btn');
+    
+    if (photoBtn && photoInput) {
+        photoBtn.onclick = () => photoInput.click();
+        photoInput.onchange = () => sendPhotoMessage();
+    }
+    
+    if (sendBtn) {
+        sendBtn.onclick = () => window.sendQuickMessage();
+    }
+
     try {
-        // ✅ CORRECTION ICI
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
         renderFeed();
@@ -79,8 +112,9 @@ export async function loadFeed() {
         }
     }
 }
+
 /**
- * 🎨 RENDU FILTRÉ
+ * 🎨 RENDU FILTRÉ (MODIFIÉ pour organiser les réponses en cascade)
  */
 export function renderFeed() {
     const content = document.getElementById('care-feed-content');
@@ -103,34 +137,67 @@ export function renderFeed() {
         inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
     }
 
-    const filtered = (AppState.messages || []).filter(m => {
+    // Filtrer les messages selon l'onglet
+    let filtered = (AppState.messages || []).filter(m => {
         if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
         return m.type_media !== 'DOCUMENT';
-    }).slice().reverse();
-
-    if (filtered.length === 0) {
-        content.innerHTML = `
-            <div class="text-center py-20 opacity-50">
-                <i class="fa-solid ${activeTab === 'STORY' ? 'fa-feather-pointed' : 'fa-folder-open'} text-4xl mb-4 text-slate-300"></i>
-                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun élément dans cette section</p>
-            </div>`;
-        return;
+    });
+    
+    // ✅ NOUVEAU : Organiser les messages en threads (messages principaux + réponses)
+    if (activeTab === 'STORY') {
+        // Séparer les messages principaux (sans reply_to_id) et les réponses
+        const mainMessages = filtered.filter(m => !m.reply_to_id);
+        const replies = filtered.filter(m => m.reply_to_id);
+        
+        // Créer un Map des réponses par parent
+        const repliesByParent = new Map();
+        replies.forEach(reply => {
+            if (!repliesByParent.has(reply.reply_to_id)) {
+                repliesByParent.set(reply.reply_to_id, []);
+            }
+            repliesByParent.get(reply.reply_to_id).push(reply);
+        });
+        
+        // Trier les réponses par date
+        for (let [key, value] of repliesByParent) {
+            value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        }
+        
+        // Générer le HTML avec les réponses imbriquées
+        content.innerHTML = mainMessages.map(msg => {
+            const repliesHtml = (repliesByParent.get(msg.id) || [])
+                .map(reply => renderStoryCard(reply, true))
+                .join('');
+            return renderStoryCard(msg, false) + repliesHtml;
+        }).join('');
+    } else {
+        // Pour l'onglet DOCUMENT, affichage simple
+        content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
     }
 
-    content.innerHTML = filtered.map(msg => {
-        return activeTab === 'STORY' ? renderStoryCard(msg) : renderDocCard(msg);
-    }).join('');
+    if (filtered.length === 0 && activeTab === 'STORY') {
+        content.innerHTML = `
+            <div class="text-center py-20 opacity-50">
+                <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
+                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
+            </div>`;
+    }
 }
 
 /**
- * 📸 CARTE JOURNAL (Story)
+ * 📸 CARTE JOURNAL (Story) - MODIFIÉE pour ajouter le bouton "Répondre"
+ * @param {Object} msg - Le message
+ * @param {boolean} isReply - Si c'est une réponse (style indenté)
  */
-function renderStoryCard(msg) {
-    const isPhoto = msg.is_photo;
+function renderStoryCard(msg, isReply = false) {
+    const isPhoto = msg.is_photo || msg.photo_url;
     let content = msg.content || '';
     let humeurBadge = "";
 
-    // Décodage de l'humeur
+    // Utiliser photo_url si disponible
+    const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
+    
+    // Décodage de l'humeur (inchangé)
     if (!isPhoto && content && content.includes('|')) {
         const parts = content.split('|');
         const humeur = parts[0];
@@ -156,7 +223,6 @@ function renderStoryCard(msg) {
     const isFamily = msg.sender_role === 'FAMILLE';
     const isCoordinator = msg.sender_role === 'COORDINATEUR';
     
-    // Couleurs et badges selon le rôle
     let roleColorClass = 'text-slate-500';
     let avatarBg = 'bg-slate-100';
     let roleIcon = 'fa-user';
@@ -185,16 +251,17 @@ function renderStoryCard(msg) {
                     </span>`;
     }
     
-    // Formatage de l'heure
     const timeStr = new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const dateStr = new Date(msg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
+    // ✅ Style différent pour les réponses (indentation)
+    const replyClass = isReply ? 'ml-6 mt-3 border-l-4 border-l-amber-200 pl-4' : '';
+
     return `
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn mb-5 hover:shadow-md transition-shadow">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn mb-5 hover:shadow-md transition-shadow ${replyClass}" data-message-id="${msg.id}">
             <!-- Header avec photo et identité -->
             <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-3">
-                    <!-- Avatar / Photo -->
                     <div class="relative">
                         <div class="w-12 h-12 rounded-xl overflow-hidden ${avatarBg} flex items-center justify-center">
                             ${msg.sender_photo ? 
@@ -210,7 +277,6 @@ function renderStoryCard(msg) {
                         ` : ''}
                     </div>
                     
-                    <!-- Infos expéditeur -->
                     <div>
                         <div class="flex items-center flex-wrap gap-1">
                             <h4 class="font-black text-slate-800 text-sm">${escapeHtml(msg.sender_name || 'Système')}</h4>
@@ -225,7 +291,6 @@ function renderStoryCard(msg) {
                     </div>
                 </div>
                 
-                <!-- Indicateur de fiabilité pour aidant -->
                 ${isAidant ? `
                     <div class="bg-emerald-50 px-2 py-1 rounded-full">
                         <span class="text-[8px] font-black text-emerald-600 uppercase tracking-wider">
@@ -236,22 +301,22 @@ function renderStoryCard(msg) {
             </div>
 
             <!-- Contenu du message -->
-            ${isPhoto ? `
+            ${imageUrl ? `
                 <div class="relative rounded-xl overflow-hidden shadow-lg border border-slate-100 mt-2">
-                    <img src="${msg.content}" class="w-full max-h-96 object-cover cursor-pointer" onclick="window.open('${msg.content}')">
+                    <img src="${imageUrl}" class="w-full max-h-96 object-cover cursor-pointer" onclick="window.open('${imageUrl}')">
                     <div class="absolute top-3 right-3 bg-slate-900/60 backdrop-blur-sm px-2 py-1 rounded-lg">
-                        <span class="text-[8px] font-black text-white uppercase tracking-wider">Preuve de visite</span>
+                        <span class="text-[8px] font-black text-white uppercase tracking-wider">Photo</span>
                     </div>
                     ${humeurBadge}
                 </div>
-            ` : `
+            ` : content ? `
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2">
                     <i class="fa-solid fa-quote-left text-slate-200 text-lg mr-2 float-left"></i>
                     <span class="font-medium">${escapeHtml(content)}</span>
                 </div>
-            `}
+            ` : ''}
 
-            <!-- Réactions et interactions -->
+            <!-- Réactions et interactions (MODIFIÉ : ajout du bouton Répondre) -->
             <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
                 <div class="flex gap-2">
                     <button onclick="window.sendReaction('${msg.id}', 'coeur')" 
@@ -271,6 +336,13 @@ function renderStoryCard(msg) {
                     </button>
                 </div>
                 
+                <!-- ✅ NOUVEAU : Bouton Répondre -->
+                <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
+                    <i class="fa-solid fa-reply text-xs"></i>
+                    <span class="text-[10px] font-medium">Répondre</span>
+                </button>
+                
                 ${isAidant && msg.id ? `
                     <button onclick="window.reportIssue('${msg.id}')" 
                             class="text-[9px] text-slate-400 hover:text-amber-500 transition">
@@ -279,8 +351,7 @@ function renderStoryCard(msg) {
                 ` : ''}
             </div>
             
-            <!-- Si c'est une photo, afficher le nom de l'aidant qui l'a prise -->
-            ${isPhoto && isAidant ? `
+            ${imageUrl && isAidant ? `
                 <div class="mt-3 text-right">
                     <span class="text-[8px] text-slate-400">
                         <i class="fa-regular fa-camera mr-1"></i> Photo prise par ${msg.sender_name}
@@ -291,86 +362,116 @@ function renderStoryCard(msg) {
     `;
 }
 
+// ============================================
+// ✅ NOUVELLES FONCTIONS
+// ============================================
+
 /**
- * 🚩 Signaler un problème (pour la famille)
+ * ↩️ Répondre à un message spécifique
  */
-window.reportIssue = async (messageId) => {
-    const result = await Swal.fire({
-        title: 'Signaler un problème',
-        html: `
-            <div class="text-left">
-                <p class="text-sm text-slate-600 mb-3">Décrivez le problème rencontré :</p>
-                <textarea id="issue-description" class="w-full p-3 bg-slate-50 rounded-xl text-sm" rows="3" placeholder="Ex: La photo n'est pas claire, l'aidant n'était pas présent..."></textarea>
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '✓ Envoyer',
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#F43F5E',
-        preConfirm: () => {
-            const description = document.getElementById('issue-description')?.value;
-            if (!description) {
-                Swal.showValidationMessage('Veuillez décrire le problème');
-                return false;
-            }
-            return { description };
-        }
-    });
+window.replyToMessage = (messageId, senderName) => {
+    currentReplyTo = messageId;
+    currentReplyToName = senderName;
     
-    if (result.value) {
-        try {
-            await secureFetch("/messages/report", {
-                method: "POST",
-                body: JSON.stringify({
-                    message_id: messageId,
-                    description: result.value.description
-                })
-            });
-            UI.success("Signalement envoyé à la coordination");
-        } catch (err) {
-            UI.error(err.message);
-        }
+    const indicator = document.getElementById('reply-indicator');
+    const replyingToName = document.getElementById('replying-to-name');
+    
+    if (indicator && replyingToName) {
+        replyingToName.textContent = senderName;
+        indicator.classList.remove('hidden');
+        document.getElementById('quick-msg')?.focus();
     }
+    
+    UI.vibrate('light');
 };
 
+/**
+ * ❌ Annuler la réponse
+ */
+window.cancelReply = () => {
+    currentReplyTo = null;
+    currentReplyToName = null;
+    
+    const indicator = document.getElementById('reply-indicator');
+    if (indicator) {
+        indicator.classList.add('hidden');
+    }
+    
+    UI.vibrate('light');
+};
 
 /**
- * 📄 CARTE DOCUMENT
+ * 📸 Envoyer une photo
  */
-function renderDocCard(msg) {
-    return `
-        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all animate-fadeIn">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-file-pdf"></i>
-                </div>
-                <div>
-                    <h4 class="font-black text-slate-800 text-xs uppercase">${msg.titre_media || 'Document'}</h4>
-                    <p class="text-[9px] text-slate-400 font-bold mt-0.5">${UI.formatDate(msg.created_at)}</p>
-                </div>
-            </div>
-            <button onclick="window.open('${msg.content}')" class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-sm active:scale-95 transition-all">
-                <i class="fa-solid fa-download text-sm"></i>
-            </button>
-        </div>
-    `;
-}
-
-/**
- * 🔧 Échapper les caractères HTML
- */
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+async function sendPhotoMessage() {
+    const photoInput = document.getElementById('photo-input');
+    const file = photoInput?.files?.[0];
+    
+    if (!file) return;
+    
+    // Vérifier la taille
+    if (file.size > 5 * 1024 * 1024) {
+        UI.error("Photo trop lourde (max 5MB)");
+        photoInput.value = '';
+        return;
+    }
+    
+    Swal.fire({
+        title: "Envoi de la photo...",
+        text: "Veuillez patienter",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    try {
+        // Compression si nécessaire
+        let fileToSend = file;
+        if (file.size > 2 * 1024 * 1024) {
+            fileToSend = await compressImage(file, 1024, 0.7);
+        }
+        
+        const formData = new FormData();
+        formData.append('patient_id', AppState.currentPatient);
+        formData.append('photo', fileToSend);
+        if (currentReplyTo) {
+            formData.append('reply_to_id', currentReplyTo);
+        }
+        
+        const response = await fetch(`${window.CONFIG.API_URL}/messages/send-photo`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur d'envoi");
+        }
+        
+        // Réinitialiser
+        photoInput.value = '';
+        window.cancelReply();
+        
+        Swal.fire({
+            icon: "success",
+            title: "Photo envoyée",
+            timer: 1500,
+            showConfirmButton: false
+        });
+        
+        await loadFeed();
+        
+    } catch (err) {
+        Swal.close();
+        UI.error(err.message);
+        photoInput.value = '';
+    }
 }
 
 // ============================================
-// BRANCHEMENTS WINDOW
+// BRANCHEMENTS WINDOW (INCHANGÉS mais avec reply_to_id ajouté)
 // ============================================
 
 window.filterFeed = (type) => {
@@ -386,17 +487,27 @@ window.sendQuickMessage = async () => {
 
     try {
         UI.vibrate();
+        
+        // ✅ Ajout de reply_to_id si on répond à un message
+        const body = {
+            patient_id: AppState.currentPatient,
+            content: content,
+            is_photo: false,
+            type_media: 'STORY'
+        };
+        
+        if (currentReplyTo) {
+            body.reply_to_id = currentReplyTo;
+        }
+        
         const res = await secureFetch('/messages/send', {
             method: 'POST',
-            body: JSON.stringify({
-                patient_id: AppState.currentPatient,
-                content: content,
-                is_photo: false,
-                type_media: 'STORY'
-            })
+            body: JSON.stringify(body)
         });
-        if (res.ok) {
+        
+        if (res.status === "success" || res.ok) {
             input.value = '';
+            window.cancelReply();
             await loadFeed();
         }
     } catch (err) {
@@ -418,3 +529,6 @@ window.sendReaction = async (msgId, type) => {
         UI.error("Erreur lors de l'envoi de la réaction");
     }
 };
+
+// ✅ Exporter la fonction cancelReply pour qu'elle soit accessible
+window.cancelReply = window.cancelReply || cancelReply;
