@@ -2672,7 +2672,7 @@ window.syncService = syncService;
 // ============================================================
 
 // ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT UNIVERSEL
 // ============================================================
 
 window.addEventListener('app-data-updated', async (event) => {
@@ -2682,55 +2682,123 @@ window.addEventListener('app-data-updated', async (event) => {
     const currentView = AppState?.currentView;
     
     // Vider le cache pour toute modification
-    if (window.clearApiCache) {
-        window.clearApiCache();
-    }
+    if (window.clearApiCache) window.clearApiCache();
     
-    // Messages
+    // ========================================
+    // MESSAGES
+    // ========================================
     if (endpoint.includes('/messages')) {
         if (currentView === 'feed' && window.renderFeed) {
-            console.log(`🔄 Rafraîchissement du feed`);
             await window.renderFeed();
         }
-    } 
-    // Commandes
+    }
+    
+    // ========================================
+    // COMMANDES
+    // ========================================
     else if (endpoint.includes('/commandes')) {
-        console.log(`📦 Rafraîchissement des commandes`);
-        if (window.loadCommandes) {
-            await window.loadCommandes();
-        }
-        // Si on est sur la page commandes, recharger la vue
+        if (window.loadCommandes) await window.loadCommandes();
         if (currentView === 'commandes' && window.switchView) {
             await window.switchView('commandes');
         }
-    } 
-    // Visites
+    }
+    
+    // ========================================
+    // VISITES
+    // ========================================
     else if (endpoint.includes('/visites')) {
-        console.log(`🩺 Rafraîchissement des visites`);
-        if (currentView === 'visits' && window.loadVisits) {
-            await window.loadVisits();
+        if (window.loadVisits) await window.loadVisits();
+        if (currentView === 'visits' && window.switchView) {
+            await window.switchView('visits');
         }
-    } 
-    // Patients
+    }
+    
+    // ========================================
+    // PATIENTS
+    // ========================================
     else if (endpoint.includes('/patients')) {
-        console.log(`👤 Rafraîchissement des patients`);
-        if (currentView === 'patients' && window.loadPatients) {
-            await window.loadPatients();
+        if (window.loadPatients) await window.loadPatients();
+        if (currentView === 'patients' && window.switchView) {
+            await window.switchView('patients');
         }
     }
-    // Assignations
+    
+    // ========================================
+    // ASSIGNATIONS (RH)
+    // ========================================
     else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
-        console.log(`👥 Rafraîchissement des assignations`);
-        if (currentView === 'rh-dashboard' && window.renderRHDashboard) {
-            await window.renderRHDashboard();
+        if (window.renderRHDashboard) await window.renderRHDashboard();
+        if (currentView === 'rh-dashboard' && window.switchView) {
+            await window.switchView('rh-dashboard');
         }
     }
-    // Facturation
+    
+    // ========================================
+    // FACTURATION
+    // ========================================
     else if (endpoint.includes('/billing')) {
-        console.log(`💰 Rafraîchissement de la facturation`);
-        if (currentView === 'billing' && window.loadBilling) {
-            await window.loadBilling();
+        if (window.loadBilling) await window.loadBilling();
+        if (currentView === 'billing' && window.switchView) {
+            await window.switchView('billing');
         }
+    }
+    
+    // ========================================
+    // AIDANTS
+    // ========================================
+    else if (endpoint.includes('/aidants')) {
+        if (window.loadAidants) await window.loadAidants();
+        if (currentView === 'aidants' && window.switchView) {
+            await window.switchView('aidants');
+        }
+    }
+    
+    // ========================================
+    // DASHBOARD / ADMIN
+    // ========================================
+    else if (endpoint.includes('/admin') || endpoint.includes('/dashboard')) {
+        if (window.loadAdminDashboard) await window.loadAdminDashboard();
+        if (currentView === 'dashboard' && window.switchView) {
+            await window.switchView('dashboard');
+        }
+    }
+    
+    // ========================================
+    // PROFIL
+    // ========================================
+    else if (endpoint.includes('/profile') || endpoint.includes('/auth/update')) {
+        if (window.renderProfilePage) await window.renderProfilePage();
+        if (currentView === 'profile' && window.switchView) {
+            await window.switchView('profile');
+        }
+    }
+    
+    // ========================================
+    // ABONNEMENT / SUBSCRIPTION
+    // ========================================
+    else if (endpoint.includes('/subscription')) {
+        if (window.renderSubscriptionPage) await window.renderSubscriptionPage();
+        if (currentView === 'subscription' && window.switchView) {
+            await window.switchView('subscription');
+        }
+    }
+    
+    // ========================================
+    // NOTIFICATIONS
+    // ========================================
+    else if (endpoint.includes('/notifications')) {
+        if (window.renderNotificationsPage) await window.renderNotificationsPage();
+        if (currentView === 'notifications' && window.switchView) {
+            await window.switchView('notifications');
+        }
+    }
+    
+    // ========================================
+    // FALLBACK : si aucune correspondance, recharger la vue actuelle
+    // ========================================
+    else if (currentView && window.switchView) {
+        console.log(`🔄 [Fallback] Rechargement de la vue: ${currentView}`);
+        await window.switchView(currentView);
     }
     
     // Mettre à jour le badge des notifications
