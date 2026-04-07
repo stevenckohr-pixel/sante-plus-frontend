@@ -1099,15 +1099,23 @@ window.sendQuickMessage = async () => {
             input.value = '';
             window.cancelReply();
             
-            // ✅ FORCER LE RAFRAÎCHISSEMENT DES MESSAGES
-            await syncService.refresh('messages');
+            // ✅ SOLUTION DIRECTE : forcer le rechargement des données
+            const freshData = await fetch(`${window.CONFIG.API_URL}/messages?patient_id=${AppState.currentPatient}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            const newMessages = await freshData.json();
+            AppState.messages = newMessages;
+            
+            // ✅ Re-rendre le feed
+            renderFeed();
+            
+            console.log("✅ Feed rafraîchi avec", newMessages.length, "messages");
         }
     } catch (err) {
         console.error(err);
         UI.error("Erreur lors de l'envoi du message");
     }
 };
-
 window.sendReaction = async (msgId, type) => {
     try {
         UI.vibrate();
