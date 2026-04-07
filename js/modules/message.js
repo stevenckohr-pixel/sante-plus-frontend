@@ -538,11 +538,15 @@ export function renderFeed() {
 /**
  * 📄 CARTE DOCUMENT (améliorée)
  */
+/**
+ * 📄 CARTE DOCUMENT (Version corrigée avec affichage propre)
+ */
 function renderDocCard(msg) {
     // Déterminer l'icône selon le type de fichier
     let iconClass = 'fa-file-pdf';
     let iconColor = 'text-red-500';
     let bgColor = 'bg-red-50';
+    let fileType = 'PDF';
     
     const filename = msg.titre_media || msg.content?.split('/').pop() || 'Document';
     const extension = filename.split('.').pop()?.toLowerCase();
@@ -551,53 +555,82 @@ function renderDocCard(msg) {
         iconClass = 'fa-file-pdf';
         iconColor = 'text-red-500';
         bgColor = 'bg-red-50';
+        fileType = 'PDF';
     } else if (extension === 'doc' || extension === 'docx') {
         iconClass = 'fa-file-word';
         iconColor = 'text-blue-500';
         bgColor = 'bg-blue-50';
-    } else if (extension === 'jpg' || extension === 'jpeg' || extension === 'png') {
+        fileType = 'DOC';
+    } else if (extension === 'jpg' || extension === 'jpeg' || extension === 'png' || extension === 'gif' || extension === 'webp') {
         iconClass = 'fa-file-image';
         iconColor = 'text-green-500';
         bgColor = 'bg-green-50';
+        fileType = 'IMAGE';
     } else {
         iconClass = 'fa-file';
         iconColor = 'text-slate-500';
         bgColor = 'bg-slate-50';
+        fileType = 'FICHIER';
     }
     
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
+    const fileSize = formatFileSize(msg.file_size); // Si vous avez la taille
     
     // Pour les images, afficher un aperçu
     const previewHtml = isImage ? `
-        <div class="mt-2">
-            <img src="${msg.content}" class="w-32 h-32 object-cover rounded-xl cursor-pointer" onclick="window.open('${msg.content}')">
+        <div class="mt-3">
+            <img src="${msg.content}" class="w-full max-h-48 object-cover rounded-xl cursor-pointer border border-slate-200" onclick="window.open('${msg.content}')">
         </div>
     ` : '';
     
     return `
-        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all animate-fadeIn">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl ${bgColor} ${iconColor} flex items-center justify-center text-xl">
-                        <i class="fa-solid ${iconClass}"></i>
+        <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 mb-3 document-card">
+            <div class="p-4">
+                <div class="flex items-start gap-3">
+                    <!-- Icône document -->
+                    <div class="w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center shrink-0">
+                        <i class="fa-solid ${iconClass} ${iconColor} text-xl"></i>
                     </div>
-                    <div>
-                        <h4 class="font-black text-slate-800 text-xs uppercase">${escapeHtml(filename)}</h4>
-                        <p class="text-[9px] text-slate-400 font-bold mt-0.5">${UI.formatDate(msg.created_at)}</p>
-                        <p class="text-[9px] text-slate-500 mt-0.5">Envoyé par ${escapeHtml(msg.sender_name || 'Système')}</p>
+                    
+                    <!-- Infos document -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center flex-wrap gap-2 mb-1">
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${bgColor} ${iconColor} uppercase">
+                                ${fileType}
+                            </span>
+                            <span class="text-[9px] text-slate-400">${UI.formatDate(msg.created_at)}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-sm truncate" title="${escapeHtml(filename)}">
+                            ${escapeHtml(filename.length > 40 ? filename.substring(0, 40) + '...' : filename)}
+                        </h4>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            Envoyé par ${escapeHtml(msg.sender_name || 'Système')}
+                        </p>
                     </div>
+                    
+                    <!-- Bouton téléchargement -->
+                    <button onclick="window.open('${msg.content}')" 
+                            class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-all active:scale-95 shrink-0"
+                            title="Télécharger">
+                        <i class="fa-solid fa-download text-sm"></i>
+                    </button>
                 </div>
-                <button onclick="window.open('${msg.content}')" 
-                        class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-sm active:scale-95 transition-all">
-                    <i class="fa-solid fa-download text-sm"></i>
-                </button>
+                
+                ${previewHtml}
             </div>
-            ${previewHtml}
         </div>
     `;
 }
 
-
+/**
+ * Formater la taille du fichier
+ */
+function formatFileSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' o';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+}
 /**
  * 📸 CARTE JOURNAL (Story) - MODIFIÉE pour ajouter le bouton "Répondre"
  * @param {Object} msg - Le message
