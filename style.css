@@ -2749,3 +2749,34 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
     border-radius: 0.75rem;
     font-size: 0.75rem;
 }
+
+
+/* Dans style.css - amélioration des threads */
+.message-thread {
+    position: relative;
+}
+
+.message-thread .reply-item {
+    margin-left: 2rem;
+    padding-left: 1rem;
+    border-left: 3px solid #fbbf24;
+    position: relative;
+}
+
+.message-thread .reply-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 20px;
+    width: 10px;
+    height: 10px;
+    background: #fbbf24;
+    border-radius: 50%;
+}
+
+@media (max-width: 640px) {
+    .message-thread .reply-item {
+        margin-left: 0.75rem;
+        padding-left: 0.75rem;
+    }
+}
