@@ -301,6 +301,10 @@ export function renderFeed() {
             }
             repliesByParent.get(reply.reply_to_id).push(reply);
         });
+
+            mainMessages.forEach(msg => {
+                msg.reply_count = (repliesByParent.get(msg.id) || []).length;
+            });
         
         // Trier les réponses par date
         for (let [key, value] of repliesByParent) {
@@ -460,7 +464,7 @@ function renderStoryCard(msg, isReply = false) {
                 </div>
             ` : ''}
 
-            <!-- Réactions et interactions (MODIFIÉ : ajout du bouton Répondre) -->
+            <!-- Réactions et interactions -->
             <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
                 <div class="flex gap-2">
                     <button onclick="window.sendReaction('${msg.id}', 'coeur')" 
@@ -480,18 +484,19 @@ function renderStoryCard(msg, isReply = false) {
                     </button>
                 </div>
                 
-                <!-- ✅ NOUVEAU : Bouton Répondre -->
+                <!-- Bouton Répondre -->
                 <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
                         class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
                     <i class="fa-solid fa-reply text-xs"></i>
                     <span class="text-[10px] font-medium">Répondre</span>
                 </button>
-
-                          ${!isReply && (msg.reply_count || 0) > 0 ? `
-                <span class="text-[9px] text-slate-400 ml-2">
-                    (${msg.reply_count} réponse${msg.reply_count > 1 ? 's' : ''})
-                </span>
-            ` : ''}
+            
+                <!-- ✅ Compteur de réponses CORRIGÉ -->
+                ${!isReply && msg.reply_count > 0 ? `
+                    <span class="text-[9px] text-slate-400 ml-2">
+                        (${msg.reply_count} réponse${msg.reply_count > 1 ? 's' : ''})
+                    </span>
+                ` : ''}
                 
                 ${isAidant && msg.id ? `
                     <button onclick="window.reportIssue('${msg.id}')" 
