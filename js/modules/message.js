@@ -756,11 +756,11 @@ function renderStoryCard(msg, isReply = false) {
                     </div>
                     ${humeurBadge}
                 </div>
-            ` : content ? `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2">
+            ` : content ?                 
+                `<div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2 break-words whitespace-normal overflow-hidden">
                     <i class="fa-solid fa-quote-left text-slate-200 text-lg mr-2 float-left"></i>
-                    <span class="font-medium">${escapeHtml(content)}</span>
-                </div>
+                    <span class="font-medium break-words">${escapeHtml(content)}</span>
+                </div>`
             ` : ''}
 
 <!-- Réactions et interactions avec émoji picker -->
