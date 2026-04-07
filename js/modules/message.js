@@ -82,6 +82,85 @@ async function addNewMessageToFeed(newMessage) {
     scrollToBottom();
 }
 
+
+
+export function renderFeed() {
+    const content = document.getElementById('care-feed-content');
+    const inputArea = document.getElementById('input-area');
+    const btnStory = document.getElementById('tab-story');
+    const btnDoc = document.getElementById('tab-doc');
+
+    if (!content) return;
+
+    const activeClass = "bg-white text-slate-900 shadow-sm border border-slate-200/50";
+    const inactiveClass = "text-slate-400 hover:text-slate-600";
+
+    if (btnStory) {
+        btnStory.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'STORY' ? activeClass : inactiveClass}`;
+    }
+    if (btnDoc) {
+        btnDoc.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'DOCUMENT' ? activeClass : inactiveClass}`;
+    }
+    if (inputArea) {
+        inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
+    }
+
+    let filtered = (AppState.messages || []).filter(m => {
+        if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
+        return m.type_media !== 'DOCUMENT';
+    });
+    
+    if (activeTab === 'STORY') {
+        // Messages principaux (sans reply_to_id)
+        const mainMessages = filtered.filter(m => !m.reply_to_id);
+        
+        // RÉPONSES : seulement celles qui répondent DIRECTEMENT à un message principal
+        const mainIds = new Set(mainMessages.map(m => m.id));
+        const directReplies = filtered.filter(m => m.reply_to_id && mainIds.has(m.reply_to_id));
+        
+        // Grouper les réponses par message parent
+        const repliesByParent = new Map();
+        directReplies.forEach(reply => {
+            if (!repliesByParent.has(reply.reply_to_id)) {
+                repliesByParent.set(reply.reply_to_id, []);
+            }
+            repliesByParent.get(reply.reply_to_id).push(reply);
+        });
+
+        // Ajouter le compteur de réponses
+        mainMessages.forEach(msg => {
+            msg.reply_count = (repliesByParent.get(msg.id) || []).length;
+        });
+        
+        // Trier les réponses par date
+        for (let [key, value] of repliesByParent) {
+            value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        }
+        
+        // Générer le HTML - UN SEUL NIVEAU D'INDENTATION
+        content.innerHTML = mainMessages.map(msg => {
+            const repliesHtml = (repliesByParent.get(msg.id) || [])
+                .map(reply => renderStoryCard(reply, true))  // isReply = true pour indentation
+                .join('');
+            return renderStoryCard(msg, false) + repliesHtml;
+        }).join('');
+        
+        // Aucune imbrication des réponses entre elles
+        // Les réponses aux réponses ne sont PAS affichées dans ce fil
+        
+    } else {
+        content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
+    }
+
+    if (filtered.length === 0 && activeTab === 'STORY') {
+        content.innerHTML = `
+            <div class="text-center py-20 opacity-50">
+                <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
+                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
+            </div>`;
+    }
+}
+
 /**
  * Bip de notification
  */
@@ -460,77 +539,6 @@ export async function loadFeed() {
 /**
  * 🎨 RENDU FILTRÉ (MODIFIÉ pour organiser les réponses en cascade)
  */
-export function renderFeed() {
-    const content = document.getElementById('care-feed-content');
-    const inputArea = document.getElementById('input-area');
-    const btnStory = document.getElementById('tab-story');
-    const btnDoc = document.getElementById('tab-doc');
-
-    if (!content) return;
-
-    const activeClass = "bg-white text-slate-900 shadow-sm border border-slate-200/50";
-    const inactiveClass = "text-slate-400 hover:text-slate-600";
-
-    if (btnStory) {
-        btnStory.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'STORY' ? activeClass : inactiveClass}`;
-    }
-    if (btnDoc) {
-        btnDoc.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'DOCUMENT' ? activeClass : inactiveClass}`;
-    }
-    if (inputArea) {
-        inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
-    }
-
-    // Filtrer les messages selon l'onglet
-    let filtered = (AppState.messages || []).filter(m => {
-        if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
-        return m.type_media !== 'DOCUMENT';
-    });
-    
-    // ✅ NOUVEAU : Organiser les messages en threads (messages principaux + réponses)
-    if (activeTab === 'STORY') {
-        // Séparer les messages principaux (sans reply_to_id) et les réponses
-        const mainMessages = filtered.filter(m => !m.reply_to_id);
-        const replies = filtered.filter(m => m.reply_to_id);
-        
-        // Créer un Map des réponses par parent
-        const repliesByParent = new Map();
-        replies.forEach(reply => {
-            if (!repliesByParent.has(reply.reply_to_id)) {
-                repliesByParent.set(reply.reply_to_id, []);
-            }
-            repliesByParent.get(reply.reply_to_id).push(reply);
-        });
-
-            mainMessages.forEach(msg => {
-                msg.reply_count = (repliesByParent.get(msg.id) || []).length;
-            });
-        
-        // Trier les réponses par date
-        for (let [key, value] of repliesByParent) {
-            value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        }
-        
-        // Générer le HTML avec les réponses imbriquées
-        content.innerHTML = mainMessages.map(msg => {
-            const repliesHtml = (repliesByParent.get(msg.id) || [])
-                .map(reply => renderStoryCard(reply, true))
-                .join('');
-            return renderStoryCard(msg, false) + repliesHtml;
-        }).join('');
-    } else {
-        // Pour l'onglet DOCUMENT, affichage simple
-        content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
-    }
-
-    if (filtered.length === 0 && activeTab === 'STORY') {
-        content.innerHTML = `
-            <div class="text-center py-20 opacity-50">
-                <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
-                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
-            </div>`;
-    }
-}
 
 
 
