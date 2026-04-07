@@ -1867,12 +1867,15 @@ async function performViewSwitch(viewName) {
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
                 await Visites.loadVisits(); 
                 break;
-            case "feed": 
+            case "feed":
+                // Nettoyer l'ancienne souscription Realtime
+                if (window.cleanupRealtime) window.cleanupRealtime();
+                
                 if (!AppState.currentPatient && userRole === "FAMILLE") {
                     window.switchView("patients");
                     return;
                 }
-                await Messages.loadFeed(); 
+                await Messages.loadFeed();
                 break;
             case "billing": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
