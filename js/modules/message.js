@@ -419,7 +419,12 @@ async function sendPhotoMessage() {
     const photoInput = document.getElementById('photo-input');
     const file = photoInput?.files?.[0];
     
-    if (!file) return;
+    if (!file) {
+        console.log("❌ Aucun fichier sélectionné");
+        return;
+    }
+    
+    console.log("📸 Fichier sélectionné:", file.name, file.size, file.type);
     
     // Vérifier la taille
     if (file.size > 5 * 1024 * 1024) {
@@ -439,28 +444,59 @@ async function sendPhotoMessage() {
         // Compression si nécessaire
         let fileToSend = file;
         if (file.size > 2 * 1024 * 1024) {
+            console.log("🔄 Compression de l'image...");
             fileToSend = await compressImage(file, 1024, 0.7);
+            console.log("✅ Image compressée:", fileToSend.size, "bytes");
         }
         
+        // ✅ CRÉATION CORRECTE DU FormData
         const formData = new FormData();
         formData.append('patient_id', AppState.currentPatient);
-        formData.append('photo', fileToSend);
+        formData.append('photo', fileToSend, fileToSend.name || 'photo.jpg');
+        
         if (currentReplyTo) {
             formData.append('reply_to_id', currentReplyTo);
+        }
+        
+        if (currentReplyToName) {
+            formData.append('caption', `Réponse à ${currentReplyToName}`);
+        }
+        
+        // ✅ AFFICHER LE CONTENU DU FormData POUR DEBUG
+        console.log("📤 Envoi du FormData:");
+        for (let pair of formData.entries()) {
+            console.log("   ", pair[0], pair[1] instanceof File ? `[Fichier: ${pair[1].name}, ${pair[1].size} bytes]` : pair[1]);
+        }
+        
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error("Token d'authentification manquant");
         }
         
         const response = await fetch(`${window.CONFIG.API_URL}/messages/send-photo`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                'Authorization': `Bearer ${token}`
+                // ⚠️ NE PAS mettre 'Content-Type' - le navigateur le fait automatiquement avec le boundary
             },
             body: formData
         });
         
+        console.log("📥 Réponse status:", response.status);
+        
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || "Erreur d'envoi");
+            let errorMessage;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || `Erreur ${response.status}`;
+            } catch (e) {
+                errorMessage = `Erreur serveur ${response.status}`;
+            }
+            throw new Error(errorMessage);
         }
+        
+        const result = await response.json();
+        console.log("✅ Réponse serveur:", result);
         
         // Réinitialiser
         photoInput.value = '';
@@ -476,8 +512,9 @@ async function sendPhotoMessage() {
         await loadFeed();
         
     } catch (err) {
+        console.error("❌ Erreur sendPhotoMessage:", err);
         Swal.close();
-        UI.error(err.message);
+        UI.error(err.message || "Erreur lors de l'envoi de la photo");
         photoInput.value = '';
     }
 }
