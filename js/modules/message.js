@@ -2,6 +2,137 @@ import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI, compressImage } from "../core/utils.js";
 
+
+
+// ============================================
+// 🟢 REALTIME - MESSAGES EN TEMPS RÉEL
+// ============================================
+
+/**
+ * Initialiser l'écoute des nouveaux messages pour le patient actuel
+ */
+function initRealtimeForCurrentPatient() {
+    if (!AppState.currentPatient) return;
+    
+    // Se désabonner de l'ancien patient
+    if (window.Realtime) {
+        window.Realtime.unsubscribe();
+        
+        // S'abonner au nouveau patient
+        window.Realtime.subscribe(AppState.currentPatient, (newMessage) => {
+            console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
+            
+            // Vérifier que ce n'est pas notre propre message
+            const currentUserId = localStorage.getItem("user_id");
+            if (newMessage.sender_id === currentUserId) {
+                console.log("📨 Message ignoré (c'est nous)");
+                return;
+            }
+            
+            // Vérifier que le message n'existe pas déjà
+            const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
+            if (exists) {
+                console.log("📨 Message déjà présent");
+                return;
+            }
+            
+            // Enrichir et ajouter le message
+            addNewMessageToFeed(newMessage);
+        });
+        
+        console.log("✅ [Realtime] Écoute activée pour le patient:", AppState.currentPatient);
+    }
+}
+
+/**
+ * Ajouter un nouveau message au feed sans recharger la page
+ */
+async function addNewMessageToFeed(newMessage) {
+    // Récupérer les infos de l'expéditeur
+    const senderInfo = await window.Realtime.fetchSenderInfo(newMessage.sender_id);
+    
+    // Enrichir le message
+    const enrichedMessage = {
+        id: newMessage.id,
+        content: newMessage.content,
+        is_photo: newMessage.is_photo,
+        photo_url: newMessage.photo_url,
+        reply_to_id: newMessage.reply_to_id,
+        reactions: newMessage.reactions || {},
+        created_at: newMessage.created_at,
+        sender_name: senderInfo.nom,
+        sender_role: senderInfo.role,
+        sender_photo: senderInfo.photo_url
+    };
+    
+    // Ajouter à AppState
+    if (!AppState.messages) AppState.messages = [];
+    AppState.messages.push(enrichedMessage);
+    
+    // Re-rendre le feed
+    renderFeed();
+    
+    // Notification sonore discrète
+    playNotificationBeep();
+    
+    // Faire vibrer (optionnel)
+    if (navigator.vibrate) navigator.vibrate(100);
+    
+    // Scroll vers le bas
+    scrollToBottom();
+}
+
+/**
+ * Bip de notification
+ */
+function playNotificationBeep() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 880;
+        gainNode.gain.value = 0.08;
+        oscillator.type = 'sine';
+        
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.2);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        setTimeout(() => audioContext.close(), 300);
+    } catch(e) {
+        // Silencieux si erreur
+    }
+}
+
+/**
+ * Scroll automatique vers le bas
+ */
+function scrollToBottom() {
+    setTimeout(() => {
+        const mainContent = document.querySelector('main');
+        if (mainContent) {
+            mainContent.scrollTo({
+                top: mainContent.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, 100);
+}
+
+/**
+ * Nettoyer Realtime (à appeler quand on quitte le feed)
+ */
+function cleanupRealtime() {
+    if (window.Realtime) {
+        window.Realtime.unsubscribe();
+        console.log("🧹 [Realtime] Nettoyé");
+    }
+}
+
 // État local pour gérer l'onglet actif
 let activeTab = 'STORY';
 let currentReplyTo = null;        // ✅ NOUVEAU : stocke l'ID du message auquel on répond
@@ -109,6 +240,7 @@ export async function loadFeed() {
     try {
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
+        initRealtimeForCurrentPatient();
         renderFeed();
     } catch (err) {
         console.error("Erreur Feed:", err);
@@ -532,6 +664,17 @@ async function sendPhotoMessage() {
 window.filterFeed = (type) => {
     UI.vibrate();
     activeTab = type;
+    
+    // Si on quitte l'onglet STORY, nettoyer Realtime
+    if (type !== 'STORY') {
+        cleanupRealtime();
+    } else {
+        // Si on revient à STORY, réinitialiser
+        if (AppState.currentPatient) {
+            initRealtimeForCurrentPatient();
+        }
+    }
+    
     renderFeed();
 };
 
