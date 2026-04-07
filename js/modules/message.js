@@ -1070,7 +1070,6 @@ window.filterFeed = (type) => {
     renderFeed();
 };
 
-
 window.sendQuickMessage = async () => {
     const input = document.getElementById('quick-msg');
     const content = input?.value?.trim();
@@ -1099,23 +1098,17 @@ window.sendQuickMessage = async () => {
             input.value = '';
             window.cancelReply();
             
-            // ✅ SOLUTION DIRECTE : forcer le rechargement des données
-            const freshData = await fetch(`${window.CONFIG.API_URL}/messages?patient_id=${AppState.currentPatient}`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            });
-            const newMessages = await freshData.json();
-            AppState.messages = newMessages;
+            // ✅ PLUS BESOIN : l'écouteur global va s'en occuper !
+            // Le refresh est automatique via l'événement app-data-updated
             
-            // ✅ Re-rendre le feed
-            renderFeed();
-            
-            console.log("✅ Feed rafraîchi avec", newMessages.length, "messages");
+            console.log("✅ Message envoyé, refresh automatique via écouteur");
         }
     } catch (err) {
         console.error(err);
         UI.error("Erreur lors de l'envoi du message");
     }
 };
+
 window.sendReaction = async (msgId, type) => {
     try {
         UI.vibrate();
