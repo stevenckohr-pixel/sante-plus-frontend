@@ -2672,133 +2672,74 @@ window.syncService = syncService;
 // ============================================================
 
 // ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT UNIVERSEL
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT UNIVERSEL (Version sans doublon)
 // ============================================================
+
+let lastRefreshTime = 0;
+const REFRESH_DEBOUNCE = 1000; // 1 seconde
 
 window.addEventListener('app-data-updated', async (event) => {
     const { endpoint, method } = event.detail;
+    const now = Date.now();
+    
+    // Éviter les rafraîchissements multiples dans un court laps de temps
+    if (now - lastRefreshTime < REFRESH_DEBOUNCE) {
+        console.log(`⏭️ Ignoré (trop rapide): ${endpoint}`);
+        return;
+    }
+    lastRefreshTime = now;
+    
     console.log(`📢 [Auto-Refresh] ${endpoint} (${method})`);
     
     const currentView = AppState?.currentView;
     
-    // Vider le cache pour toute modification
+    // Vider le cache une seule fois
     if (window.clearApiCache) window.clearApiCache();
     
-    // ========================================
-    // MESSAGES
-    // ========================================
-    if (endpoint.includes('/messages')) {
+    // Commandes
+    if (endpoint.includes('/commandes')) {
+        console.log(`📦 Rafraîchissement des commandes`);
+        if (window.loadCommandes) await window.loadCommandes();
+        if (currentView === 'commandes' && window.renderCommandes) {
+            // Juste re-rendre, pas recharger la vue complète
+            const data = await secureFetch('/commandes');
+            window.renderCommandes(data);
+        }
+    }
+    
+    // Messages
+    else if (endpoint.includes('/messages')) {
         if (currentView === 'feed' && window.renderFeed) {
             await window.renderFeed();
         }
     }
     
-    // ========================================
-    // COMMANDES
-    // ========================================
-    else if (endpoint.includes('/commandes')) {
-        if (window.loadCommandes) await window.loadCommandes();
-        if (currentView === 'commandes' && window.switchView) {
-            await window.switchView('commandes');
-        }
-    }
-    
-    // ========================================
-    // VISITES
-    // ========================================
+    // Visites
     else if (endpoint.includes('/visites')) {
         if (window.loadVisits) await window.loadVisits();
-        if (currentView === 'visits' && window.switchView) {
-            await window.switchView('visits');
+        if (currentView === 'visits' && window.renderVisits) {
+            const data = await secureFetch('/visites');
+            window.renderVisits(data);
         }
     }
     
-    // ========================================
-    // PATIENTS
-    // ========================================
+    // Patients
     else if (endpoint.includes('/patients')) {
         if (window.loadPatients) await window.loadPatients();
-        if (currentView === 'patients' && window.switchView) {
-            await window.switchView('patients');
+        if (currentView === 'patients' && window.renderPatients) {
+            const data = await secureFetch('/patients');
+            window.renderPatients(data);
         }
     }
     
-    // ========================================
-    // ASSIGNATIONS (RH)
-    // ========================================
+    // Assignations
     else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
         if (window.renderRHDashboard) await window.renderRHDashboard();
-        if (currentView === 'rh-dashboard' && window.switchView) {
-            await window.switchView('rh-dashboard');
-        }
     }
     
-    // ========================================
-    // FACTURATION
-    // ========================================
+    // Facturation
     else if (endpoint.includes('/billing')) {
         if (window.loadBilling) await window.loadBilling();
-        if (currentView === 'billing' && window.switchView) {
-            await window.switchView('billing');
-        }
-    }
-    
-    // ========================================
-    // AIDANTS
-    // ========================================
-    else if (endpoint.includes('/aidants')) {
-        if (window.loadAidants) await window.loadAidants();
-        if (currentView === 'aidants' && window.switchView) {
-            await window.switchView('aidants');
-        }
-    }
-    
-    // ========================================
-    // DASHBOARD / ADMIN
-    // ========================================
-    else if (endpoint.includes('/admin') || endpoint.includes('/dashboard')) {
-        if (window.loadAdminDashboard) await window.loadAdminDashboard();
-        if (currentView === 'dashboard' && window.switchView) {
-            await window.switchView('dashboard');
-        }
-    }
-    
-    // ========================================
-    // PROFIL
-    // ========================================
-    else if (endpoint.includes('/profile') || endpoint.includes('/auth/update')) {
-        if (window.renderProfilePage) await window.renderProfilePage();
-        if (currentView === 'profile' && window.switchView) {
-            await window.switchView('profile');
-        }
-    }
-    
-    // ========================================
-    // ABONNEMENT / SUBSCRIPTION
-    // ========================================
-    else if (endpoint.includes('/subscription')) {
-        if (window.renderSubscriptionPage) await window.renderSubscriptionPage();
-        if (currentView === 'subscription' && window.switchView) {
-            await window.switchView('subscription');
-        }
-    }
-    
-    // ========================================
-    // NOTIFICATIONS
-    // ========================================
-    else if (endpoint.includes('/notifications')) {
-        if (window.renderNotificationsPage) await window.renderNotificationsPage();
-        if (currentView === 'notifications' && window.switchView) {
-            await window.switchView('notifications');
-        }
-    }
-    
-    // ========================================
-    // FALLBACK : si aucune correspondance, recharger la vue actuelle
-    // ========================================
-    else if (currentView && window.switchView) {
-        console.log(`🔄 [Fallback] Rechargement de la vue: ${currentView}`);
-        await window.switchView(currentView);
     }
     
     // Mettre à jour le badge des notifications
