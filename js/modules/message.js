@@ -747,7 +747,7 @@ function renderStoryCard(msg, isReply = false) {
                 ` : ''}
             </div>
 
-            <!-- Contenu du message -->
+                                 <!-- Contenu du message -->
             ${imageUrl ? `
                 <div class="relative rounded-xl overflow-hidden shadow-lg border border-slate-100 mt-2">
                     <img src="${imageUrl}" class="w-full max-h-96 object-cover cursor-pointer" onclick="window.open('${imageUrl}')">
@@ -756,13 +756,13 @@ function renderStoryCard(msg, isReply = false) {
                     </div>
                     ${humeurBadge}
                 </div>
-            ` : content ?                 
-                `<div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2 break-words whitespace-normal overflow-hidden">
+            ` : content ? `
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2 break-words whitespace-normal overflow-hidden">
                     <i class="fa-solid fa-quote-left text-slate-200 text-lg mr-2 float-left"></i>
                     <span class="font-medium break-words">${escapeHtml(content)}</span>
-                </div>`
+                </div>
             ` : ''}
-
+            
 <!-- Réactions et interactions avec émoji picker -->
 <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
     <div class="flex items-center gap-2 flex-wrap">
