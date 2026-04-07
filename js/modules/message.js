@@ -255,6 +255,84 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
+
+
+/**
+ * 📎 Envoyer un document (PDF, DOC, etc.)
+ */
+async function sendDocumentMessage() {
+    const docInput = document.getElementById('document-input');
+    const file = docInput?.files?.[0];
+    
+    if (!file) return;
+    
+    // Vérifier la taille (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        UI.error("Document trop lourd (max 10MB)");
+        docInput.value = '';
+        return;
+    }
+    
+    // Types acceptés
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+        UI.error("Format non supporté. Utilisez PDF, DOC ou image");
+        docInput.value = '';
+        return;
+    }
+    
+    Swal.fire({
+        title: "Envoi du document...",
+        text: "Veuillez patienter",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    try {
+        const formData = new FormData();
+        formData.append('patient_id', AppState.currentPatient);
+        formData.append('document', file);
+        formData.append('type_media', 'DOCUMENT');
+        
+        if (currentReplyTo) {
+            formData.append('reply_to_id', currentReplyTo);
+        }
+        
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(`${window.CONFIG.API_URL}/messages/send-document`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur d'envoi");
+        }
+        
+        docInput.value = '';
+        window.cancelReply();
+        
+        Swal.fire({
+            icon: "success",
+            title: "Document envoyé",
+            timer: 1500,
+            showConfirmButton: false
+        });
+        
+        await loadFeed();
+        
+    } catch (err) {
+        console.error("❌ Erreur:", err);
+        Swal.close();
+        UI.error(err.message);
+        docInput.value = '';
+    }
+}
+
 /**
  * 📥 CHARGER LE JOURNAL DE SOINS
  */
@@ -303,19 +381,26 @@ export async function loadFeed() {
                 </div>
                 
                 <!-- Zone de saisie avec bouton photo -->
+                               <!-- Zone de saisie avec bouton photo ET bouton document -->
                 <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <button id="photo-btn" class="w-11 h-11 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition-all flex items-center justify-center">
+                    <div class="flex items-center gap-2">
+                        <button id="photo-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition-all flex items-center justify-center" title="Photo">
                             <i class="fa-solid fa-camera text-base"></i>
                         </button>
+                        
+                        <button id="document-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-all flex items-center justify-center" title="Joindre un document">
+                            <i class="fa-solid fa-paperclip text-base"></i>
+                        </button>
+                        
                         <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-100 transition-all" placeholder="Écrire un message à l'équipe...">
-                        <button id="send-btn" class="w-11 h-11 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                        
+                        <button id="send-btn" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
                             <i class="fa-solid fa-paper-plane text-xs"></i>
                         </button>
                     </div>
                     <input type="file" id="photo-input" accept="image/*" class="hidden">
+                    <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
                 </div>
-            </div>
 
             <!-- Contenu dynamique -->
             <div id="care-feed-content" class="space-y-8">
@@ -332,6 +417,14 @@ export async function loadFeed() {
     const photoBtn = document.getElementById('photo-btn');
     const photoInput = document.getElementById('photo-input');
     const sendBtn = document.getElementById('send-btn');
+    const documentBtn = document.getElementById('document-btn');
+    const documentInput = document.getElementById('document-input');
+    
+    if (documentBtn && documentInput) {
+        documentBtn.onclick = () => documentInput.click();
+        documentInput.onchange = () => sendDocumentMessage();
+    }
+    
     
     if (photoBtn && photoInput) {
         photoBtn.onclick = () => photoInput.click();
@@ -341,6 +434,8 @@ export async function loadFeed() {
     if (sendBtn) {
         sendBtn.onclick = () => window.sendQuickMessage();
     }
+
+    
 
     try {
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
@@ -436,6 +531,72 @@ export function renderFeed() {
             </div>`;
     }
 }
+
+
+
+
+/**
+ * 📄 CARTE DOCUMENT (améliorée)
+ */
+function renderDocCard(msg) {
+    // Déterminer l'icône selon le type de fichier
+    let iconClass = 'fa-file-pdf';
+    let iconColor = 'text-red-500';
+    let bgColor = 'bg-red-50';
+    
+    const filename = msg.titre_media || msg.content?.split('/').pop() || 'Document';
+    const extension = filename.split('.').pop()?.toLowerCase();
+    
+    if (extension === 'pdf') {
+        iconClass = 'fa-file-pdf';
+        iconColor = 'text-red-500';
+        bgColor = 'bg-red-50';
+    } else if (extension === 'doc' || extension === 'docx') {
+        iconClass = 'fa-file-word';
+        iconColor = 'text-blue-500';
+        bgColor = 'bg-blue-50';
+    } else if (extension === 'jpg' || extension === 'jpeg' || extension === 'png') {
+        iconClass = 'fa-file-image';
+        iconColor = 'text-green-500';
+        bgColor = 'bg-green-50';
+    } else {
+        iconClass = 'fa-file';
+        iconColor = 'text-slate-500';
+        bgColor = 'bg-slate-50';
+    }
+    
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
+    
+    // Pour les images, afficher un aperçu
+    const previewHtml = isImage ? `
+        <div class="mt-2">
+            <img src="${msg.content}" class="w-32 h-32 object-cover rounded-xl cursor-pointer" onclick="window.open('${msg.content}')">
+        </div>
+    ` : '';
+    
+    return `
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm group hover:border-emerald-200 transition-all animate-fadeIn">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl ${bgColor} ${iconColor} flex items-center justify-center text-xl">
+                        <i class="fa-solid ${iconClass}"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-black text-slate-800 text-xs uppercase">${escapeHtml(filename)}</h4>
+                        <p class="text-[9px] text-slate-400 font-bold mt-0.5">${UI.formatDate(msg.created_at)}</p>
+                        <p class="text-[9px] text-slate-500 mt-0.5">Envoyé par ${escapeHtml(msg.sender_name || 'Système')}</p>
+                    </div>
+                </div>
+                <button onclick="window.open('${msg.content}')" 
+                        class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center shadow-sm active:scale-95 transition-all">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </button>
+            </div>
+            ${previewHtml}
+        </div>
+    `;
+}
+
 
 /**
  * 📸 CARTE JOURNAL (Story) - MODIFIÉE pour ajouter le bouton "Répondre"
