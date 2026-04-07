@@ -32,6 +32,7 @@ import {
     hideLocalLoader, initLazyLoading, secureFetchWithCache 
 } from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
+import { syncService } from "./core/syncService.js";
 import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
@@ -2660,5 +2661,6 @@ window.addEventListener('appinstalled', () => {
 });
 
 
+window.syncService = syncService;
 
 initApp();
