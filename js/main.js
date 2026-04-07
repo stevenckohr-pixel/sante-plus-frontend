@@ -2661,6 +2661,87 @@ window.addEventListener('appinstalled', () => {
 });
 
 
+
+
+
 window.syncService = syncService;
+
+
+// ============================================================
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION AMÉLIORÉE)
+// ============================================================
+
+window.addEventListener('app-data-updated', (event) => {
+    const { endpoint, method } = event.detail;
+    console.log(`📢 [Auto-Refresh] Données mises à jour: ${endpoint} (${method})`);
+    
+    const currentView = AppState?.currentView;
+    
+    // Déterminer quelle vue rafraîchir selon l'endpoint
+    let viewToRefresh = null;
+    let refreshFunction = null;
+    
+    if (endpoint.includes('/messages')) {
+        viewToRefresh = 'feed';
+        refreshFunction = () => {
+            if (window.renderFeed) window.renderFeed();
+        };
+    } 
+    else if (endpoint.includes('/commandes')) {
+        viewToRefresh = 'commandes';
+        refreshFunction = () => {
+            if (window.loadCommandes) window.loadCommandes();
+        };
+    } 
+    else if (endpoint.includes('/visites')) {
+        viewToRefresh = 'visits';
+        refreshFunction = () => {
+            if (window.loadVisits) window.loadVisits();
+        };
+    } 
+    else if (endpoint.includes('/patients')) {
+        viewToRefresh = 'patients';
+        refreshFunction = () => {
+            if (window.loadPatients) window.loadPatients();
+        };
+    } 
+    else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
+        viewToRefresh = 'rh-dashboard';
+        refreshFunction = () => {
+            if (window.renderRHDashboard) window.renderRHDashboard();
+        };
+    } 
+    else if (endpoint.includes('/billing')) {
+        viewToRefresh = 'billing';
+        refreshFunction = () => {
+            if (window.loadBilling) window.loadBilling();
+        };
+    } 
+    else if (endpoint.includes('/auth/update') || endpoint.includes('/profile')) {
+        viewToRefresh = 'profile';
+        refreshFunction = () => {
+            if (window.renderProfilePage) window.renderProfilePage();
+        };
+    }
+    else if (endpoint.includes('/admin/validate') || endpoint.includes('/admin/pending')) {
+        viewToRefresh = 'dashboard';
+        refreshFunction = () => {
+            if (window.loadAdminDashboard) window.loadAdminDashboard();
+        };
+    }
+    
+    // Si la vue actuelle est celle qui doit être rafraîchie, on recharge
+    if (viewToRefresh && currentView === viewToRefresh && refreshFunction) {
+        console.log(`🔄 Rechargement de la vue: ${currentView}`);
+        refreshFunction();
+    } else if (viewToRefresh) {
+        console.log(`ℹ️ Vue ${viewToRefresh} modifiée mais non active (active: ${currentView})`);
+    }
+    
+    // Bonus : mettre à jour le badge des notifications
+    if (window.updateNotificationBadge) {
+        window.updateNotificationBadge();
+    }
+});
 
 initApp();
