@@ -2672,79 +2672,59 @@ window.syncService = syncService;
 // ============================================================
 
 // ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT UNIVERSEL (Version sans doublon)
+// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT UNIQUE
 // ============================================================
 
-let lastRefreshTime = 0;
-const REFRESH_DEBOUNCE = 1000; // 1 seconde
+let refreshInProgress = false;
 
 window.addEventListener('app-data-updated', async (event) => {
-    const { endpoint, method } = event.detail;
-    const now = Date.now();
-    
-    // Éviter les rafraîchissements multiples dans un court laps de temps
-    if (now - lastRefreshTime < REFRESH_DEBOUNCE) {
-        console.log(`⏭️ Ignoré (trop rapide): ${endpoint}`);
+    // Éviter les exécutions multiples en parallèle
+    if (refreshInProgress) {
+        console.log(`⏭️ Refresh déjà en cours, ignoré`);
         return;
     }
-    lastRefreshTime = now;
     
-    console.log(`📢 [Auto-Refresh] ${endpoint} (${method})`);
+    const { endpoint, method } = event.detail;
+    console.log(`📢 [Refresh] ${endpoint}`);
     
-    const currentView = AppState?.currentView;
+    refreshInProgress = true;
     
-    // Vider le cache une seule fois
-    if (window.clearApiCache) window.clearApiCache();
-    
-    // Commandes
-    if (endpoint.includes('/commandes')) {
-        console.log(`📦 Rafraîchissement des commandes`);
-        if (window.loadCommandes) await window.loadCommandes();
-        if (currentView === 'commandes' && window.renderCommandes) {
-            // Juste re-rendre, pas recharger la vue complète
-            const data = await secureFetch('/commandes');
-            window.renderCommandes(data);
+    try {
+        // Vider le cache UNE SEULE FOIS
+        if (window.clearApiCache) window.clearApiCache();
+        
+        const currentView = AppState?.currentView;
+        
+        // Recharger selon l'endpoint
+        if (endpoint.includes('/commandes')) {
+            if (window.loadCommandes) await window.loadCommandes();
+            if (currentView === 'commandes' && window.renderCommandes) {
+                const data = await secureFetch('/commandes');
+                window.renderCommandes(data);
+            }
         }
-    }
-    
-    // Messages
-    else if (endpoint.includes('/messages')) {
-        if (currentView === 'feed' && window.renderFeed) {
-            await window.renderFeed();
+        else if (endpoint.includes('/messages')) {
+            if (currentView === 'feed' && window.renderFeed) {
+                await window.renderFeed();
+            }
         }
-    }
-    
-    // Visites
-    else if (endpoint.includes('/visites')) {
-        if (window.loadVisits) await window.loadVisits();
-        if (currentView === 'visits' && window.renderVisits) {
-            const data = await secureFetch('/visites');
-            window.renderVisits(data);
+        else if (endpoint.includes('/visites')) {
+            if (window.loadVisits) await window.loadVisits();
         }
-    }
-    
-    // Patients
-    else if (endpoint.includes('/patients')) {
-        if (window.loadPatients) await window.loadPatients();
-        if (currentView === 'patients' && window.renderPatients) {
-            const data = await secureFetch('/patients');
-            window.renderPatients(data);
+        else if (endpoint.includes('/patients')) {
+            if (window.loadPatients) await window.loadPatients();
         }
-    }
-    
-    // Assignations
-    else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
-        if (window.renderRHDashboard) await window.renderRHDashboard();
-    }
-    
-    // Facturation
-    else if (endpoint.includes('/billing')) {
-        if (window.loadBilling) await window.loadBilling();
-    }
-    
-    // Mettre à jour le badge des notifications
-    if (window.updateNotificationBadge) {
-        window.updateNotificationBadge();
+        else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
+            if (window.renderRHDashboard) await window.renderRHDashboard();
+        }
+        else if (endpoint.includes('/billing')) {
+            if (window.loadBilling) await window.loadBilling();
+        }
+        
+    } catch (err) {
+        console.error("❌ Erreur refresh:", err);
+    } finally {
+        refreshInProgress = false;
     }
 });
 
