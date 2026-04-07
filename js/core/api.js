@@ -76,7 +76,7 @@ export async function secureFetch(endpoint, options = {}) {
         responseData = await response.json();
       }
 
-      // Vider le cache pour les méthodes non-GET (sans rechargement)
+      // Vider le cache pour les méthodes non-GET
       if (method !== 'GET') {
         apiCache.delete(endpoint);
         console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
@@ -84,6 +84,18 @@ export async function secureFetch(endpoint, options = {}) {
         localStorage.removeItem(`cache_/commandes`);
         localStorage.removeItem(`cache_/visites`);
         localStorage.removeItem(`cache_/patients`);
+        
+        // ✅ NOUVEAU : Déclencher l'événement de rafraîchissement
+        console.log(`📢 [api.js] Déclenchement refresh pour: ${endpoint}`);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('app-data-updated', { 
+            detail: { 
+              endpoint: endpoint,
+              method: method,
+              timestamp: Date.now()
+            } 
+          }));
+        }
       }
 
       return responseData;
