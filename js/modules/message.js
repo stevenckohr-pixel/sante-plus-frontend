@@ -144,54 +144,69 @@ let emojiPickerVisible = false;
 /**
  * 😊 Créer et afficher l'émoji picker pour un message
  */
+// Version SIMPLE qui fonctionne sans bibliothèque externe
 function showEmojiPicker(messageId, buttonElement) {
-    // Fermer l'ancien picker s'il existe
-    closeEmojiPicker();
+    // Fermer l'ancien picker
+    const oldPicker = document.getElementById('emoji-picker-container');
+    if (oldPicker) oldPicker.remove();
     
     currentEmojiMessageId = messageId;
     
-    // Créer le conteneur du picker
-    const pickerContainer = document.createElement('div');
-    pickerContainer.id = 'emoji-picker-container';
-    pickerContainer.style.cssText = `
+    // Liste des émojis (tous universels)
+    const emojis = ['😊', '❤️', '👍', '😂', '😢', '🎉', '😍', '🔥', '👏', '🙏'];
+    
+    // Créer le panneau
+    const panel = document.createElement('div');
+    panel.id = 'emoji-picker-container';
+    panel.style.cssText = `
         position: fixed;
-        z-index: 10000;
         background: white;
         border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-        border: 1px solid #e2e8f0;
+        padding: 10px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        z-index: 99999;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        max-width: 280px;
+        border: 1px solid #ddd;
     `;
     
-    // Positionner le picker près du bouton
+    // Positionner près du bouton
     const rect = buttonElement.getBoundingClientRect();
-    pickerContainer.style.bottom = `${window.innerHeight - rect.top + 10}px`;
-    pickerContainer.style.left = `${rect.left}px`;
+    panel.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+    panel.style.left = rect.left + 'px';
     
-    document.body.appendChild(pickerContainer);
-    
-    // Initialiser Emoji Mart
-    const picker = new window.EmojiMart.Picker({
-        data: async () => {
-            const response = await fetch('https://cdn.jsdelivr.net/npm/@emoji-mart/data@latest/sets/14/native.json');
-            return response.json();
-        },
-        onEmojiSelect: (emoji) => {
-            // Envoyer la réaction avec l'émoji sélectionné
-            sendEmojiReaction(currentEmojiMessageId, emoji.native);
-            closeEmojiPicker();
-        },
-        onClickOutside: () => closeEmojiPicker(),
-        autoFocus: true,
-        theme: 'light',
-        skin: 1,
-        set: 'native',
-        emojiSize: 24,
-        perLine: 8
+    // Ajouter les émojis
+    emojis.forEach(emoji => {
+        const btn = document.createElement('button');
+        btn.textContent = emoji;
+        btn.style.cssText = `
+            width: 44px;
+            height: 44px;
+            font-size: 24px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 12px;
+            cursor: pointer;
+        `;
+        btn.onclick = () => {
+            sendEmojiReaction(messageId, emoji);
+            panel.remove();
+        };
+        panel.appendChild(btn);
     });
     
-    pickerContainer.appendChild(picker);
-    emojiPickerVisible = true;
+    document.body.appendChild(panel);
 }
+
+// Fonction pour fermer (optionnelle, mais utile)
+document.addEventListener('click', function(e) {
+    const panel = document.getElementById('emoji-picker-container');
+    if (panel && !panel.contains(e.target) && !e.target.closest('[onclick*="showEmojiPicker"]')) {
+        panel.remove();
+    }
+});
 
 /**
  * Fermer l'émoji picker
