@@ -1087,20 +1087,15 @@ window.sendQuickMessage = async () => {
             body.reply_to_id = currentReplyTo;
         }
         
-        const res = await secureFetch('/messages/send', {
+        // ✅ UNIQUEMENT l'appel API, pas de refresh manuel
+        await secureFetch('/messages/send', {
             method: 'POST',
             body: JSON.stringify(body)
         });
         
-        if (res.status === "success" || res.ok) {
-            input.value = '';
-            window.cancelReply();
-            
-            // ✅ PLUS BESOIN : l'écouteur global va s'en occuper !
-            // Le refresh est automatique via l'événement app-data-updated
-            
-            console.log("✅ Message envoyé, refresh automatique via écouteur");
-        }
+        input.value = '';
+        window.cancelReply();
+        
     } catch (err) {
         console.error(err);
         UI.error("Erreur lors de l'envoi du message");
