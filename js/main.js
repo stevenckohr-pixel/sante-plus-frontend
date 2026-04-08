@@ -32,7 +32,7 @@ import {
     hideLocalLoader, initLazyLoading, secureFetchWithCache 
 } from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
-//import { syncService } from "./core/syncService.js";
+import { syncService } from "./core/syncService.js";
 import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
@@ -350,6 +350,7 @@ async function initApp() {
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
     preloadOnboardingImages();
+    syncService.init();
     
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
