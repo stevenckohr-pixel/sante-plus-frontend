@@ -197,6 +197,37 @@ const ONBOARDING_STEPS_BABY = [
 // Variable globale pour stocker les slides actuelles
 let ONBOARDING_STEPS = ONBOARDING_STEPS_GENERAL;
 
+
+
+
+/**
+ * 🖼️ PRÉCHARGER LES IMAGES PNG D'ONBOARDING
+ */
+function preloadOnboardingImages() {
+    const allSteps = [
+        ...ONBOARDING_STEPS_GENERAL,
+        ...ONBOARDING_STEPS_SENIOR,
+        ...ONBOARDING_STEPS_BABY
+    ];
+    
+    let loadedCount = 0;
+    const totalImages = allSteps.length;
+    
+    allSteps.forEach(step => {
+        const img = new Image();
+        img.onload = () => {
+            loadedCount++;
+            if (loadedCount === totalImages) {
+                console.log(`✅ ${totalImages} images d'onboarding préchargées`);
+            }
+        };
+        img.onerror = () => {
+            console.warn(`⚠️ Image manquante: ${step.image}`);
+        };
+        img.src = step.image;
+    });
+}
+
 // ============================================================
 // LOADER GLOBAL (ÉCRAN DE CHARGEMENT INITIAL)
 // ============================================================
@@ -318,6 +349,7 @@ async function initApp() {
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
+    preloadOnboardingImages();
     
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
