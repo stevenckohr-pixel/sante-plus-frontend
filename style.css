@@ -2795,3 +2795,37 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 .replies-container button:active {
     transform: scale(0.98);
 }
+
+
+
+
+/* Pull to refresh indicator */
+#pull-to-refresh {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #f0fdf4;
+    color: #10b981;
+    padding: 10px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+#pull-to-refresh.active {
+    transform: translateY(0);
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
