@@ -916,6 +916,11 @@ export async function openOrderModal() {
             timer: 2000,
             showConfirmButton: false
         });
+
+                    // ✅ FORCER LE RAFRAÎCHISSEMENT
+            window.dispatchEvent(new CustomEvent('app-data-updated', {
+                detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_created' }
+            }));
         
         if (typeof loadCommandes === 'function') {
             loadCommandes();
