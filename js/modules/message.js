@@ -1068,6 +1068,7 @@ window.filterFeed = (type) => {
     renderFeed();
 };
 
+
 window.sendQuickMessage = async () => {
     const input = document.getElementById('quick-msg');
     const content = input?.value?.trim();
@@ -1087,7 +1088,6 @@ window.sendQuickMessage = async () => {
             body.reply_to_id = currentReplyTo;
         }
         
-        // ✅ UNIQUEMENT l'appel API, pas de refresh manuel
         await secureFetch('/messages/send', {
             method: 'POST',
             body: JSON.stringify(body)
@@ -1095,6 +1095,13 @@ window.sendQuickMessage = async () => {
         
         input.value = '';
         window.cancelReply();
+        
+        // ✅ FORCER LE RAFRAÎCHISSEMENT IMMÉDIAT
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('app-data-updated', {
+                detail: { endpoint: '/messages', method: 'POST', resourceType: 'message_sent' }
+            }));
+        }, 100);
         
     } catch (err) {
         console.error(err);
