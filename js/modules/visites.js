@@ -101,6 +101,13 @@ export async function startVisit(patientId) {
         confirmButtonColor: "#0F172A",
         customClass: { popup: 'rounded-[2.5rem]' }
     });
+
+// ✅ FORCER LE RAFRAÎCHISSEMENT
+setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('app-data-updated', {
+        detail: { endpoint: '/visites/start', method: 'POST', resourceType: 'visit_started' }
+    }));
+}, 500);
   }
 }
 
