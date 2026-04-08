@@ -258,6 +258,12 @@ export async function submitEndVisit() {
             confirmButtonText: "RETOUR AU PLANNING",
             customClass: { popup: 'rounded-[3rem]' }
         });
+
+      // ✅ FORCER LE RAFRAÎCHISSEMENT
+      window.dispatchEvent(new CustomEvent('app-data-updated', {
+          detail: { endpoint: '/visites/end', method: 'POST', resourceType: 'visit_ended' }
+      }));
+      
         window.viewPatientFeed(AppState.currentPatient); 
         window.switchView("visits");
 
