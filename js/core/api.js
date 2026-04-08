@@ -76,27 +76,34 @@ export async function secureFetch(endpoint, options = {}) {
         responseData = await response.json();
       }
 
-      // Vider le cache pour les méthodes non-GET
-      if (method !== 'GET') {
-        apiCache.delete(endpoint);
-        console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+// Dans la fonction secureFetch, après une requête POST/PUT/DELETE
+
+if (method !== 'GET') {
+    apiCache.delete(endpoint);
+    console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+    
+    // ✅ DÉCLENCHER L'ÉVÉNEMENT DE RAFRAÎCHISSEMENT
+    if (typeof window !== 'undefined') {
+        // Déterminer le type de ressource
+        let resourceType = 'unknown';
+        if (endpoint.includes('/messages')) resourceType = 'message_sent';
+        else if (endpoint.includes('/commandes')) resourceType = 'commande_updated';
+        else if (endpoint.includes('/visites/start')) resourceType = 'visit_started';
+        else if (endpoint.includes('/visites/end')) resourceType = 'visit_ended';
+        else if (endpoint.includes('/visites')) resourceType = 'visites';
+        else if (endpoint.includes('/patients')) resourceType = 'patients';
+        else if (endpoint.includes('/planning')) resourceType = 'planning';
         
-        localStorage.removeItem(`cache_/commandes`);
-        localStorage.removeItem(`cache_/visites`);
-        localStorage.removeItem(`cache_/patients`);
-        
-        // ✅ NOUVEAU : Déclencher l'événement de rafraîchissement
-        console.log(`📢 [api.js] Déclenchement refresh pour: ${endpoint}`);
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('app-data-updated', { 
+        window.dispatchEvent(new CustomEvent('app-data-updated', { 
             detail: { 
-              endpoint: endpoint,
-              method: method,
-              timestamp: Date.now()
+                endpoint: endpoint,
+                method: method,
+                resourceType: resourceType,
+                timestamp: Date.now()
             } 
-          }));
-        }
-      }
+        }));
+    }
+}
 
       return responseData;
 
