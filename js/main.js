@@ -2748,4 +2748,71 @@ window.addEventListener('app-data-updated', async (event) => {
         refreshInProgress = false;
     }
 });
+
+
+
+/**
+ * 📱 PULL TO REFRESH (Mobile)
+ */
+function initPullToRefresh() {
+    let touchStartY = 0;
+    let isRefreshing = false;
+    const mainContent = document.querySelector('main');
+    
+    if (!mainContent) return;
+    
+    // Créer l'indicateur
+    let indicator = document.getElementById('pull-to-refresh');
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'pull-to-refresh';
+        indicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Tirer pour actualiser';
+        mainContent.insertBefore(indicator, mainContent.firstChild);
+    }
+    
+    mainContent.addEventListener('touchstart', (e) => {
+        if (mainContent.scrollTop === 0) {
+            touchStartY = e.touches[0].clientY;
+        }
+    });
+    
+    mainContent.addEventListener('touchmove', (e) => {
+        if (mainContent.scrollTop === 0 && !isRefreshing) {
+            const diff = e.touches[0].clientY - touchStartY;
+            if (diff > 60) {
+                indicator.classList.add('active');
+                indicator.innerHTML = '<i class="fa-solid fa-arrow-down fa-bounce"></i> Relâcher pour actualiser';
+            } else if (diff > 20) {
+                indicator.classList.add('active');
+                indicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Tirer pour actualiser';
+            } else {
+                indicator.classList.remove('active');
+            }
+        }
+    });
+    
+    mainContent.addEventListener('touchend', async (e) => {
+        if (indicator.classList.contains('active') && !isRefreshing) {
+            isRefreshing = true;
+            indicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Actualisation...';
+            
+            // Rafraîchir la vue courante
+            const currentView = AppState.currentView;
+            if (currentView && window.switchView) {
+                await window.switchView(currentView);
+            }
+            
+            setTimeout(() => {
+                indicator.classList.remove('active');
+                indicator.innerHTML = '<i class="fa-solid fa-arrow-down"></i> Tirer pour actualiser';
+                isRefreshing = false;
+                showToast("Données actualisées", "success", 1500);
+            }, 1000);
+        }
+    });
+}
+
+// Appeler dans initApp()
+initPullToRefresh();
+
 initApp();
