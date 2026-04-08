@@ -32,7 +32,7 @@ import {
     hideLocalLoader, initLazyLoading, secureFetchWithCache 
 } from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
-import { syncService } from "./core/syncService.js";
+//import { syncService } from "./core/syncService.js";
 import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
@@ -2690,7 +2690,7 @@ window.addEventListener('appinstalled', () => {
 
 
 
-window.syncService = syncService;
+//window.syncService = syncService;
 
 
 // ============================================================
@@ -2704,19 +2704,18 @@ window.syncService = syncService;
 let refreshInProgress = false;
 
 window.addEventListener('app-data-updated', async (event) => {
-    // Éviter les exécutions multiples en parallèle
     if (refreshInProgress) {
         console.log(`⏭️ Refresh déjà en cours, ignoré`);
         return;
     }
     
-    const { endpoint, method } = event.detail;
+    const { endpoint } = event.detail;
     console.log(`📢 [Refresh] ${endpoint}`);
     
     refreshInProgress = true;
     
     try {
-        // Vider le cache UNE SEULE FOIS
+        // Vider le cache
         if (window.clearApiCache) window.clearApiCache();
         
         const currentView = AppState?.currentView;
@@ -2724,10 +2723,6 @@ window.addEventListener('app-data-updated', async (event) => {
         // Recharger selon l'endpoint
         if (endpoint.includes('/commandes')) {
             if (window.loadCommandes) await window.loadCommandes();
-            if (currentView === 'commandes' && window.renderCommandes) {
-                const data = await secureFetch('/commandes');
-                window.renderCommandes(data);
-            }
         }
         else if (endpoint.includes('/messages')) {
             if (currentView === 'feed' && window.renderFeed) {
@@ -2753,5 +2748,4 @@ window.addEventListener('app-data-updated', async (event) => {
         refreshInProgress = false;
     }
 });
-
 initApp();
