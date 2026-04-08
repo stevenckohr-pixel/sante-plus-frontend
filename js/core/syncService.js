@@ -103,20 +103,21 @@ class SyncService {
     /**
      * Rafraîchir les messages (feed)
      */
-    async refreshMessages() {
-        if (!AppState.currentPatient) return;
-        
-        try {
-            const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, {}, true);
-            AppState.messages = data;
-            if (window.renderFeed) {
-                window.renderFeed();
-            }
-            console.log("✅ Messages rafraîchis");
-        } catch (err) {
-            console.error("❌ Erreur refreshMessages:", err);
+async refreshMessages() {
+    if (!AppState.currentPatient) return;
+    
+    try {
+        // Supprime le 3ème paramètre
+        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+        AppState.messages = data;
+        if (window.renderFeed) {
+            window.renderFeed();
         }
+        console.log("✅ Messages rafraîchis");
+    } catch (err) {
+        console.error("❌ Erreur refreshMessages:", err);
     }
+}
     
     /**
      * Forcer le rafraîchissement de la vue active
