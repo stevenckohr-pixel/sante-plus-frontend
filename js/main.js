@@ -77,129 +77,123 @@ let registrationData = {};           // Données d'inscription temporaires
 let currentStep = 1;                 // Étape actuelle du formulaire d'inscription
 let loaderTimeout = null;            // Timeout pour le loader global
 
-// ============================================================
-// DONNÉES DU TUTORIEL D'ACCUEIL (ONBOARDING)
-// ============================================================
+
 // ============================================================
 // ONBOARDING GÉNÉRAL (affiché si aucune catégorie n'est encore choisie)
 // ============================================================
+// ONBOARDING GÉNÉRAL (Senior / Par défaut)
 const ONBOARDING_STEPS_GENERAL = [
     {
         title: "👀 Suivez vos proches en temps réel",
         desc: "Chaque visite ou livraison est visible instantanément, avec l'heure, les actions réalisées et les observations.",
-        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/general-step1.png",
         accent: "border-emerald-500"
     },
     {
         title: "📸 Des preuves à chaque intervention",
         desc: "Photos, notes et comptes-rendus sont ajoutés après chaque passage pour vous rassurer en toute transparence.",
-        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/general-step2.png",
         accent: "border-blue-500"
     },
     {
         title: "📦 Deux offres, un seul objectif",
         desc: "👵 Aide aux seniors : accompagnement quotidien | 👶 Maman & Bébé : suivi avant et après la naissance.",
-        image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/general-step3.png",
         accent: "border-indigo-500"
     },
     {
         title: "💬 Agissez à distance",
         desc: "Envoyez un message ou faites une demande à tout moment, où que vous soyez.",
-        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/general-step4.png",
         accent: "border-amber-500"
     },
     {
         title: "🚀 Accédez au suivi",
         desc: "Consultez dès maintenant les dernières activités et gardez l'esprit tranquille.",
-        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/general-step5.png",
         accent: "border-emerald-600"
     }
 ];
 
-// ============================================================
 // ONBOARDING SENIOR / AIDE
-// ============================================================
 const ONBOARDING_STEPS_SENIOR = [
     {
         title: "🏠 Des visites à domicile suivies",
         desc: "Chaque passage de l'aidant est enregistré avec précision : heure d'arrivée et de départ.",
-        image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/senior-step1.png",
         accent: "border-emerald-500"
     },
     {
         title: "✅ Toutes les actions tracées",
         desc: "Aide quotidienne, prise de médicaments, accompagnement… tout est clairement indiqué.",
-        image: "https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/senior-step2.png",
         accent: "border-blue-500"
     },
     {
         title: "📸 Des preuves après chaque visite",
         desc: "Photos et notes sont ajoutées pour vous rassurer et garder une trace complète.",
-        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/senior-step3.png",
         accent: "border-indigo-500"
     },
     {
         title: "💊 Commandez les médicaments",
         desc: "Envoyez une demande et faites livrer les traitements directement à domicile.",
-        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/senior-step4.png",
         accent: "border-amber-500"
     },
     {
         title: "📞 Réagissez rapidement",
         desc: "Contactez le coordinateur ou demandez une intervention en quelques secondes.",
-        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/senior-step5.png",
         accent: "border-slate-700"
     },
     {
         title: "👀 Accédez au suivi",
         desc: "Consultez les dernières visites et restez informé en temps réel.",
-        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/senior-step6.png",
         accent: "border-emerald-600"
     }
 ];
 
-// ============================================================
 // ONBOARDING MAMAN & BÉBÉ
-// ============================================================
 const ONBOARDING_STEPS_BABY = [
     {
         title: "🤰 Un suivi de grossesse rassurant",
         desc: "Un professionnel vous accompagne à domicile : suivi de santé, bien-être et évolution de bébé.",
-        image: "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/maman-step1.png",
         accent: "border-rose-500"
     },
     {
         title: "👶 Un accompagnement après la naissance",
         desc: "Nous veillons sur vous et votre bébé : allaitement, sommeil, soins et conseils.",
-        image: "https://images.unsplash.com/photo-1504181592499-5b1a6f8b9b2a?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/maman-step2.png",
         accent: "border-pink-500"
     },
     {
         title: "📸 Des souvenirs à chaque visite",
         desc: "Recevez des photos et des nouvelles pour suivre l'évolution de votre enfant.",
-        image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/maman-step3.png",
         accent: "border-purple-500"
     },
     {
         title: "🍼 Commandez facilement",
         desc: "Couches, lait, vêtements… faites-vous livrer rapidement avec preuve à l'appui.",
-        image: "https://images.unsplash.com/photo-1544717304-6fdb4e2a0b5d?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/maman-step4.png",
         accent: "border-amber-500"
     },
     {
         title: "💬 Un suivi personnalisé",
         desc: "Posez vos questions et recevez des conseils adaptés à votre situation.",
-        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/maman-step5.png",
         accent: "border-emerald-500"
     },
     {
         title: "👀 Suivez votre bébé",
         desc: "Accédez au fil d'actualité et ne manquez aucun moment important.",
-        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=800",
+        image: "/sante-plus-frontend/assets/images/onboarding/maman-step6.png",
         accent: "border-rose-600"
     }
 ];
-
 // Variable globale pour stocker les slides actuelles
 let ONBOARDING_STEPS = ONBOARDING_STEPS_GENERAL;
 
