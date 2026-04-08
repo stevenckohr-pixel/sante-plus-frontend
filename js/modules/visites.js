@@ -89,8 +89,16 @@ export async function startVisit(patientId) {
       customClass: { popup: 'rounded-[2.5rem]' }
     });
 
+        // ✅ FORCER LE RAFRAÎCHISSEMENT
+    setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/visites/start', method: 'POST', resourceType: 'visit_started' }
+        }));
+    }, 500);
+
     // Rediriger vers la page de visite en cours
     window.switchView("visits");
+    
 
   } catch (err) {
     UI.vibrate("error");
@@ -102,12 +110,7 @@ export async function startVisit(patientId) {
         customClass: { popup: 'rounded-[2.5rem]' }
     });
 
-// ✅ FORCER LE RAFRAÎCHISSEMENT
-setTimeout(() => {
-    window.dispatchEvent(new CustomEvent('app-data-updated', {
-        detail: { endpoint: '/visites/start', method: 'POST', resourceType: 'visit_started' }
-    }));
-}, 500);
+
   }
 }
 
