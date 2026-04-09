@@ -109,8 +109,6 @@ export async function startVisit(patientId) {
         confirmButtonColor: "#0F172A",
         customClass: { popup: 'rounded-[2.5rem]' }
     });
-
-
   }
 }
 
