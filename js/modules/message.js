@@ -4,7 +4,9 @@
     import { syncService } from "../core/syncService.js";
     
     
-    
+        let unreadMessagesCount = 0;
+        let isUserAtBottom = true;
+        let newMessageBadge = null;
     
     // ============================================
     // 🟢 REALTIME - MESSAGES EN TEMPS RÉEL
@@ -49,40 +51,41 @@
     /**
      * Ajouter un nouveau message au feed sans recharger la page
      */
-    async function addNewMessageToFeed(newMessage) {
-        // Récupérer les infos de l'expéditeur
-        const senderInfo = await window.Realtime.fetchSenderInfo(newMessage.sender_id);
-        
-        // Enrichir le message
-        const enrichedMessage = {
-            id: newMessage.id,
-            content: newMessage.content,
-            is_photo: newMessage.is_photo,
-            photo_url: newMessage.photo_url,
-            reply_to_id: newMessage.reply_to_id,
-            reactions: newMessage.reactions || {},
-            created_at: newMessage.created_at,
-            sender_name: senderInfo.nom,
-            sender_role: senderInfo.role,
-            sender_photo: senderInfo.photo_url
-        };
-        
-        // Ajouter à AppState
-        if (!AppState.messages) AppState.messages = [];
-        AppState.messages.push(enrichedMessage);
-        
-        // Re-rendre le feed
+async function addNewMessageToFeed(newMessage) {
+    // Récupérer les infos de l'expéditeur
+    const senderInfo = await window.Realtime.fetchSenderInfo(newMessage.sender_id);
+    
+    // Enrichir le message
+    const enrichedMessage = {
+        id: newMessage.id,
+        content: newMessage.content,
+        is_photo: newMessage.is_photo,
+        photo_url: newMessage.photo_url,
+        reply_to_id: newMessage.reply_to_id,
+        reactions: newMessage.reactions || {},
+        created_at: newMessage.created_at,
+        sender_name: senderInfo.nom,
+        sender_role: senderInfo.role,
+        sender_photo: senderInfo.photo_url
+    };
+    
+    // Ajouter à AppState
+    if (!AppState.messages) AppState.messages = [];
+    AppState.messages.push(enrichedMessage);
+    
+    // ✅ Si l'utilisateur n'est pas en bas, afficher le badge
+    if (!isUserAtBottom) {
+        unreadMessagesCount++;
+        showNewMessageBadge();
+        // Ne pas scroller automatiquement
+    } else {
+        // Si en bas, re-rendre et scroller
         renderFeed();
-        
-        // Notification sonore discrète
-        playNotificationBeep();
-        
-        // Faire vibrer (optionnel)
-        if (navigator.vibrate) navigator.vibrate(100);
-        
-        // Scroll vers le bas
         scrollToBottom();
+        playNotificationBeep();
+        if (navigator.vibrate) navigator.vibrate(100);
     }
+}
     
     
    
@@ -560,6 +563,16 @@
             AppState.messages = data;
             initRealtimeForCurrentPatient();
             renderFeed();
+
+        // ✅ Initialiser la détection de scroll (attendre que le DOM soit prêt)
+        setTimeout(() => {
+            initScrollDetection();
+            isUserAtBottom = true;
+            hideNewMessageBadge();
+            unreadMessagesCount = 0;
+        }, 500);
+
+            
         } catch (err) {
             console.error("Erreur Feed:", err);
             const contentDiv = document.getElementById('care-feed-content');
@@ -1149,6 +1162,73 @@ window.appendMessagesToFeed = (newMessages) => {
     
     console.log(`✅ ${newMessages.length} nouveau(x) message(s) ajouté(s) sans flash`);
 };
+
+
+/**
+ * 🔔 Afficher le badge "Nouveau message"
+ */
+function showNewMessageBadge() {
+    // Créer le badge s'il n'existe pas
+    if (!newMessageBadge) {
+        newMessageBadge = document.createElement('div');
+        newMessageBadge.id = 'new-message-badge';
+        newMessageBadge.innerHTML = `
+            <div class="bg-emerald-500 text-white rounded-full px-4 py-2 shadow-lg flex items-center gap-2 cursor-pointer active:scale-95 transition-all">
+                <i class="fa-solid fa-message text-xs"></i>
+                <span class="text-xs font-black">Nouveau message</span>
+                <i class="fa-solid fa-arrow-down text-xs"></i>
+            </div>
+        `;
+        newMessageBadge.style.cssText = `
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateY(100px);
+            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        `;
+        newMessageBadge.onclick = () => {
+            scrollToBottom();
+            hideNewMessageBadge();
+        };
+        document.body.appendChild(newMessageBadge);
+    }
+    
+    // Afficher avec animation
+    setTimeout(() => {
+        if (newMessageBadge) {
+            newMessageBadge.style.transform = 'translateY(0)';
+        }
+    }, 100);
+}
+
+/**
+ * 🙈 Cacher le badge "Nouveau message"
+ */
+function hideNewMessageBadge() {
+    if (newMessageBadge) {
+        newMessageBadge.style.transform = 'translateY(100px)';
+    }
+}
+
+/**
+ * 📜 Détecter si l'utilisateur est en bas du scroll
+ */
+function initScrollDetection() {
+    const mainContent = document.querySelector('main');
+    if (!mainContent) return;
+    
+    mainContent.addEventListener('scroll', () => {
+        const isBottom = mainContent.scrollHeight - mainContent.scrollTop <= mainContent.clientHeight + 50;
+        isUserAtBottom = isBottom;
+        
+        if (isBottom) {
+            hideNewMessageBadge();
+            unreadMessagesCount = 0;
+        }
+    });
+}
+
     window.loadFeed = loadFeed;
     window.cleanupRealtime = cleanupRealtime;
     window.renderFeed = renderFeed;
