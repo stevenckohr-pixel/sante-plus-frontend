@@ -1159,6 +1159,12 @@ window.appendMessagesToFeed = (newMessages) => {
     const container = document.getElementById('care-feed-content');
     if (!container) return;
     
+    // ✅ Sauvegarder la position de scroll actuelle
+    const mainContent = document.querySelector('main');
+    const wasAtBottom = mainContent 
+        ? mainContent.scrollHeight - mainContent.scrollTop <= mainContent.clientHeight + 100
+        : false;
+    
     // Générer le HTML des nouveaux messages
     const newMessagesHtml = newMessages.map(msg => {
         if (activeTab === 'DOCUMENT') {
@@ -1171,10 +1177,12 @@ window.appendMessagesToFeed = (newMessages) => {
     // Ajouter à la fin du conteneur
     container.insertAdjacentHTML('beforeend', newMessagesHtml);
     
-    // Scroll vers le bas
-    scrollToBottom();
+    // ✅ Scroll uniquement si l'utilisateur était déjà en bas
+    if (wasAtBottom) {
+        scrollToBottom();
+    }
     
-    // Notification sonore
+    // Notification sonore (optionnel)
     playNotificationBeep();
     
     console.log(`✅ ${newMessages.length} nouveau(x) message(s) ajouté(s) sans flash`);
