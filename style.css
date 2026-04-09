@@ -2829,3 +2829,11 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 .fa-spin {
     animation: spin 1s linear infinite;
 }
+/* Transition fluide pour le feed */
+#care-feed-content {
+    transition: opacity 0.15s ease;
+}
+
+#care-feed-content.updating {
+    opacity: 0.6;
+}
