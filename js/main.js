@@ -2691,64 +2691,8 @@ window.addEventListener('appinstalled', () => {
 
 
 
-//window.syncService = syncService;
+window.syncService = syncService;
 
-
-// ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT AUTOMATIQUE (VERSION ROBUSTE)
-// ============================================================
-
-// ============================================================
-// 📡 ÉCOUTEUR DE RAFRAÎCHISSEMENT UNIQUE
-// ============================================================
-
-let refreshInProgress = false;
-
-window.addEventListener('app-data-updated', async (event) => {
-    if (refreshInProgress) {
-        console.log(`⏭️ Refresh déjà en cours, ignoré`);
-        return;
-    }
-    
-    const { endpoint } = event.detail;
-    console.log(`📢 [Refresh] ${endpoint}`);
-    
-    refreshInProgress = true;
-    
-    try {
-        // Vider le cache
-        if (window.clearApiCache) window.clearApiCache();
-        
-        const currentView = AppState?.currentView;
-        
-        // Recharger selon l'endpoint
-        if (endpoint.includes('/commandes')) {
-            if (window.loadCommandes) await window.loadCommandes();
-        }
-        else if (endpoint.includes('/messages')) {
-            if (currentView === 'feed' && window.renderFeed) {
-                await window.renderFeed();
-            }
-        }
-        else if (endpoint.includes('/visites')) {
-            if (window.loadVisits) await window.loadVisits();
-        }
-        else if (endpoint.includes('/patients')) {
-            if (window.loadPatients) await window.loadPatients();
-        }
-        else if (endpoint.includes('/assignments') || endpoint.includes('/planning')) {
-            if (window.renderRHDashboard) await window.renderRHDashboard();
-        }
-        else if (endpoint.includes('/billing')) {
-            if (window.loadBilling) await window.loadBilling();
-        }
-        
-    } catch (err) {
-        console.error("❌ Erreur refresh:", err);
-    } finally {
-        refreshInProgress = false;
-    }
-});
 
 
 
