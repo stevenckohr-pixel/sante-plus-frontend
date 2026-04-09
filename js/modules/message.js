@@ -1152,6 +1152,33 @@
         }
     });
 
+/**
+ * Ajouter des messages au feed sans re-rendu complet
+ */
+window.appendMessagesToFeed = (newMessages) => {
+    const container = document.getElementById('care-feed-content');
+    if (!container) return;
+    
+    // Générer le HTML des nouveaux messages
+    const newMessagesHtml = newMessages.map(msg => {
+        if (activeTab === 'DOCUMENT') {
+            return renderDocCard(msg);
+        } else {
+            return renderStoryCard(msg, false);
+        }
+    }).join('');
+    
+    // Ajouter à la fin du conteneur
+    container.insertAdjacentHTML('beforeend', newMessagesHtml);
+    
+    // Scroll vers le bas
+    scrollToBottom();
+    
+    // Notification sonore
+    playNotificationBeep();
+    
+    console.log(`✅ ${newMessages.length} nouveau(x) message(s) ajouté(s) sans flash`);
+};
     window.loadFeed = loadFeed;
     window.cleanupRealtime = cleanupRealtime;
     window.renderFeed = renderFeed;
