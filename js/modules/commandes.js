@@ -342,6 +342,11 @@ window.assignCommand = async (commandeId) => {
         });
         
         Swal.fire("Succès", "Commande assignée à l'aidant", "success");
+        
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
+        }));
+        
         loadCommandes();
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
@@ -370,6 +375,11 @@ window.acceptCommand = async (commandeId) => {
         });
         
         Swal.fire("Succès", "Commande prise en charge", "success");
+
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
+        }));
+        
         loadCommandes();
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
@@ -398,6 +408,10 @@ window.validateDelivery = async (commandeId) => {
         });
         
         Swal.fire("Succès", "Livraison validée", "success");
+
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
+        }));
         loadCommandes();
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
@@ -598,8 +612,14 @@ export async function markAsDelivered(commandeId) {
             timer: 2000,
             showConfirmButton: false,
         });
+
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
+        }));
         
         loadCommandes();
+
+        
         
     } catch (err) {
         console.error("❌ Erreur:", err);
@@ -1099,7 +1119,10 @@ window.deliverCommand = async (commandeId) => {
             timer: 2000, 
             showConfirmButton: false 
         });
-        
+
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
+        }));
         // Recharger la liste des commandes
         if (typeof loadCommandes === 'function') {
             loadCommandes();
