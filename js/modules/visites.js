@@ -70,6 +70,34 @@ export async function startVisit(patientId) {
     localStorage.setItem("active_visit_id", data.visite_id);
     localStorage.setItem("active_patient_id", patientId);
 
+    //----------------------------
+    //------------------------------
+
+    try {
+    const { data: patient } = await supabase
+        .from("patients")
+        .select("famille_user_id, nom_complet")
+        .eq("id", patientId)
+        .single();
+    
+    if (patient && patient.famille_user_id) {
+        // Notification push
+        await fetch(`${CONFIG.API_URL}/notifications/send`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                userId: patient.famille_user_id,
+                title: "🔔 Début d'intervention",
+                message: `L'aidant est arrivé au domicile de ${patient.nom_complet}`,
+                type: "visit",
+                url: "/#feed"
+            })
+        });
+    }
+} catch (err) {
+    console.warn("Erreur notification famille:", err);
+}
+
     // 4. LANCEMENT DU TRACKER GPS
     startBackgroundTracking(data.visite_id);
 
@@ -260,6 +288,33 @@ export async function submitEndVisit() {
             customClass: { popup: 'rounded-[3rem]' }
         });
 
+
+          // ✅ APRÈS AVOIR CRÉÉ LE MESSAGE DANS LE FEED
+    // Envoyer une notification à la famille
+    try {
+        const { data: patient } = await supabase
+            .from("patients")
+            .select("famille_user_id, nom_complet")
+            .eq("id", visite.patient_id)
+            .single();
+        
+              if (patient && patient.famille_user_id) {
+                  await fetch(`${CONFIG.API_URL}/notifications/send`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                          userId: patient.famille_user_id,
+                          title: "📋 Nouveau rapport de visite",
+                          message: `Le rapport de visite pour ${patient.nom_complet} est disponible`,
+                          type: "visit",
+                          url: "/#feed"
+                      })
+                  });
+              }
+          } catch (err) {
+              console.warn("Erreur notification:", err);
+          }
+      
       // ✅ FORCER LE RAFRAÎCHISSEMENT
       window.dispatchEvent(new CustomEvent('app-data-updated', {
           detail: { endpoint: '/visites/end', method: 'POST', resourceType: 'visit_ended' }
