@@ -92,6 +92,8 @@
         const btnDoc = document.getElementById('tab-doc');
     
         if (!content) return;
+        content.classList.add('updating');
+
     
         const activeClass = "bg-white text-slate-900 shadow-sm border border-slate-200/50";
         const inactiveClass = "text-slate-400 hover:text-slate-600";
@@ -170,6 +172,11 @@
                     <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
                 </div>`;
         }
+
+    setTimeout(() => {
+        content.classList.remove('updating');
+    }, 50);
+        
     }
     
     
