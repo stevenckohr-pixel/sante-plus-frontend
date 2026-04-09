@@ -163,6 +163,39 @@ function subscribeToVisites(callback) {
     return initVisitesChannel();
 }
 
+
+
+// Canal pour les commandes
+let commandesChannel = null;
+let commandesCallback = null;
+
+function initCommandesChannel() {
+    const client = initSupabaseClient();
+    if (!client) return null;
+    
+    if (commandesChannel) return commandesChannel;
+    
+    commandesChannel = client.channel('commandes-updates');
+    commandesChannel.on('broadcast', { event: 'commande_updated' }, (payload) => {
+        console.log("🔄 [Realtime] Commande updated:", payload);
+        if (commandesCallback) {
+            commandesCallback(payload.payload);
+        }
+    });
+    commandesChannel.subscribe();
+    
+    return commandesChannel;
+}
+
+function subscribeToCommandes(callback) {
+    commandesCallback = callback;
+    return initCommandesChannel();
+}
+
+// Exposer
+window.Realtime.subscribeToCommandes = subscribeToCommandes;
+
+
 // Exposer les fonctions globalement
 window.Realtime = {
     initClient: initSupabaseClient,
