@@ -313,6 +313,11 @@ window.takeCommand = async (commandeId) => {
         });
         
         Swal.fire("Succès", "Commande prise en charge. Vous pouvez maintenant la livrer.", "success");
+    
+        window.dispatchEvent(new CustomEvent('app-data-updated', {
+            detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
+        }));
+        
         loadCommandes(); // Recharger la liste
     } catch (err) {
         Swal.fire("Erreur", err.message, "error");
