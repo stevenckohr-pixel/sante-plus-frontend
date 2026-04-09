@@ -41,17 +41,20 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
+  // ✅ Ignorer les requêtes non-GET
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
   
+  // ✅ Pour les appels API
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
+          // ✅ CLONER LA RÉPONSE AVANT DE LA LIRE
+          const responseToCache = response.clone();
           if (response && response.status === 200) {
-            const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
               cache.put(event.request, responseToCache);
             });
@@ -63,14 +66,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // ✅ Pour les images
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
         if (cached) return cached;
         return fetch(event.request).then(network => {
           if (network && network.status === 200) {
+            // ✅ CLONER AVANT DE METTRE EN CACHE
+            const responseToCache = network.clone();
             caches.open(IMAGE_CACHE).then(cache => {
-              cache.put(event.request, network.clone());
+              cache.put(event.request, responseToCache);
             });
           }
           return network;
@@ -80,8 +86,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // ✅ Pour tout le reste (stratégie stale-while-revalidate)
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        // ✅ CLONER AVANT DE METTRE EN CACHE
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(STATIC_CACHE).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      }).catch(() => {
+        // En cas d'erreur réseau, retourner le cache même si vide
+        return cached;
+      });
+      
+      return cached || fetchPromise;
+    })
   );
 });
 
