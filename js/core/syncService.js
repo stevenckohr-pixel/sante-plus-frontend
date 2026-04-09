@@ -106,15 +106,15 @@ async refreshMessages() {
     if (!AppState.currentPatient) return;
     
     try {
+        // Recharger les données
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
         
-        // ✅ Utiliser window.renderFeed (maintenant disponible)
-        if (typeof window.renderFeed === 'function') {
-            window.renderFeed();
-            console.log("✅ Feed re-rendu après refresh");
-        } else {
-            console.warn("⚠️ window.renderFeed n'est pas une fonction");
+        // ✅ FORCER LE RE-RENDU COMPLET
+        if (typeof window.loadFeed === 'function') {
+            await window.loadFeed();  // Recharge toute la vue
+        } else if (typeof window.renderFeed === 'function') {
+            window.renderFeed();       // Ou seulement le rendu
         }
         
         console.log("✅ Messages rafraîchis");
