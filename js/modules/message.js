@@ -457,136 +457,146 @@ async function addNewMessageToFeed(newMessage) {
     /**
      * 📥 CHARGER LE JOURNAL DE SOINS
      */
-    export async function loadFeed() {
-        const container = document.getElementById('view-container');
-        if (!container) return;
-    
-        if (!AppState.currentPatient) {
-            return window.switchView('patients');
-        }
-    
-        container.innerHTML = `
-            <div class="animate-fadeIn pb-32">
-                <!-- Header avec Retour -->
-                <div class="flex items-center gap-4 mb-8">
-                    <button onclick="window.switchView('patients')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <div>
-                        <h3 class="font-black text-2xl text-slate-800 tracking-tight">Suivi en Direct</h3>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Dossier Patient : #${AppState.currentPatient?.substring(0, 4) || '0000'}</p>
+
+export async function loadFeed() {
+    const container = document.getElementById('view-container');
+    if (!container) return;
+
+    if (!AppState.currentPatient) {
+        return window.switchView('patients');
+    }
+
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-32">
+            <!-- Header avec Retour -->
+            <div class="flex items-center gap-4 mb-8">
+                <button onclick="window.switchView('patients')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Suivi en Direct</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Dossier Patient : #${AppState.currentPatient?.substring(0, 4) || '0000'}</p>
+                </div>
+            </div>
+
+            <!-- Switcher de vues -->
+            <div class="bg-slate-100/50 p-1.5 rounded-2xl flex items-center gap-1 mb-8 max-w-md mx-auto border border-slate-200/30">
+                <button onclick="window.filterFeed('STORY')" id="tab-story" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all">
+                    Journal de Vie
+                </button>
+                <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all">
+                    Pièces Jointes
+                </button>
+            </div>
+
+            <!-- Zone de saisie rapide -->
+            <div id="input-area" class="mb-8">
+                <!-- Indicateur de réponse -->
+                <div id="reply-indicator" class="hidden mb-3 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-reply-all text-amber-500 text-sm"></i>
+                        <span class="text-xs font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
                     </div>
-                </div>
-    
-                <!-- Switcher de vues -->
-                <div class="bg-slate-100/50 p-1.5 rounded-2xl flex items-center gap-1 mb-8 max-w-md mx-auto border border-slate-200/30">
-                    <button onclick="window.filterFeed('STORY')" id="tab-story" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all">
-                        Journal de Vie
-                    </button>
-                    <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all">
-                        Pièces Jointes
+                    <button onclick="window.cancelReply()" class="text-amber-500 hover:text-amber-700">
+                        <i class="fa-solid fa-times"></i>
                     </button>
                 </div>
-    
-                <!-- Zone de saisie rapide (MODIFIÉE) -->
-                <div id="input-area" class="mb-8">
-                    <!-- Indicateur de réponse (NOUVEAU) -->
-                    <div id="reply-indicator" class="hidden mb-3 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-reply-all text-amber-500 text-sm"></i>
-                            <span class="text-xs font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
-                        </div>
-                        <button onclick="window.cancelReply()" class="text-amber-500 hover:text-amber-700">
-                            <i class="fa-solid fa-times"></i>
+                
+                <!-- Zone de saisie avec boutons -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <button id="photo-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition-all flex items-center justify-center" title="Photo">
+                            <i class="fa-solid fa-camera text-base"></i>
+                        </button>
+                        
+                        <button id="document-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-all flex items-center justify-center" title="Joindre un document">
+                            <i class="fa-solid fa-paperclip text-base"></i>
+                        </button>
+                        
+                        <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-100 transition-all" placeholder="Écrire un message à l'équipe...">
+                        
+                        <button id="send-btn" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                            <i class="fa-solid fa-paper-plane text-xs"></i>
                         </button>
                     </div>
-                    
-                    <!-- Zone de saisie avec bouton photo -->
-                                   <!-- Zone de saisie avec bouton photo ET bouton document -->
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <button id="photo-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition-all flex items-center justify-center" title="Photo">
-                                <i class="fa-solid fa-camera text-base"></i>
-                            </button>
-                            
-                            <button id="document-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-all flex items-center justify-center" title="Joindre un document">
-                                <i class="fa-solid fa-paperclip text-base"></i>
-                            </button>
-                            
-                            <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-100 transition-all" placeholder="Écrire un message à l'équipe...">
-                            
-                            <button id="send-btn" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                                <i class="fa-solid fa-paper-plane text-xs"></i>
-                            </button>
-                        </div>
-                        <input type="file" id="photo-input" accept="image/*" class="hidden">
-                        <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
-                    </div>
-    
-                <!-- Contenu dynamique -->
-                <div id="care-feed-content" class="space-y-8">
-                    <div class="flex justify-center py-20">
-                        <div class="relative">
-                            <div class="w-10 h-10 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                        </div>
+                    <input type="file" id="photo-input" accept="image/*" class="hidden">
+                    <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
+                </div>
+            </div>
+
+            <!-- Contenu dynamique -->
+            <div id="care-feed-content" class="space-y-8">
+                <div class="flex justify-center py-20">
+                    <div class="relative">
+                        <div class="w-10 h-10 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
                     </div>
                 </div>
             </div>
-        `;
-    
-        // ✅ NOUVEAU : Brancher les événements
-        const photoBtn = document.getElementById('photo-btn');
-        const photoInput = document.getElementById('photo-input');
-        const sendBtn = document.getElementById('send-btn');
-        const documentBtn = document.getElementById('document-btn');
-        const documentInput = document.getElementById('document-input');
-        
-        if (documentBtn && documentInput) {
-            documentBtn.onclick = () => documentInput.click();
-            documentInput.onchange = () => sendDocumentMessage();
-        }
-        
-        
-        if (photoBtn && photoInput) {
-            photoBtn.onclick = () => photoInput.click();
-            photoInput.onchange = () => sendPhotoMessage();
-        }
-        
-        if (sendBtn) {
-            sendBtn.onclick = () => window.sendQuickMessage();
-        }
-    
-        cleanupRealtime();
-    
-        try {
-            const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-            AppState.messages = data;
-            initRealtimeForCurrentPatient();
-            renderFeed();
+        </div>
+    `;
 
-        // ✅ Initialiser la détection de scroll (attendre que le DOM soit prêt)
+    // Brancher les événements
+    const photoBtn = document.getElementById('photo-btn');
+    const photoInput = document.getElementById('photo-input');
+    const sendBtn = document.getElementById('send-btn');
+    const documentBtn = document.getElementById('document-btn');
+    const documentInput = document.getElementById('document-input');
+    
+    if (documentBtn && documentInput) {
+        documentBtn.onclick = () => documentInput.click();
+        documentInput.onchange = () => sendDocumentMessage();
+    }
+    
+    if (photoBtn && photoInput) {
+        photoBtn.onclick = () => photoInput.click();
+        photoInput.onchange = () => sendPhotoMessage();
+    }
+    
+    if (sendBtn) {
+        sendBtn.onclick = () => window.sendQuickMessage();
+    }
+
+    cleanupRealtime();
+
+    try {
+        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+        AppState.messages = data;
+        initRealtimeForCurrentPatient();
+        renderFeed();
+
+        // ✅ Marquer les messages comme lus
+        const now = new Date().toISOString();
+        localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
+        
+        // ✅ Réinitialiser le compteur de messages non lus
+        unreadMessagesCount = 0;
+        hideNewMessageBadge();
+
+        // ✅ Initialiser la détection de scroll
         setTimeout(() => {
             initScrollDetection();
             isUserAtBottom = true;
-            hideNewMessageBadge();
-            unreadMessagesCount = 0;
         }, 500);
+        
+        // ✅ Rafraîchir les badges du menu
+        if (typeof window.refreshMenuBadges === 'function') {
+            setTimeout(() => window.refreshMenuBadges(), 500);
+        }
 
-            
-        } catch (err) {
-            console.error("Erreur Feed:", err);
-            const contentDiv = document.getElementById('care-feed-content');
-            if (contentDiv) {
-                contentDiv.innerHTML = `
-                    <div class="text-center py-20">
-                        <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
-                        <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
-                        <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
-                    </div>
-                `;
-            }
+    } catch (err) {
+        console.error("Erreur Feed:", err);
+        const contentDiv = document.getElementById('care-feed-content');
+        if (contentDiv) {
+            contentDiv.innerHTML = `
+                <div class="text-center py-20">
+                    <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                    <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                    <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+                </div>
+            `;
         }
     }
+}
     
     /**
      * 🎨 RENDU FILTRÉ (MODIFIÉ pour organiser les réponses en cascade)
@@ -1168,6 +1178,13 @@ window.appendMessagesToFeed = (newMessages) => {
  * 🔔 Afficher le badge "Nouveau message"
  */
 function showNewMessageBadge() {
+    // ✅ Vérifier qu'on est bien dans la vue feed
+    const currentView = AppState?.currentView;
+    if (currentView !== 'feed') {
+        console.log("📌 Pas dans le feed, badge ignoré");
+        return;
+    }
+    
     // Créer le badge s'il n'existe pas
     if (!newMessageBadge) {
         newMessageBadge = document.createElement('div');
@@ -1201,7 +1218,6 @@ function showNewMessageBadge() {
         }
     }, 100);
 }
-
 /**
  * 🙈 Cacher le badge "Nouveau message"
  */
