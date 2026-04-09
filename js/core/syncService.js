@@ -106,18 +106,16 @@ async refreshMessages() {
     if (!AppState.currentPatient) return;
     
     try {
-        // Recharger les données
+        // Recharger les données depuis le serveur
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
         
-        // ✅ FORCER LE RE-RENDU COMPLET
-        if (typeof window.loadFeed === 'function') {
-            await window.loadFeed();  // Recharge toute la vue
-        } else if (typeof window.renderFeed === 'function') {
-            window.renderFeed();       // Ou seulement le rendu
+        // ✅ Rendre UNIQUEMENT le contenu, pas la page entière
+        if (typeof window.renderFeed === 'function') {
+            window.renderFeed();
+            console.log("✅ Feed mis à jour sans flash");
         }
         
-        console.log("✅ Messages rafraîchis");
     } catch (err) {
         console.error("❌ Erreur refreshMessages:", err);
     }
