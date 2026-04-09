@@ -1144,6 +1144,9 @@
             closeEmojiPicker();
         }
     });
-    
+
+    window.loadFeed = loadFeed;
+    window.cleanupRealtime = cleanupRealtime;
+    window.renderFeed = renderFeed;
     // ✅ Exporter la fonction cancelReply pour qu'elle soit accessible
     window.cancelReply = window.cancelReply || cancelReply;
