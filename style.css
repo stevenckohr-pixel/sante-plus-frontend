@@ -2843,3 +2843,35 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 .border-l-3 {
     border-left-width: 3px;
 }
+
+
+
+
+
+
+
+
+/* Badge sur les tuiles du menu */
+.menu-badge {
+    animation: badgePop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+    z-index: 10;
+}
+
+@keyframes badgePop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    80% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Version Maman */
+body.maman-mode .menu-badge.bg-rose-500 {
+    background: #DB2777 !important;
+}
