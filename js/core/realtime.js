@@ -119,3 +119,55 @@ window.Realtime = {
     fetchSenderInfo: fetchSenderInfoRealtime,
     isActive: isRealtimeActive
 };
+
+
+
+
+/**
+ * 📡 S'abonner aux changements de statut des visites
+ * @param {Function} callback - Fonction appelée à chaque changement
+ * @returns {Function} Fonction pour se désabonner
+ */
+function subscribeToVisites(callback) {
+    const client = initSupabaseClient();
+    if (!client) {
+        console.error("❌ [Realtime] Impossible d'initialiser le client");
+        return () => {};
+    }
+    
+    console.log("📡 [Realtime] Abonnement aux changements de visites...");
+    
+    const channel = client.channel('visites-channel');
+    
+    channel
+        .on('postgres_changes', {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'visites'
+        }, (payload) => {
+            console.log("🔄 [Realtime] Changement visite détecté:", payload);
+            if (callback) {
+                callback({
+                    visite_id: payload.new.id,
+                    patient_id: payload.new.patient_id,
+                    statut: payload.new.statut,
+                    old_statut: payload.old?.statut,
+                    photo_url: payload.new.photo_url,
+                    updated_at: payload.new.updated_at
+                });
+            }
+        })
+        .subscribe((status) => {
+            console.log(`📡 [Realtime] Statut abonnement visites: ${status}`);
+        });
+    
+    // Retourner une fonction pour se désabonner
+    return () => {
+        console.log("🔌 [Realtime] Désabonnement des visites");
+        channel.unsubscribe();
+    };
+}
+
+// Exposer la fonction globalement
+window.Realtime = window.Realtime || {};
+window.Realtime.subscribeToVisites = subscribeToVisites;
