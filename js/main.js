@@ -1242,6 +1242,8 @@ function renderAuthView(mode = 'login', stepSource = 1) {
 // ============================================================
 // HUB DE NAVIGATION MOBILE
 // ============================================================
+
+
 function renderMobileHub() {
     const userRole = localStorage.getItem("user_role");
     const userName = localStorage.getItem("user_name");
@@ -1249,104 +1251,13 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // ✅ État des compteurs (initialisé à 0)
-    let counters = {
-        messages: 0,
-        commandes: 0,
-        visites: 0
-    };
-    
-    // ✅ Fonction pour rafraîchir les badges
-    async function refreshCounters() {
-        try {
-            // Messages non lus (pour la famille)
-            if (userRole === "FAMILLE" && AppState.currentPatient) {
-                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`) || new Date().toISOString();
-                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-                counters.messages = messages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-            } else if (userRole === "AIDANT") {
-                // Pour l'aidant, compter les messages récents (optionnel)
-                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-                counters.messages = messages.filter(m => !m.read).length || 0;
-            }
-            
-            // Commandes en attente
-            const commandes = await secureFetch("/commandes");
-            if (userRole === "COORDINATEUR") {
-                counters.commandes = commandes.filter(c => c.statut === "Livrée").length;
-            } else if (userRole === "AIDANT") {
-                counters.commandes = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
-            } else if (userRole === "FAMILLE") {
-                counters.commandes = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
-            }
-            
-            // Visites à valider (pour coordinateur)
-            if (userRole === "COORDINATEUR") {
-                const visites = await secureFetch("/visites");
-                counters.visites = visites.filter(v => v.statut === "En attente").length;
-            }
-            
-            // Mettre à jour l'affichage
-            updateMenuBadgesUI(counters);
-            
-        } catch (err) {
-            console.error("Erreur chargement compteurs:", err);
-        }
-    }
-    
-    // ✅ Fonction pour mettre à jour l'UI des badges
-    function updateMenuBadgesUI(counters) {
-        // Mettre à jour le badge des messages dans le header
-        const notificationBadge = document.getElementById('notification-badge');
-        if (notificationBadge) {
-            if (counters.messages > 0) {
-                notificationBadge.style.display = 'flex';
-                notificationBadge.textContent = counters.messages > 9 ? '9+' : counters.messages;
-            } else {
-                notificationBadge.style.display = 'none';
-            }
-        }
-        
-        // Mettre à jour les badges dans les tuiles du menu
-        const feedTile = document.querySelector('.menu-tile[data-menu="feed"] .absolute');
-        const commandesTile = document.querySelector('.menu-tile[data-menu="commandes"] .absolute');
-        const visitsTile = document.querySelector('.menu-tile[data-menu="visits"] .absolute');
-        
-        if (feedTile) {
-            if (counters.messages > 0) {
-                feedTile.style.display = 'flex';
-                feedTile.textContent = counters.messages > 9 ? '9+' : counters.messages;
-            } else {
-                feedTile.style.display = 'none';
-            }
-        }
-        
-        if (commandesTile) {
-            if (counters.commandes > 0) {
-                commandesTile.style.display = 'flex';
-                commandesTile.textContent = counters.commandes > 9 ? '9+' : counters.commandes;
-            } else {
-                commandesTile.style.display = 'none';
-            }
-        }
-        
-        if (visitsTile) {
-            if (counters.visites > 0) {
-                visitsTile.style.display = 'flex';
-                visitsTile.textContent = counters.visites > 9 ? '9+' : counters.visites;
-            } else {
-                visitsTile.style.display = 'none';
-            }
-        }
-    }
-    
-    // Couleurs de branding (inchangé)
+    // Couleurs de branding
     const primaryColor = isMaman ? '#DB2777' : '#10B981';
     const primaryLight = isMaman ? '#FDF2F8' : '#ECFDF5';
     const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
     const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
     
-    // Texte de la bannière (inchangé)
+    // Texte de la bannière
     let bannerText = "";
     let bannerIcon = "";
     let bannerDesc = "";
@@ -1374,7 +1285,7 @@ function renderMobileHub() {
         bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // Menu items (inchangé)
+    // Menu items
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['COORDINATEUR'] },
         { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
@@ -1393,7 +1304,7 @@ function renderMobileHub() {
     // Filtrer selon le rôle
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
-    // Générer le HTML avec les badges
+    // Générer le HTML
     container.innerHTML = `
         <div class="animate-fadeIn pb-32">
             <!-- Bannière Branding -->
@@ -1409,9 +1320,7 @@ function renderMobileHub() {
                         <p class="text-xl font-black ${isMaman ? 'text-pink-600' : 'text-emerald-700'}">
                             ${userName?.split(' ')[0] || 'Utilisateur'}
                         </p>
-                        <p class="text-[10px] text-slate-500 mt-0.5">
-                            ${bannerDesc}
-                        </p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">${bannerDesc}</p>
                     </div>
                     <div class="w-12 h-12 rounded-full bg-gradient-to-br ${isMaman ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600'} flex items-center justify-center shadow-lg">
                         <i class="fa-solid fa-gem text-white text-lg"></i>
@@ -1430,44 +1339,22 @@ function renderMobileHub() {
                 MENU PRINCIPAL
             </h4>
             
-            <!-- Grille menu AVEC BADGES -->
-            <div class="grid grid-cols-2 gap-4">
-                ${filteredMenu.map((item, index) => {
-                    // Déterminer quel badge afficher
-                    let badgeNumber = 0;
-                    let badgeColor = '';
-                    if (item.id === 'feed' && counters.messages > 0) {
-                        badgeNumber = counters.messages;
-                        badgeColor = 'bg-rose-500';
-                    } else if (item.id === 'commandes' && counters.commandes > 0) {
-                        badgeNumber = counters.commandes;
-                        badgeColor = 'bg-amber-500';
-                    } else if (item.id === 'visits' && counters.visites > 0) {
-                        badgeNumber = counters.visites;
-                        badgeColor = 'bg-blue-500';
-                    }
-                    
-                    const badgeHtml = badgeNumber > 0 ? `
-                        <span class="absolute -top-1 -right-1 ${badgeColor} text-white text-[9px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                            ${badgeNumber > 9 ? '9+' : badgeNumber}
-                        </span>
-                    ` : '';
-                    
-                    return `
-                        <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
-                             class="menu-tile relative cursor-pointer hover-lift bg-white border border-slate-100 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md active:scale-95" 
-                             style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
-                            <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all">
-                                <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
-                            </div>
-                            <div>
-                                <p class="font-black text-slate-800 text-sm">${item.label}</p>
-                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
-                            </div>
-                            ${badgeHtml}
+            <!-- Grille menu -->
+            <div class="grid grid-cols-2 gap-4" id="menu-grid">
+                ${filteredMenu.map((item, index) => `
+                    <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
+                         class="menu-tile relative cursor-pointer hover-lift bg-white border border-slate-100 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md active:scale-95" 
+                         style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
+                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all">
+                            <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
                         </div>
-                    `;
-                }).join('')}
+                        <div>
+                            <p class="font-black text-slate-800 text-sm">${item.label}</p>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
+                        </div>
+                        <span class="menu-badge hidden absolute -top-1 -right-1 text-white text-[9px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"></span>
+                    </div>
+                `).join('')}
             </div>
             
             <!-- Badge de marque -->
@@ -1479,17 +1366,99 @@ function renderMobileHub() {
         </div>
     `;
     
-    // Charger les compteurs
-    refreshCounters();
+    // ✅ Fonction pour rafraîchir les badges
+    async function refreshBadges() {
+        try {
+            let messagesCount = 0;
+            let commandesCount = 0;
+            let visitesCount = 0;
+            
+            // 1. Compter les messages non lus
+            if (AppState.currentPatient) {
+                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
+                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                
+                if (lastRead) {
+                    messagesCount = messages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+                } else if (messages.length > 0) {
+                    messagesCount = messages.length;
+                }
+                console.log(`📬 Messages non lus: ${messagesCount}`);
+            }
+            
+            // 2. Compter les commandes en attente
+            try {
+                const commandes = await secureFetch("/commandes");
+                if (userRole === "COORDINATEUR") {
+                    commandesCount = commandes.filter(c => c.statut === "Livrée").length;
+                } else if (userRole === "AIDANT") {
+                    commandesCount = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
+                } else if (userRole === "FAMILLE") {
+                    commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
+                }
+            } catch (err) {
+                console.error("Erreur commandes:", err);
+            }
+            
+            // 3. Compter les visites à valider
+            if (userRole === "COORDINATEUR") {
+                try {
+                    const visites = await secureFetch("/visites");
+                    visitesCount = visites.filter(v => v.statut === "En attente").length;
+                } catch (err) {
+                    console.error("Erreur visites:", err);
+                }
+            }
+            
+            // 4. Mettre à jour les badges dans l'UI
+            updateBadgeUI('feed', messagesCount, 'bg-rose-500');
+            updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
+            updateBadgeUI('visits', visitesCount, 'bg-blue-500');
+            
+            // 5. Mettre à jour le badge du header
+            const headerBadge = document.getElementById('notification-badge');
+            if (headerBadge) {
+                if (messagesCount > 0) {
+                    headerBadge.style.display = 'flex';
+                    headerBadge.textContent = messagesCount > 9 ? '9+' : messagesCount;
+                } else {
+                    headerBadge.style.display = 'none';
+                }
+            }
+            
+        } catch (err) {
+            console.error("Erreur refreshBadges:", err);
+        }
+    }
     
-    // Rafraîchir les compteurs toutes les 30 secondes
+    // ✅ Fonction pour mettre à jour un badge individuel
+    function updateBadgeUI(menuId, count, colorClass) {
+        const tile = document.querySelector(`.menu-tile[data-menu="${menuId}"]`);
+        if (!tile) return;
+        
+        const badge = tile.querySelector('.menu-badge');
+        if (!badge) return;
+        
+        if (count > 0) {
+            badge.textContent = count > 9 ? '9+' : count;
+            badge.className = `menu-badge absolute -top-1 -right-1 ${colorClass} text-white text-[9px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1`;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+    
+    // Charger les badges
+    refreshBadges();
+    
+    // Rafraîchir toutes les 30 secondes
     setInterval(() => {
         if (AppState.currentView === 'home') {
-            refreshCounters();
+            refreshBadges();
         }
     }, 30000);
     
-    // Ajouter la fonction de recherche (inchangée)
+    // Fonction de recherche
     const searchInput = document.getElementById('mobile-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1498,22 +1467,15 @@ function renderMobileHub() {
             tiles.forEach(tile => {
                 const label = tile.querySelector('p.font-black')?.innerText.toLowerCase() || '';
                 const desc = tile.querySelector('p.text-slate-400')?.innerText.toLowerCase() || '';
-                if (label.includes(searchTerm) || desc.includes(searchTerm)) {
-                    tile.style.display = 'flex';
-                } else {
-                    tile.style.display = 'none';
-                }
+                tile.style.display = (label.includes(searchTerm) || desc.includes(searchTerm)) ? 'flex' : 'none';
             });
         });
     }
 }
 
-
-
-// Fonction globale pour rafraîchir les badges du menu
-window.refreshMenuBadges = async () => {
+// ✅ Exposer la fonction pour rafraîchir les badges depuis d'autres modules
+window.refreshMenuBadges = () => {
     if (AppState.currentView === 'home') {
-        // Re-render le hub pour rafraîchir les badges
         renderMobileHub();
     }
 };
