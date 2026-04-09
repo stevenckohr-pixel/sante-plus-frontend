@@ -476,6 +476,10 @@
             });
             
             await loadFeed();
+
+            window.dispatchEvent(new CustomEvent('app-data-updated', {
+                detail: { endpoint: '/messages', method: 'POST', resourceType: 'message_sent' }
+            }));
             
         } catch (err) {
             console.error("❌ Erreur:", err);
@@ -1037,6 +1041,10 @@
             });
             
             await loadFeed();
+
+            window.dispatchEvent(new CustomEvent('app-data-updated', {
+                detail: { endpoint: '/messages', method: 'POST', resourceType: 'message_sent' }
+            }));
     
             
         } catch (err) {
