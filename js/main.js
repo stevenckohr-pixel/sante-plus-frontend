@@ -2150,6 +2150,16 @@ async function performViewSwitch(viewName) {
             }, 150);
         }, 10);
 
+                    // Forcer la mise à jour de l'UI aidant si nécessaire
+            if (viewName === 'patients' && localStorage.getItem("user_role") === "AIDANT") {
+                const activePatientId = localStorage.getItem("active_patient_id");
+                if (activePatientId && typeof Visites.refreshAidantUI === 'function') {
+                    setTimeout(() => {
+                        Visites.refreshAidantUI(activePatientId);
+                    }, 100);
+                }
+            }
+
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
         container.innerHTML = `<div class="p-10 text-center bg-white rounded-[2rem] border border-rose-100 shadow-sm animate-fadeIn">
