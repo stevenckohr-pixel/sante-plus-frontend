@@ -106,14 +106,25 @@ async refreshMessages() {
     if (!AppState.currentPatient) return;
     
     try {
-        // Recharger les données depuis le serveur
-        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-        AppState.messages = data;
+        // Récupérer les nouveaux messages uniquement
+        const lastMessageId = AppState.messages[AppState.messages.length - 1]?.id;
+        const url = lastMessageId 
+            ? `/messages?patient_id=${AppState.currentPatient}&after=${lastMessageId}`
+            : `/messages?patient_id=${AppState.currentPatient}`;
         
-        // ✅ Rendre UNIQUEMENT le contenu, pas la page entière
-        if (typeof window.renderFeed === 'function') {
-            window.renderFeed();
-            console.log("✅ Feed mis à jour sans flash");
+        const newMessages = await secureFetch(url);
+        
+        if (newMessages.length > 0) {
+            // Ajouter uniquement les nouveaux messages
+            AppState.messages = [...AppState.messages, ...newMessages];
+            
+            // Rendre uniquement les nouveaux messages et les ajouter au DOM
+            if (typeof window.appendMessagesToFeed === 'function') {
+                window.appendMessagesToFeed(newMessages);
+            } else {
+                // Fallback : re-rendu complet
+                window.renderFeed();
+            }
         }
         
     } catch (err) {
