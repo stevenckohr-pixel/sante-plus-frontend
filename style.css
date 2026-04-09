@@ -2837,3 +2837,9 @@ p, span, li, .text-sm, .text-xs, .text-base, button, input, textarea {
 #care-feed-content.updating {
     opacity: 0.6;
 }
+
+
+/* Bordure pour l'indicateur de réponse */
+.border-l-3 {
+    border-left-width: 3px;
+}
