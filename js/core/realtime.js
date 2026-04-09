@@ -1,6 +1,5 @@
 // js/core/realtime.js
 // Module de gestion des connexions temps réel avec Supabase
-// Version compatible sans import/export
 
 // Configuration Supabase
 const REALTIME_CONFIG = {
@@ -13,7 +12,11 @@ let activeSubscription = null;
 let currentPatientId = null;
 let onMessageCallback = null;
 
-// Initialiser le client Supabase (utilise le CDN déjà chargé dans index.html)
+// Canal pour les visites
+let visitesChannel = null;
+let visitesCallback = null;
+
+// Initialiser le client Supabase
 function initSupabaseClient() {
     if (!supabaseClient && window.supabase) {
         const { createClient } = window.supabase;
@@ -67,16 +70,16 @@ function subscribeToMessages(patientId, callback) {
             }
         )
         .subscribe((status) => {
-            console.log(`📡 [Realtime] Statut: ${status}`);
+            console.log(`📡 [Realtime] Statut messages: ${status}`);
         });
 }
 
-// Se désabonner
+// Se désabonner des messages
 function unsubscribeFromMessages() {
     if (activeSubscription) {
         activeSubscription.unsubscribe();
         activeSubscription = null;
-        console.log("🔌 [Realtime] Désabonné");
+        console.log("🔌 [Realtime] Désabonné des messages");
     }
     currentPatientId = null;
     onMessageCallback = null;
@@ -111,63 +114,64 @@ function isRealtimeActive() {
     return activeSubscription !== null;
 }
 
+// ============================================================
+// CANAL PERSISTANT POUR LES VISITES
+// ============================================================
+
+/**
+ * Initialiser le canal des visites (à appeler une seule fois)
+ */
+function initVisitesChannel() {
+    const client = initSupabaseClient();
+    if (!client) {
+        console.error("❌ [Realtime] Impossible d'initialiser le client pour les visites");
+        return null;
+    }
+    
+    if (visitesChannel) {
+        console.log("📡 [Realtime] Canal visites déjà existant");
+        return visitesChannel;
+    }
+    
+    console.log("📡 [Realtime] Création du canal visites...");
+    
+    visitesChannel = client.channel('visites-updates', {
+        config: {
+            broadcast: { ack: false, self: false }
+        }
+    });
+    
+    visitesChannel.on('broadcast', { event: 'visite_updated' }, (payload) => {
+        console.log("🔄 [Realtime] Visite updated via broadcast:", payload);
+        if (visitesCallback) {
+            visitesCallback(payload.payload);
+        }
+    });
+    
+    visitesChannel.subscribe((status) => {
+        console.log(`📡 [Realtime] Canal visites: ${status}`);
+    });
+    
+    return visitesChannel;
+}
+
+/**
+ * S'abonner aux événements des visites
+ */
+function subscribeToVisites(callback) {
+    visitesCallback = callback;
+    return initVisitesChannel();
+}
+
 // Exposer les fonctions globalement
 window.Realtime = {
     initClient: initSupabaseClient,
     subscribe: subscribeToMessages,
     unsubscribe: unsubscribeFromMessages,
     fetchSenderInfo: fetchSenderInfoRealtime,
-    isActive: isRealtimeActive
+    isActive: isRealtimeActive,
+    subscribeToVisites: subscribeToVisites,
+    initVisitesChannel: initVisitesChannel
 };
 
-
-
-
-/**
- * 📡 S'abonner aux changements de statut des visites
- * @param {Function} callback - Fonction appelée à chaque changement
- * @returns {Function} Fonction pour se désabonner
- */
-function subscribeToVisites(callback) {
-    const client = initSupabaseClient();
-    if (!client) {
-        console.error("❌ [Realtime] Impossible d'initialiser le client");
-        return () => {};
-    }
-    
-    console.log("📡 [Realtime] Abonnement aux changements de visites...");
-    
-    const channel = client.channel('visites-channel');
-    
-    channel
-        .on('postgres_changes', {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'visites'
-        }, (payload) => {
-            console.log("🔄 [Realtime] Changement visite détecté:", payload);
-            if (callback) {
-                callback({
-                    visite_id: payload.new.id,
-                    patient_id: payload.new.patient_id,
-                    statut: payload.new.statut,
-                    old_statut: payload.old?.statut,
-                    photo_url: payload.new.photo_url,
-                    updated_at: payload.new.updated_at
-                });
-            }
-        })
-        .subscribe((status) => {
-            console.log(`📡 [Realtime] Statut abonnement visites: ${status}`);
-        });
-    
-    // Retourner une fonction pour se désabonner
-    return () => {
-        console.log("🔌 [Realtime] Désabonnement des visites");
-        channel.unsubscribe();
-    };
-}
-
-// Exposer la fonction globalement
-window.Realtime = window.Realtime || {};
-window.Realtime.subscribeToVisites = subscribeToVisites;
+console.log("✅ [Realtime] Module chargé, fonctions exposées:", Object.keys(window.Realtime));
