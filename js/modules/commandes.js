@@ -922,9 +922,6 @@ export async function openOrderModal() {
                 detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_created' }
             }));
         
-        if (typeof loadCommandes === 'function') {
-            loadCommandes();
-        }
         
     } catch(e) {
         console.error("❌ Erreur:", e);
