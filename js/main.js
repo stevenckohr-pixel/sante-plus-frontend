@@ -343,6 +343,35 @@ if (window.Realtime && window.Realtime.subscribeToVisites) {
     });
     console.log("✅ Écoute des visites en temps réel activée");
 }
+
+// Écouter les commandes
+if (window.Realtime && window.Realtime.subscribeToCommandes) {
+    window.Realtime.subscribeToCommandes((data) => {
+        console.log("📢 [MAIN] Commande mise à jour:", data);
+        
+        const userRole = localStorage.getItem("user_role");
+        
+        // Rafraîchir la liste des commandes
+        if (window.loadCommandes) {
+            window.loadCommandes();
+        }
+        
+        // Notifier l'aidant si nouvelle commande
+        if (userRole === 'AIDANT' && data.action === 'created') {
+            showToast("📦 Nouvelle commande disponible", "info", 3000);
+        }
+        
+        // Notifier la famille si commande prise en charge
+        if (userRole === 'FAMILLE' && data.action === 'accepted') {
+            showToast("🚚 Votre commande a été prise en charge", "info", 3000);
+        }
+        
+        // Mettre à jour les badges
+        if (window.refreshMenuBadges) {
+            setTimeout(() => window.refreshMenuBadges(), 500);
+        }
+    });
+}
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
     
