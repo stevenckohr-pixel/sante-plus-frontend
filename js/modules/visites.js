@@ -2,8 +2,7 @@ import { secureFetch } from "../core/api.js";
 import { CONFIG } from "../core/config.js";
 import { AppState } from "../core/state.js";
 import { UI, compressImage, showSkeleton } from "../core/utils.js";
-import { supabase } from "../core/supabaseClient.js";
-
+import supabase from "../core/supabaseClient.js";
 
 
 // Au tout début de visites.js, après les imports
