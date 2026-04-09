@@ -27,77 +27,82 @@ class SyncService {
     /**
      * ✅ Gestionnaire central des mises à jour
      */
-    async handleDataUpdate(detail) {
-        if (this.refreshInProgress) {
-            console.log("⏳ Refresh déjà en cours, ignoré");
-            return;
+  async handleDataUpdate(detail) {
+    if (this.refreshInProgress) {
+        console.log("⏳ Refresh déjà en cours, ignoré");
+        return;
+    }
+    
+    this.refreshInProgress = true;
+    
+    try {
+        const { endpoint, method } = detail;
+        const currentView = AppState?.currentView;
+        
+        console.log(`🔄 Rafraîchissement: ${endpoint} (vue: ${currentView})`);
+        
+        // ✅ VIDER LE CACHE API
+        clearApiCache();
+        
+        // ✅ Déterminer quoi recharger selon l'endpoint
+        if (endpoint.includes('/messages') || endpoint === 'message_sent') {
+            if (currentView === 'feed' && window.renderFeed) {
+                await this.refreshMessages();
+            }
+        }
+        else if (endpoint.includes('/commandes') || endpoint === 'commande_created' || endpoint === 'commande_updated') {
+            if (window.loadCommandes) {
+                await window.loadCommandes();
+            }
+        }
+        else if (endpoint.includes('/visites') || endpoint === 'visit_started' || endpoint === 'visit_ended') {
+            if (window.loadVisits) {
+                await window.loadVisits();
+            }
+            const activePatientId = localStorage.getItem("active_patient_id");
+            if (activePatientId && window.refreshAidantUI) {
+                window.refreshAidantUI(activePatientId);
+            }
+        }
+        else if (endpoint.includes('/patients')) {
+            if (window.loadPatients) {
+                await window.loadPatients();
+            }
+        }
+        else if (endpoint.includes('/planning') || endpoint.includes('/assignments')) {
+            if (window.renderRHDashboard) {
+                await window.renderRHDashboard();
+            }
+            if (window.loadPlanning) {
+                await window.loadPlanning();
+            }
+        }
+        else if (endpoint === 'dashboard') {
+            if (window.fetchStats) {
+                await window.fetchStats();
+            }
+            if (window.loadRegistrations) {
+                await window.loadRegistrations();
+            }
         }
         
-        this.refreshInProgress = true;
-        
-        try {
-            const { endpoint, method } = detail;
-            const currentView = AppState?.currentView;
-            
-            console.log(`🔄 Rafraîchissement: ${endpoint} (vue: ${currentView})`);
-            
-            // ✅ VIDER LE CACHE API
-            clearApiCache();
-            
-            // ✅ Déterminer quoi recharger selon l'endpoint
-            if (endpoint.includes('/messages') || endpoint === 'message_sent') {
-                if (currentView === 'feed' && window.renderFeed) {
-                    await this.refreshMessages();
-                }
-            }
-            else if (endpoint.includes('/commandes') || endpoint === 'commande_created' || endpoint === 'commande_updated') {
-                if (window.loadCommandes) {
-                    await window.loadCommandes();
-                }
-            }
-            else if (endpoint.includes('/visites') || endpoint === 'visit_started' || endpoint === 'visit_ended') {
-                if (window.loadVisits) {
-                    await window.loadVisits();
-                }
-                // Rafraîchir l'UI aidant si nécessaire
-                const activePatientId = localStorage.getItem("active_patient_id");
-                if (activePatientId && window.refreshAidantUI) {
-                    window.refreshAidantUI(activePatientId);
-                }
-            }
-            else if (endpoint.includes('/patients')) {
-                if (window.loadPatients) {
-                    await window.loadPatients();
-                }
-            }
-            else if (endpoint.includes('/planning') || endpoint.includes('/assignments')) {
-                if (window.renderRHDashboard) {
-                    await window.renderRHDashboard();
-                }
-                if (window.loadPlanning) {
-                    await window.loadPlanning();
-                }
-            }
-            else if (endpoint === 'dashboard') {
-                if (window.fetchStats) {
-                    await window.fetchStats();
-                }
-                if (window.loadRegistrations) {
-                    await window.loadRegistrations();
-                }
-            }
-            
-            // ✅ Rafraîchir la vue courante si nécessaire
         if (currentView) {
             console.log(`📍 Vue actuelle: ${currentView}, endpoint: ${endpoint}`);
         }
-            
-        } catch (err) {
-            console.error("❌ Erreur handleDataUpdate:", err);
-        } finally {
-            this.refreshInProgress = false;
-        }
+        
+    } catch (err) {
+        console.error("❌ Erreur handleDataUpdate:", err);
+    } finally {
+        this.refreshInProgress = false;
     }
+    
+    // ✅ AJOUTE CES 3 LIGNES ICI (après le finally, avant la fermeture de la fonction)
+    // Rafraîchir les badges du menu d'accueil
+    if (typeof window.refreshMenuBadges === 'function') {
+        setTimeout(() => window.refreshMenuBadges(), 300);
+        console.log("🔄 Rafraîchissement des badges du menu");
+    }
+}
     
     /**
      * Rafraîchir les messages (feed)
