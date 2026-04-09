@@ -85,102 +85,57 @@
     }
     
     
-    export function renderFeed() {
-        const content = document.getElementById('care-feed-content');
-        const inputArea = document.getElementById('input-area');
-        const btnStory = document.getElementById('tab-story');
-        const btnDoc = document.getElementById('tab-doc');
-    
-        if (!content) return;
-        content.classList.add('updating');
+   
+   export function renderFeed() {
+    const content = document.getElementById('care-feed-content');
+    const inputArea = document.getElementById('input-area');
+    const btnStory = document.getElementById('tab-story');
+    const btnDoc = document.getElementById('tab-doc');
 
+    if (!content) return;
+    content.classList.add('updating');
+
+    const activeClass = "bg-white text-slate-900 shadow-sm border border-slate-200/50";
+    const inactiveClass = "text-slate-400 hover:text-slate-600";
+
+    if (btnStory) {
+        btnStory.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'STORY' ? activeClass : inactiveClass}`;
+    }
+    if (btnDoc) {
+        btnDoc.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'DOCUMENT' ? activeClass : inactiveClass}`;
+    }
+    if (inputArea) {
+        inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
+    }
+
+    let filtered = (AppState.messages || []).filter(m => {
+        if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
+        return m.type_media !== 'DOCUMENT';
+    });
     
-        const activeClass = "bg-white text-slate-900 shadow-sm border border-slate-200/50";
-        const inactiveClass = "text-slate-400 hover:text-slate-600";
-    
-        if (btnStory) {
-            btnStory.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'STORY' ? activeClass : inactiveClass}`;
-        }
-        if (btnDoc) {
-            btnDoc.className = `flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'DOCUMENT' ? activeClass : inactiveClass}`;
-        }
-        if (inputArea) {
-            inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
-        }
-    
-        let filtered = (AppState.messages || []).filter(m => {
-            if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
-            return m.type_media !== 'DOCUMENT';
-        });
+    if (activeTab === 'STORY') {
+        // ✅ TRIER PAR DATE (plus récent en bas)
+        const sortedMessages = [...filtered].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         
-        if (activeTab === 'STORY') {
-            // Messages principaux
-            const mainMessages = filtered.filter(m => !m.reply_to_id);
-            
-            // RÉPONSES directes uniquement
-            const mainIds = new Set(mainMessages.map(m => m.id));
-            const directReplies = filtered.filter(m => m.reply_to_id && mainIds.has(m.reply_to_id));
-            
-            // Grouper les réponses
-            const repliesByParent = new Map();
-            directReplies.forEach(reply => {
-                if (!repliesByParent.has(reply.reply_to_id)) {
-                    repliesByParent.set(reply.reply_to_id, []);
-                }
-                repliesByParent.get(reply.reply_to_id).push(reply);
-            });
-    
-            // Ajouter compteur
-            mainMessages.forEach(msg => {
-                msg.reply_count = (repliesByParent.get(msg.id) || []).length;
-            });
-            
-            // Trier les réponses par date
-            for (let [key, value] of repliesByParent) {
-                value.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            }
-            
-            // Générer le HTML avec limite d'affichage
-            content.innerHTML = mainMessages.map(msg => {
-                const allReplies = repliesByParent.get(msg.id) || [];
-                const hasMore = allReplies.length > 3;
-                const visibleReplies = allReplies.slice(0, 3);
-                
-                const repliesHtml = visibleReplies
-                    .map(reply => renderStoryCard(reply, true))
-                    .join('');
-                
-                const moreButton = hasMore ? `
-                    <button onclick="window.showAllReplies('${msg.id}')" 
-                            class="ml-8 mt-2 text-[10px] font-medium text-emerald-600 hover:text-emerald-700 transition-all flex items-center gap-1">
-                        <i class="fa-solid fa-chevron-down text-[8px]"></i>
-                        Voir les ${allReplies.length - 3} autres réponse${allReplies.length - 3 > 1 ? 's' : ''}
-                    </button>
-                ` : '';
-                
-                return renderStoryCard(msg, false) + `<div class="replies-container" data-parent="${msg.id}">${repliesHtml}${moreButton}</div>`;
-            }).join('');
-            
-        } else {
-            content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
-        }
-    
-        if (filtered.length === 0 && activeTab === 'STORY') {
-            content.innerHTML = `
-                <div class="text-center py-20 opacity-50">
-                    <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
-                    <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
-                </div>`;
-        }
+        // ✅ AFFICHAGE PLAT - TOUS LES MESSAGES AU MÊME NIVEAU
+        content.innerHTML = sortedMessages.map(msg => renderStoryCard(msg, false)).join('');
+        
+    } else {
+        content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
+    }
+
+    if (filtered.length === 0 && activeTab === 'STORY') {
+        content.innerHTML = `
+            <div class="text-center py-20 opacity-50">
+                <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
+                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
+            </div>`;
+    }
 
     setTimeout(() => {
         content.classList.remove('updating');
     }, 50);
-        
-    }
-    
-    
-    
+} 
     
     /**
      * 📚 Afficher toutes les réponses d'un message
@@ -728,175 +683,182 @@
      * @param {Object} msg - Le message
      * @param {boolean} isReply - Si c'est une réponse (style indenté)
      */
-    function renderStoryCard(msg, isReply = false) {
-        const isPhoto = msg.is_photo || msg.photo_url;
-        let content = msg.content || '';
-        let humeurBadge = "";
+   
+   function renderStoryCard(msg, isReply = false) {
+    const isPhoto = msg.is_photo || msg.photo_url;
+    let content = msg.content || '';
+    let humeurBadge = "";
+
+    // Utiliser photo_url si disponible
+    const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
     
-        // Utiliser photo_url si disponible
-        const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
-        
-        // Décodage de l'humeur (inchangé)
-        if (!isPhoto && content && content.includes('|')) {
-            const parts = content.split('|');
-            const humeur = parts[0];
-            const notes = parts.slice(1).join('|');
-            const emojis = {
-                "Très Joyeux": "😊",
-                "Calme": "😐",
-                "Fatigué": "😴",
-                "Triste": "😔"
-            };
-            humeurBadge = `
-                <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-3 animate-fadeIn">
-                    <span class="text-lg">${emojis[humeur] || '✨'}</span>
-                    <div class="flex flex-col">
-                        <span class="text-[8px] font-black text-amber-600 uppercase tracking-wider">Humeur du proche</span>
-                        <span class="text-[10px] font-black text-slate-800 uppercase">${humeur}</span>
+    // Décodage de l'humeur (inchangé)
+    if (!isPhoto && content && content.includes('|')) {
+        const parts = content.split('|');
+        const humeur = parts[0];
+        const notes = parts.slice(1).join('|');
+        const emojis = {
+            "Très Joyeux": "😊",
+            "Calme": "😐",
+            "Fatigué": "😴",
+            "Triste": "😔"
+        };
+        humeurBadge = `
+            <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-3 animate-fadeIn">
+                <span class="text-lg">${emojis[humeur] || '✨'}</span>
+                <div class="flex flex-col">
+                    <span class="text-[8px] font-black text-amber-600 uppercase tracking-wider">Humeur du proche</span>
+                    <span class="text-[10px] font-black text-slate-800 uppercase">${humeur}</span>
+                </div>
+            </div>`;
+        content = notes;
+    }
+
+    const isAidant = msg.sender_role === 'AIDANT';
+    const isFamily = msg.sender_role === 'FAMILLE';
+    const isCoordinator = msg.sender_role === 'COORDINATEUR';
+    
+    let roleColorClass = 'text-slate-500';
+    let avatarBg = 'bg-slate-100';
+    let roleIcon = 'fa-user';
+    let roleBadge = '';
+    
+    if (isAidant) {
+        roleColorClass = 'text-emerald-600';
+        avatarBg = 'bg-emerald-100';
+        roleIcon = 'fa-user-nurse';
+        roleBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase ml-2">
+                        <i class="fa-solid fa-shield-check mr-1"></i> Aidant certifié
+                    </span>`;
+    } else if (isFamily) {
+        roleColorClass = 'text-blue-600';
+        avatarBg = 'bg-blue-100';
+        roleIcon = 'fa-family';
+        roleBadge = `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[8px] font-black uppercase ml-2">
+                        <i class="fa-regular fa-heart mr-1"></i> Famille
+                    </span>`;
+    } else if (isCoordinator) {
+        roleColorClass = 'text-purple-600';
+        avatarBg = 'bg-purple-100';
+        roleIcon = 'fa-user-tie';
+        roleBadge = `<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[8px] font-black uppercase ml-2">
+                        <i class="fa-solid fa-star mr-1"></i> Coordination
+                    </span>`;
+    }
+    
+    const timeStr = new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = new Date(msg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+    // ✅ NOUVEAU : Récupérer le message parent si c'est une réponse
+    let parentMessageHtml = '';
+    if (msg.reply_to_id) {
+        const parentMsg = AppState.messages?.find(m => m.id === msg.reply_to_id);
+        if (parentMsg) {
+            const parentContent = parentMsg.is_photo ? '📷 Photo' : (parentMsg.content?.substring(0, 80) + (parentMsg.content?.length > 80 ? '...' : ''));
+            parentMessageHtml = `
+                <div class="mb-3 p-3 bg-slate-100 rounded-xl border-l-3 border-l-amber-400">
+                    <div class="flex items-center gap-2 text-[9px] text-slate-500 mb-1">
+                        <i class="fa-solid fa-reply-all text-amber-500 text-[10px]"></i>
+                        <span class="font-black">Réponse à ${escapeHtml(parentMsg.sender_name || 'un message')}</span>
                     </div>
-                </div>`;
-            content = notes;
+                    <p class="text-[11px] text-slate-600 italic">"${escapeHtml(parentContent)}"</p>
+                </div>
+            `;
         }
-    
-        const isAidant = msg.sender_role === 'AIDANT';
-        const isFamily = msg.sender_role === 'FAMILLE';
-        const isCoordinator = msg.sender_role === 'COORDINATEUR';
-        
-        let roleColorClass = 'text-slate-500';
-        let avatarBg = 'bg-slate-100';
-        let roleIcon = 'fa-user';
-        let roleBadge = '';
-        
-        if (isAidant) {
-            roleColorClass = 'text-emerald-600';
-            avatarBg = 'bg-emerald-100';
-            roleIcon = 'fa-user-nurse';
-            roleBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase ml-2">
-                            <i class="fa-solid fa-shield-check mr-1"></i> Aidant certifié
-                        </span>`;
-        } else if (isFamily) {
-            roleColorClass = 'text-blue-600';
-            avatarBg = 'bg-blue-100';
-            roleIcon = 'fa-family';
-            roleBadge = `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[8px] font-black uppercase ml-2">
-                            <i class="fa-regular fa-heart mr-1"></i> Famille
-                        </span>`;
-        } else if (isCoordinator) {
-            roleColorClass = 'text-purple-600';
-            avatarBg = 'bg-purple-100';
-            roleIcon = 'fa-user-tie';
-            roleBadge = `<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[8px] font-black uppercase ml-2">
-                            <i class="fa-solid fa-star mr-1"></i> Coordination
-                        </span>`;
-        }
-        
-        const timeStr = new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const dateStr = new Date(msg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-    
-        // ✅ Style différent pour les réponses (indentation)
-        const replyClass = isReply ? 'ml-6 mt-3 border-l-4 border-l-amber-200 pl-4' : '';
-    
-        return `
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn mb-5 hover:shadow-md transition-shadow ${replyClass}" data-message-id="${msg.id}">
-                <!-- Header avec photo et identité -->
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <div class="w-12 h-12 rounded-xl overflow-hidden ${avatarBg} flex items-center justify-center">
-                                ${msg.sender_photo ? 
-                                    `<img src="${msg.sender_photo}" class="w-full h-full object-cover">` : 
-                                    `<i class="fa-solid ${roleIcon} text-${isAidant ? 'emerald' : isFamily ? 'blue' : 'purple'}-500 text-xl"></i>`
-                                }
-                            </div>
-                            ${isAidant ? `
-                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" title="Aidant vérifié"></div>
-                            ` : ''}
-                            ${isFamily ? `
-                                <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-sm" title="Membre de la famille"></div>
-                            ` : ''}
+    }
+
+    return `
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn mb-5 hover:shadow-md transition-shadow" data-message-id="${msg.id}">
+            <!-- Header avec photo et identité -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-xl overflow-hidden ${avatarBg} flex items-center justify-center">
+                            ${msg.sender_photo ? 
+                                `<img src="${msg.sender_photo}" class="w-full h-full object-cover">` : 
+                                `<i class="fa-solid ${roleIcon} text-${isAidant ? 'emerald' : isFamily ? 'blue' : 'purple'}-500 text-xl"></i>`
+                            }
                         </div>
-                        
-                        <div>
-                            <div class="flex items-center flex-wrap gap-1">
-                                <h4 class="font-black text-slate-800 text-sm">${escapeHtml(msg.sender_name || 'Système')}</h4>
-                                ${roleBadge}
-                            </div>
-                            <div class="flex items-center gap-2 mt-0.5">
-                                <span class="w-1.5 h-1.5 rounded-full ${isAidant ? 'bg-emerald-500' : isFamily ? 'bg-blue-500' : 'bg-purple-500'}"></span>
-                                <p class="text-[9px] font-bold ${roleColorClass} uppercase tracking-wider">${msg.sender_role || 'COORDINATEUR'}</p>
-                                <span class="text-[9px] text-slate-300">•</span>
-                                <span class="text-[9px] text-slate-400">${dateStr} à ${timeStr}</span>
-                            </div>
-                        </div>
+                        ${isAidant ? `
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" title="Aidant vérifié"></div>
+                        ` : ''}
+                        ${isFamily ? `
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-sm" title="Membre de la famille"></div>
+                        ` : ''}
                     </div>
                     
-                    ${isAidant ? `
-                        <div class="bg-emerald-50 px-2 py-1 rounded-full">
-                            <span class="text-[8px] font-black text-emerald-600 uppercase tracking-wider">
-                                <i class="fa-solid fa-circle-check text-[8px] mr-1"></i> Intervention certifiée
-                            </span>
+                    <div>
+                        <div class="flex items-center flex-wrap gap-1">
+                            <h4 class="font-black text-slate-800 text-sm">${escapeHtml(msg.sender_name || 'Système')}</h4>
+                            ${roleBadge}
                         </div>
-                    ` : ''}
-                </div>
-    
-                                     <!-- Contenu du message -->
-                ${imageUrl ? `
-                    <div class="relative rounded-xl overflow-hidden shadow-lg border border-slate-100 mt-2">
-                        <img src="${imageUrl}" class="w-full max-h-96 object-cover cursor-pointer" onclick="window.open('${imageUrl}')">
-                        <div class="absolute top-3 right-3 bg-slate-900/60 backdrop-blur-sm px-2 py-1 rounded-lg">
-                            <span class="text-[8px] font-black text-white uppercase tracking-wider">Photo</span>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="w-1.5 h-1.5 rounded-full ${isAidant ? 'bg-emerald-500' : isFamily ? 'bg-blue-500' : 'bg-purple-500'}"></span>
+                            <p class="text-[9px] font-bold ${roleColorClass} uppercase tracking-wider">${msg.sender_role || 'COORDINATEUR'}</p>
+                            <span class="text-[9px] text-slate-300">•</span>
+                            <span class="text-[9px] text-slate-400">${dateStr} à ${timeStr}</span>
                         </div>
-                        ${humeurBadge}
                     </div>
-                ` : content ? `
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2 break-words whitespace-normal overflow-hidden">
-                        <i class="fa-solid fa-quote-left text-slate-200 text-lg mr-2 float-left"></i>
-                        <span class="font-medium break-words">${escapeHtml(content)}</span>
+                </div>
+                
+                ${isAidant ? `
+                    <div class="bg-emerald-50 px-2 py-1 rounded-full">
+                        <span class="text-[8px] font-black text-emerald-600 uppercase tracking-wider">
+                            <i class="fa-solid fa-circle-check text-[8px] mr-1"></i> Intervention certifiée
+                        </span>
                     </div>
                 ` : ''}
-                
-    <!-- Réactions et interactions avec émoji picker -->
-    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-        <div class="flex items-center gap-2 flex-wrap">
-            <!-- Afficher les réactions existantes (dynamiques) -->
-            <div class="flex gap-1">
-                ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
-                    <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
-                            class="flex items-center gap-0.5 px-2 py-1 bg-slate-50 hover:bg-slate-100 rounded-full text-sm transition-all active:scale-95">
-                        <span class="text-base">${emoji}</span>
-                        <span class="text-[10px] font-bold text-slate-500">${count}</span>
-                    </button>
-                `).join('')}
             </div>
-            
-            <!-- Bouton + pour ouvrir le sélecteur d'émojis -->
-            <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
-                    class="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all active:scale-95"
-                    title="Ajouter une réaction">
-                <i class="fa-solid fa-plus text-xs"></i>
-            </button>
-            
-            <!-- Bouton Répondre -->
-            <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
-                    class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
-                <i class="fa-solid fa-reply text-xs"></i>
-                <span class="text-[10px] font-medium">Répondre</span>
-            </button>
-        
-            <!-- Compteur de réponses -->
-            ${!isReply && msg.reply_count > 0 ? `
-                <span class="text-[9px] text-slate-400">
-                    (${msg.reply_count} réponse${msg.reply_count > 1 ? 's' : ''})
-                </span>
+
+            <!-- ✅ INDICATEUR DE RÉPONSE (si c'est une réponse) -->
+            ${parentMessageHtml}
+
+            <!-- Contenu du message -->
+            ${imageUrl ? `
+                <div class="relative rounded-xl overflow-hidden shadow-lg border border-slate-100 mt-2">
+                    <img src="${imageUrl}" class="w-full max-h-96 object-cover cursor-pointer" onclick="window.open('${imageUrl}')">
+                    <div class="absolute top-3 right-3 bg-slate-900/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                        <span class="text-[8px] font-black text-white uppercase tracking-wider">Photo</span>
+                    </div>
+                    ${humeurBadge}
+                </div>
+            ` : content ? `
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2 break-words whitespace-normal overflow-hidden">
+                    <i class="fa-solid fa-quote-left text-slate-200 text-lg mr-2 float-left"></i>
+                    <span class="font-medium break-words">${escapeHtml(content)}</span>
+                </div>
             ` : ''}
             
-            <!-- Bouton Signaler (pour aidant) -->
-            ${isAidant && msg.id ? `
-                <button onclick="window.reportIssue('${msg.id}')" 
-                        class="text-[9px] text-slate-400 hover:text-amber-500 transition">
-                    <i class="fa-regular fa-flag mr-1"></i>
-                </button>
-            ` : ''}
+            <!-- Réactions et interactions -->
+            <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="flex gap-1">
+                        ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
+                            <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
+                                    class="flex items-center gap-0.5 px-2 py-1 bg-slate-50 hover:bg-slate-100 rounded-full text-sm transition-all active:scale-95">
+                                <span class="text-base">${emoji}</span>
+                                <span class="text-[10px] font-bold text-slate-500">${count}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
+                            class="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all active:scale-95">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </button>
+                    
+                    <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
+                            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
+                        <i class="fa-solid fa-reply text-xs"></i>
+                        <span class="text-[10px] font-medium">Répondre</span>
+                    </button>
+                    
+                    ${isAidant && msg.id ? `
+                        <button onclick="window.reportIssue('${msg.id}')" 
+                                class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                            <i class="fa-regular fa-flag mr-1"></i>
+                        </button>
+                    ` : ''}
                 </div>
                 
                 ${imageUrl && isAidant ? `
@@ -908,9 +870,9 @@
                     </div>
                 ` : ''}
             </div>
-        `;
-    }
-    
+        </div>
+    `;
+} 
     // ============================================
     // ✅ NOUVELLES FONCTIONS
     // ============================================
