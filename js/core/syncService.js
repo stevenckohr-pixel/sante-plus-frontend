@@ -27,7 +27,7 @@ class SyncService {
     /**
      * ✅ Gestionnaire central des mises à jour
      */
-  async handleDataUpdate(detail) {
+async handleDataUpdate(detail) {
     if (this.refreshInProgress) {
         console.log("⏳ Refresh déjà en cours, ignoré");
         return;
@@ -96,11 +96,9 @@ class SyncService {
         this.refreshInProgress = false;
     }
     
-    // ✅ AJOUTE CES 3 LIGNES ICI (après le finally, avant la fermeture de la fonction)
-    // Rafraîchir les badges du menu d'accueil
+    // ✅ Rafraîchir les badges du menu d'accueil
     if (typeof window.refreshMenuBadges === 'function') {
         setTimeout(() => window.refreshMenuBadges(), 300);
-        console.log("🔄 Rafraîchissement des badges du menu");
     }
 }
     
