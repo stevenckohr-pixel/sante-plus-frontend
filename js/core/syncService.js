@@ -1,4 +1,3 @@
-
 import { secureFetch, clearApiCache } from "./api.js";
 import { AppState } from "./state.js";
 import { showToast } from "./utils.js";
@@ -15,7 +14,6 @@ class SyncService {
         window.addEventListener('online', () => this.handleOnline());
         window.addEventListener('offline', () => this.handleOffline());
         
-        // ✅ Écouter l'événement global
         window.addEventListener('app-data-updated', (event) => {
             console.log("📢 [SyncService] Événement reçu:", event.detail);
             this.handleDataUpdate(event.detail);
@@ -24,126 +22,180 @@ class SyncService {
         console.log("✅ SyncService initialisé");
     }
     
-    /**
-     * ✅ Gestionnaire central des mises à jour
-     */
-async handleDataUpdate(detail) {
-    if (this.refreshInProgress) {
-        console.log("⏳ Refresh déjà en cours, ignoré");
-        return;
+    async handleDataUpdate(detail) {
+        if (this.refreshInProgress) {
+            console.log("⏳ Refresh déjà en cours, ignoré");
+            return;
+        }
+        
+        this.refreshInProgress = true;
+        
+        try {
+            const { endpoint, resourceType } = detail;
+            const currentView = AppState?.currentView;
+            
+            console.log(`🔄 Rafraîchissement: ${endpoint} (vue: ${currentView}, type: ${resourceType})`);
+            
+            // ✅ VIDER LE CACHE COMPLÈTEMENT
+            clearApiCache();
+            
+            // ✅ FORCER LE RECHARGEMENT SELON LE TYPE DE RESSOURCE
+            switch(resourceType) {
+                case 'message_sent':
+                case 'message_updated':
+                    // Recharger le feed si on est dedans
+                    if (currentView === 'feed') {
+                        await this.forceRefreshFeed();
+                    } else if (currentView === 'home') {
+                        // Si on est sur l'accueil, rafraîchir les badges
+                        await this.refreshHomeBadges();
+                    }
+                    break;
+                    
+                case 'commande_created':
+                case 'commande_updated':
+                    // Recharger les commandes
+                    await this.forceRefreshCommandes();
+                    break;
+                    
+                case 'visit_started':
+                case 'visit_ended':
+                    // Recharger les visites
+                    await this.forceRefreshVisites();
+                    break;
+                    
+                case 'patients':
+                    await this.forceRefreshPatients();
+                    break;
+                    
+                default:
+                    // Fallback : recharger la vue courante
+                    await this.forceRefreshCurrentView();
+            }
+            
+            // ✅ TOUJOURS rafraîchir les badges de l'accueil
+            await this.refreshHomeBadges();
+            
+        } catch (err) {
+            console.error("❌ Erreur handleDataUpdate:", err);
+        } finally {
+            this.refreshInProgress = false;
+        }
     }
     
-    this.refreshInProgress = true;
+    /**
+     * FORCER le rechargement du feed
+     */
+    async forceRefreshFeed() {
+        console.log("🔄 FORCE REFRESH FEED");
+        
+        if (!AppState.currentPatient) {
+            console.warn("⚠️ Pas de patient courant");
+            return;
+        }
+        
+        try {
+            // Recharger les messages
+            const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, {}, true);
+            AppState.messages = data;
+            
+            // Re-rendre le feed
+            if (typeof window.renderFeed === 'function') {
+                window.renderFeed();
+                console.log("✅ Feed re-rendu");
+            } else {
+                console.warn("⚠️ window.renderFeed non trouvé");
+            }
+            
+        } catch (err) {
+            console.error("❌ Erreur refresh feed:", err);
+        }
+    }
     
-    try {
-        const { endpoint, method } = detail;
-        const currentView = AppState?.currentView;
+    /**
+     * FORCER le rechargement des commandes
+     */
+    async forceRefreshCommandes() {
+        console.log("🔄 FORCE REFRESH COMMANDES");
         
-        console.log(`🔄 Rafraîchissement: ${endpoint} (vue: ${currentView})`);
-        
-        // ✅ VIDER LE CACHE API
-        clearApiCache();
-        
-        // ✅ Déterminer quoi recharger selon l'endpoint
-        if (endpoint.includes('/messages') || endpoint === 'message_sent') {
-            if (currentView === 'feed' && window.renderFeed) {
-                await this.refreshMessages();
-            }
-        }
-        else if (endpoint.includes('/commandes') || endpoint === 'commande_created' || endpoint === 'commande_updated') {
-            if (window.loadCommandes) {
+        try {
+            if (typeof window.loadCommandes === 'function') {
                 await window.loadCommandes();
+                console.log("✅ Commandes rechargées");
+            } else {
+                console.warn("⚠️ window.loadCommandes non trouvé");
+                // Fallback : recharger la vue
+                await this.forceRefreshCurrentView();
             }
+        } catch (err) {
+            console.error("❌ Erreur refresh commandes:", err);
         }
-        else if (endpoint.includes('/visites') || endpoint === 'visit_started' || endpoint === 'visit_ended') {
-            if (window.loadVisits) {
+    }
+    
+    /**
+     * FORCER le rechargement des visites
+     */
+    async forceRefreshVisites() {
+        console.log("🔄 FORCE REFRESH VISITES");
+        
+        try {
+            if (typeof window.loadVisits === 'function') {
                 await window.loadVisits();
+                console.log("✅ Visites rechargées");
+            } else {
+                console.warn("⚠️ window.loadVisits non trouvé");
+                await this.forceRefreshCurrentView();
             }
+            
+            // Rafraîchir l'UI aidant
             const activePatientId = localStorage.getItem("active_patient_id");
-            if (activePatientId && window.refreshAidantUI) {
+            if (activePatientId && typeof window.refreshAidantUI === 'function') {
                 window.refreshAidantUI(activePatientId);
             }
+        } catch (err) {
+            console.error("❌ Erreur refresh visites:", err);
         }
-        else if (endpoint.includes('/patients')) {
-            if (window.loadPatients) {
+    }
+    
+    /**
+     * FORCER le rechargement des patients
+     */
+    async forceRefreshPatients() {
+        console.log("🔄 FORCE REFRESH PATIENTS");
+        
+        try {
+            if (typeof window.loadPatients === 'function') {
                 await window.loadPatients();
+                console.log("✅ Patients rechargés");
             }
+        } catch (err) {
+            console.error("❌ Erreur refresh patients:", err);
         }
-        else if (endpoint.includes('/planning') || endpoint.includes('/assignments')) {
-            if (window.renderRHDashboard) {
-                await window.renderRHDashboard();
-            }
-            if (window.loadPlanning) {
-                await window.loadPlanning();
-            }
-        }
-        else if (endpoint === 'dashboard') {
-            if (window.fetchStats) {
-                await window.fetchStats();
-            }
-            if (window.loadRegistrations) {
-                await window.loadRegistrations();
-            }
-        }
-        
-        if (currentView) {
-            console.log(`📍 Vue actuelle: ${currentView}, endpoint: ${endpoint}`);
-        }
-        
-    } catch (err) {
-        console.error("❌ Erreur handleDataUpdate:", err);
-    } finally {
-        this.refreshInProgress = false;
     }
-    
-    // ✅ Rafraîchir les badges du menu d'accueil
-    if (typeof window.refreshMenuBadges === 'function') {
-        setTimeout(() => window.refreshMenuBadges(), 300);
-    }
-}
     
     /**
-     * Rafraîchir les messages (feed)
+     * FORCER le rechargement de la vue courante
      */
-async refreshMessages() {
-    if (!AppState.currentPatient) return;
-    
-    try {
-        // Récupérer les nouveaux messages uniquement
-        const lastMessageId = AppState.messages[AppState.messages.length - 1]?.id;
-        const url = lastMessageId 
-            ? `/messages?patient_id=${AppState.currentPatient}&after=${lastMessageId}`
-            : `/messages?patient_id=${AppState.currentPatient}`;
-        
-        const newMessages = await secureFetch(url);
-        
-        if (newMessages.length > 0) {
-            // Ajouter uniquement les nouveaux messages
-            AppState.messages = [...AppState.messages, ...newMessages];
-            
-            // Rendre uniquement les nouveaux messages et les ajouter au DOM
-            if (typeof window.appendMessagesToFeed === 'function') {
-                window.appendMessagesToFeed(newMessages);
-            } else {
-                // Fallback : re-rendu complet
-                window.renderFeed();
-            }
-        }
-        
-    } catch (err) {
-        console.error("❌ Erreur refreshMessages:", err);
-    }
-}
-    
-    /**
-     * Forcer le rafraîchissement de la vue active
-     */
-    refreshCurrentView() {
+    async forceRefreshCurrentView() {
         const currentView = AppState.currentView;
-        if (currentView && window.switchView) {
-            console.log(`🔄 Rafraîchissement forcé de la vue: ${currentView}`);
-            window.switchView(currentView);
+        if (currentView && typeof window.switchView === 'function') {
+            console.log(`🔄 FORCE REFRESH VUE: ${currentView}`);
+            await window.switchView(currentView);
         }
+    }
+    
+    /**
+     * Rafraîchir les badges de l'accueil
+     */
+    async refreshHomeBadges() {
+        if (typeof window.refreshMenuBadges === 'function') {
+            await window.refreshMenuBadges();
+            console.log("✅ Badges menu mis à jour");
+        }
+    }
+    
+    refreshCurrentView() {
+        this.forceRefreshCurrentView();
     }
     
     on(event, callback) {
@@ -164,7 +216,7 @@ async refreshMessages() {
         console.log("📶 Connexion rétablie");
         this.isOnline = true;
         showToast("Connexion rétablie", "success", 2000);
-        this.refreshCurrentView();
+        this.forceRefreshCurrentView();
     }
     
     handleOffline() {
