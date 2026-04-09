@@ -106,12 +106,17 @@ async refreshMessages() {
     if (!AppState.currentPatient) return;
     
     try {
-        // Supprime le 3ème paramètre
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
-        if (window.renderFeed) {
+        
+        // ✅ Utiliser window.renderFeed (maintenant disponible)
+        if (typeof window.renderFeed === 'function') {
             window.renderFeed();
+            console.log("✅ Feed re-rendu après refresh");
+        } else {
+            console.warn("⚠️ window.renderFeed n'est pas une fonction");
         }
+        
         console.log("✅ Messages rafraîchis");
     } catch (err) {
         console.error("❌ Erreur refreshMessages:", err);
