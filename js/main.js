@@ -1249,13 +1249,104 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // Couleurs de branding
+    // ✅ État des compteurs (initialisé à 0)
+    let counters = {
+        messages: 0,
+        commandes: 0,
+        visites: 0
+    };
+    
+    // ✅ Fonction pour rafraîchir les badges
+    async function refreshCounters() {
+        try {
+            // Messages non lus (pour la famille)
+            if (userRole === "FAMILLE" && AppState.currentPatient) {
+                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`) || new Date().toISOString();
+                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                counters.messages = messages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+            } else if (userRole === "AIDANT") {
+                // Pour l'aidant, compter les messages récents (optionnel)
+                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                counters.messages = messages.filter(m => !m.read).length || 0;
+            }
+            
+            // Commandes en attente
+            const commandes = await secureFetch("/commandes");
+            if (userRole === "COORDINATEUR") {
+                counters.commandes = commandes.filter(c => c.statut === "Livrée").length;
+            } else if (userRole === "AIDANT") {
+                counters.commandes = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
+            } else if (userRole === "FAMILLE") {
+                counters.commandes = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
+            }
+            
+            // Visites à valider (pour coordinateur)
+            if (userRole === "COORDINATEUR") {
+                const visites = await secureFetch("/visites");
+                counters.visites = visites.filter(v => v.statut === "En attente").length;
+            }
+            
+            // Mettre à jour l'affichage
+            updateMenuBadgesUI(counters);
+            
+        } catch (err) {
+            console.error("Erreur chargement compteurs:", err);
+        }
+    }
+    
+    // ✅ Fonction pour mettre à jour l'UI des badges
+    function updateMenuBadgesUI(counters) {
+        // Mettre à jour le badge des messages dans le header
+        const notificationBadge = document.getElementById('notification-badge');
+        if (notificationBadge) {
+            if (counters.messages > 0) {
+                notificationBadge.style.display = 'flex';
+                notificationBadge.textContent = counters.messages > 9 ? '9+' : counters.messages;
+            } else {
+                notificationBadge.style.display = 'none';
+            }
+        }
+        
+        // Mettre à jour les badges dans les tuiles du menu
+        const feedTile = document.querySelector('.menu-tile[data-menu="feed"] .absolute');
+        const commandesTile = document.querySelector('.menu-tile[data-menu="commandes"] .absolute');
+        const visitsTile = document.querySelector('.menu-tile[data-menu="visits"] .absolute');
+        
+        if (feedTile) {
+            if (counters.messages > 0) {
+                feedTile.style.display = 'flex';
+                feedTile.textContent = counters.messages > 9 ? '9+' : counters.messages;
+            } else {
+                feedTile.style.display = 'none';
+            }
+        }
+        
+        if (commandesTile) {
+            if (counters.commandes > 0) {
+                commandesTile.style.display = 'flex';
+                commandesTile.textContent = counters.commandes > 9 ? '9+' : counters.commandes;
+            } else {
+                commandesTile.style.display = 'none';
+            }
+        }
+        
+        if (visitsTile) {
+            if (counters.visites > 0) {
+                visitsTile.style.display = 'flex';
+                visitsTile.textContent = counters.visites > 9 ? '9+' : counters.visites;
+            } else {
+                visitsTile.style.display = 'none';
+            }
+        }
+    }
+    
+    // Couleurs de branding (inchangé)
     const primaryColor = isMaman ? '#DB2777' : '#10B981';
     const primaryLight = isMaman ? '#FDF2F8' : '#ECFDF5';
     const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
     const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
     
-    // Texte de la bannière
+    // Texte de la bannière (inchangé)
     let bannerText = "";
     let bannerIcon = "";
     let bannerDesc = "";
@@ -1283,9 +1374,8 @@ function renderMobileHub() {
         bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // ✅ MENU COMPLET - TOUS LES BLOCS SELON LE RÔLE
+    // Menu items (inchangé)
     const menuItems = [
-        // Pour COORDINATEUR (Admin)
         { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['COORDINATEUR'] },
         { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
         { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
@@ -1303,6 +1393,7 @@ function renderMobileHub() {
     // Filtrer selon le rôle
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
+    // Générer le HTML avec les badges
     container.innerHTML = `
         <div class="animate-fadeIn pb-32">
             <!-- Bannière Branding -->
@@ -1339,21 +1430,44 @@ function renderMobileHub() {
                 MENU PRINCIPAL
             </h4>
             
-            <!-- Grille menu -->
+            <!-- Grille menu AVEC BADGES -->
             <div class="grid grid-cols-2 gap-4">
-                ${filteredMenu.map((item, index) => `
-                    <div onclick="window.switchView('${item.id}')" 
-                         class="menu-tile cursor-pointer hover-lift bg-white border border-slate-100 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md active:scale-95" 
-                         style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
-                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all">
-                            <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
+                ${filteredMenu.map((item, index) => {
+                    // Déterminer quel badge afficher
+                    let badgeNumber = 0;
+                    let badgeColor = '';
+                    if (item.id === 'feed' && counters.messages > 0) {
+                        badgeNumber = counters.messages;
+                        badgeColor = 'bg-rose-500';
+                    } else if (item.id === 'commandes' && counters.commandes > 0) {
+                        badgeNumber = counters.commandes;
+                        badgeColor = 'bg-amber-500';
+                    } else if (item.id === 'visits' && counters.visites > 0) {
+                        badgeNumber = counters.visites;
+                        badgeColor = 'bg-blue-500';
+                    }
+                    
+                    const badgeHtml = badgeNumber > 0 ? `
+                        <span class="absolute -top-1 -right-1 ${badgeColor} text-white text-[9px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                            ${badgeNumber > 9 ? '9+' : badgeNumber}
+                        </span>
+                    ` : '';
+                    
+                    return `
+                        <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
+                             class="menu-tile relative cursor-pointer hover-lift bg-white border border-slate-100 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md active:scale-95" 
+                             style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
+                            <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all">
+                                <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="font-black text-slate-800 text-sm">${item.label}</p>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
+                            </div>
+                            ${badgeHtml}
                         </div>
-                        <div>
-                            <p class="font-black text-slate-800 text-sm">${item.label}</p>
-                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
-                        </div>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
             
             <!-- Badge de marque -->
@@ -1365,7 +1479,17 @@ function renderMobileHub() {
         </div>
     `;
     
-    // Ajouter la fonction de recherche
+    // Charger les compteurs
+    refreshCounters();
+    
+    // Rafraîchir les compteurs toutes les 30 secondes
+    setInterval(() => {
+        if (AppState.currentView === 'home') {
+            refreshCounters();
+        }
+    }, 30000);
+    
+    // Ajouter la fonction de recherche (inchangée)
     const searchInput = document.getElementById('mobile-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1383,6 +1507,17 @@ function renderMobileHub() {
         });
     }
 }
+
+
+
+// Fonction globale pour rafraîchir les badges du menu
+window.refreshMenuBadges = async () => {
+    if (AppState.currentView === 'home') {
+        // Re-render le hub pour rafraîchir les badges
+        renderMobileHub();
+    }
+};
+
 // ============================================================
 // NOTIFICATIONS PUSH
 // ============================================================
