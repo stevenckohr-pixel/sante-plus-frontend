@@ -5,6 +5,24 @@ import { UI, compressImage, showSkeleton } from "../core/utils.js";
 import supabase from "../core/supabaseClient.js";
 
 
+// Canal Realtime PERSISTANT pour les visites
+let realtimeChannel = null;
+
+function getRealtimeChannel() {
+    if (!realtimeChannel) {
+        realtimeChannel = supabase.channel('visites-updates', {
+            config: {
+                broadcast: { ack: false, self: false }
+            }
+        });
+        realtimeChannel.subscribe((status) => {
+            console.log(`📡 [REALTIME] Canal visites: ${status}`);
+        });
+    }
+    return realtimeChannel;
+}
+
+
 // Au tout début de visites.js, après les imports
 console.log("🔍 [visites.js] Début du chargement du module");
 console.log("🔍 [visites.js] UI importé:", typeof UI);
