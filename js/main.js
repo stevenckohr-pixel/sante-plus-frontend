@@ -468,6 +468,24 @@ async function initApp() {
                     }
                 });
             }, 500);
+
+
+
+            // Écouter les événements de notification
+            window.addEventListener('new-notification', (event) => {
+                const { title, message, type } = event.detail;
+                
+                // Afficher un toast
+                showToast(message, "info", 4000);
+                
+                // Mettre à jour le badge de la cloche
+                if (type === 'visit' && AppState.currentView === 'feed') {
+                    // Si on est dans le feed, recharger
+                    window.dispatchEvent(new CustomEvent('app-data-updated', {
+                        detail: { endpoint: '/visites', method: 'GET', resourceType: 'visites' }
+                    }));
+                }
+            });
             
             hideLoader();
         } else {
