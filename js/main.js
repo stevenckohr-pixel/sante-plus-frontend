@@ -1243,7 +1243,6 @@ function renderAuthView(mode = 'login', stepSource = 1) {
 // HUB DE NAVIGATION MOBILE
 // ============================================================
 
-
 function renderMobileHub() {
     const userRole = localStorage.getItem("user_role");
     const userName = localStorage.getItem("user_name");
@@ -1252,9 +1251,6 @@ function renderMobileHub() {
     const isSenior = !isMaman && userRole === "FAMILLE";
     
     // Couleurs de branding
-    const primaryColor = isMaman ? '#DB2777' : '#10B981';
-    const primaryLight = isMaman ? '#FDF2F8' : '#ECFDF5';
-    const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
     const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
     
     // Texte de la bannière
@@ -1352,7 +1348,7 @@ function renderMobileHub() {
                             <p class="font-black text-slate-800 text-sm">${item.label}</p>
                             <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
                         </div>
-                        <span class="menu-badge hidden absolute -top-1 -right-1 text-white text-[9px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"></span>
+                        <span class="menu-badge hidden absolute -top-2 -right-2 text-white text-[10px] font-black rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5 shadow-md border-2 border-white"></span>
                     </div>
                 `).join('')}
             </div>
@@ -1366,14 +1362,42 @@ function renderMobileHub() {
         </div>
     `;
     
-    // ✅ Fonction pour rafraîchir les badges
+    // ============================================
+    // GESTION DES BADGES
+    // ============================================
+    
+    /**
+     * Mettre à jour un badge individuel
+     */
+    function updateBadgeUI(menuId, count, colorClass) {
+        const tile = document.querySelector(`.menu-tile[data-menu="${menuId}"]`);
+        if (!tile) return;
+        
+        const badge = tile.querySelector('.menu-badge');
+        if (!badge) return;
+        
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.className = `menu-badge absolute -top-2 -right-2 ${colorClass} text-white text-[10px] font-black rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5 shadow-md border-2 border-white`;
+            badge.classList.remove('hidden');
+            // Animation d'apparition
+            badge.style.animation = 'badgePop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1)';
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+    
+    /**
+     * Rafraîchir tous les badges
+     */
     async function refreshBadges() {
         try {
             let messagesCount = 0;
             let commandesCount = 0;
             let visitesCount = 0;
+            let notificationsCount = 0;
             
-            // 1. Compter les messages non lus
+            // 1. Messages non lus (badge Journal)
             if (AppState.currentPatient) {
                 const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
                 const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
@@ -1386,7 +1410,7 @@ function renderMobileHub() {
                 console.log(`📬 Messages non lus: ${messagesCount}`);
             }
             
-            // 2. Compter les commandes en attente
+            // 2. Commandes en attente (badge Commandes)
             try {
                 const commandes = await secureFetch("/commandes");
                 if (userRole === "COORDINATEUR") {
@@ -1397,68 +1421,67 @@ function renderMobileHub() {
                     commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
                 }
             } catch (err) {
-                console.error("Erreur commandes:", err);
+                console.error("Erreur chargement commandes:", err);
             }
             
-            // 3. Compter les visites à valider
+            // 3. Visites à valider (badge Visites)
             if (userRole === "COORDINATEUR") {
                 try {
                     const visites = await secureFetch("/visites");
                     visitesCount = visites.filter(v => v.statut === "En attente").length;
                 } catch (err) {
-                    console.error("Erreur visites:", err);
+                    console.error("Erreur chargement visites:", err);
                 }
             }
             
-            // 4. Mettre à jour les badges dans l'UI
+            // 4. Notifications système (cloche en haut)
+            try {
+                const notifications = await secureFetch("/notifications");
+                notificationsCount = notifications.filter(n => !n.read).length;
+            } catch (err) {
+                console.error("Erreur chargement notifications:", err);
+            }
+            
+            // 5. Mettre à jour les badges des tuiles
             updateBadgeUI('feed', messagesCount, 'bg-rose-500');
             updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
             updateBadgeUI('visits', visitesCount, 'bg-blue-500');
             
-            // 5. Mettre à jour le badge du header
+            // 6. Mettre à jour la cloche en haut (notifications système)
             const headerBadge = document.getElementById('notification-badge');
             if (headerBadge) {
-                if (messagesCount > 0) {
+                if (notificationsCount > 0) {
                     headerBadge.style.display = 'flex';
-                    headerBadge.textContent = messagesCount > 9 ? '9+' : messagesCount;
+                    headerBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
                 } else {
                     headerBadge.style.display = 'none';
                 }
             }
             
         } catch (err) {
-            console.error("Erreur refreshBadges:", err);
+            console.error("❌ Erreur refreshBadges:", err);
         }
     }
     
-    // ✅ Fonction pour mettre à jour un badge individuel
-    function updateBadgeUI(menuId, count, colorClass) {
-        const tile = document.querySelector(`.menu-tile[data-menu="${menuId}"]`);
-        if (!tile) return;
-        
-        const badge = tile.querySelector('.menu-badge');
-        if (!badge) return;
-        
-        if (count > 0) {
-            badge.textContent = count > 9 ? '9+' : count;
-            badge.className = `menu-badge absolute -top-1 -right-1 ${colorClass} text-white text-[9px] font-black rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1`;
-            badge.classList.remove('hidden');
-        } else {
-            badge.classList.add('hidden');
-        }
-    }
-    
-    // Charger les badges
+    // Charger les badges au démarrage
     refreshBadges();
     
-    // Rafraîchir toutes les 30 secondes
-    setInterval(() => {
+    // Rafraîchir toutes les 30 secondes (seulement si on est sur l'accueil)
+    const intervalId = setInterval(() => {
         if (AppState.currentView === 'home') {
             refreshBadges();
         }
     }, 30000);
     
-    // Fonction de recherche
+    // Nettoyer l'intervalle si nécessaire (optionnel)
+    window.addEventListener('beforeunload', () => {
+        clearInterval(intervalId);
+    });
+    
+    // ============================================
+    // RECHERCHE
+    // ============================================
+    
     const searchInput = document.getElementById('mobile-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1472,7 +1495,6 @@ function renderMobileHub() {
         });
     }
 }
-
 // ✅ Exposer la fonction pour rafraîchir les badges depuis d'autres modules
 window.refreshMenuBadges = () => {
     if (AppState.currentView === 'home') {
