@@ -88,10 +88,9 @@ class SyncService {
             }
             
             // ✅ Rafraîchir la vue courante si nécessaire
-            if (currentView && window.switchView && !endpoint.includes(currentView)) {
-                // Ne pas recharger si on est déjà sur la bonne vue
-                console.log(`✅ Vue ${currentView} déjà active`);
-            }
+        if (currentView) {
+            console.log(`📍 Vue actuelle: ${currentView}, endpoint: ${endpoint}`);
+        }
             
         } catch (err) {
             console.error("❌ Erreur handleDataUpdate:", err);
