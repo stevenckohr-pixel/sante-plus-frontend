@@ -43,7 +43,11 @@ console.log("🔍 Visites.startVisit:", Visites?.startVisit);
 console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
 const { updateNotificationBadge } = Notifications;
 
+let realtimeSubscribed = false;
 
+function resetRealtimeMessages() {
+    realtimeSubscribed = false;
+}
 
 function handleRealtimeUpdate() {
     console.log("⚡ Mise à jour globale realtime");
@@ -74,6 +78,35 @@ function handleRealtimeUpdate() {
     }
 }
 
+
+function initRealtimeMessages() {
+    const patientId = AppState.currentPatient;
+
+    if (!patientId) return;
+
+    if (realtimeSubscribed) {
+        console.log("⚠️ Realtime déjà actif");
+        return;
+    }
+
+    realtimeSubscribed = true;
+
+    window.Realtime.subscribe(patientId, (event, message) => {
+        console.log("💬 Message reçu en temps réel:", message);
+
+        if (AppState.currentView === 'feed' && window.renderFeed) {
+            window.renderFeed();
+        }
+
+        if (window.refreshMenuBadges) {
+            setTimeout(() => window.refreshMenuBadges(), 500);
+        }
+
+        showToast("💬 Nouveau message", "info", 3000);
+
+        handleRealtimeUpdate();
+    });
+}
 
 
 // Met à jour l'icône PWA selon le thème (Maman ou général)
@@ -306,30 +339,6 @@ if (window.Realtime && window.Realtime.subscribeToVisites) {
 // 💬 REALTIME MESSAGES (VERSION CORRECTE)
 // ============================================================
 
-function initRealtimeMessages() {
-    const patientId = AppState.currentPatient;
-
-    if (!patientId) return;
-
-    window.Realtime.subscribe(patientId, (event, message) => {
-        console.log("💬 Message reçu en temps réel:", message);
-
-        // Si on est sur le feed → refresh
-        if (AppState.currentView === 'feed' && window.renderFeed) {
-            window.renderFeed();
-        }
-
-        // Mettre à jour badges
-        if (window.refreshMenuBadges) {
-            setTimeout(() => window.refreshMenuBadges(), 500);
-        }
-
-        // Notification
-        showToast("💬 Nouveau message", "info", 3000);
-
-        handleRealtimeUpdate();
-    });
-}
 
 
 
@@ -1226,10 +1235,11 @@ window.selectPack = (packId, price) => {
     currentStep++;
     renderAuthView('register', currentStep);
     setTimeout(() => {
-            if (AppState.currentPatient) {
-                initRealtimeMessages();
-                console.log("🔁 Realtime messages relancé (changement)");
-            }
+        if (AppState.currentPatient) {
+            resetRealtimeMessages();    
+            initRealtimeMessages();    
+            console.log("🔁 Realtime messages relancé (propre)");
+        }
     }, 500);
 };
 
