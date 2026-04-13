@@ -7,7 +7,7 @@
         let unreadMessagesCount = 0;
         let isUserAtBottom = true;
         let newMessageBadge = null;
-    
+        let readSubscribed = false;
     // ============================================
     // 🟢 REALTIME - MESSAGES EN TEMPS RÉEL
     // ============================================
@@ -604,10 +604,21 @@ export async function loadFeed() {
         const now = new Date().toISOString();
         localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
 
-        window.Realtime.markAsRead({
-            patient_id: AppState.currentPatient,
-            user_id: localStorage.getItem("user_id")
-        });
+try {
+await window.supabase
+    .from('messages')
+    .update({
+        read: true,
+        read_at: new Date().toISOString()
+    })
+    .eq('patient_id', AppState.currentPatient)
+    .eq('read', false)
+    .neq('sender_id', localStorage.getItem("user_id"));
+
+    console.log("👁️ Messages marqués comme lus (direct)");
+} catch (err) {
+    console.error("Erreur read:", err);
+}
         
         // ✅ Réinitialiser le compteur de messages non lus
         unreadMessagesCount = 0;
@@ -640,26 +651,48 @@ export async function loadFeed() {
 }
 
 
-window.Realtime.subscribeToRead((data) => {
-    console.log("👁️ Messages lus:", data);
+if (!readSubscribed) {
+    readSubscribed = true;
 
-    updateSeenStatus(data);
-});
-
-function updateSeenStatus(data) {
-    document.querySelectorAll(`[data-message-id]`).forEach(el => {
-
-        // 🔥 éviter duplication
-        if (el.querySelector('.seen-status')) return;
-
-        const status = document.createElement('span');
-        status.className = "seen-status text-[8px] text-blue-500 ml-2";
-        status.textContent = "✔✔ Vu";
-
-        el.appendChild(status);
+    window.Realtime.subscribeToRead((data) => {
+        console.log("👁️ Messages lus:", data);
+        updateSeenStatus(data);
     });
 }
-    
+
+function updateSeenStatus(data) {
+    if (!data.read) return;
+
+    const currentUserId = localStorage.getItem("user_id");
+    if (!currentUserId) return;
+
+    if (data.sender_id === currentUserId) return;
+
+    const messageEl = document.querySelector(`[data-message-id="${data.id}"]`);
+    if (!messageEl) return;
+
+    if (messageEl.querySelector('.seen-status')) return;
+
+    const container = messageEl.querySelector('.message-status');
+    if (!container) return;
+
+    const status = document.createElement('span');
+    status.className = "seen-status text-[8px] text-blue-500 ml-2";
+    status.textContent = "✔✔ Vu";
+
+    // 🔥 animation pro
+    status.style.opacity = "0";
+    status.style.transition = "opacity 0.3s ease";
+
+    container.appendChild(status);
+
+    setTimeout(() => {
+        status.style.opacity = "1";
+    }, 10);
+}
+
+
+
     /**
      * 🎨 RENDU FILTRÉ (MODIFIÉ pour organiser les réponses en cascade)
      */
@@ -862,6 +895,7 @@ function updateSeenStatus(data) {
 
     return `
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn mb-5 hover:shadow-md transition-shadow" data-message-id="${msg.id}">
+            <div class="message-status"></div>
             <!-- Header avec photo et identité -->
             <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-3">
