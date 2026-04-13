@@ -555,6 +555,28 @@ export async function loadFeed() {
     const sendBtn = document.getElementById('send-btn');
     const documentBtn = document.getElementById('document-btn');
     const documentInput = document.getElementById('document-input');
+
+    const input = document.getElementById('quick-msg');
+
+    let typingTimeout;
+
+        if (input) {
+            input.addEventListener('input', () => {
+                if (!AppState.currentPatient) return;
+        
+                window.Realtime.sendTyping({
+                    patient_id: AppState.currentPatient,
+                    user_id: localStorage.getItem("user_id")
+                });
+        
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    window.Realtime.stopTyping({
+                        patient_id: AppState.currentPatient
+                    });
+                }, 2000);
+            });
+        }
     
     if (documentBtn && documentInput) {
         documentBtn.onclick = () => documentInput.click();
@@ -581,6 +603,11 @@ export async function loadFeed() {
         // ✅ Marquer les messages comme lus
         const now = new Date().toISOString();
         localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
+
+        window.Realtime.markAsRead({
+            patient_id: AppState.currentPatient,
+            user_id: localStorage.getItem("user_id")
+        });
         
         // ✅ Réinitialiser le compteur de messages non lus
         unreadMessagesCount = 0;
@@ -610,6 +637,27 @@ export async function loadFeed() {
             `;
         }
     }
+}
+
+
+window.Realtime.subscribeToRead((data) => {
+    console.log("👁️ Messages lus:", data);
+
+    updateSeenStatus(data);
+});
+
+function updateSeenStatus(data) {
+    document.querySelectorAll(`[data-message-id]`).forEach(el => {
+
+        // 🔥 éviter duplication
+        if (el.querySelector('.seen-status')) return;
+
+        const status = document.createElement('span');
+        status.className = "seen-status text-[8px] text-blue-500 ml-2";
+        status.textContent = "✔✔ Vu";
+
+        el.appendChild(status);
+    });
 }
     
     /**
@@ -1146,7 +1194,32 @@ export async function loadFeed() {
     };
     
     
-    
+function showTypingIndicator(data) {
+    let indicator = document.getElementById('typing-indicator');
+
+    if (!indicator) {
+        indicator = document.createElement('div');
+        indicator.id = 'typing-indicator';
+        indicator.className = "text-xs text-slate-400 px-4 py-2";
+        document.getElementById('care-feed-content')?.appendChild(indicator);
+    }
+
+    indicator.textContent = "✍️ Quelqu’un est en train d’écrire...";
+
+    setTimeout(() => {
+        indicator.remove();
+    }, 2000);
+}
+
+window.Realtime.subscribeToTyping((data) => {
+    console.log("✍️ Typing:", data);
+
+    if (data.user_id === localStorage.getItem("user_id")) return;
+
+    showTypingIndicator(data);
+});
+
+
     // Exposer la fonction d'émoji picker globalement
     window.showEmojiPickerForMessage = (messageId, buttonElement) => {
         showEmojiPicker(messageId, buttonElement);
