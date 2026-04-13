@@ -44,81 +44,7 @@ console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
 const { updateNotificationBadge } = Notifications;
 
 
-/**
- * 🔄 FORCER LE REChARGEMENT DE LA PAGE APRÈS UNE ACTION
- */
-/**
- * 🔄 POLLING POUR LES VISITES ET COMMANDES
- * Rafraîchit automatiquement les données toutes les X secondes
- */
-function initPolling() {
-    let lastUpdate = {
-        visites: Date.now(),
-        commandes: Date.now()
-    };
-    
-    // Vérifier toutes les 5 secondes
-    setInterval(async () => {
-        const userRole = localStorage.getItem("user_role");
-        const currentView = AppState.currentView;
-        
-        // 1. Pour la famille et le coordinateur : vérifier les visites
-        if ((userRole === 'FAMILLE' || userRole === 'COORDINATEUR') && currentView !== 'visits') {
-            try {
-                const visites = await secureFetch("/visites", {}, true);
-                const latestVisite = visites[0];
-                
-                if (latestVisite && new Date(latestVisite.updated_at) > new Date(lastUpdate.visites)) {
-                    console.log("🔄 [POLLING] Nouvelle visite détectée");
-                    lastUpdate.visites = Date.now();
-                    
-                    // Afficher une notification
-                    if (userRole === 'FAMILLE') {
-                        const dernierStatut = latestVisite.statut;
-                        if (dernierStatut === 'En cours') {
-                            showToast("🔔 Une visite a commencé", "info", 3000);
-                        } else if (dernierStatut === 'En attente') {
-                            showToast("📋 Un nouveau rapport de visite est disponible", "info", 3000);
-                        } else if (dernierStatut === 'Validé') {
-                            showToast("✅ Une visite a été validée", "success", 3000);
-                        }
-                    }
-                    
-                    // Recharger si nécessaire
-                    if (currentView === 'visits' && window.loadVisits) {
-                        window.loadVisits();
-                    }
-                    if (window.refreshMenuBadges) {
-                        window.refreshMenuBadges();
-                    }
-                }
-            } catch (err) {
-                console.error("Erreur polling visites:", err);
-            }
-        }
-        
-        // 2. Pour l'aidant : vérifier les commandes
-        if (userRole === 'AIDANT' && currentView !== 'commandes') {
-            try {
-                const commandes = await secureFetch("/commandes", {}, true);
-                const pendingCount = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
-                
-                if (pendingCount > 0) {
-                    const badge = document.querySelector('.menu-badge[data-menu="commandes"]');
-                    if (badge && badge.classList.contains('hidden')) {
-                        showToast(`📦 ${pendingCount} nouvelle(s) commande(s) en attente`, "info", 3000);
-                        if (window.refreshMenuBadges) {
-                            window.refreshMenuBadges();
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error("Erreur polling commandes:", err);
-            }
-        }
-        
-    }, 5000); // Toutes les 5 secondes
-}
+
 
 
 // Met à jour l'icône PWA selon le thème (Maman ou général)
@@ -293,7 +219,6 @@ async function initApp() {
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
     preloadOnboardingImages();
-    initPolling();
     console.log("✅ Polling activé (toutes les 5 secondes)");
 
 
