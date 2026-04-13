@@ -54,7 +54,7 @@
 async function addNewMessageToFeed(newMessage) {
     // Récupérer les infos de l'expéditeur
 let senderInfo = {
-    nom: "Utilisateur",
+    nom: "Membre",
     role: "MEMBRE",
     photo_url: null
 };
