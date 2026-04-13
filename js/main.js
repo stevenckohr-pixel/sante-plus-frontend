@@ -39,7 +39,6 @@ import { startKeepAlive } from './core/keepAlive.js';
 import * as Notifications from "./modules/notifications.js";
 
 const messaging = window.messaging;
-import { getToken, onMessage } from "firebase/messaging";
 
 async function initPushNotifications() {
     try {
@@ -50,18 +49,15 @@ async function initPushNotifications() {
             return;
         }
 
-        const token = await getToken(messaging, {
+        const token = await window.messaging.getToken({
             vapidKey: "JTm0mrJUG0hm3CNxUPCpMgFBhagWooeW6qdzmGIthUI"
         });
 
         console.log("🔥 PUSH TOKEN:", token);
 
-        // 🔥 envoyer au backend
         await secureFetch('/save-push-token', {
             method: 'POST',
-            body: JSON.stringify({
-                token
-            })
+            body: JSON.stringify({ token })
         });
 
     } catch (err) {
