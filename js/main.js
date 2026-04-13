@@ -219,7 +219,6 @@ async function initApp() {
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
     preloadOnboardingImages();
-    console.log("✅ Polling activé (toutes les 5 secondes)");
 
 
 
@@ -1555,11 +1554,18 @@ function renderMobileHub() {
     refreshBadges();
     
     // Rafraîchir toutes les 30 secondes (seulement si on est sur l'accueil)
-    const intervalId = setInterval(() => {
-        if (AppState.currentView === 'home') {
-            refreshBadges();
-        }
-    }, 30000);
+const intervalId = setInterval(() => {
+    if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
+        refreshBadges();
+    }
+}, 120000);
+
+
+    document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+        refreshBadges();
+    }
+});
     
     // Nettoyer l'intervalle si nécessaire (optionnel)
     window.addEventListener('beforeunload', () => {
