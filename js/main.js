@@ -1499,7 +1499,7 @@ function renderMobileHub() {
             
             // 2. Commandes en attente (badge Commandes)
             try {
-                const commandes = await secureFetch("/commandes");
+                const commandes = await secureFetch("/commandes", { noCache: true });
                 if (userRole === "COORDINATEUR") {
                     commandesCount = commandes.filter(c => c.statut === "Livrée").length;
                 } else if (userRole === "AIDANT") {
@@ -1514,7 +1514,7 @@ function renderMobileHub() {
             // 3. Visites à valider (badge Visites)
             if (userRole === "COORDINATEUR") {
                 try {
-                    const visites = await secureFetch("/visites");
+                    const visites = await secureFetch("/visites", { noCache: true });
                     visitesCount = visites.filter(v => v.statut === "En attente").length;
                 } catch (err) {
                     console.error("Erreur chargement visites:", err);
@@ -1523,7 +1523,7 @@ function renderMobileHub() {
             
             // 4. Notifications système (cloche en haut)
             try {
-                const notifications = await secureFetch("/notifications");
+                const notifications = await secureFetch("/notifications", { noCache: true });
                 notificationsCount = notifications.filter(n => !n.read).length;
             } catch (err) {
                 console.error("Erreur chargement notifications:", err);
