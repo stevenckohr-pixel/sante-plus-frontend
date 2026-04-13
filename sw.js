@@ -1,3 +1,36 @@
+// 🔥 FIREBASE (AJOUT)
+importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBzLQLLWmRI7Nr-c-Ht9DKkJejMxh-5C4g",
+  authDomain: "santeplus-service.firebaseapp.com",
+  projectId: "santeplus-service",
+  messagingSenderId: "706607823043",
+  appId: "1:706607823043:web:0f1f6433cdc796d62b0a76"
+});
+
+const messaging = firebase.messaging();
+
+// 🔥 AJOUT : réception FCM en background
+messaging.onBackgroundMessage((payload) => {
+  console.log("🔥 FCM Background:", payload);
+
+  const title = payload.notification?.title || "Santé Plus";
+  const options = {
+    body: payload.notification?.body || "Nouvelle notification",
+    icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
+    badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
+    vibrate: [100, 50, 100],
+    data: { url: payload.data?.url || "/" }
+  };
+
+  self.registration.showNotification(title, options);
+});
+
+
+// ================= EXISTANT (INTOUCHÉ) =================
+
 const CACHE_NAME = 'sps-v6';
 const STATIC_CACHE = 'sps-static-v6';
 const IMAGE_CACHE = 'sps-images-v6';
@@ -41,18 +74,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // ✅ Ignorer les requêtes non-GET
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // ✅ Pour les appels API
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // ✅ CLONER LA RÉPONSE AVANT DE LA LIRE
           const responseToCache = response.clone();
           if (response && response.status === 200) {
             caches.open(CACHE_NAME).then(cache => {
@@ -66,14 +96,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // ✅ Pour les images
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
         if (cached) return cached;
         return fetch(event.request).then(network => {
           if (network && network.status === 200) {
-            // ✅ CLONER AVANT DE METTRE EN CACHE
             const responseToCache = network.clone();
             caches.open(IMAGE_CACHE).then(cache => {
               cache.put(event.request, responseToCache);
@@ -86,11 +114,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // ✅ Pour tout le reste (stratégie stale-while-revalidate)
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
-        // ✅ CLONER AVANT DE METTRE EN CACHE
         if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(STATIC_CACHE).then(cache => {
@@ -98,17 +124,14 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // En cas d'erreur réseau, retourner le cache même si vide
-        return cached;
-      });
+      }).catch(() => cached);
       
       return cached || fetchPromise;
     })
   );
 });
 
-// Notifications push
+// 🔔 PUSH fallback (ton système existant gardé)
 self.addEventListener("push", function (event) {
   let data = {};
   try {
