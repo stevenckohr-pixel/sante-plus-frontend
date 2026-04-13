@@ -605,17 +605,15 @@ export async function loadFeed() {
         localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
 
 try {
-await window.supabase
-    .from('messages')
-    .update({
-        read: true,
-        read_at: new Date().toISOString()
-    })
-    .eq('patient_id', AppState.currentPatient)
-    .eq('read', false)
-    .neq('sender_id', localStorage.getItem("user_id"));
+    await secureFetch('/messages/mark-read', {
+        method: 'POST',
+        body: JSON.stringify({
+            patient_id: AppState.currentPatient,
+            user_id: localStorage.getItem("user_id")
+        })
+    });
 
-    console.log("👁️ Messages marqués comme lus (direct)");
+    console.log("👁️ Messages marqués comme lus (backend)");
 } catch (err) {
     console.error("Erreur read:", err);
 }
