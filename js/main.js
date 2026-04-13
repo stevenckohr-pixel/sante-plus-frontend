@@ -60,7 +60,10 @@ async function initPushNotifications() {
 
         await secureFetch('/save-push-token', {
             method: 'POST',
-            body: JSON.stringify({ token })
+            body: JSON.stringify({
+                token,
+                user_id: localStorage.getItem("user_id")
+            })      
         });
 
     } catch (err) {
