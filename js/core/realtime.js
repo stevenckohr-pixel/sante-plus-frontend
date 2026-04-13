@@ -186,18 +186,19 @@ window.Realtime = {
             .on(
                 'postgres_changes',
                 {
-                    event: 'UPDATE',
+                    event: 'INSERT',
                     schema: 'public',
                     table: 'messages'
                 },
                 (payload) => {
-                    const oldData = payload.old;
-                    const newData = payload.new;
-
-                    if (!oldData.read && newData.read) {
-                        console.log("👁️ READ DETECTED:", newData);
-                        callback(newData);
+                    console.log("🔥 REALTIME PAYLOAD:", payload);
+            
+                    if (!payload.new) {
+                        console.warn("⚠️ payload.new manquant:", payload);
+                        return;
                     }
+            
+                    callback(payload.new); 
                 }
             )
             .subscribe((status) => {
