@@ -37,6 +37,41 @@ import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
 import * as Notifications from "./modules/notifications.js";
+
+import { messaging } from "./firebase.js";
+import { getToken, onMessage } from "firebase/messaging";
+
+async function initPushNotifications() {
+    try {
+        const permission = await Notification.requestPermission();
+
+        if (permission !== "granted") {
+            console.log("❌ Permission refusée");
+            return;
+        }
+
+        const token = await getToken(messaging, {
+            vapidKey: "JTm0mrJUG0hm3CNxUPCpMgFBhagWooeW6qdzmGIthUI"
+        });
+
+        console.log("🔥 PUSH TOKEN:", token);
+
+        // 🔥 envoyer au backend
+        await secureFetch('/save-push-token', {
+            method: 'POST',
+            body: JSON.stringify({
+                token
+            })
+        });
+
+    } catch (err) {
+        console.error("❌ Erreur push:", err);
+    }
+}
+
+
+
+
 console.log("🔍 [main.js] Imports vérifiés:");
 console.log("🔍 Visites module:", Visites);
 console.log("🔍 Visites.startVisit:", Visites?.startVisit);
@@ -281,6 +316,8 @@ async function initApp() {
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
     preloadOnboardingImages();
+    initPushNotifications();
+
 
 
 
@@ -1712,36 +1749,6 @@ window.refreshMenuBadges = () => {
     }
 };
 
-// ============================================================
-// NOTIFICATIONS PUSH
-// ============================================================
-async function initPushNotifications() {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-    try {
-        const registration = await navigator.serviceWorker.ready;
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") return;
-
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: "BM48rks5FJAMMZ9QcGpFPfvQz5TlS6CCeN8uvrucR7yKmJCmwMxjgzTuREGznW48kgwm8LPYwelg1R8wUzA0Pq0",
-        });
-
-        const sub = JSON.parse(JSON.stringify(subscription));
-        await fetch(`${CONFIG.API_URL}/auth/subscribe-push`, {
-            method: "POST",
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}` 
-            },
-            body: JSON.stringify({
-                endpoint: sub.endpoint,
-                p256dh: sub.keys.p256dh,
-                auth: sub.keys.auth,
-            }),
-        });
-    } catch (err) { console.warn("🔔 Push non configuré."); }
-}
 
 // ============================================================
 // LAYOUT PRINCIPAL (HEADER, SIDEBAR, FOOTER)
