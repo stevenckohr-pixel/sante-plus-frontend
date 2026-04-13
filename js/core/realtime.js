@@ -194,15 +194,78 @@ window.Realtime = {
     start,
     on,
     off,
-    subscribe: subscribeToMessages,       // compat ancienne API
+
+    // 🔥 Messages
+    subscribe: subscribeToMessages,
     unsubscribe: unsubscribeFromMessages,
+
+    // 🔥 Infos utilisateur
     fetchSenderInfo,
+
+    // 🔥 Status global
     isActive: () => globalChannel !== null,
-    // Compat ancienne API visites/commandes
+
+    // 🔥 Compat existante
     subscribeToVisites: (cb) => on('visites', (_, row) => cb(row)),
     subscribeToCommandes: (cb) => on('commandes', (_, row) => cb(row)),
     initVisitesChannel: initGlobalChannel,
     initClient,
+
+    // =========================
+    // 👁️ READ (VU)
+    // =========================
+    subscribeToRead: (callback) => {
+        const client = initClient();
+        if (!client) return;
+
+        client
+            .channel('read-status')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages'
+                },
+                (payload) => {
+                    console.log("👁️ Read event:", payload);
+                    callback(payload.new);
+                }
+            )
+            .subscribe((status) => {
+                console.log(`📡 [Realtime] read-status: ${status}`);
+            });
+    },
+
+    // =========================
+    // ✍️ TYPING (OPTIONNEL SI TU VEUX PROPRE)
+    // =========================
+    subscribeToTyping: (callback) => {
+        const client = initClient();
+        if (!client) return;
+
+        client
+            .channel('typing-status')
+            .on(
+                'broadcast',
+                { event: 'typing' },
+                (payload) => {
+                    callback(payload.payload);
+                }
+            )
+            .subscribe();
+    },
+
+    sendTyping: (data) => {
+        const client = initClient();
+        if (!client) return;
+
+        client.channel('typing-status').send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: data
+        });
+    }
 };
 
 console.log('✅ [Realtime] Module chargé');
