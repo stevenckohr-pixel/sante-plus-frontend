@@ -53,7 +53,21 @@
      */
 async function addNewMessageToFeed(newMessage) {
     // Récupérer les infos de l'expéditeur
-    const senderInfo = await window.Realtime.fetchSenderInfo(newMessage.sender_id);
+let senderInfo = {
+    nom: "Utilisateur",
+    role: "MEMBRE",
+    photo_url: null
+};
+
+if (newMessage.sender_id) {
+    try {
+        senderInfo = await window.Realtime.fetchSenderInfo(newMessage.sender_id);
+    } catch (err) {
+        console.warn("⚠️ Erreur fetch sender:", err);
+    }
+} else {
+    console.warn("⚠️ sender_id manquant:", newMessage);
+}    
     
     // Enrichir le message
     const enrichedMessage = {
@@ -63,9 +77,9 @@ async function addNewMessageToFeed(newMessage) {
         photo_url: newMessage.photo_url,
         reply_to_id: newMessage.reply_to_id,
         reactions: newMessage.reactions || {},
-        created_at: newMessage.created_at,
-        sender_name: senderInfo.nom,
-        sender_role: senderInfo.role,
+created_at: newMessage.created_at || new Date().toISOString(),
+        sender_name: senderInfo.nom || "Utilisateur",
+        sender_role: senderInfo.role || "MEMBRE",
         sender_photo: senderInfo.photo_url
     };
     
@@ -769,8 +783,16 @@ export async function loadFeed() {
                     </span>`;
     }
     
-    const timeStr = new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = new Date(msg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        const rawDate = msg.created_at || msg.createdAt || new Date().toISOString();
+        const safeDate = new Date(rawDate);
+        
+        const timeStr = isNaN(safeDate)
+            ? "Maintenant"
+            : safeDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        
+        const dateStr = isNaN(safeDate)
+            ? ""
+            : safeDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
     // ✅ NOUVEAU : Récupérer le message parent si c'est une réponse
     let parentMessageHtml = '';
