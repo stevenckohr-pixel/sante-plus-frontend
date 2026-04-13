@@ -293,8 +293,6 @@ async function initApp() {
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
     preloadOnboardingImages();
-    syncService.init();
-
     initPolling();
     console.log("✅ Polling activé (toutes les 5 secondes)");
 
