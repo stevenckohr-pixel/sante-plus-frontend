@@ -244,28 +244,35 @@ window.Realtime = {
     // =========================
     // 👁️ READ (VU)
     // =========================
-    subscribeToRead: (callback) => {
-        const client = initClient();
-        if (!client) return;
+subscribeToRead: (callback) => {
+    const client = initClient();
+    if (!client) return;
 
-        client
-            .channel('read-status')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'messages'
-                },
-                (payload) => {
-                    console.log("👁️ Read event:", payload);
-                    callback(payload.new);
+    client
+        .channel('read-status')
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'messages'
+            },
+            (payload) => {
+                const oldData = payload.old;
+                const newData = payload.new;
+
+                // 🔥 TRÈS IMPORTANT
+                // Détecter UNIQUEMENT le passage read: false → true
+                if (!oldData.read && newData.read) {
+                    console.log("👁️ READ DETECTED:", newData);
+                    callback(newData);
                 }
-            )
-            .subscribe((status) => {
-                console.log(`📡 [Realtime] read-status: ${status}`);
-            });
-    },
+            }
+        )
+        .subscribe((status) => {
+            console.log(`📡 [Realtime] read-status: ${status}`);
+        });
+},
 
     // =========================
     // ✍️ TYPING (OPTIONNEL SI TU VEUX PROPRE)
