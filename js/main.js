@@ -52,7 +52,7 @@ async function initPushNotifications() {
         const registration = await navigator.serviceWorker.register('/sante-plus-frontend/sw.js');
         
         const token = await window.messaging.getToken({
-            vapidKey: "JTm0mrJUG0hm3CNxUPCpMgFBhagWooeW6qdzmGIthUI",
+            vapidKey: "BAStgbdhdf4eevMHymMZSalvx5ZjbrR_6rJQX6VUfxURmNo6X0ej18IHKw0j-y3oCmu6kmLK0T8YvRAeRENjAkk",
             serviceWorkerRegistration: registration
         });
 
