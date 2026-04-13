@@ -89,7 +89,7 @@ function initGlobalChannel() {
         })
 
         // ── COMMANDES ────────────────────────────────────────
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'commandes' }, ({ eventType, new: row, old }) => {
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'commandes_meds' }, ({ eventType, new: row, old }) => {
             console.log(`🔄 [Realtime] commandes ${eventType}`, row);
             dispatch('commandes', eventType, row || old);
             window.dispatchEvent(new CustomEvent('rt:commandes', { detail: { eventType, row: row || old } }));
