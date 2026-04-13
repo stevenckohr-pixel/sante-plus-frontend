@@ -49,8 +49,11 @@ async function initPushNotifications() {
             return;
         }
 
+        const registration = await navigator.serviceWorker.register('/sante-plus-frontend/sw.js');
+        
         const token = await window.messaging.getToken({
-            vapidKey: "JTm0mrJUG0hm3CNxUPCpMgFBhagWooeW6qdzmGIthUI"
+            vapidKey: "JTm0mrJUG0hm3CNxUPCpMgFBhagWooeW6qdzmGIthUI",
+            serviceWorkerRegistration: registration
         });
 
         console.log("🔥 PUSH TOKEN:", token);
