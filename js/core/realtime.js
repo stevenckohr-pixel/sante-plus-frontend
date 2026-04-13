@@ -175,7 +175,7 @@ window.Realtime = {
     initClient,
 
     // =========================
-    // 👁️ READ (VU) — AJOUTÉ
+    // 👁️ READ (VU)
     // =========================
     subscribeToRead: (callback) => {
         const client = initClient();
@@ -203,6 +203,51 @@ window.Realtime = {
             .subscribe((status) => {
                 console.log(`📡 read-status: ${status}`);
             });
+    },
+
+    // =========================
+    // ✍️ TYPING (EN TRAIN D'ÉCRIRE)
+    // =========================
+    subscribeToTyping: (callback) => {
+        const client = initClient();
+        if (!client) return;
+
+        client
+            .channel('typing-channel')
+            .on(
+                'broadcast',
+                { event: '*' },
+                (payload) => {
+                    if (payload.event === 'typing') {
+                        callback(payload.payload);
+                    }
+                }
+            )
+            .subscribe((status) => {
+                console.log(`📡 typing-channel: ${status}`);
+            });
+    },
+
+    sendTyping: (data) => {
+        const client = initClient();
+        if (!client) return;
+
+        client.channel('typing-channel').send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: data
+        });
+    },
+
+    stopTyping: (data) => {
+        const client = initClient();
+        if (!client) return;
+
+        client.channel('typing-channel').send({
+            type: 'broadcast',
+            event: 'stop_typing',
+            payload: data
+        });
     }
 };
 
