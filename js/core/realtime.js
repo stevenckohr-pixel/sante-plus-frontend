@@ -12,137 +12,81 @@ const REALTIME_CONFIG = {
 let supabaseClient = null;
 
 // Canaux actifs
-let messagesChannel  = null;  // filtré par patient_id courant
-let globalChannel    = null;  // visites + planning + notifications + abonnements + commandes
+let messagesChannel  = null;
+let globalChannel    = null;
 
-// Callbacks enregistrés par type d'événement
+// Callbacks enregistrés
 const callbacks = {
-    messages:      [],   // (row) => void
-    visites:       [],   // (event, row) => void
-    planning:      [],   // (event, row) => void
-    notifications: [],   // (row) => void
-    abonnements:   [],   // (event, row) => void
-    commandes:     [],   // (event, row) => void
+    messages: [],
+    visites: [],
+    planning: [],
+    notifications: [],
+    abonnements: [],
+    commandes: [],
 };
 
 // ── Init client Supabase ─────────────────────────────────────
 function initClient() {
     if (supabaseClient) return supabaseClient;
-    // Réutiliser l'instance globale si disponible
     if (window._supabaseInstance) return (supabaseClient = window._supabaseInstance);
     if (!window.supabase) return null;
-    supabaseClient = window.supabase.createClient(REALTIME_CONFIG.url, REALTIME_CONFIG.key, {
-        realtime: { params: { eventsPerSecond: 10 } }
-    });
+
+    supabaseClient = window.supabase.createClient(
+        REALTIME_CONFIG.url,
+        REALTIME_CONFIG.key,
+        { realtime: { params: { eventsPerSecond: 10 } } }
+    );
+
     window._supabaseInstance = supabaseClient;
     return supabaseClient;
 }
 
-
-window.Realtime.subscribeToRead = (callback) => {
-    if (!window.supabase) {
-        console.error("❌ Supabase non initialisé");
-        return;
-    }
-
-    const channel = window.supabase
-        .channel('messages-read-channel')
-        .on(
-            'postgres_changes',
-            {
-                event: 'UPDATE',
-                schema: 'public',
-                table: 'messages'
-            },
-            (payload) => {
-                console.log("👁️ EVENT READ:", payload);
-
-                const newData = payload.new;
-
-                if (newData.read === true) {
-                    callback(newData);
-                }
-            }
-        )
-        .subscribe();
-
-    return channel;
-};
-// ── Dispatcher interne ───────────────────────────────────────
+// ── Dispatcher ───────────────────────────────────────────────
 function dispatch(type, event, row) {
     const list = callbacks[type] || [];
     list.forEach(cb => {
-        try { cb(event, row); } catch (e) { console.error(`❌ [Realtime] callback ${type}:`, e); }
+        try { cb(event, row); } catch (e) { console.error(e); }
     });
 }
 
-// ── Canal GLOBAL (toutes tables sauf messages) ───────────────
+// ── Canal GLOBAL ─────────────────────────────────────────────
 function initGlobalChannel() {
     const client = initClient();
     if (!client) return;
-    if (globalChannel) return; // déjà actif
-
-    console.log('📡 [Realtime] Ouverture canal global...');
+    if (globalChannel) return;
 
     globalChannel = client
         .channel('sps-global')
 
-        // ── VISITES ──────────────────────────────────────────
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'visites' }, ({ eventType, new: row, old }) => {
-            console.log(`🔄 [Realtime] visites ${eventType}`, row);
-            dispatch('visites', eventType, row || old);
-            window.dispatchEvent(new CustomEvent('rt:visites', { detail: { eventType, row: row || old } }));
-        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'visites' },
+            ({ eventType, new: row, old }) => dispatch('visites', eventType, row || old)
+        )
 
-        // ── PLANNING ─────────────────────────────────────────
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'planning' }, ({ eventType, new: row, old }) => {
-            console.log(`🔄 [Realtime] planning ${eventType}`, row);
-            dispatch('planning', eventType, row || old);
-            window.dispatchEvent(new CustomEvent('rt:planning', { detail: { eventType, row: row || old } }));
-        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'planning' },
+            ({ eventType, new: row, old }) => dispatch('planning', eventType, row || old)
+        )
 
-        // ── NOTIFICATIONS ────────────────────────────────────
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, ({ new: row }) => {
-            const userId = localStorage.getItem('user_id');
-            if (row.user_id !== userId) return; // ne concernait pas cet utilisateur
-            console.log('🔔 [Realtime] notification reçue', row);
-            dispatch('notifications', 'INSERT', row);
-            window.dispatchEvent(new CustomEvent('rt:notification', { detail: { row } }));
-        })
-
-        // ── ABONNEMENTS ──────────────────────────────────────
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'abonnements' }, ({ eventType, new: row, old }) => {
-            console.log(`🔄 [Realtime] abonnements ${eventType}`, row);
-            dispatch('abonnements', eventType, row || old);
-            window.dispatchEvent(new CustomEvent('rt:abonnements', { detail: { eventType, row: row || old } }));
-        })
-
-        // ── COMMANDES ────────────────────────────────────────
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'commandes_meds' }, ({ eventType, new: row, old }) => {
-            console.log(`🔄 [Realtime] commandes ${eventType}`, row);
-            dispatch('commandes', eventType, row || old);
-            window.dispatchEvent(new CustomEvent('rt:commandes', { detail: { eventType, row: row || old } }));
-        })
-
-        .subscribe((status, err) => {
-            if (status === 'SUBSCRIBED') {
-                console.log('✅ [Realtime] Canal global actif');
-            } else if (status === 'CHANNEL_ERROR') {
-                console.error('❌ [Realtime] Erreur canal global:', err);
-                // Tentative de reconnexion après 5 s
-                setTimeout(() => {
-                    globalChannel = null;
-                    initGlobalChannel();
-                }, 5000);
-            } else {
-                console.log(`📡 [Realtime] Canal global: ${status}`);
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' },
+            ({ new: row }) => {
+                const userId = localStorage.getItem('user_id');
+                if (row.user_id !== userId) return;
+                dispatch('notifications', 'INSERT', row);
             }
-        });
+        )
+
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'abonnements' },
+            ({ eventType, new: row, old }) => dispatch('abonnements', eventType, row || old)
+        )
+
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'commandes_meds' },
+            ({ eventType, new: row, old }) => dispatch('commandes', eventType, row || old)
+        )
+
+        .subscribe();
 }
 
-// ── Canal MESSAGES (filtré par patient) ─────────────────────
+// ── Canal MESSAGES ───────────────────────────────────────────
 function subscribeToMessages(patientId, callback) {
-    // Retirer l'ancien abonnement messages si le patient change
     if (messagesChannel) {
         messagesChannel.unsubscribe();
         messagesChannel = null;
@@ -153,23 +97,15 @@ function subscribeToMessages(patientId, callback) {
     const client = initClient();
     if (!client) return;
 
-    // Enregistrer le callback
-    callbacks.messages = [callback]; // un seul listener actif à la fois
-
-    console.log(`📡 [Realtime] Abonnement messages patient: ${patientId}`);
+    callbacks.messages = [callback];
 
     messagesChannel = client
         .channel(`messages-${patientId}`)
         .on('postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'messages', filter: `patient_id=eq.${patientId}` },
-            ({ new: row }) => {
-                console.log('💬 [Realtime] Nouveau message:', row);
-                callbacks.messages.forEach(cb => {
-                    try { cb('INSERT', row); } catch (e) { console.error(e); }
-                });
-            }
+            ({ new: row }) => callback('INSERT', row)
         )
-        .subscribe(status => console.log(`📡 [Realtime] messages: ${status}`));
+        .subscribe();
 }
 
 function unsubscribeFromMessages() {
@@ -180,13 +116,9 @@ function unsubscribeFromMessages() {
     callbacks.messages = [];
 }
 
-// ── API publique : écouter un type d'événement ───────────────
-// Usage : Realtime.on('visites', (eventType, row) => { ... })
+// ── API helpers ─────────────────────────────────────────────
 function on(type, callback) {
-    if (!callbacks[type]) {
-        console.warn(`⚠️ [Realtime] type inconnu: ${type}`);
-        return;
-    }
+    if (!callbacks[type]) return;
     callbacks[type].push(callback);
 }
 
@@ -195,113 +127,82 @@ function off(type, callback) {
     callbacks[type] = callbacks[type].filter(cb => cb !== callback);
 }
 
-// ── Récupération infos expéditeur ────────────────────────────
+// ── Infos expéditeur ─────────────────────────────────────────
 async function fetchSenderInfo(senderId) {
     const client = initClient();
     if (!client) return { nom: 'Utilisateur', role: 'COORDINATEUR', photo_url: null };
+
     try {
-        const { data, error } = await client
+        const { data } = await client
             .from('profiles')
             .select('nom, role, photo_url')
             .eq('id', senderId)
             .single();
-        if (error) throw error;
-        return { nom: data.nom || 'Utilisateur', role: data.role || 'COORDINATEUR', photo_url: data.photo_url || null };
+
+        return {
+            nom: data.nom || 'Utilisateur',
+            role: data.role || 'COORDINATEUR',
+            photo_url: data.photo_url || null
+        };
     } catch {
         return { nom: 'Utilisateur', role: 'COORDINATEUR', photo_url: null };
     }
 }
 
-// ── Démarrage ────────────────────────────────────────────────
+// ── START ────────────────────────────────────────────────────
 function start() {
     initClient();
     initGlobalChannel();
-    console.log('✅ [Realtime] Démarré — canaux actifs: global + prêt pour messages');
 }
 
-// ── Exposer globalement ──────────────────────────────────────
+// ── EXPORT GLOBAL ────────────────────────────────────────────
 window.Realtime = {
     start,
     on,
     off,
 
-    // 🔥 Messages
     subscribe: subscribeToMessages,
     unsubscribe: unsubscribeFromMessages,
 
-    // 🔥 Infos utilisateur
     fetchSenderInfo,
 
-    // 🔥 Status global
     isActive: () => globalChannel !== null,
 
-    // 🔥 Compat existante
     subscribeToVisites: (cb) => on('visites', (_, row) => cb(row)),
     subscribeToCommandes: (cb) => on('commandes', (_, row) => cb(row)),
+
     initVisitesChannel: initGlobalChannel,
     initClient,
 
     // =========================
-    // 👁️ READ (VU)
+    // 👁️ READ (VU) — AJOUTÉ
     // =========================
-subscribeToRead: (callback) => {
-    const client = initClient();
-    if (!client) return;
-
-    client
-        .channel('read-status')
-        .on(
-            'postgres_changes',
-            {
-                event: 'UPDATE',
-                schema: 'public',
-                table: 'messages'
-            },
-            (payload) => {
-                const oldData = payload.old;
-                const newData = payload.new;
-
-                // 🔥 TRÈS IMPORTANT
-                // Détecter UNIQUEMENT le passage read: false → true
-                if (!oldData.read && newData.read) {
-                    console.log("👁️ READ DETECTED:", newData);
-                    callback(newData);
-                }
-            }
-        )
-        .subscribe((status) => {
-            console.log(`📡 [Realtime] read-status: ${status}`);
-        });
-},
-
-    // =========================
-    // ✍️ TYPING (OPTIONNEL SI TU VEUX PROPRE)
-    // =========================
-    subscribeToTyping: (callback) => {
+    subscribeToRead: (callback) => {
         const client = initClient();
         if (!client) return;
 
         client
-            .channel('typing-status')
+            .channel('read-status')
             .on(
-                'broadcast',
-                { event: 'typing' },
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'messages'
+                },
                 (payload) => {
-                    callback(payload.payload);
+                    const oldData = payload.old;
+                    const newData = payload.new;
+
+                    if (!oldData.read && newData.read) {
+                        console.log("👁️ READ DETECTED:", newData);
+                        callback(newData);
+                    }
                 }
             )
-            .subscribe();
-    },
-
-    sendTyping: (data) => {
-        const client = initClient();
-        if (!client) return;
-
-        client.channel('typing-status').send({
-            type: 'broadcast',
-            event: 'typing',
-            payload: data
-        });
+            .subscribe((status) => {
+                console.log(`📡 read-status: ${status}`);
+            });
     }
 };
 
