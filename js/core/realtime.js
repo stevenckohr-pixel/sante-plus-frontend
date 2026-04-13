@@ -38,6 +38,36 @@ function initClient() {
     return supabaseClient;
 }
 
+
+window.Realtime.subscribeToRead = (callback) => {
+    if (!window.supabase) {
+        console.error("❌ Supabase non initialisé");
+        return;
+    }
+
+    const channel = window.supabase
+        .channel('messages-read-channel')
+        .on(
+            'postgres_changes',
+            {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'messages'
+            },
+            (payload) => {
+                console.log("👁️ EVENT READ:", payload);
+
+                const newData = payload.new;
+
+                if (newData.read === true) {
+                    callback(newData);
+                }
+            }
+        )
+        .subscribe();
+
+    return channel;
+};
 // ── Dispatcher interne ───────────────────────────────────────
 function dispatch(type, event, row) {
     const list = callbacks[type] || [];
