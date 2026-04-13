@@ -267,6 +267,66 @@ if (window.Realtime && window.Realtime.subscribeToVisites) {
 }
 
 // Écouter les commandes
+
+
+    // ============================================================
+// 💬 REALTIME MESSAGES (VERSION CORRECTE)
+// ============================================================
+
+function initRealtimeMessages() {
+    const patientId = AppState.currentPatient;
+
+    if (!patientId) return;
+
+    window.Realtime.subscribe(patientId, (event, message) => {
+        console.log("💬 Message reçu en temps réel:", message);
+
+        // Si on est sur le feed → refresh
+        if (AppState.currentView === 'feed' && window.renderFeed) {
+            window.renderFeed();
+        }
+
+        // Mettre à jour badges
+        if (window.refreshMenuBadges) {
+            setTimeout(() => window.refreshMenuBadges(), 500);
+        }
+
+        // Notification
+        showToast("💬 Nouveau message", "info", 3000);
+    });
+}
+
+    await window.switchView(lastView);
+
+
+    setTimeout(() => {
+    if (AppState.currentPatient) {
+        initRealtimeMessages();
+        console.log("✅ Realtime messages démarré");
+    }
+}, 1000);
+
+    // ============================================================
+// 🔔 REALTIME NOTIFICATIONS
+// ============================================================
+if (window.Realtime && window.Realtime.subscribeToNotifications) {
+    window.Realtime.subscribeToNotifications((data) => {
+        console.log("🔔 Notification reçue:", data);
+
+        // Mettre à jour badge cloche
+        if (Notifications.updateNotificationBadge) {
+            Notifications.updateNotificationBadge();
+        }
+
+        // Toast
+        showToast(data.message || "Nouvelle notification", "info", 4000);
+    });
+
+    console.log("✅ Realtime notifications activé");
+}
+
+
+    
 if (window.Realtime && window.Realtime.subscribeToCommandes) {
     window.Realtime.subscribeToCommandes((data) => {
         console.log("📢 [MAIN] Commande mise à jour:", data);
