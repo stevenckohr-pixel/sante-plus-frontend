@@ -45,6 +45,35 @@ const { updateNotificationBadge } = Notifications;
 
 
 
+function handleRealtimeUpdate() {
+    console.log("⚡ Mise à jour globale realtime");
+
+    // Refresh feed
+    if (AppState.currentView === 'feed' && window.renderFeed) {
+        window.renderFeed();
+    }
+
+    // Refresh visites
+    if (AppState.currentView === 'visits' && window.loadVisits) {
+        window.loadVisits();
+    }
+
+    // Refresh commandes
+    if (window.loadCommandes) {
+        window.loadCommandes();
+    }
+
+    // Refresh badges
+    if (window.refreshMenuBadges) {
+        setTimeout(() => window.refreshMenuBadges(), 300);
+    }
+
+    // Refresh notifications
+    if (window.updateNotificationBadge) {
+        window.updateNotificationBadge();
+    }
+}
+
 
 
 // Met à jour l'icône PWA selon le thème (Maman ou général)
@@ -262,7 +291,11 @@ if (window.Realtime && window.Realtime.subscribeToVisites) {
             if (window.fetchStats) window.fetchStats();
             if (window.loadRegistrations) window.loadRegistrations();
         }
+
+        handleRealtimeUpdate();
     });
+
+
     console.log("✅ Écoute des visites en temps réel activée");
 }
 
@@ -293,6 +326,8 @@ function initRealtimeMessages() {
 
         // Notification
         showToast("💬 Nouveau message", "info", 3000);
+
+        handleRealtimeUpdate();
     });
 }
 
@@ -312,6 +347,8 @@ if (window.Realtime && window.Realtime.subscribeToNotifications) {
 
         // Toast
         showToast(data.message || "Nouvelle notification", "info", 4000);
+
+        handleRealtimeUpdate();
     });
 
     console.log("✅ Realtime notifications activé");
@@ -344,8 +381,12 @@ if (window.Realtime && window.Realtime.subscribeToCommandes) {
         if (window.refreshMenuBadges) {
             setTimeout(() => window.refreshMenuBadges(), 500);
         }
+
+        handleRealtimeUpdate();
     });
 }
+
+    
     // ✅ Correction : appeler la fonction depuis le module importé
     Notifications.updateNotificationBadge();
     
@@ -1136,6 +1177,12 @@ window.selectPack = (packId, price) => {
         // Étape 0 : choix du service (déjà géré par selectServiceType)
         currentStep++;
         renderAuthView('register', currentStep);
+        setTimeout(() => {
+            if (AppState.currentPatient) {
+                initRealtimeMessages();
+                console.log("🔁 Realtime messages relancé (changement)");
+            }
+        }, 500);
         return;
     }
     
