@@ -38,7 +38,7 @@ import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
 import * as Notifications from "./modules/notifications.js";
 
-import { messaging } from "./firebase.js";
+const messaging = window.messaging;
 import { getToken, onMessage } from "firebase/messaging";
 
 async function initPushNotifications() {
