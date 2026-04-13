@@ -28,14 +28,13 @@ const callbacks = {
 // ── Init client Supabase ─────────────────────────────────────
 function initClient() {
     if (supabaseClient) return supabaseClient;
-    if (!window.supabase) {
-        console.error('❌ [Realtime] window.supabase introuvable — CDN pas encore chargé');
-        return null;
-    }
+    // Réutiliser l'instance globale si disponible
+    if (window._supabaseInstance) return (supabaseClient = window._supabaseInstance);
+    if (!window.supabase) return null;
     supabaseClient = window.supabase.createClient(REALTIME_CONFIG.url, REALTIME_CONFIG.key, {
         realtime: { params: { eventsPerSecond: 10 } }
     });
-    console.log('✅ [Realtime] Client Supabase initialisé');
+    window._supabaseInstance = supabaseClient;
     return supabaseClient;
 }
 
