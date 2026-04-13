@@ -1177,12 +1177,6 @@ window.selectPack = (packId, price) => {
         // Étape 0 : choix du service (déjà géré par selectServiceType)
         currentStep++;
         renderAuthView('register', currentStep);
-        setTimeout(() => {
-            if (AppState.currentPatient) {
-                initRealtimeMessages();
-                console.log("🔁 Realtime messages relancé (changement)");
-            }
-        }, 500);
         return;
     }
     
@@ -1231,6 +1225,12 @@ window.selectPack = (packId, price) => {
 
     currentStep++;
     renderAuthView('register', currentStep);
+    setTimeout(() => {
+            if (AppState.currentPatient) {
+                initRealtimeMessages();
+                console.log("🔁 Realtime messages relancé (changement)");
+            }
+    }, 500);
 };
 
 
