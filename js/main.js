@@ -296,15 +296,7 @@ function initRealtimeMessages() {
     });
 }
 
-    await window.switchView(lastView);
 
-
-    setTimeout(() => {
-    if (AppState.currentPatient) {
-        initRealtimeMessages();
-        console.log("✅ Realtime messages démarré");
-    }
-}, 1000);
 
     // ============================================================
 // 🔔 REALTIME NOTIFICATIONS
@@ -403,6 +395,13 @@ if (window.Realtime && window.Realtime.subscribeToCommandes) {
             const lastView = localStorage.getItem("last_view") || defaultView;
             
             await window.switchView(lastView);
+
+            setTimeout(() => {
+            if (AppState.currentPatient) {
+                initRealtimeMessages();
+                console.log("✅ Realtime messages démarré");
+            }
+        }, 1000);
 
             // ✅ ASSIGNATION DES FONCTIONS GLOBALES APRÈS LE CHARGEMENT
             console.log("🔍 Vérification des modules après chargement:");
