@@ -1437,6 +1437,26 @@ function initScrollDetection() {
     });
 }
 
+
+
+function updatePatientBadges() {
+    document.querySelectorAll(".patient-item").forEach(el => {
+        const patientId = el.dataset.patientId;
+        const badge = el.querySelector(".patient-badge");
+
+        if (!badge) return;
+
+        const count = AppState.unreadByPatient?.[patientId] || 0;
+
+        if (count > 0) {
+            badge.textContent = count;
+            badge.classList.remove("hidden");
+        } else {
+            badge.classList.add("hidden");
+        }
+    });
+}
+
     window.loadFeed = loadFeed;
     window.cleanupRealtime = cleanupRealtime;
     window.renderFeed = renderFeed;
