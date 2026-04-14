@@ -66,7 +66,7 @@ function initRealtimeForCurrentPatient() {
             const data = await secureFetch(
                 `/messages?message_id=${newMessage.id}`
             );
-
+            console.log("STEP FETCH:", data);
             if (!data || !data[0]) {
                 console.warn("⚠️ Message enrichi introuvable");
                 return;
