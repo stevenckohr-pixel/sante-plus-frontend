@@ -1609,86 +1609,96 @@ function renderMobileHub() {
      * Rafraîchir tous les badges
      */
     async function refreshBadges() {
-        try {
-            let messagesCount = 0;
-            let commandesCount = 0;
-            let visitesCount = 0;
-            let notificationsCount = 0;
+    try {
+        let messagesCount = 0;
+        let commandesCount = 0;
+        let visitesCount = 0;
+        let notificationsCount = 0;
+        
+        const currentUserId = localStorage.getItem("user_id");
+        const userRole = localStorage.getItem("user_role");
+        
+        // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
+        if (AppState.currentPatient) {
+            const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
+            const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
             
-            // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
-            if (AppState.currentPatient) {
-                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
-                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-                const currentUserId = localStorage.getItem("user_id");
-                
-                // Filtrer pour ne compter que les messages des AUTRES
-                const otherMessages = messages.filter(m => m.sender_id !== currentUserId);
-                
-                if (lastRead) {
-                    messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-                } else if (otherMessages.length > 0) {
-                    messagesCount = otherMessages.length;
-                }
-                console.log(`📬 Messages non lus (autres): ${messagesCount}`);
+            // 🔥 Ne compter que les messages des AUTRES
+            const otherMessages = messages.filter(m => m.sender_id !== currentUserId);
+            
+            if (lastRead) {
+                messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+            } else if (otherMessages.length > 0) {
+                messagesCount = otherMessages.length;
             }
-            
-            // 2. Commandes en attente (badge Commandes)
-            try {
-                const commandes = await secureFetch("/commandes", { noCache: true });
-                if (userRole === "COORDINATEUR") {
-                    commandesCount = commandes.filter(c => c.statut === "Livrée").length;
-                } else if (userRole === "AIDANT") {
-                    commandesCount = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
-                } else if (userRole === "FAMILLE") {
-                    commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
-                }
-            } catch (err) {
-                console.error("Erreur chargement commandes:", err);
-            }
-            
-            // 3. Visites à valider (badge Visites)
-            if (userRole === "COORDINATEUR") {
-                try {
-                    const visites = await secureFetch("/visites", { noCache: true });
-                    visitesCount = visites.filter(v => v.statut === "En attente").length;
-                } catch (err) {
-                    console.error("Erreur chargement visites:", err);
-                }
-            }
-            
-            // 4. Notifications système (cloche en haut)
-            try {
-                const notifications = await secureFetch("/notifications", { noCache: true });
-                notificationsCount = notifications.filter(n => !n.read).length;
-            } catch (err) {
-                console.error("Erreur chargement notifications:", err);
-            }
-            
-            // 5. Mettre à jour les badges des tuiles
-            updateBadgeUI('feed', messagesCount, 'bg-rose-500');
-            updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
-            updateBadgeUI('visits', visitesCount, 'bg-blue-500');
-            
-            // 6. Mettre à jour la cloche en haut (notifications système)
-            const headerBadge = document.getElementById('notification-badge');
-            if (headerBadge) {
-                if (notificationsCount > 0) {
-                    headerBadge.style.display = 'flex';
-                    headerBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
-                } else {
-                    headerBadge.style.display = 'none';
-                }
-            }
-            
-        } catch (err) {
-            console.error("❌ Erreur refreshBadges:", err);
+            console.log(`📬 Messages non lus (autres): ${messagesCount}`);
         }
+        
+        // 2. Commandes en attente (badge Commandes) - IGNORER SES PROPRES COMMANDES
+        try {
+            const commandes = await secureFetch("/commandes", { noCache: true });
+            
+            if (userRole === "COORDINATEUR") {
+                // 🔥 Ne compter que les commandes livrées NON validées par lui-même
+                commandesCount = commandes.filter(c => c.statut === "Livrée").length;
+            } else if (userRole === "AIDANT") {
+                // 🔥 Ne compter que les commandes en attente NON assignées
+                commandesCount = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
+            } else if (userRole === "FAMILLE") {
+                // Pour la famille, on compte ses propres commandes en cours
+                commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
+            }
+            console.log(`📦 Commandes à traiter: ${commandesCount}`);
+        } catch (err) {
+            console.error("Erreur chargement commandes:", err);
+        }
+        
+        // 3. Visites à valider (badge Visites)
+        if (userRole === "COORDINATEUR") {
+            try {
+                const visites = await secureFetch("/visites", { noCache: true });
+                visitesCount = visites.filter(v => v.statut === "En attente").length;
+                console.log(`📋 Visites à valider: ${visitesCount}`);
+            } catch (err) {
+                console.error("Erreur chargement visites:", err);
+            }
+        }
+        
+        // 4. Notifications système (cloche en haut) - IGNORER LES SIENNES
+        try {
+            const notifications = await secureFetch("/notifications", { noCache: true });
+            // 🔥 Ne compter que les notifications NON lues de l'utilisateur courant
+            notificationsCount = notifications.filter(n => !n.read && n.user_id === currentUserId).length;
+            console.log(`🔔 Notifications non lues: ${notificationsCount}`);
+        } catch (err) {
+            console.error("Erreur chargement notifications:", err);
+        }
+        
+        // 5. Mettre à jour les badges des tuiles
+        updateBadgeUI('feed', messagesCount, 'bg-rose-500');
+        updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
+        updateBadgeUI('visits', visitesCount, 'bg-blue-500');
+        
+        // 6. Mettre à jour la cloche en haut (notifications système)
+        const headerBadge = document.getElementById('notification-badge');
+        if (headerBadge) {
+            if (notificationsCount > 0) {
+                headerBadge.style.display = 'flex';
+                headerBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
+            } else {
+                headerBadge.style.display = 'none';
+            }
+        }
+        
+    } catch (err) {
+        console.error("❌ Erreur refreshBadges:", err);
     }
-    
-    // Charger les badges au démarrage
-    refreshBadges();
-    
-    // Rafraîchir toutes les 30 secondes (seulement si on est sur l'accueil)
+}
+
+// Charger les badges au démarrage
+refreshBadges();
+
+// Rafraîchir toutes les 2 minutes (seulement si on est sur l'accueil)
 const intervalId = setInterval(() => {
     if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
         refreshBadges();
@@ -1696,6 +1706,8 @@ const intervalId = setInterval(() => {
 }, 120000);
 
 
+    
+   
     document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
         refreshBadges();
