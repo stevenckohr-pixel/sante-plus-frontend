@@ -23,26 +23,46 @@
             window.Realtime.unsubscribe();
             
             // S'abonner au nouveau patient
-            window.Realtime.subscribe(AppState.currentPatient, (newMessage) => {
-                console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
-                
-                // Vérifier que ce n'est pas notre propre message
-                const currentUserId = localStorage.getItem("user_id");
-                if (newMessage.sender_id === currentUserId) {
-                    console.log("📨 Message ignoré (c'est nous)");
-                    return;
-                }
-                
-                // Vérifier que le message n'existe pas déjà
-                const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
-                if (exists) {
-                    console.log("📨 Message déjà présent");
-                    return;
-                }
-                
-                // Enrichir et ajouter le message
-                addNewMessageToFeed(newMessage);
-            });
+window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
+    console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
+
+    // 🔥 1. BLOQUER LES FAUX MESSAGES (genre "INSERT")
+    if (!newMessage || typeof newMessage !== "object") {
+        console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
+        return;
+    }
+
+    // 🔥 2. sécuriser sender_id
+    const currentUserId = localStorage.getItem("user_id");
+
+    if (newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId)) {
+        console.log("📨 Message ignoré (c'est nous)");
+        return;
+    }
+
+    // 🔥 3. éviter les doublons
+    const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
+    if (exists) {
+        console.log("📨 Message déjà présent");
+        return;
+    }
+
+    // 🔥 4. RE-FETCH message complet (ULTRA IMPORTANT)
+    let fullMessage = newMessage;
+
+    try {
+        const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
+        if (data && data.length > 0) {
+            fullMessage = data[0];
+        }
+    } catch (err) {
+        console.warn("⚠️ fallback message realtime (pas grave)");
+    }
+
+    // 🔥 5. ajouter message propre
+    if (fullMessage.patient_id !== AppState.currentPatient) return;
+    addNewMessageToFeed(fullMessage);
+});
             
             console.log("✅ [Realtime] Écoute activée pour le patient:", AppState.currentPatient);
         }
@@ -78,7 +98,7 @@ if (newMessage.sender_id) {
         reply_to_id: newMessage.reply_to_id,
         reactions: newMessage.reactions || {},
 created_at: newMessage.created_at || new Date().toISOString(),
-        sender_name: senderInfo.nom || "Utilisateur",
+        sender_name: senderInfo.nom || "Membre",
         sender_role: senderInfo.role || "MEMBRE",
         sender_photo: senderInfo.photo_url
     };
@@ -87,6 +107,7 @@ created_at: newMessage.created_at || new Date().toISOString(),
     if (!AppState.messages) AppState.messages = [];
     AppState.messages.push(enrichedMessage);
     
+    renderFeed();
     // ✅ Si l'utilisateur n'est pas en bas, afficher le badge
     if (!isUserAtBottom) {
         unreadMessagesCount++;
@@ -94,7 +115,6 @@ created_at: newMessage.created_at || new Date().toISOString(),
         // Ne pas scroller automatiquement
     } else {
         // Si en bas, re-rendre et scroller
-        renderFeed();
         scrollToBottom();
         playNotificationBeep();
         if (navigator.vibrate) navigator.vibrate(100);
