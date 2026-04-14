@@ -527,46 +527,61 @@ async function loadFeed() {
     }
 
     const isMaman = localStorage.getItem('user_is_maman') === "true";
-    const themeColor = isMaman ? '#DB2777' : '#10B981';
-    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
     const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
-    const themeBorderClass = isMaman ? 'border-pink-200' : 'border-emerald-200';
+    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const themeBorderClass = isMaman ? 'border-pink-500' : 'border-emerald-500';
+    
+    // Récupérer les infos du patient pour le header
+    let patientInfo = null;
+    try {
+        const patients = await secureFetch("/patients");
+        if (patients && patients.length > 0) {
+            patientInfo = patients[0];
+        }
+    } catch(e) {}
 
-    // ✅ Structure FLEX column avec hauteur totale
     container.innerHTML = `
-        <div class="flex flex-col h-full animate-fadeIn">
-            <!-- Header fixe en haut -->
-            <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3 flex items-center gap-3 shrink-0">
+        <div class="flex flex-col h-full bg-[#f0f2f5]">
+            <!-- Header style WhatsApp -->
+            <div class="sticky top-0 z-10 bg-white border-b border-slate-100 px-3 py-2 flex items-center gap-3 shadow-sm shrink-0">
                 <button onclick="window.switchView('patients')" 
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-all">
-                    <i class="fa-solid fa-arrow-left text-sm"></i>
+                        class="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95 transition-all">
+                    <i class="fa-solid fa-arrow-left text-base"></i>
                 </button>
-                <div class="flex-1">
-                    <h3 class="font-bold text-slate-800 text-sm">Journal de bord</h3>
-                    <p class="text-[10px] text-slate-400">Patient #${AppState.currentPatient?.substring(0, 6) || '000000'}</p>
+                <div class="flex-1 flex items-center gap-3">
+                    <div class="relative">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br ${isMaman ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600'} flex items-center justify-center text-white font-bold text-sm">
+                            ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
+                        </div>
+                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-slate-800 text-sm">${patientInfo?.nom_complet || 'Patient'}</h3>
+                        <p class="text-[10px] text-green-500 font-medium">En ligne</p>
+                    </div>
                 </div>
                 <button onclick="window.filterFeed('DOCUMENT')" 
-                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95">
-                    <i class="fa-solid fa-paperclip text-xs"></i>
+                        class="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95">
+                    <i class="fa-solid fa-paperclip text-base"></i>
                 </button>
             </div>
 
-            <!-- Onglets compacts -->
-            <div class="bg-white px-4 pt-2 border-b border-slate-100 shrink-0">
-                <div class="flex gap-4">
+            <!-- Switcher d'onglets compact -->
+            <div class="bg-white px-4 py-1 border-b border-slate-100 shrink-0">
+                <div class="flex gap-6">
                     <button onclick="window.filterFeed('STORY')" id="tab-story" 
-                            class="py-2 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all ${themeTextClass} border-b-${isMaman ? 'pink-500' : 'emerald-500'}">
-                        💬 Messages
+                            class="py-2 text-[12px] font-semibold border-b-2 transition-all ${themeTextClass} border-b-${isMaman ? 'pink-500' : 'emerald-500'}">
+                        Messages
                     </button>
                     <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" 
-                            class="py-2 text-[11px] font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 transition-all">
-                        📎 Documents
+                            class="py-2 text-[12px] font-semibold border-b-2 border-transparent text-slate-400 transition-all">
+                        Médias & Docs
                     </button>
                 </div>
             </div>
 
-            <!-- Zone des messages (scrollable, prend tout l'espace restant) -->
-            <div id="care-feed-content" class="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scroll">
+            <!-- Zone des messages (scrollable) -->
+            <div id="care-feed-content" class="flex-1 overflow-y-auto px-3 py-3 space-y-2 custom-scroll">
                 <div class="flex justify-center py-10">
                     <div class="relative w-8 h-8">
                         <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -575,10 +590,10 @@ async function loadFeed() {
             </div>
 
             <!-- Zone de saisie fixe en bas -->
-            <div class="shrink-0 bg-white border-t border-slate-100 p-3">
+            <div class="shrink-0 bg-white border-t border-slate-100 px-3 py-2">
                 
                 <!-- Indicateur de réponse -->
-                <div id="reply-indicator" class="hidden mb-2 p-2 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                <div id="reply-indicator" class="hidden mb-2 p-2 bg-amber-50 rounded-xl flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <i class="fa-solid fa-reply-all text-amber-500 text-xs"></i>
                         <span class="text-[10px] font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
@@ -588,11 +603,11 @@ async function loadFeed() {
                     </button>
                 </div>
                 
-                <!-- Barre de saisie -->
+                <!-- Barre de saisie style WhatsApp -->
                 <div class="flex items-center gap-2">
                     <button id="photo-btn" 
                             class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 transition-all">
-                        <i class="fa-solid fa-camera text-sm"></i>
+                        <i class="fa-solid fa-camera text-base"></i>
                     </button>
                     
                     <div class="flex-1 bg-slate-100 rounded-full px-4 py-2 flex items-center gap-2">
@@ -612,7 +627,7 @@ async function loadFeed() {
         </div>
     `;
 
-    // Brancher les événements (inchangé)
+    // Brancher les événements
     const photoBtn = document.getElementById('photo-btn');
     const photoInput = document.getElementById('photo-input');
     const sendBtn = document.getElementById('send-btn');
@@ -670,11 +685,9 @@ async function loadFeed() {
         AppState.unreadByPatient = {};
         const currentUserId = localStorage.getItem("user_id");
         
-         data.forEach(msg => {
+        data.forEach(msg => {
             const patientId = msg.patient_id;
             
-            // ✅ NE PAS compter les messages de l'utilisateur courant
-            // ✅ NE PAS compter les messages déjà lus
             if (msg.sender_id !== currentUserId && !msg.read) {
                 if (!AppState.unreadByPatient[patientId]) {
                     AppState.unreadByPatient[patientId] = 0;
@@ -683,10 +696,7 @@ async function loadFeed() {
             }
         });
 
-// ✅ AFFICHER LE COMPTEUR POUR DEBUG
-console.log("🔴 [COMPTEUR INITIAL] unreadByPatient:", AppState.unreadByPatient);
-        
-        console.log("🔴 [CHARGEMENT] unreadByPatient initialisé:", AppState.unreadByPatient);
+        console.log("🔴 [COMPTEUR INITIAL] unreadByPatient:", AppState.unreadByPatient);
         updatePatientBadges();
         
         if (window.Realtime) {
@@ -751,7 +761,12 @@ console.log("🔴 [COMPTEUR INITIAL] unreadByPatient:", AppState.unreadByPatient
         }
     }
 }
-     
+
+
+
+
+
+
 if (!readSubscribed) {
     readSubscribed = true;
 
@@ -914,18 +929,19 @@ function updateSeenStatus(data) {
      * @param {Object} msg - Le message
      * @param {boolean} isReply - Si c'est une réponse (style indenté)
      */
-   
+
 function renderStoryCard(msg, isReply = false) {
     const isPhoto = msg.is_photo || msg.photo_url;
     let content = msg.content || '';
     let humeurBadge = "";
     const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const themeColor = isMaman ? '#DB2777' : '#10B981';
+    const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
     const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
-    const themeBgClass = isMaman ? 'bg-pink-100' : 'bg-emerald-100';
-    const themeBadgeClass = isMaman ? 'bg-pink-50 text-pink-600' : 'bg-emerald-50 text-emerald-600';
+    const themeLightBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
 
     const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
+    const currentUserId = localStorage.getItem("user_id");
+    const isOwnMessage = String(msg.sender_id) === String(currentUserId);
     
     // Décodage de l'humeur
     if (!isPhoto && content && content.includes('|')) {
@@ -938,61 +954,24 @@ function renderStoryCard(msg, isReply = false) {
             "Fatigué": "😴",
             "Triste": "😔"
         };
-        humeurBadge = `
-            <div class="mt-2 inline-flex items-center gap-1 px-2 py-1 ${themeBgClass} rounded-full border ${isMaman ? 'border-pink-200' : 'border-emerald-200'}">
-                <span class="text-sm">${emojis[humeur] || '✨'}</span>
-                <span class="text-[9px] font-bold ${themeTextClass}">${humeur}</span>
-            </div>`;
+        humeurBadge = `<span class="text-xs mr-1">${emojis[humeur] || '✨'}</span>`;
         content = notes;
-    }
-
-    const isAidant = msg.sender_role === 'AIDANT';
-    const isFamily = msg.sender_role === 'FAMILLE';
-    const isCoordinator = msg.sender_role === 'COORDINATEUR';
-    
-    let avatarBg = 'bg-slate-100';
-    let roleIcon = 'fa-user';
-    let roleColorClass = 'text-slate-500';
-    let roleBadge = '';
-    
-    if (isAidant) {
-        avatarBg = themeBgClass;
-        roleIcon = 'fa-user-nurse';
-        roleColorClass = themeTextClass;
-        roleBadge = `<span class="text-[8px] font-black ${themeBadgeClass} px-1.5 py-0.5 rounded-full ml-1">
-                        <i class="fa-solid fa-shield-check text-[8px] mr-0.5"></i> Aidant
-                    </span>`;
-    } else if (isFamily) {
-        avatarBg = 'bg-blue-100';
-        roleIcon = 'fa-user';
-        roleColorClass = 'text-blue-600';
-        roleBadge = `<span class="text-[8px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full ml-1">
-                        <i class="fa-regular fa-heart text-[8px] mr-0.5"></i> Famille
-                    </span>`;
-    } else if (isCoordinator) {
-        avatarBg = 'bg-purple-100';
-        roleIcon = 'fa-user-tie';
-        roleColorClass = 'text-purple-600';
-        roleBadge = `<span class="text-[8px] font-black bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full ml-1">
-                        <i class="fa-solid fa-star text-[8px] mr-0.5"></i> Coordination
-                    </span>`;
     }
     
     const rawDate = msg.created_at || msg.createdAt || new Date().toISOString();
     const safeDate = new Date(rawDate);
     const timeStr = isNaN(safeDate) ? "Maintenant" : safeDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = isNaN(safeDate) ? "" : safeDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
-    // Message parent
+    // Message parent (réponse)
     let parentMessageHtml = '';
-    if (msg.reply_to_id) {
+    if (msg.reply_to_id && !isOwnMessage) {
         const parentMsg = AppState.messages?.find(m => m.id === msg.reply_to_id);
         if (parentMsg) {
-            const parentContent = parentMsg.is_photo ? '📷 Photo' : (parentMsg.content?.substring(0, 60) + (parentMsg.content?.length > 60 ? '...' : ''));
+            const parentContent = parentMsg.is_photo ? '📷 Photo' : (parentMsg.content?.substring(0, 50) + (parentMsg.content?.length > 50 ? '...' : ''));
             parentMessageHtml = `
-                <div class="mb-2 pl-2 border-l-2 border-amber-400">
-                    <p class="text-[9px] text-amber-600 font-medium">↳ Réponse à ${escapeHtml(parentMsg.sender_name || 'un message')}</p>
-                    <p class="text-[10px] text-slate-500 italic truncate">"${escapeHtml(parentContent)}"</p>
+                <div class="mb-1 pl-2 border-l-2 border-amber-400">
+                    <p class="text-[8px] text-amber-600 font-medium">↳ Réponse à ${escapeHtml(parentMsg.sender_name || 'un message')}</p>
+                    <p class="text-[9px] text-slate-500 italic truncate">"${escapeHtml(parentContent)}"</p>
                 </div>
             `;
         }
@@ -1001,61 +980,97 @@ function renderStoryCard(msg, isReply = false) {
     const isTemp = msg.is_temp === true;
     const tempClass = isTemp ? 'opacity-70' : '';
 
-    return `
-        <div class="flex items-start gap-2 ${isReply ? 'ml-6' : ''} animate-fadeIn mb-3 ${tempClass}" data-message-id="${msg.id}">
-            <div class="message-status hidden"></div>
-            
-            <div class="relative flex-shrink-0">
-                <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center overflow-hidden">
-                    ${msg.sender_photo ? 
-                        `<img src="${msg.sender_photo}" class="w-full h-full rounded-full object-cover">` : 
-                        `<i class="fa-solid ${roleIcon} ${roleColorClass} text-sm"></i>`
-                    }
+    // ============================================================
+    // MESSAGE ENVOYÉ (À DROITE) - STYLE WHATSAPP
+    // ============================================================
+    if (isOwnMessage) {
+        return `
+            <div class="flex justify-end mb-2 ${isReply ? 'ml-8' : ''} ${tempClass}" data-message-id="${msg.id}">
+                <div class="max-w-[75%]">
+                    ${imageUrl ? `
+                        <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')">
+                    ` : ''}
+                    ${content ? `
+                        <div class="${themeBgClass} rounded-2xl rounded-tr-sm px-3 py-2">
+                            <p class="text-white text-sm break-words">${escapeHtml(content)}</p>
+                        </div>
+                    ` : ''}
+                    <div class="flex justify-end items-center gap-1 mt-0.5">
+                        <span class="text-[9px] text-slate-400">${timeStr}</span>
+                        ${msg.read ? '<i class="fa-solid fa-check-double text-[10px] text-blue-500"></i>' : '<i class="fa-solid fa-check text-[10px] text-slate-400"></i>'}
+                    </div>
                 </div>
-                ${isAidant ? `
-                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} border border-white shadow-sm"></div>
-                ` : ''}
-                ${isFamily ? `
-                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border border-white shadow-sm"></div>
-                ` : ''}
             </div>
-            
-            <div class="flex-1 min-w-0">
+        `;
+    }
+
+    // ============================================================
+    // MESSAGE REÇU (À GAUCHE) - STYLE WHATSAPP
+    // ============================================================
+    const isAidant = msg.sender_role === 'AIDANT';
+    const isFamily = msg.sender_role === 'FAMILLE';
+    const isCoordinator = msg.sender_role === 'COORDINATEUR';
+    
+    let avatarBg = 'bg-slate-100';
+    let roleIcon = 'fa-user';
+    let roleColor = 'text-slate-500';
+    let roleInitial = '';
+    let roleBadge = '';
+    
+    if (isAidant) {
+        avatarBg = themeLightBg;
+        roleIcon = 'fa-user-nurse';
+        roleColor = themeTextClass;
+        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'A';
+        roleBadge = `<span class="text-[8px] font-medium text-emerald-600 ml-1"><i class="fa-solid fa-shield-check"></i></span>`;
+    } else if (isFamily) {
+        avatarBg = 'bg-blue-100';
+        roleIcon = 'fa-user';
+        roleColor = 'text-blue-600';
+        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'F';
+    } else if (isCoordinator) {
+        avatarBg = 'bg-purple-100';
+        roleIcon = 'fa-user-tie';
+        roleColor = 'text-purple-600';
+        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'C';
+    }
+
+    return `
+        <div class="flex items-start gap-2 mb-2 ${isReply ? 'ml-8' : ''} ${tempClass}" data-message-id="${msg.id}">
+            <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center flex-shrink-0">
+                ${msg.sender_photo ? 
+                    `<img src="${msg.sender_photo}" class="w-full h-full rounded-full object-cover">` : 
+                    `<i class="fa-solid ${roleIcon} ${roleColor} text-xs"></i>`
+                }
+            </div>
+            <div class="max-w-[75%]">
                 <div class="flex items-center gap-1 mb-0.5 flex-wrap">
-                    <span class="font-bold text-slate-800 text-xs">${escapeHtml(msg.sender_name || 'Système')}</span>
+                    <span class="font-semibold text-slate-700 text-xs">${escapeHtml(msg.sender_name || 'Inconnu')}</span>
                     ${roleBadge}
-                    <span class="text-[9px] text-slate-400">• ${timeStr}</span>
-                    <span class="text-[9px] text-slate-300">${dateStr ? '• ' + dateStr : ''}</span>
-                    ${isTemp ? `<span class="text-[8px] text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Envoi...</span>` : ''}
+                    ${humeurBadge}
                 </div>
                 
                 ${parentMessageHtml}
                 
                 ${imageUrl ? `
-                    <div class="relative rounded-xl overflow-hidden mb-1 max-w-[250px]">
-                        <img src="${imageUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" onclick="window.open('${imageUrl}')">
-                        <div class="absolute top-2 right-2 bg-slate-900/60 backdrop-blur-sm px-1.5 py-0.5 rounded-lg">
-                            <span class="text-[7px] font-black text-white uppercase">Photo</span>
-                        </div>
-                    </div>
+                    <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')">
                 ` : ''}
                 
                 ${content ? `
-                    <div class="bg-slate-100 rounded-2xl px-3 py-2 max-w-[280px]">
-                        <p class="text-xs text-slate-700 break-words leading-relaxed">${escapeHtml(content)}</p>
+                    <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2 shadow-sm border border-slate-100">
+                        <p class="text-slate-700 text-sm break-words">${escapeHtml(content)}</p>
                     </div>
                 ` : ''}
                 
-                ${humeurBadge}
-                
-                <div class="flex items-center gap-2 mt-1">
+                <div class="flex items-center gap-2 mt-0.5">
+                    <span class="text-[9px] text-slate-400">${timeStr}</span>
                     <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
-                            class="text-[9px] text-slate-400 hover:${themeTextClass} transition">
-                        <i class="fa-solid fa-reply text-[8px]"></i> Répondre
+                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                        <i class="fa-solid fa-reply text-[8px]"></i>
                     </button>
                     <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
-                            class="text-[9px] text-slate-400 hover:${themeTextClass} transition">
-                        <i class="fa-regular fa-face-smile"></i> Réagir
+                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                        <i class="fa-regular fa-face-smile"></i>
                     </button>
                     ${isAidant && msg.id && !msg.is_temp ? `
                         <button onclick="window.reportIssue('${msg.id}')" 
@@ -1069,18 +1084,18 @@ function renderStoryCard(msg, isReply = false) {
                     <div class="flex gap-1 mt-1">
                         ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
                             <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
-                                    class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded-full text-xs transition">
+                                    class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 rounded-full text-xs transition">
                                 <span class="text-sm">${emoji}</span>
-                                <span class="text-[9px] font-medium text-slate-500">${count}</span>
+                                <span class="text-[9px] text-slate-500">${count}</span>
                             </button>
                         `).join('')}
                     </div>
                 ` : ''}
                 
                 ${imageUrl && isAidant && !msg.is_temp ? `
-                    <div class="mt-1">
+                    <div class="mt-0.5">
                         <span class="text-[7px] text-slate-400">
-                            <i class="fa-regular fa-camera"></i> Photo par ${msg.sender_name}
+                            <i class="fa-regular fa-camera"></i> Photo
                         </span>
                     </div>
                 ` : ''}
