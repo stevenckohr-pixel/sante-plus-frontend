@@ -57,6 +57,7 @@ async function initPushNotifications() {
         });
 
         console.log("🔥 PUSH TOKEN:", token);
+        console.log("📱 Appareil enregistré pour les notifications push");
 
         await secureFetch('/save-push-token', {
             method: 'POST',
