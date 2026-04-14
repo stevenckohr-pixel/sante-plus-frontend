@@ -23,76 +23,113 @@ function initRealtimeForCurrentPatient() {
         window.Realtime.unsubscribe();
 
         // S'abonner au nouveau patient
-        window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
-            console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
+    window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
+    console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
-            // 🔥 1. bloquer faux messages
-            if (!newMessage || typeof newMessage !== "object") {
-                console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
-                return;
-            }
+    // ========================================================
+    // 🔒 1. VALIDATION
+    // ========================================================
+    if (!newMessage || typeof newMessage !== "object") {
+        console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
+        return;
+    }
 
-            const currentUserId = localStorage.getItem("user_id");
+    const currentUserId = localStorage.getItem("user_id");
 
-            // 🔥 2. ignorer ses propres messages
-            if (newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId)) {
-                console.log("📨 Message ignoré (c'est nous)");
-                return;
-            }
+    // ========================================================
+    // 🚫 2. IGNORER SES PROPRES MESSAGES (UNE SEULE FOIS)
+    // ========================================================
+    if (
+        newMessage.sender_id &&
+        String(newMessage.sender_id) === String(currentUserId)
+    ) {
+        console.log("📨 Message ignoré (c'est nous)");
+        return;
+    }
 
-            // 🔥 3. éviter doublons
-            const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
-            if (exists) {
-                console.log("📨 Message déjà présent");
-                return;
-            }
+    // ========================================================
+    // 🚫 3. ANTI DOUBLON
+    // ========================================================
+    const exists = (AppState.messages || []).some(
+        (m) => m.id === newMessage.id
+    );
 
-            try {
-                // 🔥 4. récupérer message enrichi
-                const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
+    if (exists) {
+        console.log("📨 Message déjà présent");
+        return;
+    }
 
-                if (!data || !data[0]) {
-                    console.warn("⚠️ Message enrichi introuvable");
-                    return;
-                }
+    try {
+        // ====================================================
+        // 🔄 4. FETCH MESSAGE ENRICHI
+        // ====================================================
+        const data = await secureFetch(
+            `/messages?message_id=${newMessage.id}`
+        );
 
-                const fullMessage = data[0];
+        if (!data || !data[0]) {
+            console.warn("⚠️ Message enrichi introuvable");
+            return;
+        }
 
-                // 🔥 5. filtrer patient
-                if (fullMessage.patient_id !== AppState.currentPatient) return;
+        const fullMessage = data[0];
 
-                // 🔥 6. ajout sécurisé
-                if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
-                    AppState.messages.push(fullMessage);
-                }
+        // ====================================================
+        // 🎯 5. FILTRE PATIENT (FIX CRITIQUE)
+        // ====================================================
+        if (
+            String(fullMessage.patient_id) !==
+            String(AppState.currentPatient)
+        ) {
+            console.warn(
+                "⚠️ Message ignoré (mauvais patient)",
+                fullMessage.patient_id,
+                AppState.currentPatient
+            );
+            return;
+        }
 
-                // 🔥 7. affichage direct (SANS re-render complet)
-                if (String(fullMessage.sender_id) === String(currentUserId)) {
-                        return;
-                    }
-                window.appendMessagesToFeed([fullMessage]);
-                playNotificationBeep();
-                if (navigator.vibrate) navigator.vibrate(100);
+        // ====================================================
+        // ➕ 6. AJOUT STATE SÉCURISÉ
+        // ====================================================
+        if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
+            AppState.messages.push(fullMessage);
+        }
 
-                // 🔥 8. scroll intelligent
-                if (isUserAtBottom) {
-                    scrollToBottom();
-                } else {
-                    unreadMessagesCount++;
-                    showNewMessageBadge();
-                }
+        // ====================================================
+        // ⚡ 7. AFFICHAGE DIRECT
+        // ====================================================
+        window.appendMessagesToFeed([fullMessage]);
 
-                console.log("✅ Message ajouté et affiché");
+        // 🔥 fallback sécurité DOM
+        if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
+            console.warn("⚠️ fallback renderFeed");
+            renderFeed();
+        }
 
-            } catch (err) {
-                console.error("❌ Erreur traitement message realtime:", err);
-            }
-        });
+        // ====================================================
+        // 🔔 8. FEEDBACK UTILISATEUR
+        // ====================================================
+        playNotificationBeep();
+        if (navigator.vibrate) navigator.vibrate(100);
 
-    }  
+        // ====================================================
+        // 📍 9. SCROLL / BADGE
+        // ====================================================
+        if (isUserAtBottom) {
+            scrollToBottom();
+        } else {
+            unreadMessagesCount++;
+            showNewMessageBadge();
+        }
 
-} 
+        console.log("✅ Message ajouté et affiché");
 
+    } catch (err) {
+        console.error("❌ Erreur traitement message realtime:", err);
+    }
+});
+       
 
 
 
