@@ -91,17 +91,22 @@ function initRealtimeForCurrentPatient() {
                 AppState.unreadByPatient[patientId]++;
                 
                 console.log(`🔴 [COMPTEUR] +1 pour patient ${patientId} → total: ${AppState.unreadByPatient[patientId]} non lus`);
-                
+                                
                 // ✅ Mettre à jour les badges PATIENTS (bulle rouge sur le dossier)
                 updatePatientBadges();
-                
+                                
                 // ✅ Mettre à jour le badge du menu FEED (cloche/icône)
+                // FORCER l'appel même si refreshMenuBadges n'existe pas encore
                 if (typeof window.refreshMenuBadges === 'function') {
-                    console.log("🔄 Rafraîchissement des badges du menu");
-                    setTimeout(() => window.refreshMenuBadges(), 100);
+                    console.log("🔄 Rafraîchissement des badges du menu via refreshMenuBadges");
+                    window.refreshMenuBadges();
                 } else {
-                    console.warn("⚠️ window.refreshMenuBadges non trouvé");
-                }
+                    console.log("🔄 Rafraîchissement forcé des badges");
+                    // Fallback : recharger la vue home si on est dessus
+                    if (AppState.currentView === 'home') {
+                        renderMobileHub();
+                    }
+}
             } else {
                 console.log("✅ Message NON compté comme non lu (raison:", {isOwnMessage, isCurrentPatient, isInFeed, shouldIncrementUnread});
             }
