@@ -26,47 +26,60 @@
 window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
     console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
-    // 🔥 1. BLOQUER LES FAUX MESSAGES (genre "INSERT")
+    // 🔥 1. bloquer faux messages
     if (!newMessage || typeof newMessage !== "object") {
         console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
         return;
     }
 
-    // 🔥 2. sécuriser sender_id
     const currentUserId = localStorage.getItem("user_id");
 
+    // 🔥 2. ignorer ses propres messages
     if (newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId)) {
         console.log("📨 Message ignoré (c'est nous)");
         return;
     }
 
-    // 🔥 3. éviter les doublons
+    // 🔥 3. éviter doublons
     const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
     if (exists) {
         console.log("📨 Message déjà présent");
         return;
     }
 
-    // 🔥 4. RE-FETCH message complet (ULTRA IMPORTANT)
-    let fullMessage = newMessage;
-
     try {
+        // 🔥 4. récupérer message enrichi (OBLIGATOIRE)
         const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
-        if (data && data.length > 0) {
-            fullMessage = data[0];
-        }
-    } catch (err) {
-        console.warn("⚠️ fallback message realtime (pas grave)");
-    }
 
-    // 🔥 5. ajouter message propre
-    if (fullMessage.patient_id !== AppState.currentPatient) return;
-    addNewMessageToFeed(fullMessage);
-});
-            
-            console.log("✅ [Realtime] Écoute activée pour le patient:", AppState.currentPatient);
+        if (!data || !data[0]) {
+            console.warn("⚠️ Message enrichi introuvable");
+            return;
         }
+
+        const fullMessage = data[0];
+
+        // 🔥 5. filtrer patient
+        if (fullMessage.patient_id !== AppState.currentPatient) return;
+
+        // 🔥 6. ajout direct (FIABLE)
+        AppState.messages = [...(AppState.messages || []), fullMessage];
+
+        // 🔥 7. AFFICHAGE IMMÉDIAT (CRITIQUE)
+        window.appendMessagesToFeed([fullMessage]);
+        // 🔥 8. scroll intelligent
+        if (isUserAtBottom) {
+            scrollToBottom();
+        } else {
+            unreadMessagesCount++;
+            showNewMessageBadge();
+        }
+
+        console.log("✅ Message ajouté et affiché");
+
+    } catch (err) {
+        console.error("❌ Erreur traitement message realtime:", err);
     }
+});
     
     /**
      * Ajouter un nouveau message au feed sans recharger la page
@@ -1219,11 +1232,7 @@ function updateSeenStatus(data) {
             window.cancelReply();
             
             // ✅ FORCER LE RAFRAÎCHISSEMENT IMMÉDIAT
-            setTimeout(() => {
-                window.dispatchEvent(new CustomEvent('app-data-updated', {
-                    detail: { endpoint: '/messages', method: 'POST', resourceType: 'message_sent' }
-                }));
-            }, 100);
+            await loadFeed();
             
         } catch (err) {
             console.error(err);
