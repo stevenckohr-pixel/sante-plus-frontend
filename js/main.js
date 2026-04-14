@@ -1618,40 +1618,32 @@ function renderMobileHub() {
         const currentUserId = localStorage.getItem("user_id");
         const userRole = localStorage.getItem("user_role");
         
-       // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
-            if (AppState.currentPatient) {
-                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
-                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-                const currentUserId = localStorage.getItem("user_id");
-                
-                console.log(`🔍 currentUserId: ${currentUserId}`);
-                
-               // Afficher la structure complète du premier message pour debug
-                    if (messages.length > 0 && !window._debugShown) {
-                        console.log("🔍 Structure d'un message:", JSON.stringify(messages[0], null, 2));
-                        window._debugShown = true;
-                    }
-                    
-                    const otherMessages = messages.filter(m => {
-                        // Essayer plusieurs chemins possibles pour récupérer l'ID de l'expéditeur
-                        const senderId = m.sender_id ||      // direct
-                                         m.sender?.id ||     // objet sender
-                                         m.user_id ||        // alternative
-                                         m.from_id ||        // alternative
-                                         m.created_by;       // alternative
-                        
-                        const isOther = senderId && String(senderId) !== String(currentUserId);
-                        console.log(`  Message ${m.id}: senderId=${senderId}, currentUserId=${currentUserId}, isOther=${isOther}`);
-                        return isOther;
-                    });
-                
-                if (lastRead) {
-                    messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-                } else if (otherMessages.length > 0) {
-                    messagesCount = otherMessages.length;
-                }
-                console.log(`📬 Messages non lus (autres): ${messagesCount}`);
+        // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
+        if (AppState.currentPatient) {
+            const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
+            const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+            const currentUserEmail = localStorage.getItem("user_email");
+            const currentUserName = localStorage.getItem("user_name");
+            
+            console.log(`🔍 currentUserEmail: ${currentUserEmail}, currentUserName: ${currentUserName}`);
+            
+            // ⚠️ L'API ne retourne pas sender_id, on utilise sender_name + email pour identifier l'utilisateur
+            // Pour l'aidant/coordinateur, on compare le nom
+            const otherMessages = messages.filter(m => {
+                // Si c'est le coordinateur "BONI" ou l'utilisateur courant
+                const isOwnMessage = m.sender_name === currentUserName || 
+                                    (m.sender_email && m.sender_email === currentUserEmail);
+                console.log(`  Message ${m.id}: sender_name=${m.sender_name}, isOwn=${isOwnMessage}`);
+                return !isOwnMessage;
+            });
+            
+            if (lastRead) {
+                messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+            } else if (otherMessages.length > 0) {
+                messagesCount = otherMessages.length;
             }
+            console.log(`📬 Messages non lus (autres): ${messagesCount}`);
+        }
         
         // 2. Commandes en attente (badge Commandes) - IGNORER SES PROPRES COMMANDES
         try {
