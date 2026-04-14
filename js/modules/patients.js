@@ -69,13 +69,13 @@ export function renderPatients() {
         
         return `
                 <div 
-                    class="bg-white rounded-xl p-4 mb-3 shadow-sm border ${borderColor} active:scale-98 transition-all patient-item" 
+                    class="bg-white rounded-xl p-4 mb-3 shadow-sm border ${borderColor} active:scale-98 transition-all patient-item relative"
                     data-patient-id="${p.id}"
                     style="animation: fadeInUp 0.25s ease ${index * 0.03}s forwards; opacity: 0;"
                 >
                 <div class="flex items-center justify-between">
-                <span class="patient-badge hidden"></span>
-                    <div class="flex items-center gap-3 flex-1">
+                    <span class="patient-badge hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow"></span>
+                        <div class="flex items-center gap-3 flex-1">
                         <div class="relative">
                             <div class="w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center font-bold text-base ${textColor}">
                                 ${initials}
