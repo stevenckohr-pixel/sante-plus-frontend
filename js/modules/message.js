@@ -62,11 +62,14 @@ function initRealtimeForCurrentPatient() {
                 if (fullMessage.patient_id !== AppState.currentPatient) return;
 
                 // 🔥 6. ajout sécurisé
-                if (!AppState.messages.some(m => m.id === fullMessage.id)) {
+                if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
                     AppState.messages.push(fullMessage);
                 }
 
                 // 🔥 7. affichage direct (SANS re-render complet)
+                if (String(fullMessage.sender_id) === String(currentUserId)) {
+                        return;
+                    }
                 window.appendMessagesToFeed([fullMessage]);
                 playNotificationBeep();
                 if (navigator.vibrate) navigator.vibrate(100);
@@ -94,102 +97,6 @@ function initRealtimeForCurrentPatient() {
 
 
  
-// ============================================================
-// 📡 REALTIME — NOUVEAUX MESSAGES
-// ============================================================
-
-window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
-    console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
-
-    // ========================================================
-    // 🔒 1. VALIDATION DU MESSAGE
-    // ========================================================
-    if (!newMessage || typeof newMessage !== "object") {
-        console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
-        return;
-    }
-
-    const currentUserId = localStorage.getItem("user_id");
-
-    // ========================================================
-    // 🚫 2. IGNORER SES PROPRES MESSAGES
-    // ========================================================
-    if (
-        newMessage.sender_id &&
-        String(newMessage.sender_id) === String(currentUserId)
-    ) {
-        console.log("📨 Message ignoré (c'est nous)");
-        return;
-    }
-
-    // ========================================================
-    // 🚫 3. ÉVITER LES DOUBLONS
-    // ========================================================
-    const alreadyExists = (AppState.messages || []).some(
-        (msg) => msg.id === newMessage.id
-    );
-
-    if (alreadyExists) {
-        console.log("📨 Message déjà présent");
-        return;
-    }
-
-    try {
-        // ====================================================
-        // 🔄 4. RÉCUPÉRER LE MESSAGE ENRICHI (BACKEND)
-        // ====================================================
-        const response = await secureFetch(
-            `/messages?message_id=${newMessage.id}`
-        );
-
-        if (!response || !response[0]) {
-            console.warn("⚠️ Message enrichi introuvable");
-            return;
-        }
-
-        const fullMessage = response[0];
-
-        // ====================================================
-        // 🎯 5. FILTRER PAR PATIENT
-        // ====================================================
-        if (fullMessage.patient_id !== AppState.currentPatient) {
-            return;
-        }
-
-        // ====================================================
-        // ➕ 6. AJOUT SÉCURISÉ DANS LE STATE
-        // ====================================================
-        const existsInState = (AppState.messages || []).some(
-            (msg) => msg.id === fullMessage.id
-        );
-
-        if (!existsInState) {
-            AppState.messages.push(fullMessage);
-        }
-
-        // ====================================================
-        // ⚡ 7. AFFICHAGE IMMÉDIAT (UX OPTIMISÉE)
-        // ====================================================
-        window.appendMessagesToFeed([fullMessage]);
-        playNotificationBeep();
-        if (navigator.vibrate) navigator.vibrate(100);
-
-        // ====================================================
-        // 📍 8. GESTION SCROLL + BADGE
-        // ====================================================
-        if (isUserAtBottom) {
-            scrollToBottom();
-        } else {
-            unreadMessagesCount++;
-            showNewMessageBadge();
-        }
-
-        console.log("✅ Message ajouté et affiché");
-
-    } catch (error) {
-        console.error("❌ Erreur traitement message realtime:", error);
-    }
-});
    
     function renderFeed() {
     const content = document.getElementById('care-feed-content');
