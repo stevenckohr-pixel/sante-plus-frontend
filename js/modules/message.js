@@ -686,6 +686,13 @@ try {
     });
 
     console.log("👁️ Messages marqués comme lus (backend)");
+    const patientId = AppState.currentPatient;
+
+if (patientId && AppState.unreadByPatient) {
+    AppState.unreadByPatient[patientId] = 0;
+}
+
+updatePatientBadges();
 } catch (err) {
     console.error("Erreur read:", err);
 }
