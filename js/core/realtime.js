@@ -86,26 +86,39 @@ function initGlobalChannel() {
 }
 
 // ── Canal MESSAGES ───────────────────────────────────────────
-function subscribeToMessages(patientId, callback) {
-    if (messagesChannel) {
-        messagesChannel.unsubscribe();
-        messagesChannel = null;
-    }
+let messageCallbacks = [];
 
+function subscribeToMessages(patientId, callback) {
     if (!patientId) return;
 
-    const client = initClient();
-    if (!client) return;
+    // Enregistrer le callback
+    messageCallbacks.push({ patientId, callback });
+    console.log(`📡 Callback enregistré pour patient ${patientId}, total: ${messageCallbacks.length}`);
 
-    callbacks.messages = [callback];
+    // Créer le canal global une seule fois (au premier appel)
+    if (!window._globalMessagesChannel) {
+        const client = initClient();
+        if (!client) return;
 
-    messagesChannel = client
-        .channel(`messages-${patientId}`)
-        .on('postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'messages', filter: `patient_id=eq.${patientId}` },
-            ({ new: row }) => callback('INSERT', row)
-        )
-        .subscribe();
+        window._globalMessagesChannel = client
+            .channel('global-messages')
+            .on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'messages' }, 
+                (payload) => {
+                    const newMessage = payload.new;
+                    console.log("📡 [REALTIME] Nouveau message global:", newMessage);
+                    // Appeler tous les callbacks enregistrés pour ce patient
+                    messageCallbacks.forEach(({ patientId: pid, callback: cb }) => {
+                        if (pid === newMessage.patient_id) {
+                            cb('INSERT', newMessage);
+                        }
+                    });
+                }
+            )
+            .subscribe((status) => {
+                console.log(`📡 Canal global messages: ${status}`);
+            });
+    }
 }
 
 function unsubscribeFromMessages() {
@@ -153,6 +166,30 @@ async function fetchSenderInfo(senderId) {
 function start() {
     initClient();
     initGlobalChannel();
+    
+    // Créer le canal messages global dès le départ
+    if (!window._globalMessagesChannel) {
+        const client = initClient();
+        if (client) {
+            window._globalMessagesChannel = client
+                .channel('global-messages')
+                .on('postgres_changes', 
+                    { event: 'INSERT', schema: 'public', table: 'messages' }, 
+                    (payload) => {
+                        const newMessage = payload.new;
+                        console.log("📡 [REALTIME] Nouveau message global (start):", newMessage);
+                        messageCallbacks.forEach(({ patientId: pid, callback: cb }) => {
+                            if (pid === newMessage.patient_id) {
+                                cb('INSERT', newMessage);
+                            }
+                        });
+                    }
+                )
+                .subscribe((status) => {
+                    console.log(`📡 Canal global messages: ${status}`);
+                });
+        }
+    }
 }
 
 // ── EXPORT GLOBAL ────────────────────────────────────────────
