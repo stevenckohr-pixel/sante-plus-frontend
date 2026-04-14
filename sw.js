@@ -28,7 +28,6 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(title, options);
 });
 
-
 // ================= EXISTANT (INTOUCHÉ) =================
 
 const CACHE_NAME = 'sps-v6';
@@ -71,31 +70,41 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 🔧 CORRECTION : Gestion des requêtes API avec les bons headers
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
+  // Pour les requêtes non-GET, on laisse passer sans cache
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
   
+  // Pour les requêtes API, on ajoute les credentials et on évite le cache problématique
   if (url.pathname.includes('/api/')) {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
+      fetch(event.request, {
+        credentials: 'include',
+        headers: {
+          'Authorization': event.request.headers.get('Authorization') || ''
+        }
+      })
+      .then(response => {
+        // On ne cache que les réponses 200
+        if (response && response.status === 200) {
           const responseToCache = response.clone();
-          if (response && response.status === 200) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request))
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
     );
     return;
   }
   
+  // Pour les images
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -114,6 +123,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
+  // Pour les assets statiques
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
@@ -131,28 +141,31 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 🔔 PUSH fallback (ton système existant gardé)
+// 🔔 PUSH fallback (gardé mais moins prioritaire que FCM)
 self.addEventListener("push", function (event) {
-  let data = {};
-  try {
-    data = event.data.json();
-  } catch (e) {
-    data = { title: "Santé Plus", message: "Nouvelle notification" };
+  // Éviter les doublons avec FCM
+  if (event.data) {
+    let data = {};
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: "Santé Plus", message: "Nouvelle notification" };
+    }
+    
+    const options = {
+      body: data.message,
+      icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
+      badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
+      vibrate: [100, 50, 100],
+      data: { url: data.url || "/" },
+      actions: [
+        { action: "open", title: "Voir" },
+        { action: "close", title: "Fermer" }
+      ]
+    };
+    
+    event.waitUntil(self.registration.showNotification(data.title || "Santé Plus", options));
   }
-  
-  const options = {
-    body: data.message,
-    icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
-    badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
-    vibrate: [100, 50, 100],
-    data: { url: data.url || "/" },
-    actions: [
-      { action: "open", title: "Voir" },
-      { action: "close", title: "Fermer" }
-    ]
-  };
-  
-  event.waitUntil(self.registration.showNotification(data.title || "Santé Plus", options));
 });
 
 self.addEventListener("notificationclick", function (event) {
