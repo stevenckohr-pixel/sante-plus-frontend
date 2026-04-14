@@ -30,6 +30,18 @@ function initRealtimeForCurrentPatient() {
     window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
         console.log("STEP 1 - realtime déclenché");
         console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
+        if (Notification.permission === "granted") {
+                const notification = new Notification("Nouveau message", {
+                    body: fullMessage.content || "📩 Nouveau message",
+                    icon: "/icons/icon-192.png" // ou ton logo
+                });
+            
+                notification.onclick = () => {
+                    window.focus();
+                    AppState.currentPatient = fullMessage.patient_id;
+                    loadFeed();
+                };
+            }
 
         // ====================================================
         // 🔒 1. VALIDATION
