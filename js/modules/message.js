@@ -665,8 +665,11 @@ async function loadFeed() {
         AppState.unreadByPatient = {};
         const currentUserId = localStorage.getItem("user_id");
         
-        data.forEach(msg => {
+         data.forEach(msg => {
             const patientId = msg.patient_id;
+            
+            // ✅ NE PAS compter les messages de l'utilisateur courant
+            // ✅ NE PAS compter les messages déjà lus
             if (msg.sender_id !== currentUserId && !msg.read) {
                 if (!AppState.unreadByPatient[patientId]) {
                     AppState.unreadByPatient[patientId] = 0;
@@ -674,6 +677,9 @@ async function loadFeed() {
                 AppState.unreadByPatient[patientId]++;
             }
         });
+
+// ✅ AFFICHER LE COMPTEUR POUR DEBUG
+console.log("🔴 [COMPTEUR INITIAL] unreadByPatient:", AppState.unreadByPatient);
         
         console.log("🔴 [CHARGEMENT] unreadByPatient initialisé:", AppState.unreadByPatient);
         updatePatientBadges();
