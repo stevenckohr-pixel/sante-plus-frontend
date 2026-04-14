@@ -657,8 +657,6 @@ function escapeHtml(str) {
 }
 
 
-
-// Exporter les fonctions globales APRÈS leur définition
 window.openMissionBriefing = openMissionBriefing;
 window.unassignAidant = unassignAidant;
 window.startPlannedVisit = startPlannedVisit;
