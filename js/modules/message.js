@@ -1276,7 +1276,7 @@ function updateSeenStatus(data) {
             
             input.value = '';
             window.cancelReply();
-            
+            initRealtimeForCurrentPatient();
             // ✅ FORCER LE RAFRAÎCHISSEMENT IMMÉDIAT
             await loadFeed();
             
