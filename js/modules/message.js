@@ -669,7 +669,7 @@ if (!isCurrentPatient || !isInFeed) {
     cleanupRealtime();
 
     try {
-        const data = await secureFetch(`/messages`);
+        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
         // 🔴 INITIALISER LES NON LUS AU CHARGEMENT
         AppState.unreadByPatient = {};
