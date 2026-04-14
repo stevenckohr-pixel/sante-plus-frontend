@@ -11,175 +11,139 @@
         if (!AppState.unreadByPatient) {
             AppState.unreadByPatient = {};
         }
-    // ============================================
-    // 🟢 REALTIME - MESSAGES EN TEMPS RÉEL
-    // ============================================
-    
-    /**
-     * Initialiser l'écoute des nouveaux messages pour le patient actuel
-     */
+
+// ============================================================
+// 🟢 REALTIME - MESSAGES EN TEMPS RÉEL (VERSION CORRIGÉE)
+// ============================================================
+
 function initRealtimeForCurrentPatient() {
     if (!AppState.currentPatient) return;
     if (!window.Realtime) return;
 
-    // 🔄 nettoyer ancien abonnement
     window.Realtime.unsubscribe();
 
     console.log("📡 Realtime initialisé pour:", AppState.currentPatient);
 
     window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
-        console.log("STEP 1 - realtime déclenché");
-        console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
-        if (Notification.permission === "granted") {
-                const notification = new Notification("Nouveau message", {
-                    body: fullMessage.content || "📩 Nouveau message",
-                    icon: "/icons/icon-192.png" // ou ton logo
-                });
-            
-                notification.onclick = () => {
-                    window.focus();
-                    AppState.currentPatient = fullMessage.patient_id;
-                    loadFeed();
-                };
-            }
-
-        // ====================================================
         // 🔒 1. VALIDATION
-        // ====================================================
         if (!newMessage || typeof newMessage !== "object") {
             console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
             return;
         }
 
         const currentUserId = localStorage.getItem("user_id");
-
-        // ====================================================
-        // 🚫 2. IGNORER SES PROPRES MESSAGES
-        // ====================================================
-        const isOwnMessage =
-            newMessage.sender_id &&
-            String(newMessage.sender_id) === String(currentUserId);
+        const currentUserRole = localStorage.getItem("user_role");
         
-        // 🔥 on ignore SEULEMENT l'affichage, pas le traitement
+        // 🔥 2. IGNORER SES PROPRES MESSAGES (POUR LE BADGE)
+        const isOwnMessage = newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId);
+        
+        // ⚠️ Pour l'affichage : on traite quand même (pour l'UI), mais on ne compte PAS comme non lu
         if (isOwnMessage) {
-            console.log("📨 Message envoyé par nous (traité sans affichage)");
+            console.log("📨 Message envoyé par nous - ignoré pour le compteur non lu");
         }
 
-        // ====================================================
         // 🚫 3. ANTI DOUBLON
-        // ====================================================
         if ((AppState.messages || []).some(m => m.id === newMessage.id)) {
             console.log("📨 Message déjà présent");
             return;
         }
 
         try {
-            // ====================================================
-            // 🔄 4. FETCH MESSAGE ENRICHI
-            // ====================================================
-            const data = await secureFetch(
-                `/messages?message_id=${newMessage.id}`
-            );
-            console.log("STEP FETCH:", data);
+            // 4. FETCH MESSAGE ENRICHI
+            const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
             if (!data || !data[0]) {
                 console.warn("⚠️ Message enrichi introuvable");
                 return;
             }
 
             const fullMessage = data[0];
-            console.log("STEP A - message récupéré", fullMessage);
-
-            // ====================================================
-            // 🔴 5. COMPTEUR PAR PATIENT (FIX SAFE)
-            // ====================================================
             const patientId = fullMessage.patient_id;
-
+            
             if (!patientId) {
                 console.warn("⚠️ patient_id manquant → ignoré");
                 return;
             }
 
-            const isCurrentPatient =
-                String(patientId) === String(AppState.currentPatient);
-
+            const isCurrentPatient = String(patientId) === String(AppState.currentPatient);
             const isInFeed = AppState.currentView === "feed";
 
-if (!isCurrentPatient || !isInFeed) {
-    if (!AppState.unreadByPatient[patientId]) {
+            // ============================================================
+            // 🔴 5. GESTION DU COMPTEUR NON LU (CORRIGÉE)
+            // ============================================================
+            // 🔥 RÈGLE : On incrémente le compteur SI :
+            // - Ce n'est PAS mon propre message
+            // - ET (ce n'est pas le patient actuel OU je ne suis pas dans le feed)
+            // - OU (je suis dans le feed mais le message n'est pas affiché ? Non, on compte toujours)
+            
+            const shouldIncrementUnread = !isOwnMessage && (!isCurrentPatient || !isInFeed);
+            
+            if (shouldIncrementUnread) {
+                if (!AppState.unreadByPatient[patientId]) {
                     AppState.unreadByPatient[patientId] = 0;
                 }
-
                 AppState.unreadByPatient[patientId]++;
-                console.log("DEBUG compteur:", AppState.unreadByPatient);
+                console.log(`🔴 Compteur +1 pour patient ${patientId} → ${AppState.unreadByPatient[patientId]} non lus`);
+                
+                // ✅ Mettre à jour les badges PATIENTS (bulle rouge sur le dossier)
                 updatePatientBadges();
-
-                console.log(
-                    "🔴 compteur patient:",
-                    patientId,
-                    AppState.unreadByPatient[patientId]
-                );
-            } else {
-                console.log("✅ message lu en direct → pas compté");
-            }
-
-            // ====================================================
-            // 🎯 6. FILTRE PATIENT
-            // ====================================================
-            if (!isCurrentPatient) {
-                console.log("📩 Message reçu (autre patient)");
-
-                if (AppState.currentView === "feed") {
-                    console.log("⚡ Forcer affichage");
-
-                    if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
-                        AppState.messages.push(fullMessage);
-                    }
-
-                    window.appendMessagesToFeed([fullMessage]);
-                    playNotificationBeep();
-                } else {
-                    unreadMessagesCount++;
-                    showNewMessageBadge();
+                
+                // ✅ Mettre à jour le badge du menu FEED
+                if (typeof window.refreshMenuBadges === 'function') {
+                    setTimeout(() => window.refreshMenuBadges(), 100);
                 }
-
-                return;
+            } else {
+                console.log("✅ Message non compté (propre ou déjà dans le feed)");
             }
 
-            // ====================================================
-            // ➕ 7. AJOUT STATE
-            // ====================================================
+            // ============================================================
+            // 6. AJOUTER LE MESSAGE À L'ÉTAT
+            // ============================================================
             if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
                 AppState.messages.push(fullMessage);
             }
 
-            // ====================================================
-            // ⚡ 8. AFFICHAGE DIRECT
-            // ====================================================
+            // ============================================================
+            // 7. AFFICHAGE DANS LE FEED (si on est sur le bon patient)
+            // ============================================================
+            if (isCurrentPatient && isInFeed) {
+                if (!isOwnMessage) {
+                    window.appendMessagesToFeed([fullMessage]);
+                }
+                if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
+                    renderFeed();
+                }
+                
+                // ✅ Scroll en bas si l'utilisateur y était
+                if (isUserAtBottom) {
+                    scrollToBottom();
+                } else if (!isOwnMessage) {
+                    unreadMessagesCount++;
+                    showNewMessageBadge();
+                }
+            } else if (!isCurrentPatient) {
+                // Message pour un autre patient → notification discrète
+                if (Notification.permission === "granted" && !isOwnMessage) {
+                    const notification = new Notification("Nouveau message", {
+                        body: fullMessage.content || "📩 Nouveau message",
+                        icon: "/sante-plus-frontend/assets/images/logo-general-icon.png"
+                    });
+                    notification.onclick = () => {
+                        window.focus();
+                        AppState.currentPatient = fullMessage.patient_id;
+                        loadFeed();
+                    };
+                }
+            }
+
+            // ============================================================
+            // 8. FEEDBACK SONORE (seulement si c'est pas moi)
+            // ============================================================
             if (!isOwnMessage) {
-                window.appendMessagesToFeed([fullMessage]);
-            }
-            if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
-                console.warn("⚠️ fallback renderFeed");
-                renderFeed();
+                playNotificationBeep();
+                if (navigator.vibrate) navigator.vibrate(100);
             }
 
-            // ====================================================
-            // 🔔 9. FEEDBACK
-            // ====================================================
-            playNotificationBeep();
-            if (navigator.vibrate) navigator.vibrate(100);
-
-            // ====================================================
-            // 📍 10. SCROLL / BADGE
-            // ====================================================
-            if (isUserAtBottom) {
-                scrollToBottom();
-            } else {
-                unreadMessagesCount++;
-                showNewMessageBadge();
-            }
-
-            console.log("✅ Message affiché en temps réel");
+            console.log("✅ Message traité");
 
         } catch (err) {
             console.error("❌ Erreur traitement realtime:", err);
