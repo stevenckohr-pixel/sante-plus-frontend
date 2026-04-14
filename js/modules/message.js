@@ -20,7 +20,6 @@
      */
 function initRealtimeForCurrentPatient() {
     if (!AppState.currentPatient) return;
-
     if (!window.Realtime) return;
 
     // 🔄 nettoyer ancien abonnement
@@ -28,9 +27,6 @@ function initRealtimeForCurrentPatient() {
 
     console.log("📡 Realtime initialisé pour:", AppState.currentPatient);
 
-    // ========================================================
-    // 📡 SUBSCRIBE MESSAGES
-    // ========================================================
     window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
         console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
@@ -78,26 +74,28 @@ function initRealtimeForCurrentPatient() {
 
             const fullMessage = data[0];
 
-            // ========================================
-            // 🔴 COMPTEUR PAR PATIENT
-            // ========================================
+            // ====================================================
+            // 🔴 5. COMPTEUR PAR PATIENT (FIX SAFE)
+            // ====================================================
             const patientId = fullMessage.patient_id;
-            
+
+            if (!patientId) {
+                console.warn("⚠️ patient_id manquant → ignoré");
+                return;
+            }
+
             const isCurrentPatient =
                 String(patientId) === String(AppState.currentPatient);
-            
+
             const isInFeed = AppState.currentView === "feed";
-            
-            // ========================================
-            // 🔴 COMPTEUR INTELLIGENT
-            // ========================================
+
             if (!(isCurrentPatient && isInFeed)) {
                 if (!AppState.unreadByPatient[patientId]) {
                     AppState.unreadByPatient[patientId] = 0;
                 }
-            
+
                 AppState.unreadByPatient[patientId]++;
-            
+
                 console.log(
                     "🔴 compteur patient:",
                     patientId,
@@ -108,62 +106,53 @@ function initRealtimeForCurrentPatient() {
             }
 
             // ====================================================
-            // 🎯 5. FILTRE PATIENT (CRITIQUE)
+            // 🎯 6. FILTRE PATIENT
             // ====================================================
-                const isCurrentPatient =
-                    String(fullMessage.patient_id) === String(AppState.currentPatient);
-                
-                // 🔥 FIX CRITIQUE
-                if (!isCurrentPatient) {
-                    console.log("📩 Message reçu (autre patient)");
-                
-                    // 👉 MAIS on n'ignore PLUS totalement
-                    // 👉 On vérifie si on est quand même sur le feed
-                
-                    if (AppState.currentView === "feed") {
-                        console.log("⚡ Forcer affichage quand même");
-                
-                        // 👉 ON L'AFFICHE DIRECT
-                        if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
-                            AppState.messages.push(fullMessage);
-                        }
-                
-                        window.appendMessagesToFeed([fullMessage]);
-                        playNotificationBeep();
-                    } else {
-                        unreadMessagesCount++;
-                        showNewMessageBadge();
+            if (!isCurrentPatient) {
+                console.log("📩 Message reçu (autre patient)");
+
+                if (AppState.currentView === "feed") {
+                    console.log("⚡ Forcer affichage");
+
+                    if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
+                        AppState.messages.push(fullMessage);
                     }
-                
-                    return;
+
+                    window.appendMessagesToFeed([fullMessage]);
+                    playNotificationBeep();
+                } else {
+                    unreadMessagesCount++;
+                    showNewMessageBadge();
                 }
 
+                return;
+            }
+
             // ====================================================
-            // ➕ 6. AJOUT STATE
+            // ➕ 7. AJOUT STATE
             // ====================================================
             if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
                 AppState.messages.push(fullMessage);
             }
 
             // ====================================================
-            // ⚡ 7. AFFICHAGE DIRECT
+            // ⚡ 8. AFFICHAGE DIRECT
             // ====================================================
             window.appendMessagesToFeed([fullMessage]);
 
-            // fallback sécurité
             if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
                 console.warn("⚠️ fallback renderFeed");
                 renderFeed();
             }
 
             // ====================================================
-            // 🔔 8. FEEDBACK
+            // 🔔 9. FEEDBACK
             // ====================================================
             playNotificationBeep();
             if (navigator.vibrate) navigator.vibrate(100);
 
             // ====================================================
-            // 📍 9. SCROLL / BADGE
+            // 📍 10. SCROLL / BADGE
             // ====================================================
             if (isUserAtBottom) {
                 scrollToBottom();
@@ -179,7 +168,6 @@ function initRealtimeForCurrentPatient() {
         }
     });
 }
-
 
  
    
