@@ -17,121 +17,116 @@
      */
 function initRealtimeForCurrentPatient() {
     if (!AppState.currentPatient) return;
-    
-    // Se désabonner de l'ancien patient
-    if (window.Realtime) {
-        window.Realtime.unsubscribe();
 
-        // S'abonner au nouveau patient
+    if (!window.Realtime) return;
+
+    // 🔄 nettoyer ancien abonnement
+    window.Realtime.unsubscribe();
+
+    console.log("📡 Realtime initialisé pour:", AppState.currentPatient);
+
+    // ========================================================
+    // 📡 SUBSCRIBE MESSAGES
+    // ========================================================
     window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
-    console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
+        console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
-    // ========================================================
-    // 🔒 1. VALIDATION
-    // ========================================================
-    if (!newMessage || typeof newMessage !== "object") {
-        console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
-        return;
-    }
-
-    const currentUserId = localStorage.getItem("user_id");
-
-    // ========================================================
-    // 🚫 2. IGNORER SES PROPRES MESSAGES (UNE SEULE FOIS)
-    // ========================================================
-    if (
-        newMessage.sender_id &&
-        String(newMessage.sender_id) === String(currentUserId)
-    ) {
-        console.log("📨 Message ignoré (c'est nous)");
-        return;
-    }
-
-    // ========================================================
-    // 🚫 3. ANTI DOUBLON
-    // ========================================================
-    const exists = (AppState.messages || []).some(
-        (m) => m.id === newMessage.id
-    );
-
-    if (exists) {
-        console.log("📨 Message déjà présent");
-        return;
-    }
-
-    try {
         // ====================================================
-        // 🔄 4. FETCH MESSAGE ENRICHI
+        // 🔒 1. VALIDATION
         // ====================================================
-        const data = await secureFetch(
-            `/messages?message_id=${newMessage.id}`
-        );
-
-        if (!data || !data[0]) {
-            console.warn("⚠️ Message enrichi introuvable");
+        if (!newMessage || typeof newMessage !== "object") {
+            console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
             return;
         }
 
-        const fullMessage = data[0];
+        const currentUserId = localStorage.getItem("user_id");
 
         // ====================================================
-        // 🎯 5. FILTRE PATIENT (FIX CRITIQUE)
+        // 🚫 2. IGNORER SES PROPRES MESSAGES
         // ====================================================
         if (
-            String(fullMessage.patient_id) !==
-            String(AppState.currentPatient)
+            newMessage.sender_id &&
+            String(newMessage.sender_id) === String(currentUserId)
         ) {
-            console.warn(
-                "⚠️ Message ignoré (mauvais patient)",
-                fullMessage.patient_id,
-                AppState.currentPatient
-            );
+            console.log("📨 Message ignoré (c'est nous)");
             return;
         }
 
         // ====================================================
-        // ➕ 6. AJOUT STATE SÉCURISÉ
+        // 🚫 3. ANTI DOUBLON
         // ====================================================
-        if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
-            AppState.messages.push(fullMessage);
+        if ((AppState.messages || []).some(m => m.id === newMessage.id)) {
+            console.log("📨 Message déjà présent");
+            return;
         }
 
-        // ====================================================
-        // ⚡ 7. AFFICHAGE DIRECT
-        // ====================================================
-        window.appendMessagesToFeed([fullMessage]);
+        try {
+            // ====================================================
+            // 🔄 4. FETCH MESSAGE ENRICHI
+            // ====================================================
+            const data = await secureFetch(
+                `/messages?message_id=${newMessage.id}`
+            );
 
-        // 🔥 fallback sécurité DOM
-        if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
-            console.warn("⚠️ fallback renderFeed");
-            renderFeed();
+            if (!data || !data[0]) {
+                console.warn("⚠️ Message enrichi introuvable");
+                return;
+            }
+
+            const fullMessage = data[0];
+
+            // ====================================================
+            // 🎯 5. FILTRE PATIENT (CRITIQUE)
+            // ====================================================
+            if (
+                String(fullMessage.patient_id) !==
+                String(AppState.currentPatient)
+            ) {
+                console.warn("⚠️ Mauvais patient → ignoré");
+                return;
+            }
+
+            // ====================================================
+            // ➕ 6. AJOUT STATE
+            // ====================================================
+            if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
+                AppState.messages.push(fullMessage);
+            }
+
+            // ====================================================
+            // ⚡ 7. AFFICHAGE DIRECT
+            // ====================================================
+            window.appendMessagesToFeed([fullMessage]);
+
+            // fallback sécurité
+            if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
+                console.warn("⚠️ fallback renderFeed");
+                renderFeed();
+            }
+
+            // ====================================================
+            // 🔔 8. FEEDBACK
+            // ====================================================
+            playNotificationBeep();
+            if (navigator.vibrate) navigator.vibrate(100);
+
+            // ====================================================
+            // 📍 9. SCROLL / BADGE
+            // ====================================================
+            if (isUserAtBottom) {
+                scrollToBottom();
+            } else {
+                unreadMessagesCount++;
+                showNewMessageBadge();
+            }
+
+            console.log("✅ Message affiché en temps réel");
+
+        } catch (err) {
+            console.error("❌ Erreur traitement realtime:", err);
         }
-
-        // ====================================================
-        // 🔔 8. FEEDBACK UTILISATEUR
-        // ====================================================
-        playNotificationBeep();
-        if (navigator.vibrate) navigator.vibrate(100);
-
-        // ====================================================
-        // 📍 9. SCROLL / BADGE
-        // ====================================================
-        if (isUserAtBottom) {
-            scrollToBottom();
-        } else {
-            unreadMessagesCount++;
-            showNewMessageBadge();
-        }
-
-        console.log("✅ Message ajouté et affiché");
-
-    } catch (err) {
-        console.error("❌ Erreur traitement message realtime:", err);
-    }
-});
-    } 
-} 
-
+    });
+}
 
 
  
