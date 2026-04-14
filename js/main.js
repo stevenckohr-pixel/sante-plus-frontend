@@ -1615,17 +1615,21 @@ function renderMobileHub() {
             let visitesCount = 0;
             let notificationsCount = 0;
             
-            // 1. Messages non lus (badge Journal)
+            // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
             if (AppState.currentPatient) {
                 const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
                 const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                const currentUserId = localStorage.getItem("user_id");
+                
+                // Filtrer pour ne compter que les messages des AUTRES
+                const otherMessages = messages.filter(m => m.sender_id !== currentUserId);
                 
                 if (lastRead) {
-                    messagesCount = messages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-                } else if (messages.length > 0) {
-                    messagesCount = messages.length;
+                    messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+                } else if (otherMessages.length > 0) {
+                    messagesCount = otherMessages.length;
                 }
-                console.log(`📬 Messages non lus: ${messagesCount}`);
+                console.log(`📬 Messages non lus (autres): ${messagesCount}`);
             }
             
             // 2. Commandes en attente (badge Commandes)
