@@ -184,147 +184,166 @@ window.togglePatientDropdown = () => {
 async function renderAssignPage() {
     const container = document.getElementById("view-container");
     const { aidants, patients } = window._assignData || { aidants: [], patients: [] };
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const themeColor = isMaman ? 'pink' : 'emerald';
+    const themeBgClass = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+    const themeBorderClass = isMaman ? 'border-pink-200' : 'border-emerald-200';
+    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const themeButtonClass = isMaman ? 'bg-pink-500 hover:bg-pink-600' : 'bg-emerald-500 hover:bg-emerald-600';
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
-            <div class="flex items-center gap-4 mb-8">
+            <!-- Header -->
+            <div class="flex items-center gap-4 mb-6">
                 <button onclick="window.switchView('rh-dashboard')" 
-                        class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95">
-                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                        class="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all active:scale-95">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
                 </button>
                 <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Nouvelle Assignation</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Lier un aidant à un patient</p>
+                    <h3 class="font-bold text-xl text-slate-800 tracking-tight">Nouvelle assignation</h3>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Lier un aidant à un patient</p>
                 </div>
             </div>
 
+            <!-- Carte principale -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                
                 <!-- Sélecteur Aidant -->
-                <div class="p-6 border-b border-slate-100">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">
-                        <i class="fa-solid fa-user-nurse mr-2 text-emerald-500"></i> Aidant
+                <div class="p-5 border-b border-slate-100">
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-3">
+                        <i class="fa-solid fa-user-nurse mr-2 ${themeTextClass}"></i> Aidant
                     </label>
                     <div id="aidant-selector" class="relative">
                         <div onclick="window.toggleAidantDropdown()" 
-                             class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-emerald-300 transition-all">
+                             class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:${themeBorderClass} transition-all">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                                    <i class="fa-solid fa-user-nurse text-emerald-600"></i>
+                                <div class="w-10 h-10 rounded-xl ${themeBgClass} flex items-center justify-center">
+                                    <i class="fa-solid fa-user-nurse ${themeTextClass} text-base"></i>
                                 </div>
                                 <div>
-                                    <p id="selected-aidant-name" class="font-bold text-slate-800 text-sm">Choisir un aidant</p>
+                                    <p id="selected-aidant-name" class="font-semibold text-slate-800 text-sm">Choisir un aidant</p>
                                     <p id="selected-aidant-email" class="text-[10px] text-slate-400">Sélectionnez dans la liste</p>
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="aidant-chevron"></i>
                         </div>
-                        <div id="aidant-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
-                            <div class="p-2 border-b border-slate-100 sticky top-0 bg-white">
+                        
+                        <!-- Dropdown Aidant -->
+                        <div id="aidant-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-72 overflow-y-auto">
+                            <div class="sticky top-0 bg-white p-3 border-b border-slate-100">
                                 <div class="relative">
                                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                                    <input type="text" id="aidant-search" placeholder="Rechercher..." 
-                                           class="w-full pl-8 pr-3 py-2 bg-slate-50 rounded-lg text-sm outline-none focus:border-emerald-300">
+                                    <input type="text" id="aidant-search" placeholder="Rechercher un aidant..." 
+                                           class="w-full pl-8 pr-3 py-2 bg-slate-50 rounded-lg text-sm outline-none focus:ring-1 focus:ring-${themeColor}-300">
                                 </div>
                             </div>
                             <div id="aidant-list" class="divide-y divide-slate-50">
-                                ${aidants.map(a => `
-                                    <div class="aidant-item p-3 hover:bg-slate-50 cursor-pointer transition-colors" data-id="${a.id}" data-name="${escapeHtml(a.nom)}" data-email="${a.email || ''}">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600">
-                                                ${(a.nom?.charAt(0) || '?').toUpperCase()}
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="font-bold text-slate-800 text-sm">${escapeHtml(a.nom)}</p>
-                                                <p class="text-[10px] text-slate-400">${a.email || 'Email non renseigné'}</p>
+                                ${aidants.length === 0 ? 
+                                    '<div class="p-6 text-center text-slate-400 text-xs">Aucun aidant disponible</div>' : 
+                                    aidants.map(a => `
+                                        <div class="aidant-item p-3 hover:${themeBgClass} cursor-pointer transition-colors" 
+                                             data-id="${a.id}" data-name="${escapeHtml(a.nom)}" data-email="${a.email || ''}">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg ${themeBgClass} flex items-center justify-center text-xs font-bold ${themeTextClass}">
+                                                    ${(a.nom?.charAt(0) || '?').toUpperCase()}
+                                                </div>
+                                                <div class="flex-1">
+                                                    <p class="font-semibold text-slate-800 text-sm">${escapeHtml(a.nom)}</p>
+                                                    <p class="text-[10px] text-slate-400">${a.email || 'Email non renseigné'}</p>
+                                                </div>
+                                                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                                             </div>
                                         </div>
-                                    </div>
-                                `).join('')}
-                                ${aidants.length === 0 ? '<div class="p-6 text-center text-slate-400 text-xs">Aucun aidant disponible</div>' : ''}
+                                    `).join('')
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Sélecteur Patient -->
-                <div class="p-6 border-b border-slate-100">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">
+                <div class="p-5 border-b border-slate-100">
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-3">
                         <i class="fa-solid fa-hospital-user mr-2 text-blue-500"></i> Patient
                     </label>
                     <div id="patient-selector" class="relative">
                         <div onclick="window.togglePatientDropdown()" 
-                             class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-emerald-300 transition-all">
+                             class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-blue-300 transition-all">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                                    <i class="fa-solid fa-user text-blue-600"></i>
+                                <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                                    <i class="fa-solid fa-user text-blue-500 text-base"></i>
                                 </div>
                                 <div>
-                                    <p id="selected-patient-name" class="font-bold text-slate-800 text-sm">Choisir un patient</p>
+                                    <p id="selected-patient-name" class="font-semibold text-slate-800 text-sm">Choisir un patient</p>
                                     <p id="selected-patient-formule" class="text-[10px] text-slate-400">Sélectionnez dans la liste</p>
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="patient-chevron"></i>
                         </div>
-                        <div id="patient-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
-                            <div class="p-2 border-b border-slate-100 sticky top-0 bg-white">
+                        
+                        <!-- Dropdown Patient -->
+                        <div id="patient-dropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-72 overflow-y-auto">
+                            <div class="sticky top-0 bg-white p-3 border-b border-slate-100">
                                 <div class="relative">
                                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                                    <input type="text" id="patient-search" placeholder="Rechercher..." 
-                                           class="w-full pl-8 pr-3 py-2 bg-slate-50 rounded-lg text-sm outline-none focus:border-emerald-300">
+                                    <input type="text" id="patient-search" placeholder="Rechercher un patient..." 
+                                           class="w-full pl-8 pr-3 py-2 bg-slate-50 rounded-lg text-sm outline-none focus:ring-1 focus:ring-blue-300">
                                 </div>
                             </div>
                             <div id="patient-list" class="divide-y divide-slate-50">
-                                ${patients.map(p => `
-                                    <div class="patient-item p-3 hover:bg-slate-50 cursor-pointer transition-colors" data-id="${p.id}" data-name="${escapeHtml(p.nom_complet)}" data-formule="${p.formule || 'Standard'}">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-600">
-                                                ${(p.nom_complet?.charAt(0) || '?').toUpperCase()}
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="font-bold text-slate-800 text-sm">${escapeHtml(p.nom_complet)}</p>
-                                                <div class="flex items-center gap-2 mt-0.5">
-                                                    <span class="text-[9px] text-slate-400">${p.adresse?.substring(0, 30) || 'Adresse non renseignée'}</span>
-                                                    <span class="text-[9px] font-bold ${p.formule === 'Premium' ? 'text-gold-primary' : 'text-emerald-600'}">${p.formule || 'Standard'}</span>
+                                ${patients.length === 0 ? 
+                                    '<div class="p-6 text-center text-slate-400 text-xs">Aucun patient non assigné</div>' : 
+                                    patients.map(p => `
+                                        <div class="patient-item p-3 hover:bg-blue-50 cursor-pointer transition-colors" 
+                                             data-id="${p.id}" data-name="${escapeHtml(p.nom_complet)}" data-formule="${p.formule || 'Standard'}">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-xs font-bold text-blue-600">
+                                                    ${(p.nom_complet?.charAt(0) || '?').toUpperCase()}
                                                 </div>
+                                                <div class="flex-1">
+                                                    <p class="font-semibold text-slate-800 text-sm">${escapeHtml(p.nom_complet)}</p>
+                                                    <div class="flex items-center gap-2 mt-0.5">
+                                                        <p class="text-[9px] text-slate-400 truncate max-w-[150px]">${p.adresse?.substring(0, 30) || 'Adresse non renseignée'}</p>
+                                                        <span class="text-[9px] font-bold ${p.formule === 'Premium' ? 'text-amber-500' : themeTextClass}">${p.formule || 'Standard'}</span>
+                                                    </div>
+                                                </div>
+                                                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                                             </div>
                                         </div>
-                                    </div>
-                                `).join('')}
-                                ${patients.length === 0 ? '<div class="p-6 text-center text-slate-400 text-xs">Aucun patient non assigné</div>' : ''}
+                                    `).join('')
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TYPE D'ASSIGNATION (NOUVEAU) -->
-                <div class="p-6 border-b border-slate-100">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">
-                        <i class="fa-solid fa-clock mr-2"></i> Type d'assignation
+                <!-- Type d'assignation -->
+                <div class="p-5 border-b border-slate-100">
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-3">
+                        <i class="fa-regular fa-clock mr-2"></i> Type d'assignation
                     </label>
-                    <div class="flex gap-3">
-                        <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer border-2 transition-all border-emerald-500 bg-emerald-50" id="type-permanente">
-                            <input type="radio" name="assign-type" value="permanente" class="hidden" checked>
-                            <i class="fa-solid fa-infinity text-emerald-500"></i>
-                            <span class="text-xs font-bold">Permanente</span>
-                        </label>
-                        <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer border-2 border-slate-200 transition-all" id="type-temporelle">
-                            <input type="radio" name="assign-type" value="temporelle" class="hidden">
-                            <i class="fa-solid fa-calendar-week text-blue-500"></i>
-                            <span class="text-xs font-bold">Période définie</span>
-                        </label>
-                        <label class="flex-1 flex items-center justify-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer border-2 border-slate-200 transition-all" id="type-ponctuelle">
-                            <input type="radio" name="assign-type" value="ponctuelle" class="hidden">
-                            <i class="fa-solid fa-calendar-day text-amber-500"></i>
-                            <span class="text-xs font-bold">Ponctuelle</span>
-                        </label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="type-permanente" 
+                                class="type-btn py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all bg-${themeColor}-50 text-${themeColor}-600 border-2 border-${themeColor}-500">
+                            <i class="fa-solid fa-infinity text-xs mr-1"></i> Permanente
+                        </button>
+                        <button id="type-temporelle" 
+                                class="type-btn py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all bg-slate-50 text-slate-500 border-2 border-slate-200">
+                            <i class="fa-solid fa-calendar-week text-xs mr-1"></i> Temporaire
+                        </button>
+                        <button id="type-ponctuelle" 
+                                class="type-btn py-3 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all bg-slate-50 text-slate-500 border-2 border-slate-200">
+                            <i class="fa-solid fa-calendar-day text-xs mr-1"></i> Ponctuelle
+                        </button>
                     </div>
+                    <input type="hidden" id="assign-type" value="permanente">
                 </div>
 
-                <!-- Période (affiché si temporelle ou ponctuelle) -->
-                <div id="period-container" class="p-6 border-b border-slate-100 hidden">
+                <!-- Période (cachée par défaut) -->
+                <div id="period-container" class="p-5 border-b border-slate-100 hidden">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                                 <i class="fa-regular fa-calendar mr-1"></i> Date de début
                             </label>
                             <input type="date" id="assign-date-debut" 
@@ -332,17 +351,15 @@ async function renderAssignPage() {
                                    value="${new Date().toISOString().split('T')[0]}">
                         </div>
                         <div id="date-fin-container">
-                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                                 <i class="fa-regular fa-calendar-check mr-1"></i> Date de fin
                             </label>
                             <input type="date" id="assign-date-fin" 
                                    class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                         </div>
                     </div>
-                    
-                    <!-- Pour ponctuelle, heure spécifique -->
                     <div id="heure-container" class="mt-4 hidden">
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
                             <i class="fa-regular fa-clock mr-1"></i> Heure de début
                         </label>
                         <input type="time" id="assign-heure" 
@@ -352,40 +369,39 @@ async function renderAssignPage() {
                 </div>
 
                 <!-- Instructions -->
-                <div class="p-6 border-b border-slate-100">
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                        <i class="fa-solid fa-pen mr-1"></i> Instructions pour l'aidant
+                <div class="p-5">
+                    <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-3">
+                        <i class="fa-solid fa-pen mr-2"></i> Instructions pour l'aidant
                     </label>
                     <textarea id="assign-notes" rows="3" 
-                              class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none"
+                              class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none focus:ring-1 focus:ring-${themeColor}-300 focus:border-${themeColor}-300 outline-none"
                               placeholder="Consignes particulières pour cette intervention..."></textarea>
                 </div>
 
                 <!-- Actions -->
-                <div class="p-6 bg-slate-50 flex gap-3">
+                <div class="p-5 bg-slate-50 flex gap-3">
                     <button onclick="window.switchView('rh-dashboard')" 
-                            class="flex-1 py-4 rounded-xl font-black text-[10px] uppercase tracking-wider text-slate-500 hover:bg-slate-100 transition-all">
+                            class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase tracking-wider text-slate-500 bg-white border border-slate-200 hover:bg-slate-100 transition-all active:scale-95">
                         Annuler
                     </button>
                     <button onclick="window.submitAssignmentEnhanced()" 
-                            class="flex-1 py-4 rounded-xl bg-emerald-600 text-white font-black text-[10px] uppercase tracking-wider shadow-lg shadow-emerald-200 active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-link"></i> Assigner
+                            class="flex-1 py-3 rounded-xl font-bold text-[11px] uppercase tracking-wider text-white shadow-md active:scale-95 transition-all flex items-center justify-center gap-2 ${themeButtonClass}">
+                        <i class="fa-solid fa-link text-xs"></i> Assigner
                     </button>
                 </div>
             </div>
         </div>
     `;
-    
+
     // Initialiser les sélecteurs
     window._selectedAidant = null;
     window._selectedPatient = null;
     
-    // Configuration des dropdowns
     setupDropdownFilters();
-    
-    // Gestionnaire des types d'assignation
     setupAssignTypeHandlers();
 }
+
+
 
 
 /**
@@ -393,33 +409,56 @@ async function renderAssignPage() {
  */
 window.submitAssignmentEnhanced = async () => {
     if (!window._selectedAidant) {
-        UI.vibrate('error');
-        Swal.fire({ title: "Aidant requis", text: "Veuillez sélectionner un aidant", icon: "warning" });
+        Swal.fire({
+            title: "Aidant requis",
+            text: "Veuillez sélectionner un aidant",
+            icon: "warning",
+            confirmButtonColor: "#0F172A",
+            customClass: { popup: 'rounded-2xl' }
+        });
         return;
     }
     if (!window._selectedPatient) {
-        UI.vibrate('error');
-        Swal.fire({ title: "Patient requis", text: "Veuillez sélectionner un patient", icon: "warning" });
+        Swal.fire({
+            title: "Patient requis",
+            text: "Veuillez sélectionner un patient",
+            icon: "warning",
+            confirmButtonColor: "#0F172A",
+            customClass: { popup: 'rounded-2xl' }
+        });
         return;
     }
     
-    const assignType = document.querySelector('input[name="assign-type"]:checked')?.value || 'permanente';
+    const assignType = document.getElementById('assign-type')?.value || 'permanente';
     const dateDebut = document.getElementById("assign-date-debut")?.value;
     const dateFin = document.getElementById("assign-date-fin")?.value;
     const heure = document.getElementById("assign-heure")?.value;
     const notes = document.getElementById("assign-notes")?.value || "";
     
-    // Validation selon le type
     if (assignType === 'temporelle' && !dateFin) {
-        Swal.fire({ title: "Date de fin requise", text: "Veuillez spécifier une date de fin", icon: "warning" });
+        Swal.fire({
+            title: "Date de fin requise",
+            text: "Veuillez spécifier une date de fin",
+            icon: "warning",
+            confirmButtonColor: "#0F172A"
+        });
         return;
     }
     if (assignType === 'ponctuelle' && !dateDebut) {
-        Swal.fire({ title: "Date requise", text: "Veuillez spécifier une date", icon: "warning" });
+        Swal.fire({
+            title: "Date requise",
+            text: "Veuillez spécifier une date",
+            icon: "warning",
+            confirmButtonColor: "#0F172A"
+        });
         return;
     }
     
-    Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+    Swal.fire({ 
+        title: "Assignation en cours...", 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
     
     try {
         await secureFetch("/assignments/assign", {
@@ -435,12 +474,23 @@ window.submitAssignmentEnhanced = async () => {
             })
         });
         
-        Swal.fire({ icon: "success", title: "Succès", text: "Assignation créée avec succès", timer: 2000, showConfirmButton: false });
+        Swal.fire({ 
+            icon: "success", 
+            title: "Assignation créée", 
+            text: "L'aidant a été notifié",
+            timer: 2000, 
+            showConfirmButton: false 
+        });
         window.switchView("rh-dashboard");
         
     } catch (err) {
         Swal.close();
-        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
+        Swal.fire({ 
+            title: "Erreur", 
+            text: err.message, 
+            icon: "error",
+            confirmButtonColor: "#F43F5E"
+        });
     }
 };
 
@@ -454,40 +504,39 @@ function setupAssignTypeHandlers() {
     const periodContainer = document.getElementById('period-container');
     const dateFinContainer = document.getElementById('date-fin-container');
     const heureContainer = document.getElementById('heure-container');
+    const assignTypeInput = document.getElementById('assign-type');
     
-    const setActiveStyle = (element, isActive) => {
-        if (isActive) {
-            element.classList.add('border-emerald-500', 'bg-emerald-50');
-            element.classList.remove('border-slate-200');
-        } else {
-            element.classList.remove('border-emerald-500', 'bg-emerald-50');
-            element.classList.add('border-slate-200');
-        }
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const themeColor = isMaman ? 'pink' : 'emerald';
+    const activeBgClass = isMaman ? 'bg-pink-50 text-pink-600 border-pink-500' : 'bg-emerald-50 text-emerald-600 border-emerald-500';
+    const inactiveBgClass = 'bg-slate-50 text-slate-500 border-slate-200';
+    
+    const setActiveStyle = (activeBtn, inactiveBtns) => {
+        activeBtn.classList.remove('bg-slate-50', 'text-slate-500', 'border-slate-200');
+        activeBtn.classList.add(activeBgClass);
+        inactiveBtns.forEach(btn => {
+            btn.classList.remove(activeBgClass);
+            btn.classList.add(inactiveBgClass);
+        });
     };
     
     typePermanente.addEventListener('click', () => {
-        typePermanente.querySelector('input').checked = true;
-        setActiveStyle(typePermanente, true);
-        setActiveStyle(typeTemporelle, false);
-        setActiveStyle(typePonctuelle, false);
+        setActiveStyle(typePermanente, [typeTemporelle, typePonctuelle]);
+        assignTypeInput.value = 'permanente';
         periodContainer.classList.add('hidden');
     });
     
     typeTemporelle.addEventListener('click', () => {
-        typeTemporelle.querySelector('input').checked = true;
-        setActiveStyle(typeTemporelle, true);
-        setActiveStyle(typePermanente, false);
-        setActiveStyle(typePonctuelle, false);
+        setActiveStyle(typeTemporelle, [typePermanente, typePonctuelle]);
+        assignTypeInput.value = 'temporelle';
         periodContainer.classList.remove('hidden');
         dateFinContainer.classList.remove('hidden');
         heureContainer.classList.add('hidden');
     });
     
     typePonctuelle.addEventListener('click', () => {
-        typePonctuelle.querySelector('input').checked = true;
-        setActiveStyle(typePonctuelle, true);
-        setActiveStyle(typePermanente, false);
-        setActiveStyle(typeTemporelle, false);
+        setActiveStyle(typePonctuelle, [typePermanente, typeTemporelle]);
+        assignTypeInput.value = 'ponctuelle';
         periodContainer.classList.remove('hidden');
         dateFinContainer.classList.add('hidden');
         heureContainer.classList.remove('hidden');
