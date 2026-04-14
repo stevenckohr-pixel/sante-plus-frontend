@@ -272,9 +272,13 @@ function renderCommandes(list) {
         `;
     }).join("");
     
-    // Bouton "Faire le point du jour" pour le coordinateur
-    if (isCoordinateur) {
+// Bouton "Faire le point du jour" pour le coordinateur (ajouté une seule fois)
+if (isCoordinateur) {
+    // Vérifier si le bouton existe déjà
+    let existingBtn = document.getElementById('validate-all-deliveries-btn');
+    if (!existingBtn) {
         const todayBtn = document.createElement('div');
+        todayBtn.id = 'validate-all-deliveries-btn';
         todayBtn.className = 'mb-4 flex justify-end';
         todayBtn.innerHTML = `
             <button onclick="window.validateAllDeliveries()" 
@@ -283,8 +287,9 @@ function renderCommandes(list) {
             </button>
         `;
         container.parentNode.insertBefore(todayBtn, container);
-        loadAidantsForSelect();
     }
+    loadAidantsForSelect();
+}
 }
 
 
