@@ -731,7 +731,9 @@ try {
     }
 }
 
+}
 
+     
 if (!readSubscribed) {
     readSubscribed = true;
 
