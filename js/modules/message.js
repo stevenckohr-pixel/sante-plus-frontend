@@ -62,8 +62,9 @@ window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => 
         if (fullMessage.patient_id !== AppState.currentPatient) return;
 
         // 🔥 6. ajout direct (FIABLE)
-        AppState.messages = [...(AppState.messages || []), fullMessage];
-
+        if (!AppState.messages.some(m => m.id === fullMessage.id)) {
+            AppState.messages.push(fullMessage);
+        }
         // 🔥 7. AFFICHAGE IMMÉDIAT (CRITIQUE)
         window.appendMessagesToFeed([fullMessage]);
         // 🔥 8. scroll intelligent
@@ -81,62 +82,9 @@ window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => 
     }
 });
     
-    /**
-     * Ajouter un nouveau message au feed sans recharger la page
-     */
-async function addNewMessageToFeed(newMessage) {
-    // Récupérer les infos de l'expéditeur
-let senderInfo = {
-    nom: "Membre",
-    role: "MEMBRE",
-    photo_url: null
-};
 
-if (newMessage.sender_id) {
-    try {
-        senderInfo = await window.Realtime.fetchSenderInfo(newMessage.sender_id);
-    } catch (err) {
-        console.warn("⚠️ Erreur fetch sender:", err);
-    }
-} else {
-    console.warn("⚠️ sender_id manquant:", newMessage);
-}    
-    
-    // Enrichir le message
-    const enrichedMessage = {
-        id: newMessage.id,
-        content: newMessage.content,
-        is_photo: newMessage.is_photo,
-        photo_url: newMessage.photo_url,
-        reply_to_id: newMessage.reply_to_id,
-        reactions: newMessage.reactions || {},
-created_at: newMessage.created_at || new Date().toISOString(),
-        sender_name: senderInfo.nom || "Membre",
-        sender_role: senderInfo.role || "MEMBRE",
-        sender_photo: senderInfo.photo_url
-    };
-    
-    // Ajouter à AppState
-    if (!AppState.messages) AppState.messages = [];
-    AppState.messages.push(enrichedMessage);
-    
-    renderFeed();
-    // ✅ Si l'utilisateur n'est pas en bas, afficher le badge
-    if (!isUserAtBottom) {
-        unreadMessagesCount++;
-        showNewMessageBadge();
-        // Ne pas scroller automatiquement
-    } else {
-        // Si en bas, re-rendre et scroller
-        scrollToBottom();
-        playNotificationBeep();
-        if (navigator.vibrate) navigator.vibrate(100);
-    }
-}
-    
-    
    
-   export function renderFeed() {
+    function renderFeed() {
     const content = document.getElementById('care-feed-content');
     const inputArea = document.getElementById('input-area');
     const btnStory = document.getElementById('tab-story');
@@ -505,7 +453,7 @@ created_at: newMessage.created_at || new Date().toISOString(),
      * 📥 CHARGER LE JOURNAL DE SOINS
      */
 
-export async function loadFeed() {
+ async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
 
