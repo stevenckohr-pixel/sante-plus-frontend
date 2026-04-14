@@ -4,7 +4,10 @@ import ErrorHandler from './errorHandler.js';
 const isCapacitor = typeof window !== 'undefined' && window.hasOwnProperty('Capacitor');
 
 const apiCache = new Map();
-const CACHE_DURATION = 30 * 1000;  
+const CACHE_DURATION = 30 * 1000; // 30 secondes
+
+// Liste des endpoints à NE PAS mettre en cache
+const NO_CACHE_ENDPOINTS = ['/messages', '/visites/active', '/notifications'];
 
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
@@ -68,42 +71,60 @@ export async function secureFetch(endpoint, options = {}) {
       let responseData;
       if (method === 'GET') {
         responseData = await response.json();
-        apiCache.set(endpoint, {
-          data: responseData,
-          timestamp: Date.now()
-        });
+        
+        // 🔥 NE PAS CACHER LES MESSAGES POUR AVOIR UN RENDU INSTANTANÉ
+        const shouldCache = !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
+        
+        if (shouldCache) {
+          apiCache.set(endpoint, {
+            data: responseData,
+            timestamp: Date.now()
+          });
+        }
       } else {
         responseData = await response.json();
       }
 
-// Dans la fonction secureFetch, après une requête POST/PUT/DELETE
-
-if (method !== 'GET') {
-    apiCache.delete(endpoint);
-    console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
-    
-    // ✅ DÉCLENCHER L'ÉVÉNEMENT DE RAFRAÎCHISSEMENT
-    if (typeof window !== 'undefined') {
-        // Déterminer le type de ressource
-        let resourceType = 'unknown';
-        if (endpoint.includes('/messages')) resourceType = 'message_sent';
-        else if (endpoint.includes('/commandes')) resourceType = 'commande_updated';
-        else if (endpoint.includes('/visites/start')) resourceType = 'visit_started';
-        else if (endpoint.includes('/visites/end')) resourceType = 'visit_ended';
-        else if (endpoint.includes('/visites')) resourceType = 'visites';
-        else if (endpoint.includes('/patients')) resourceType = 'patients';
-        else if (endpoint.includes('/planning')) resourceType = 'planning';
+      // Invalider le cache après les modifications
+      if (method !== 'GET') {
+        // Invalider le cache pour cet endpoint spécifique
+        apiCache.delete(endpoint);
         
-        window.dispatchEvent(new CustomEvent('app-data-updated', { 
+        // Invalider le cache pour les endpoints liés
+        if (endpoint.includes('/messages')) {
+          apiCache.forEach((_, key) => {
+            if (key.includes('/messages')) apiCache.delete(key);
+          });
+        }
+        if (endpoint.includes('/visites')) {
+          apiCache.forEach((_, key) => {
+            if (key.includes('/visites')) apiCache.delete(key);
+          });
+        }
+        
+        console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
+        
+        // Déclencher l'événement de rafraîchissement
+        if (typeof window !== 'undefined') {
+          let resourceType = 'unknown';
+          if (endpoint.includes('/messages')) resourceType = 'message_sent';
+          else if (endpoint.includes('/commandes')) resourceType = 'commande_updated';
+          else if (endpoint.includes('/visites/start')) resourceType = 'visit_started';
+          else if (endpoint.includes('/visites/end')) resourceType = 'visit_ended';
+          else if (endpoint.includes('/visites')) resourceType = 'visites';
+          else if (endpoint.includes('/patients')) resourceType = 'patients';
+          else if (endpoint.includes('/planning')) resourceType = 'planning';
+          
+          window.dispatchEvent(new CustomEvent('app-data-updated', { 
             detail: { 
-                endpoint: endpoint,
-                method: method,
-                resourceType: resourceType,
-                timestamp: Date.now()
+              endpoint: endpoint,
+              method: method,
+              resourceType: resourceType,
+              timestamp: Date.now()
             } 
-        }));
-    }
-}
+          }));
+        }
+      }
 
       return responseData;
 
@@ -119,7 +140,10 @@ if (method !== 'GET') {
   };
 
   try {
-    if (method === 'GET') {
+    // 🔥 NE PAS UTILISER LE CACHE POUR LES MESSAGES
+    const shouldUseCache = method === 'GET' && !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
+    
+    if (shouldUseCache) {
       const cached = apiCache.get(endpoint);
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
         console.log(`📦 Cache hit: ${endpoint}`);
