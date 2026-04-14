@@ -1618,28 +1618,30 @@ function renderMobileHub() {
         const currentUserId = localStorage.getItem("user_id");
         const userRole = localStorage.getItem("user_role");
         
-        // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
-        if (AppState.currentPatient) {
-            const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
-            const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-            const currentUserId = localStorage.getItem("user_id");
-            
-            console.log(`🔍 currentUserId: ${currentUserId}`);
-            
-            // Filtrer pour ne compter que les messages des AUTRES (comparaison robuste)
-            const otherMessages = messages.filter(m => {
-                const isOther = String(m.sender_id) !== String(currentUserId);
-                console.log(`  Message ${m.id}: sender_id=${m.sender_id}, isOther=${isOther}`);
-                return isOther;
-            });
-            
-            if (lastRead) {
-                messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-            } else if (otherMessages.length > 0) {
-                messagesCount = otherMessages.length;
+       // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
+            if (AppState.currentPatient) {
+                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
+                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                const currentUserId = localStorage.getItem("user_id");
+                
+                console.log(`🔍 currentUserId: ${currentUserId}`);
+                
+                // Filtrer pour ne compter que les messages des AUTRES
+                const otherMessages = messages.filter(m => {
+                    // L'API retourne sender_id ou sender?.id selon l'endpoint
+                    const senderId = m.sender_id || m.sender?.id;
+                    const isOther = String(senderId) !== String(currentUserId);
+                    console.log(`  Message ${m.id}: senderId=${senderId}, isOther=${isOther}`);
+                    return isOther && senderId; // senderId doit exister
+                });
+                
+                if (lastRead) {
+                    messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+                } else if (otherMessages.length > 0) {
+                    messagesCount = otherMessages.length;
+                }
+                console.log(`📬 Messages non lus (autres): ${messagesCount}`);
             }
-            console.log(`📬 Messages non lus (autres): ${messagesCount}`);
-        }
         
         // 2. Commandes en attente (badge Commandes) - IGNORER SES PROPRES COMMANDES
         try {
