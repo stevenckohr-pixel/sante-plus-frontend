@@ -548,10 +548,12 @@ function setupAssignTypeHandlers() {
  * 💡 TRANSITION INTELLIGENTE - Briefing
  */
  
-window.openMissionBriefing = (patientId, planningId) => {
+/**
+ * 💡 TRANSITION INTELLIGENTE - Briefing
+ */
+const openMissionBriefing = (patientId, planningId) => {  // ← utilise const au lieu de window.
     console.log("📋 openMissionBriefing appelée avec:", patientId, planningId);
     
-    // Vérifier que UI est disponible
     if (typeof UI !== 'undefined' && UI.vibrate) {
         UI.vibrate();
     }
@@ -560,16 +562,13 @@ window.openMissionBriefing = (patientId, planningId) => {
         localStorage.setItem("active_planning_id", planningId);
     }
     
-    // Vérifier que viewPatientFeed existe
     if (typeof window.viewPatientFeed === 'function') {
         window.viewPatientFeed(patientId);
     } else {
         console.error("❌ window.viewPatientFeed n'est pas définie");
-        // Fallback: aller directement sur la page des patients
         window.switchView('patients');
     }
 };
-
 // Fonction pour lier le planning au démarrage de la visite
 window.startPlannedVisit = (patientId, planningId) => {
     localStorage.setItem("current_planning_id", planningId);
@@ -659,4 +658,10 @@ function escapeHtml(str) {
 
 
 
+// Exporter les fonctions globales APRÈS leur définition
+window.openMissionBriefing = openMissionBriefing;
 window.unassignAidant = unassignAidant;
+window.startPlannedVisit = startPlannedVisit;
+window.submitAssignmentEnhanced = submitAssignmentEnhanced;
+window.toggleAidantDropdown = toggleAidantDropdown;
+window.togglePatientDropdown = togglePatientDropdown;
