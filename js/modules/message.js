@@ -8,6 +8,9 @@
         let isUserAtBottom = true;
         let newMessageBadge = null;
         let readSubscribed = false;
+        if (!AppState.unreadByPatient) {
+            AppState.unreadByPatient = {};
+        }
     // ============================================
     // 🟢 REALTIME - MESSAGES EN TEMPS RÉEL
     // ============================================
@@ -74,6 +77,21 @@ function initRealtimeForCurrentPatient() {
             }
 
             const fullMessage = data[0];
+
+            // ========================================
+            // 🔴 COMPTEUR PAR PATIENT
+            // ========================================
+            const patientId = fullMessage.patient_id;
+            
+            // init sécurité
+            if (!AppState.unreadByPatient[patientId]) {
+                AppState.unreadByPatient[patientId] = 0;
+            }
+            
+            // incrémenter
+            AppState.unreadByPatient[patientId]++;
+            
+            console.log("🔴 compteur patient:", patientId, AppState.unreadByPatient[patientId]);
 
             // ====================================================
             // 🎯 5. FILTRE PATIENT (CRITIQUE)
