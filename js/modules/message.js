@@ -91,7 +91,7 @@ function initRealtimeForCurrentPatient() {
 
             const isInFeed = AppState.currentView === "feed";
 
-if (true) {
+if (!isCurrentPatient || !isInFeed) {
     if (!AppState.unreadByPatient[patientId]) {
                     AppState.unreadByPatient[patientId] = 0;
                 }
