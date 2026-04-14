@@ -639,5 +639,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
+window.openMissionBriefing = openMissionBriefing;
+
 
 window.unassignAidant = unassignAidant;
