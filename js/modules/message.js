@@ -73,6 +73,7 @@ function initRealtimeForCurrentPatient() {
             }
 
             const fullMessage = data[0];
+            console.log("STEP A - message récupéré", fullMessage);
 
             // ====================================================
             // 🔴 5. COMPTEUR PAR PATIENT (FIX SAFE)
