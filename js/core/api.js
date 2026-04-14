@@ -4,7 +4,7 @@ import ErrorHandler from './errorHandler.js';
 const isCapacitor = typeof window !== 'undefined' && window.hasOwnProperty('Capacitor');
 
 const apiCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000;
+const CACHE_DURATION = 30 * 1000;  
 
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
