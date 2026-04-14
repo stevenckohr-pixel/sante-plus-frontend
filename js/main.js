@@ -1622,9 +1622,16 @@ function renderMobileHub() {
         if (AppState.currentPatient) {
             const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
             const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+            const currentUserId = localStorage.getItem("user_id");
             
-            // 🔥 Ne compter que les messages des AUTRES
-            const otherMessages = messages.filter(m => m.sender_id !== currentUserId);
+            console.log(`🔍 currentUserId: ${currentUserId}`);
+            
+            // Filtrer pour ne compter que les messages des AUTRES (comparaison robuste)
+            const otherMessages = messages.filter(m => {
+                const isOther = String(m.sender_id) !== String(currentUserId);
+                console.log(`  Message ${m.id}: sender_id=${m.sender_id}, isOther=${isOther}`);
+                return isOther;
+            });
             
             if (lastRead) {
                 messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
