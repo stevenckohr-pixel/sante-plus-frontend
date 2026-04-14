@@ -44,12 +44,13 @@ function initRealtimeForCurrentPatient() {
         // ====================================================
         // 🚫 2. IGNORER SES PROPRES MESSAGES
         // ====================================================
-        if (
+        const isOwnMessage =
             newMessage.sender_id &&
-            String(newMessage.sender_id) === String(currentUserId)
-        ) {
-            console.log("📨 Message ignoré (c'est nous)");
-            return;
+            String(newMessage.sender_id) === String(currentUserId);
+        
+        // 🔥 on ignore SEULEMENT l'affichage, pas le traitement
+        if (isOwnMessage) {
+            console.log("📨 Message envoyé par nous (traité sans affichage)");
         }
 
         // ====================================================
@@ -142,8 +143,9 @@ if (!isCurrentPatient || !isInFeed) {
             // ====================================================
             // ⚡ 8. AFFICHAGE DIRECT
             // ====================================================
-            window.appendMessagesToFeed([fullMessage]);
-
+            if (!isOwnMessage) {
+                window.appendMessagesToFeed([fullMessage]);
+            }
             if (!document.querySelector(`[data-message-id="${fullMessage.id}"]`)) {
                 console.warn("⚠️ fallback renderFeed");
                 renderFeed();
@@ -667,8 +669,25 @@ if (!isCurrentPatient || !isInFeed) {
     cleanupRealtime();
 
     try {
-        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+        const data = await secureFetch(`/messages`);
         AppState.messages = data;
+        // 🔴 INITIALISER LES NON LUS AU CHARGEMENT
+        AppState.unreadByPatient = {};
+        
+        data.forEach(msg => {
+            const patientId = msg.patient_id;
+            const currentUserId = localStorage.getItem("user_id");
+        
+            if (msg.sender_id !== currentUserId) {
+                if (!AppState.unreadByPatient[patientId]) {
+                    AppState.unreadByPatient[patientId] = 0;
+                }
+                AppState.unreadByPatient[patientId]++;
+            }
+        });
+        
+        updatePatientBadges();
+        
         initRealtimeForCurrentPatient();
         renderFeed();
 
