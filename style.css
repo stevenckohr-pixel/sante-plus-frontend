@@ -2879,35 +2879,59 @@ body.maman-mode .menu-badge.bg-rose-500 {
 
 
 
+
+
+
+
+
+
+
+
 /* ============================================
-   BADGES DE NOTIFICATION - VISIBLES
+   BADGES TRÈS VISIBLES SUR LES TUILES DU MENU
    ============================================ */
 
-/* Badge sur les tuiles du menu (accueil mobile) */
+/* Conteneur des tuiles - important pour le positionnement */
 .menu-tile {
     position: relative;
     overflow: visible !important;
 }
 
+/* Badge principal - TRÈS VISIBLE */
 .menu-badge {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    min-width: 22px;
-    height: 22px;
-    border-radius: 22px;
+    top: -10px;
+    right: -10px;
+    min-width: 26px;
+    height: 26px;
+    border-radius: 26px;
     background: #EF4444 !important;
     color: white !important;
-    font-size: 10px !important;
-    font-weight: 800 !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 6px;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    padding: 0 8px;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
     border: 2px solid white;
-    z-index: 20;
+    z-index: 100;
     font-family: monospace;
+    letter-spacing: 0;
+    /* Animation d'apparition */
+    animation: badgePop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+}
+
+/* Version pour les petits écrans */
+@media (max-width: 640px) {
+    .menu-badge {
+        top: -8px;
+        right: -8px;
+        min-width: 22px;
+        height: 22px;
+        font-size: 11px !important;
+        padding: 0 6px;
+    }
 }
 
 /* Animation d'apparition */
@@ -2925,6 +2949,37 @@ body.maman-mode .menu-badge.bg-rose-500 {
     }
 }
 
-.menu-badge {
-    animation: badgePop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+/* Badge sur les cartes patients (dossiers) */
+.patient-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 24px;
+    background: #EF4444 !important;
+    color: white !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.4);
+    border: 2px solid white;
+    z-index: 10;
+    font-family: monospace;
+}
+
+/* Badge sur la cloche de notification */
+#notification-badge {
+    background: #EF4444 !important;
+    color: white !important;
+    font-weight: 900 !important;
+    font-size: 10px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    border-radius: 18px !important;
+    border: 1.5px solid white;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
 }
