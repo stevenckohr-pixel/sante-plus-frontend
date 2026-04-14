@@ -293,7 +293,11 @@ async function initApp() {
     preloadOnboardingImages();
     initPushNotifications();
 
-
+if ("Notification" in window) {
+    Notification.requestPermission().then(permission => {
+        console.log("🔔 Permission notification:", permission);
+    });
+}
 
 
 // ✅ AJOUTE ICI - Écouter les changements de visites en temps réel
