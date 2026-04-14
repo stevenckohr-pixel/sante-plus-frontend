@@ -529,9 +529,8 @@ async function loadFeed() {
     const isMaman = localStorage.getItem('user_is_maman') === "true";
     const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
     const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
-    const themeBorderClass = isMaman ? 'border-pink-500' : 'border-emerald-500';
     
-    // Récupérer les infos du patient pour le header
+    // Récupérer les infos du patient
     let patientInfo = null;
     try {
         const patients = await secureFetch("/patients");
@@ -541,47 +540,30 @@ async function loadFeed() {
     } catch(e) {}
 
     container.innerHTML = `
-        <div class="flex flex-col h-full bg-[#f0f2f5]">
-            <!-- Header style WhatsApp -->
-            <div class="sticky top-0 z-10 bg-white border-b border-slate-100 px-3 py-2 flex items-center gap-3 shadow-sm shrink-0">
-                <button onclick="window.switchView('patients')" 
-                        class="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95 transition-all">
-                    <i class="fa-solid fa-arrow-left text-base"></i>
-                </button>
-                <div class="flex-1 flex items-center gap-3">
-                    <div class="relative">
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br ${isMaman ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600'} flex items-center justify-center text-white font-bold text-sm">
-                            ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
-                        </div>
-                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-slate-800 text-sm">${patientInfo?.nom_complet || 'Patient'}</h3>
-                        <p class="text-[10px] text-green-500 font-medium">En ligne</p>
+        <div class="chat-container">
+            <!-- Header WhatsApp -->
+            <div class="chat-header">
+                <div class="chat-header-back" onclick="window.switchView('patients')">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+                <div class="chat-header-avatar">
+                    ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
+                </div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
+                    <div class="chat-header-status" id="chat-status">
+                        <span class="online-dot"></span> En ligne
                     </div>
                 </div>
-                <button onclick="window.filterFeed('DOCUMENT')" 
-                        class="w-9 h-9 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95">
-                    <i class="fa-solid fa-paperclip text-base"></i>
-                </button>
-            </div>
-
-            <!-- Switcher d'onglets compact -->
-            <div class="bg-white px-4 py-1 border-b border-slate-100 shrink-0">
-                <div class="flex gap-6">
-                    <button onclick="window.filterFeed('STORY')" id="tab-story" 
-                            class="py-2 text-[12px] font-semibold border-b-2 transition-all ${themeTextClass} border-b-${isMaman ? 'pink-500' : 'emerald-500'}">
-                        Messages
-                    </button>
-                    <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" 
-                            class="py-2 text-[12px] font-semibold border-b-2 border-transparent text-slate-400 transition-all">
-                        Médias & Docs
+                <div class="chat-header-actions">
+                    <button id="attach-doc-btn" title="Pièce jointe">
+                        <i class="fa-solid fa-paperclip"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Zone des messages (scrollable) -->
-            <div id="care-feed-content" class="flex-1 overflow-y-auto px-3 py-3 space-y-2 custom-scroll">
+            <!-- Zone des messages -->
+            <div id="care-feed-content" class="chat-messages">
                 <div class="flex justify-center py-10">
                     <div class="relative w-8 h-8">
                         <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
@@ -589,49 +571,38 @@ async function loadFeed() {
                 </div>
             </div>
 
-            <!-- Zone de saisie fixe en bas -->
-            <div class="shrink-0 bg-white border-t border-slate-100 px-3 py-2">
-                
-                <!-- Indicateur de réponse -->
-                <div id="reply-indicator" class="hidden mb-2 p-2 bg-amber-50 rounded-xl flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-reply-all text-amber-500 text-xs"></i>
-                        <span class="text-[10px] font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
-                    </div>
-                    <button onclick="window.cancelReply()" class="text-amber-500">
-                        <i class="fa-solid fa-times text-xs"></i>
-                    </button>
-                </div>
-                
-                <!-- Barre de saisie style WhatsApp -->
-                <div class="flex items-center gap-2">
-                    <button id="photo-btn" 
-                            class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 transition-all">
-                        <i class="fa-solid fa-camera text-base"></i>
-                    </button>
-                    
-                    <div class="flex-1 bg-slate-100 rounded-full px-4 py-2 flex items-center gap-2">
-                        <input id="quick-msg" 
-                               class="flex-1 bg-transparent border-none outline-none text-sm font-medium placeholder:text-slate-400"
-                               placeholder="Écrire un message...">
-                        <button id="send-btn" 
-                                class="w-8 h-8 rounded-full ${themeBgClass} text-white flex items-center justify-center active:scale-90 transition-all">
-                            <i class="fa-solid fa-paper-plane text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <input type="file" id="photo-input" accept="image/*" class="hidden">
-                <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
+            <!-- Indicateur "en train d'écrire" -->
+            <div id="typing-indicator" class="typing-indicator hidden" style="margin: 0 16px 8px 16px;">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <span class="typing-text">quelqu'un écrit...</span>
             </div>
+
+            <!-- Zone de saisie -->
+            <div class="chat-input-area">
+                <button class="chat-input-attach" id="attach-photo-btn" title="Photo">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
+                
+                <div class="chat-input-wrapper">
+                    <input type="text" id="quick-msg" class="chat-input" placeholder="Message" autocomplete="off">
+                    <button class="chat-input-send" id="send-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <input type="file" id="photo-input" accept="image/*" class="hidden">
+            <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
         </div>
     `;
 
     // Brancher les événements
-    const photoBtn = document.getElementById('photo-btn');
+    const photoBtn = document.getElementById('attach-photo-btn');
     const photoInput = document.getElementById('photo-input');
     const sendBtn = document.getElementById('send-btn');
-    const documentBtn = document.getElementById('document-btn');
+    const attachDocBtn = document.getElementById('attach-doc-btn');
     const documentInput = document.getElementById('document-input');
     const input = document.getElementById('quick-msg');
 
@@ -662,8 +633,8 @@ async function loadFeed() {
         });
     }
     
-    if (documentBtn && documentInput) {
-        documentBtn.onclick = () => documentInput.click();
+    if (attachDocBtn && documentInput) {
+        attachDocBtn.onclick = () => documentInput.click();
         documentInput.onchange = () => sendDocumentMessage();
     }
     
@@ -752,10 +723,12 @@ async function loadFeed() {
         const contentDiv = document.getElementById('care-feed-content');
         if (contentDiv) {
             contentDiv.innerHTML = `
-                <div class="text-center py-20">
-                    <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
-                    <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
-                    <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+                <div class="flex justify-center py-20">
+                    <div class="text-center">
+                        <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                        <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                        <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+                    </div>
                 </div>
             `;
         }
@@ -936,7 +909,6 @@ function renderStoryCard(msg, isReply = false) {
     let humeurBadge = "";
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
-    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
     const themeLightBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
 
     const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
@@ -969,9 +941,9 @@ function renderStoryCard(msg, isReply = false) {
         if (parentMsg) {
             const parentContent = parentMsg.is_photo ? '📷 Photo' : (parentMsg.content?.substring(0, 50) + (parentMsg.content?.length > 50 ? '...' : ''));
             parentMessageHtml = `
-                <div class="mb-1 pl-2 border-l-2 border-amber-400">
-                    <p class="text-[8px] text-amber-600 font-medium">↳ Réponse à ${escapeHtml(parentMsg.sender_name || 'un message')}</p>
-                    <p class="text-[9px] text-slate-500 italic truncate">"${escapeHtml(parentContent)}"</p>
+                <div class="text-[9px] text-amber-600 mb-1 flex items-center gap-1">
+                    <i class="fa-solid fa-reply-all text-[8px]"></i>
+                    <span class="truncate">↳ ${escapeHtml(parentMsg.sender_name || 'message')}: ${escapeHtml(parentContent)}</span>
                 </div>
             `;
         }
@@ -984,20 +956,32 @@ function renderStoryCard(msg, isReply = false) {
     // MESSAGE ENVOYÉ (À DROITE) - STYLE WHATSAPP
     // ============================================================
     if (isOwnMessage) {
+        // Statut du message
+        let statusIcon = '';
+        if (!isTemp) {
+            if (msg.read) {
+                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
+            } else {
+                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
+            }
+        } else {
+            statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
+        }
+        
         return `
-            <div class="flex justify-end mb-2 ${isReply ? 'ml-8' : ''} ${tempClass}" data-message-id="${msg.id}">
-                <div class="max-w-[75%]">
+            <div class="flex justify-end mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
+                <div class="max-w-[75%] sm:max-w-[65%]">
                     ${imageUrl ? `
-                        <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')">
+                        <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')" loading="lazy">
                     ` : ''}
                     ${content ? `
                         <div class="${themeBgClass} rounded-2xl rounded-tr-sm px-3 py-2">
-                            <p class="text-white text-sm break-words">${escapeHtml(content)}</p>
+                            <p class="text-white text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
                         </div>
                     ` : ''}
                     <div class="flex justify-end items-center gap-1 mt-0.5">
                         <span class="text-[9px] text-slate-400">${timeStr}</span>
-                        ${msg.read ? '<i class="fa-solid fa-check-double text-[10px] text-blue-500"></i>' : '<i class="fa-solid fa-check text-[10px] text-slate-400"></i>'}
+                        <span class="message-status">${statusIcon}</span>
                     </div>
                 </div>
             </div>
@@ -1020,9 +1004,9 @@ function renderStoryCard(msg, isReply = false) {
     if (isAidant) {
         avatarBg = themeLightBg;
         roleIcon = 'fa-user-nurse';
-        roleColor = themeTextClass;
+        roleColor = isMaman ? 'text-pink-600' : 'text-emerald-600';
         roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'A';
-        roleBadge = `<span class="text-[8px] font-medium text-emerald-600 ml-1"><i class="fa-solid fa-shield-check"></i></span>`;
+        roleBadge = `<span class="text-[8px] font-medium ${roleColor} ml-1"><i class="fa-solid fa-shield-check"></i></span>`;
     } else if (isFamily) {
         avatarBg = 'bg-blue-100';
         roleIcon = 'fa-user';
@@ -1036,29 +1020,28 @@ function renderStoryCard(msg, isReply = false) {
     }
 
     return `
-        <div class="flex items-start gap-2 mb-2 ${isReply ? 'ml-8' : ''} ${tempClass}" data-message-id="${msg.id}">
+        <div class="flex items-start gap-2 mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
             <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center flex-shrink-0">
                 ${msg.sender_photo ? 
                     `<img src="${msg.sender_photo}" class="w-full h-full rounded-full object-cover">` : 
-                    `<i class="fa-solid ${roleIcon} ${roleColor} text-xs"></i>`
+                    `<span class="text-xs font-bold ${roleColor}">${roleInitial}</span>`
                 }
             </div>
-            <div class="max-w-[75%]">
+            <div class="max-w-[75%] sm:max-w-[65%]">
                 <div class="flex items-center gap-1 mb-0.5 flex-wrap">
                     <span class="font-semibold text-slate-700 text-xs">${escapeHtml(msg.sender_name || 'Inconnu')}</span>
                     ${roleBadge}
-                    ${humeurBadge}
                 </div>
                 
                 ${parentMessageHtml}
                 
                 ${imageUrl ? `
-                    <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')">
+                    <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')" loading="lazy">
                 ` : ''}
                 
                 ${content ? `
                     <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2 shadow-sm border border-slate-100">
-                        <p class="text-slate-700 text-sm break-words">${escapeHtml(content)}</p>
+                        <p class="text-slate-700 text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
                     </div>
                 ` : ''}
                 
@@ -1103,7 +1086,6 @@ function renderStoryCard(msg, isReply = false) {
         </div>
     `;
 }
-
 
     // ============================================
     // ✅ NOUVELLES FONCTIONS
