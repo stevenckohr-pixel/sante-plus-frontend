@@ -548,10 +548,8 @@ function setupAssignTypeHandlers() {
  * 💡 TRANSITION INTELLIGENTE - Briefing
  */
  
-/**
- * 💡 TRANSITION INTELLIGENTE - Briefing
- */
-const openMissionBriefing = (patientId, planningId) => {  // ← utilise const au lieu de window.
+
+export const openMissionBriefing = (patientId, planningId) => { 
     console.log("📋 openMissionBriefing appelée avec:", patientId, planningId);
     
     if (typeof UI !== 'undefined' && UI.vibrate) {
