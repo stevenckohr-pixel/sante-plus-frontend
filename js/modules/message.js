@@ -521,11 +521,17 @@ async function loadFeed() {
         return window.switchView('patients');
     }
 
-    // ✅ NOUVEAU DESIGN - Barre de saisie EN BAS, style chat
+    const isMaman = localStorage.getItem('user_is_maman') === "true";
+    const themeColor = isMaman ? '#DB2777' : '#10B981';
+    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
+    const themeBorderClass = isMaman ? 'border-pink-200' : 'border-emerald-200';
+
+    // ✅ Structure FLEX column avec hauteur totale
     container.innerHTML = `
         <div class="flex flex-col h-full animate-fadeIn">
-            <!-- Header compact sticky -->
-            <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3 flex items-center gap-3">
+            <!-- Header fixe en haut -->
+            <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3 flex items-center gap-3 shrink-0">
                 <button onclick="window.switchView('patients')" 
                         class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-all">
                     <i class="fa-solid fa-arrow-left text-sm"></i>
@@ -540,11 +546,11 @@ async function loadFeed() {
                 </button>
             </div>
 
-            <!-- Switcher de vues compact -->
-            <div class="bg-white px-4 pt-2 border-b border-slate-100">
+            <!-- Onglets compacts -->
+            <div class="bg-white px-4 pt-2 border-b border-slate-100 shrink-0">
                 <div class="flex gap-4">
                     <button onclick="window.filterFeed('STORY')" id="tab-story" 
-                            class="py-2 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all">
+                            class="py-2 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all ${themeTextClass} border-b-${isMaman ? 'pink-500' : 'emerald-500'}">
                         💬 Messages
                     </button>
                     <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" 
@@ -554,7 +560,7 @@ async function loadFeed() {
                 </div>
             </div>
 
-            <!-- Zone des messages (scrollable) -->
+            <!-- Zone des messages (scrollable, prend tout l'espace restant) -->
             <div id="care-feed-content" class="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scroll">
                 <div class="flex justify-center py-10">
                     <div class="relative w-8 h-8">
@@ -563,8 +569,8 @@ async function loadFeed() {
                 </div>
             </div>
 
-            <!-- Zone de saisie (collée en bas) -->
-            <div class="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 p-3">
+            <!-- Zone de saisie fixe en bas -->
+            <div class="shrink-0 bg-white border-t border-slate-100 p-3">
                 
                 <!-- Indicateur de réponse -->
                 <div id="reply-indicator" class="hidden mb-2 p-2 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
@@ -577,7 +583,7 @@ async function loadFeed() {
                     </button>
                 </div>
                 
-                <!-- Barre de saisie compacte -->
+                <!-- Barre de saisie -->
                 <div class="flex items-center gap-2">
                     <button id="photo-btn" 
                             class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 transition-all">
@@ -589,7 +595,7 @@ async function loadFeed() {
                                class="flex-1 bg-transparent border-none outline-none text-sm font-medium placeholder:text-slate-400"
                                placeholder="Écrire un message...">
                         <button id="send-btn" 
-                                class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center active:scale-90 transition-all">
+                                class="w-8 h-8 rounded-full ${themeBgClass} text-white flex items-center justify-center active:scale-90 transition-all">
                             <i class="fa-solid fa-paper-plane text-xs"></i>
                         </button>
                     </div>
@@ -601,7 +607,7 @@ async function loadFeed() {
         </div>
     `;
 
-    // Brancher les événements
+    // Brancher les événements (inchangé)
     const photoBtn = document.getElementById('photo-btn');
     const photoInput = document.getElementById('photo-input');
     const sendBtn = document.getElementById('send-btn');
@@ -628,7 +634,6 @@ async function loadFeed() {
             }, 2000);
         });
         
-        // ✅ ENVOI AVEC ENTRÉE
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -657,13 +662,11 @@ async function loadFeed() {
         const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
         AppState.messages = data;
         
-        // 🔴 INITIALISER LES NON LUS AU CHARGEMENT
         AppState.unreadByPatient = {};
         const currentUserId = localStorage.getItem("user_id");
         
         data.forEach(msg => {
             const patientId = msg.patient_id;
-            
             if (msg.sender_id !== currentUserId && !msg.read) {
                 if (!AppState.unreadByPatient[patientId]) {
                     AppState.unreadByPatient[patientId] = 0;
@@ -675,7 +678,6 @@ async function loadFeed() {
         console.log("🔴 [CHARGEMENT] unreadByPatient initialisé:", AppState.unreadByPatient);
         updatePatientBadges();
         
-        // Nettoyer l'ancien abonnement Realtime
         if (window.Realtime) {
             window.Realtime.unsubscribe();
         }
@@ -683,7 +685,6 @@ async function loadFeed() {
         initRealtimeForCurrentPatient();
         renderFeed();
 
-        // ✅ Marquer les messages comme lus
         const now = new Date().toISOString();
         localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
 
@@ -712,15 +713,13 @@ async function loadFeed() {
             console.error("Erreur mark-read:", err);
         }
         
-        // ✅ Réinitialiser le compteur
         unreadMessagesCount = 0;
         hideNewMessageBadge();
 
-        // ✅ Initialiser la détection de scroll et scroll en bas
         setTimeout(() => {
             initScrollDetection();
             isUserAtBottom = true;
-            scrollToBottom(); // ← AJOUTÉ pour voir le dernier message
+            scrollToBottom();
         }, 500);
         
         if (typeof window.refreshMenuBadges === 'function') {
@@ -909,8 +908,12 @@ function renderStoryCard(msg, isReply = false) {
     const isPhoto = msg.is_photo || msg.photo_url;
     let content = msg.content || '';
     let humeurBadge = "";
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const themeColor = isMaman ? '#DB2777' : '#10B981';
+    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const themeBgClass = isMaman ? 'bg-pink-100' : 'bg-emerald-100';
+    const themeBadgeClass = isMaman ? 'bg-pink-50 text-pink-600' : 'bg-emerald-50 text-emerald-600';
 
-    // Utiliser photo_url si disponible
     const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
     
     // Décodage de l'humeur
@@ -925,9 +928,9 @@ function renderStoryCard(msg, isReply = false) {
             "Triste": "😔"
         };
         humeurBadge = `
-            <div class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
+            <div class="mt-2 inline-flex items-center gap-1 px-2 py-1 ${themeBgClass} rounded-full border ${isMaman ? 'border-pink-200' : 'border-emerald-200'}">
                 <span class="text-sm">${emojis[humeur] || '✨'}</span>
-                <span class="text-[9px] font-bold text-amber-700">${humeur}</span>
+                <span class="text-[9px] font-bold ${themeTextClass}">${humeur}</span>
             </div>`;
         content = notes;
     }
@@ -936,34 +939,30 @@ function renderStoryCard(msg, isReply = false) {
     const isFamily = msg.sender_role === 'FAMILLE';
     const isCoordinator = msg.sender_role === 'COORDINATEUR';
     
-    let roleColorClass = 'text-slate-500';
     let avatarBg = 'bg-slate-100';
     let roleIcon = 'fa-user';
+    let roleColorClass = 'text-slate-500';
     let roleBadge = '';
-    let roleInitial = '';
     
     if (isAidant) {
-        roleColorClass = 'text-emerald-600';
-        avatarBg = 'bg-emerald-100';
+        avatarBg = themeBgClass;
         roleIcon = 'fa-user-nurse';
-        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'A';
-        roleBadge = `<span class="text-[8px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full ml-1">
+        roleColorClass = themeTextClass;
+        roleBadge = `<span class="text-[8px] font-black ${themeBadgeClass} px-1.5 py-0.5 rounded-full ml-1">
                         <i class="fa-solid fa-shield-check text-[8px] mr-0.5"></i> Aidant
                     </span>`;
     } else if (isFamily) {
-        roleColorClass = 'text-blue-600';
         avatarBg = 'bg-blue-100';
         roleIcon = 'fa-user';
-        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'F';
-        roleBadge = `<span class="text-[8px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full ml-1">
+        roleColorClass = 'text-blue-600';
+        roleBadge = `<span class="text-[8px] font-black bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full ml-1">
                         <i class="fa-regular fa-heart text-[8px] mr-0.5"></i> Famille
                     </span>`;
     } else if (isCoordinator) {
-        roleColorClass = 'text-purple-600';
         avatarBg = 'bg-purple-100';
         roleIcon = 'fa-user-tie';
-        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'C';
-        roleBadge = `<span class="text-[8px] font-black text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full ml-1">
+        roleColorClass = 'text-purple-600';
+        roleBadge = `<span class="text-[8px] font-black bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-full ml-1">
                         <i class="fa-solid fa-star text-[8px] mr-0.5"></i> Coordination
                     </span>`;
     }
@@ -973,7 +972,7 @@ function renderStoryCard(msg, isReply = false) {
     const timeStr = isNaN(safeDate) ? "Maintenant" : safeDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     const dateStr = isNaN(safeDate) ? "" : safeDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
-    // Message parent (réponse)
+    // Message parent
     let parentMessageHtml = '';
     if (msg.reply_to_id) {
         const parentMsg = AppState.messages?.find(m => m.id === msg.reply_to_id);
@@ -988,13 +987,13 @@ function renderStoryCard(msg, isReply = false) {
         }
     }
 
-    // Version compacte mais COMPLÈTE
+    const isTemp = msg.is_temp === true;
+    const tempClass = isTemp ? 'opacity-70' : '';
+
     return `
-        <div class="flex items-start gap-2 ${isReply ? 'ml-6' : ''} animate-fadeIn mb-3" data-message-id="${msg.id}">
-            <!-- Statut de lecture (caché mais présent) -->
+        <div class="flex items-start gap-2 ${isReply ? 'ml-6' : ''} animate-fadeIn mb-3 ${tempClass}" data-message-id="${msg.id}">
             <div class="message-status hidden"></div>
             
-            <!-- Avatar -->
             <div class="relative flex-shrink-0">
                 <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center overflow-hidden">
                     ${msg.sender_photo ? 
@@ -1003,25 +1002,24 @@ function renderStoryCard(msg, isReply = false) {
                     }
                 </div>
                 ${isAidant ? `
-                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm" title="Aidant vérifié"></div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ${isMaman ? 'bg-pink-500' : 'bg-emerald-500'} border border-white shadow-sm"></div>
                 ` : ''}
                 ${isFamily ? `
-                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border border-white shadow-sm" title="Membre de la famille"></div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border border-white shadow-sm"></div>
                 ` : ''}
             </div>
             
             <div class="flex-1 min-w-0">
-                <!-- En-tête compact -->
                 <div class="flex items-center gap-1 mb-0.5 flex-wrap">
                     <span class="font-bold text-slate-800 text-xs">${escapeHtml(msg.sender_name || 'Système')}</span>
                     ${roleBadge}
                     <span class="text-[9px] text-slate-400">• ${timeStr}</span>
                     <span class="text-[9px] text-slate-300">${dateStr ? '• ' + dateStr : ''}</span>
+                    ${isTemp ? `<span class="text-[8px] text-slate-400"><i class="fa-solid fa-spinner fa-spin"></i> Envoi...</span>` : ''}
                 </div>
                 
                 ${parentMessageHtml}
                 
-                <!-- Contenu du message -->
                 ${imageUrl ? `
                     <div class="relative rounded-xl overflow-hidden mb-1 max-w-[250px]">
                         <img src="${imageUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" onclick="window.open('${imageUrl}')">
@@ -1039,17 +1037,16 @@ function renderStoryCard(msg, isReply = false) {
                 
                 ${humeurBadge}
                 
-                <!-- Actions compactes -->
                 <div class="flex items-center gap-2 mt-1">
                     <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
-                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                            class="text-[9px] text-slate-400 hover:${themeTextClass} transition">
                         <i class="fa-solid fa-reply text-[8px]"></i> Répondre
                     </button>
                     <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
-                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                            class="text-[9px] text-slate-400 hover:${themeTextClass} transition">
                         <i class="fa-regular fa-face-smile"></i> Réagir
                     </button>
-                    ${isAidant && msg.id ? `
+                    ${isAidant && msg.id && !msg.is_temp ? `
                         <button onclick="window.reportIssue('${msg.id}')" 
                                 class="text-[9px] text-slate-400 hover:text-rose-500 transition">
                             <i class="fa-regular fa-flag"></i>
@@ -1057,7 +1054,6 @@ function renderStoryCard(msg, isReply = false) {
                     ` : ''}
                 </div>
                 
-                <!-- Réactions -->
                 ${Object.keys(msg.reactions || {}).length > 0 ? `
                     <div class="flex gap-1 mt-1">
                         ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
@@ -1070,8 +1066,7 @@ function renderStoryCard(msg, isReply = false) {
                     </div>
                 ` : ''}
                 
-                <!-- Signature photo pour aidant -->
-                ${imageUrl && isAidant ? `
+                ${imageUrl && isAidant && !msg.is_temp ? `
                     <div class="mt-1">
                         <span class="text-[7px] text-slate-400">
                             <i class="fa-regular fa-camera"></i> Photo par ${msg.sender_name}
@@ -1082,7 +1077,6 @@ function renderStoryCard(msg, isReply = false) {
         </div>
     `;
 }
-
 
 
     // ============================================
@@ -1259,41 +1253,110 @@ function renderStoryCard(msg, isReply = false) {
     
     
     window.sendQuickMessage = async () => {
-        const input = document.getElementById('quick-msg');
-        const content = input?.value?.trim();
-        if (!content) return;
-    
-        try {
-            UI.vibrate();
-            
-            const body = {
-                patient_id: AppState.currentPatient,
-                content: content,
-                is_photo: false,
-                type_media: 'STORY'
-            };
-            
-            if (currentReplyTo) {
-                body.reply_to_id = currentReplyTo;
-            }
-            
-            await secureFetch('/messages/send', {
-                method: 'POST',
-                body: JSON.stringify(body)
-            });
-            
-            input.value = '';
-            window.cancelReply();
-            initRealtimeForCurrentPatient();
-            // ✅ FORCER LE RAFRAÎCHISSEMENT IMMÉDIAT
-            await loadFeed();
-            
-        } catch (err) {
-            console.error(err);
-            UI.error("Erreur lors de l'envoi du message");
+    const input = document.getElementById('quick-msg');
+    const content = input?.value?.trim();
+    if (!content) return;
+
+    try {
+        UI.vibrate();
+        
+        // ✅ OPTIMISTIC UI : Ajouter le message immédiatement
+        const tempId = 'temp_' + Date.now();
+        const currentUserId = localStorage.getItem("user_id");
+        const currentUserName = localStorage.getItem("user_name");
+        
+        const tempMessage = {
+            id: tempId,
+            patient_id: AppState.currentPatient,
+            sender_id: currentUserId,
+            sender_name: currentUserName,
+            sender_role: localStorage.getItem("user_role"),
+            content: content,
+            is_photo: false,
+            type_media: 'STORY',
+            created_at: new Date().toISOString(),
+            reactions: {},
+            is_temp: true  // Marqueur temporaire
+        };
+        
+        // Ajouter au state et au DOM
+        AppState.messages.push(tempMessage);
+        
+        // Re-rendu ou ajout direct
+        if (activeTab === 'STORY') {
+            const container = document.getElementById('care-feed-content');
+            const tempHtml = renderStoryCard(tempMessage, false);
+            container.insertAdjacentHTML('beforeend', tempHtml);
+            scrollToBottom();
         }
-    };
-    
+        
+        // Afficher un indicateur de chargement sur le message temporaire
+        const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
+        if (tempMessageEl) {
+            tempMessageEl.classList.add('opacity-50');
+            const sendingIndicator = document.createElement('div');
+            sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
+            sendingIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
+            tempMessageEl.querySelector('.flex-1')?.appendChild(sendingIndicator);
+        }
+        
+        // Réinitialiser l'input
+        input.value = '';
+        window.cancelReply();
+        
+        // Envoyer réellement
+        const body = {
+            patient_id: AppState.currentPatient,
+            content: content,
+            is_photo: false,
+            type_media: 'STORY'
+        };
+        
+        if (currentReplyTo) {
+            body.reply_to_id = currentReplyTo;
+        }
+        
+        const result = await secureFetch('/messages/send', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        
+        // Supprimer l'indicateur de chargement
+        if (tempMessageEl) {
+            tempMessageEl.classList.remove('opacity-50');
+            const indicator = tempMessageEl.querySelector('.sending-indicator');
+            if (indicator) indicator.remove();
+        }
+        
+        // Remplacer l'ID temporaire par le vrai ID
+        if (result && result.id) {
+            const index = AppState.messages.findIndex(m => m.id === tempId);
+            if (index !== -1) {
+                AppState.messages[index].id = result.id;
+                AppState.messages[index].is_temp = false;
+                const realEl = document.querySelector(`[data-message-id="${tempId}"]`);
+                if (realEl) realEl.setAttribute('data-message-id', result.id);
+            }
+        }
+        
+        initRealtimeForCurrentPatient();
+        
+    } catch (err) {
+        console.error(err);
+        UI.error("Erreur lors de l'envoi du message");
+        
+        // Marquer le message comme échoué
+        const tempMessageEl = document.querySelector(`[data-message-id="temp_${Date.now() - 500}"]`);
+        if (tempMessageEl) {
+            tempMessageEl.classList.add('border-rose-200', 'bg-rose-50');
+            const errorIndicator = tempMessageEl.querySelector('.sending-indicator');
+            if (errorIndicator) {
+                errorIndicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i> Échec';
+                errorIndicator.classList.add('text-rose-500');
+            }
+        }
+    }
+};
     window.sendReaction = async (msgId, type) => {
         try {
             UI.vibrate();
