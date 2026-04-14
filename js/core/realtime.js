@@ -12,8 +12,8 @@ const REALTIME_CONFIG = {
 let supabaseClient = null;
 
 // Canaux actifs
-let messagesChannel  = null;
 let globalChannel    = null;
+let messagesChannel  = null;
 
 // Callbacks enregistrés
 const callbacks = {
@@ -24,6 +24,9 @@ const callbacks = {
     abonnements: [],
     commandes: [],
 };
+
+// Callbacks pour les messages (par patient)
+let messageCallbacks = [];
 
 // ── Init client Supabase ─────────────────────────────────────
 function initClient() {
@@ -57,15 +60,12 @@ function initGlobalChannel() {
 
     globalChannel = client
         .channel('sps-global')
-
         .on('postgres_changes', { event: '*', schema: 'public', table: 'visites' },
             ({ eventType, new: row, old }) => dispatch('visites', eventType, row || old)
         )
-
         .on('postgres_changes', { event: '*', schema: 'public', table: 'planning' },
             ({ eventType, new: row, old }) => dispatch('planning', eventType, row || old)
         )
-
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' },
             ({ new: row }) => {
                 const userId = localStorage.getItem('user_id');
@@ -73,60 +73,55 @@ function initGlobalChannel() {
                 dispatch('notifications', 'INSERT', row);
             }
         )
-
         .on('postgres_changes', { event: '*', schema: 'public', table: 'abonnements' },
             ({ eventType, new: row, old }) => dispatch('abonnements', eventType, row || old)
         )
-
         .on('postgres_changes', { event: '*', schema: 'public', table: 'commandes_meds' },
             ({ eventType, new: row, old }) => dispatch('commandes', eventType, row || old)
         )
-
         .subscribe();
 }
 
-// ── Canal MESSAGES ───────────────────────────────────────────
-let messageCallbacks = [];
+// ── Canal MESSAGES GLOBAL (créé une seule fois) ─────────────
+function initMessagesChannel() {
+    const client = initClient();
+    if (!client) return;
+    if (messagesChannel) return;
 
+    messagesChannel = client
+        .channel('global-messages')
+        .on('postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'messages' }, 
+            (payload) => {
+                const newMessage = payload.new;
+                console.log("📡 [REALTIME] Nouveau message global:", newMessage);
+                // Appeler tous les callbacks enregistrés pour ce patient
+                messageCallbacks.forEach(({ patientId: pid, callback: cb }) => {
+                    if (pid === newMessage.patient_id) {
+                        cb('INSERT', newMessage);
+                    }
+                });
+            }
+        )
+        .subscribe((status) => {
+            console.log(`📡 Canal global messages: ${status}`);
+        });
+}
+
+// ── Subscribe aux messages ──────────────────────────────────
 function subscribeToMessages(patientId, callback) {
     if (!patientId) return;
 
     // Enregistrer le callback
     messageCallbacks.push({ patientId, callback });
     console.log(`📡 Callback enregistré pour patient ${patientId}, total: ${messageCallbacks.length}`);
-
-    // Créer le canal global une seule fois (au premier appel)
-    if (!window._globalMessagesChannel) {
-        const client = initClient();
-        if (!client) return;
-
-        window._globalMessagesChannel = client
-            .channel('global-messages')
-            .on('postgres_changes', 
-                { event: 'INSERT', schema: 'public', table: 'messages' }, 
-                (payload) => {
-                    const newMessage = payload.new;
-                    console.log("📡 [REALTIME] Nouveau message global:", newMessage);
-                    // Appeler tous les callbacks enregistrés pour ce patient
-                    messageCallbacks.forEach(({ patientId: pid, callback: cb }) => {
-                        if (pid === newMessage.patient_id) {
-                            cb('INSERT', newMessage);
-                        }
-                    });
-                }
-            )
-            .subscribe((status) => {
-                console.log(`📡 Canal global messages: ${status}`);
-            });
-    }
 }
 
+// ── Unsubscribe des messages ────────────────────────────────
 function unsubscribeFromMessages() {
-    if (messagesChannel) {
-        messagesChannel.unsubscribe();
-        messagesChannel = null;
-    }
-    callbacks.messages = [];
+    // On vide uniquement les callbacks, on garde le canal actif
+    messageCallbacks = [];
+    console.log("🧹 Callbacks messages nettoyés");
 }
 
 // ── API helpers ─────────────────────────────────────────────
@@ -166,30 +161,7 @@ async function fetchSenderInfo(senderId) {
 function start() {
     initClient();
     initGlobalChannel();
-    
-    // Créer le canal messages global dès le départ
-    if (!window._globalMessagesChannel) {
-        const client = initClient();
-        if (client) {
-            window._globalMessagesChannel = client
-                .channel('global-messages')
-                .on('postgres_changes', 
-                    { event: 'INSERT', schema: 'public', table: 'messages' }, 
-                    (payload) => {
-                        const newMessage = payload.new;
-                        console.log("📡 [REALTIME] Nouveau message global (start):", newMessage);
-                        messageCallbacks.forEach(({ patientId: pid, callback: cb }) => {
-                            if (pid === newMessage.patient_id) {
-                                cb('INSERT', newMessage);
-                            }
-                        });
-                    }
-                )
-                .subscribe((status) => {
-                    console.log(`📡 Canal global messages: ${status}`);
-                });
-        }
-    }
+    initMessagesChannel(); // ← CRÉER LE CANAL DES MESSAGES DÈS LE DÉPART
 }
 
 // ── EXPORT GLOBAL ────────────────────────────────────────────
@@ -223,18 +195,16 @@ window.Realtime = {
             .on(
                 'postgres_changes',
                 {
-                    event: 'INSERT',
+                    event: 'UPDATE',
                     schema: 'public',
                     table: 'messages'
                 },
                 (payload) => {
-                    console.log("🔥 REALTIME PAYLOAD:", payload);
-            
+                    console.log("🔥 REALTIME READ PAYLOAD:", payload);
                     if (!payload.new) {
                         console.warn("⚠️ payload.new manquant:", payload);
                         return;
                     }
-            
                     callback(payload.new); 
                 }
             )
