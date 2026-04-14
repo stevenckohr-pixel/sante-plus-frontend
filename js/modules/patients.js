@@ -123,6 +123,10 @@ export function renderPatients() {
             </div>
         `;
     }).join("");
+
+    setTimeout(() => {
+    updatePatientBadges();
+}, 50);
 }
 /**
  * 📄 VUE : PAGE D'AJOUT D'UN PATIENT
