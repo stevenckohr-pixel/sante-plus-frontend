@@ -78,11 +78,15 @@ function initRealtimeForCurrentPatient() {
             // ====================================================
             // 🎯 5. FILTRE PATIENT (CRITIQUE)
             // ====================================================
-            if (
-                String(fullMessage.patient_id) !==
-                String(AppState.currentPatient)
-            ) {
-                console.warn("⚠️ Mauvais patient → ignoré");
+            const isCurrentPatient =
+                String(fullMessage.patient_id) === String(AppState.currentPatient);
+            
+            if (!isCurrentPatient) {
+                console.log("📩 Message reçu (autre patient)");
+            
+                unreadMessagesCount++;
+                showNewMessageBadge();
+            
                 return;
             }
 
