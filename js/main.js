@@ -1626,14 +1626,24 @@ function renderMobileHub() {
                 
                 console.log(`🔍 currentUserId: ${currentUserId}`);
                 
-                // Filtrer pour ne compter que les messages des AUTRES
-                const otherMessages = messages.filter(m => {
-                    // L'API retourne sender_id ou sender?.id selon l'endpoint
-                    const senderId = m.sender_id || m.sender?.id;
-                    const isOther = String(senderId) !== String(currentUserId);
-                    console.log(`  Message ${m.id}: senderId=${senderId}, isOther=${isOther}`);
-                    return isOther && senderId; // senderId doit exister
-                });
+               // Afficher la structure complète du premier message pour debug
+                    if (messages.length > 0 && !window._debugShown) {
+                        console.log("🔍 Structure d'un message:", JSON.stringify(messages[0], null, 2));
+                        window._debugShown = true;
+                    }
+                    
+                    const otherMessages = messages.filter(m => {
+                        // Essayer plusieurs chemins possibles pour récupérer l'ID de l'expéditeur
+                        const senderId = m.sender_id ||      // direct
+                                         m.sender?.id ||     // objet sender
+                                         m.user_id ||        // alternative
+                                         m.from_id ||        // alternative
+                                         m.created_by;       // alternative
+                        
+                        const isOther = senderId && String(senderId) !== String(currentUserId);
+                        console.log(`  Message ${m.id}: senderId=${senderId}, currentUserId=${currentUserId}, isOther=${isOther}`);
+                        return isOther;
+                    });
                 
                 if (lastRead) {
                     messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
