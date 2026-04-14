@@ -1380,22 +1380,7 @@ function renderStoryCard(msg, isReply = false) {
     };
     
     
-function showTypingIndicator(data) {
-    let indicator = document.getElementById('typing-indicator');
 
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'typing-indicator';
-        indicator.className = "text-xs text-slate-400 px-4 py-2";
-        document.getElementById('care-feed-content')?.appendChild(indicator);
-    }
-
-    indicator.textContent = "✍️ Quelqu’un est en train d’écrire...";
-
-    setTimeout(() => {
-        indicator.remove();
-    }, 2000);
-}
 
 window.Realtime.subscribeToTyping((data) => {
     console.log("✍️ Typing:", data);
