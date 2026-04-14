@@ -726,12 +726,28 @@ if (!readSubscribed) {
     });
 }
 
+
+
+
+// ============================================================
+// 👁️ GESTION DES MESSAGES LUS (CORRIGÉE - N'EMPÊCHE PLUS LE COMPTEUR)
+// ============================================================
+
 function updateSeenStatus(data) {
+    // 🔥 CRITIQUE : Ne PAS marquer comme lu si c'est un message récent (moins de 2 secondes)
+    // Ça laisse le temps au compteur de s'incrémenter
+    const messageAge = Date.now() - new Date(data.created_at).getTime();
+    if (messageAge < 2000) {
+        console.log("👁️ Message trop récent, on attend avant de marquer comme lu");
+        return;
+    }
+    
     if (!data.read) return;
 
     const currentUserId = localStorage.getItem("user_id");
     if (!currentUserId) return;
 
+    // Ne pas marquer ses propres messages comme "lus" pour soi-même
     if (data.sender_id === currentUserId) return;
 
     const messageEl = document.querySelector(`[data-message-id="${data.id}"]`);
@@ -746,7 +762,6 @@ function updateSeenStatus(data) {
     status.className = "seen-status text-[8px] text-blue-500 ml-2";
     status.textContent = "✔✔ Vu";
 
-    // 🔥 animation pro
     status.style.opacity = "0";
     status.style.transition = "opacity 0.3s ease";
 
@@ -756,7 +771,6 @@ function updateSeenStatus(data) {
         status.style.opacity = "1";
     }, 10);
 }
-
 
 
     /**
@@ -1438,7 +1452,13 @@ function initScrollDetection() {
 
 
 
+// ============================================================
+// 🔴 MISE À JOUR DES BADGES SUR LES CARTES PATIENTS
+// ============================================================
+
 function updatePatientBadges() {
+    console.log("🔴 [BADGE] Mise à jour des badges patients, unreadByPatient:", AppState.unreadByPatient);
+    
     document.querySelectorAll(".patient-item").forEach(el => {
         const patientId = el.dataset.patientId;
         const badge = el.querySelector(".patient-badge");
@@ -1446,10 +1466,13 @@ function updatePatientBadges() {
         if (!badge) return;
 
         const count = AppState.unreadByPatient?.[patientId] || 0;
+        console.log(`🔴 Patient ${patientId} → ${count} non lus`);
 
         if (count > 0) {
-            badge.textContent = count;
+            badge.textContent = count > 99 ? '99+' : count;
             badge.classList.remove("hidden");
+            // Animation d'apparition
+            badge.style.animation = 'badgePop 0.3s ease';
         } else {
             badge.classList.add("hidden");
         }
