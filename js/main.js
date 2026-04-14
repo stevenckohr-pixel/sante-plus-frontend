@@ -1618,32 +1618,28 @@ function renderMobileHub() {
         const currentUserId = localStorage.getItem("user_id");
         const userRole = localStorage.getItem("user_role");
         
-        // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
-        if (AppState.currentPatient) {
-            const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
-            const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-            const currentUserEmail = localStorage.getItem("user_email");
-            const currentUserName = localStorage.getItem("user_name");
-            
-            console.log(`🔍 currentUserEmail: ${currentUserEmail}, currentUserName: ${currentUserName}`);
-            
-            // ⚠️ L'API ne retourne pas sender_id, on utilise sender_name + email pour identifier l'utilisateur
-            // Pour l'aidant/coordinateur, on compare le nom
-            const otherMessages = messages.filter(m => {
-                // Si c'est le coordinateur "BONI" ou l'utilisateur courant
-                const isOwnMessage = m.sender_name === currentUserName || 
-                                    (m.sender_email && m.sender_email === currentUserEmail);
-                console.log(`  Message ${m.id}: sender_name=${m.sender_name}, isOwn=${isOwnMessage}`);
-                return !isOwnMessage;
-            });
-            
-            if (lastRead) {
-                messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-            } else if (otherMessages.length > 0) {
-                messagesCount = otherMessages.length;
-            }
-            console.log(`📬 Messages non lus (autres): ${messagesCount}`);
-        }
+       // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
+if (AppState.currentPatient) {
+    const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
+    const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+    const currentUserName = localStorage.getItem("user_name");
+    
+    console.log(`🔍 currentUserName: "${currentUserName}"`);
+    
+    // ⚠️ L'API ne retourne pas sender_id, on utilise sender_name
+    const otherMessages = messages.filter(m => {
+        const isOwnMessage = m.sender_name === currentUserName;
+        console.log(`  Message ${m.id.substring(0,8)}: sender_name="${m.sender_name}", isOwn=${isOwnMessage}`);
+        return !isOwnMessage;
+    });
+    
+    if (lastRead) {
+        messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+    } else if (otherMessages.length > 0) {
+        messagesCount = otherMessages.length;
+    }
+    console.log(`📬 Messages non lus (autres): ${messagesCount}`);
+}
         
         // 2. Commandes en attente (badge Commandes) - IGNORER SES PROPRES COMMANDES
         try {
