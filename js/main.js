@@ -1745,6 +1745,7 @@ const intervalId = setInterval(() => {
 }
 // ✅ Exposer la fonction pour rafraîchir les badges depuis d'autres modules
 window.refreshMenuBadges = () => {
+    console.log("🔄 refreshMenuBadges appelée, currentView:", AppState.currentView);
     if (AppState.currentView === 'home') {
         renderMobileHub();
     }
