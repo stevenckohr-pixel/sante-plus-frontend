@@ -3,6 +3,12 @@ import { UI, compressImage } from "../core/utils.js";
 import { secureFetch, clearApiCache } from "../core/api.js";
 
 
+
+// Anti-double appel
+let isRendering = false;
+let pendingRender = null;
+
+
 function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -16,18 +22,28 @@ function escapeHtml(str) {
 /**
  * 📋 CHARGER LA LISTE DES COMMANDES
  */
+let isLoading = false;
+
 export async function loadCommandes() {
+    if (isLoading) {
+        console.log("⏳ Chargement déjà en cours, ignoré");
+        return;
+    }
+    
     const listContainer = document.getElementById("commandes-list");
     if (!listContainer) return;
 
+    isLoading = true;
+    
     try {
-           
         const data = await secureFetch("/commandes");
         console.log("📦 Commandes reçues:", data.length);
         renderCommandes(data);
     } catch (err) {
         console.error("Erreur chargement commandes:", err);
         listContainer.innerHTML = `<p class="text-rose-500 text-center p-10">Erreur : ${err.message}</p>`;
+    } finally {
+        isLoading = false;
     }
 }
 
@@ -53,245 +69,274 @@ window.openImageModal = (imageUrl, title = "📸 Image") => {
 /**
  * 🎨 AFFICHER LES COMMANDES (Version améliorée avec galeries horizontales)
  */
-function renderCommandes(list) {
-    const container = document.getElementById("commandes-list");
-    const role = localStorage.getItem("user_role");
-    const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const isFamily = role === "FAMILLE";
-    const isAidant = role === "AIDANT";
-    const isCoordinateur = role === "COORDINATEUR";
-    const currentUserId = localStorage.getItem("user_id");
 
-    if (!list.length) {
-        let emptyMessage = "Aucune commande";
-        if (isFamily && isMaman) emptyMessage = "Aucune commande bébé";
-        else if (isFamily && !isMaman) emptyMessage = "Aucune commande médicale";
-        
-        container.innerHTML = `<div class="text-center py-20"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">${emptyMessage}</p></div>`;
+
+function renderCommandes(list) {
+    // Éviter les rendus multiples simultanés
+    if (isRendering) {
+        console.log("⏳ Render déjà en cours, mise en attente...");
+        pendingRender = list;
         return;
     }
+    
+    isRendering = true;
+    
+    // Utiliser requestAnimationFrame pour éviter les flashs
+    requestAnimationFrame(() => {
+        try {
+            const container = document.getElementById("commandes-list");
+            if (!container) {
+                isRendering = false;
+                return;
+            }
+            
+            const role = localStorage.getItem("user_role");
+            const isMaman = localStorage.getItem("user_is_maman") === "true";
+            const isFamily = role === "FAMILLE";
+            const isAidant = role === "AIDANT";
+            const isCoordinateur = role === "COORDINATEUR";
+            const currentUserId = localStorage.getItem("user_id");
 
-    container.innerHTML = list.map((c, index) => {
-        const isPending = c.statut === "En attente";
-        const isInProgress = c.statut === "En cours de livraison";
-        const isDelivered = c.statut === "Livrée";
-        const isValidated = c.statut === "Validée";
-        
-        let statusColor = "bg-slate-100 text-slate-700";
-        let statusText = "En attente";
-        let statusIcon = "⏳";
-        
-        if (isValidated) {
-            statusColor = "bg-emerald-100 text-emerald-700";
-            statusText = "Validée ✅";
-            statusIcon = "✅";
-        } else if (isDelivered) {
-            statusColor = "bg-amber-100 text-amber-700";
-            statusText = "Livrée - À valider";
-            statusIcon = "📦";
-        } else if (isInProgress) {
-            statusColor = "bg-blue-100 text-blue-700";
-            statusText = "En cours de livraison";
-            statusIcon = "🚚";
-        }
-        
-        const urgentBadge = c.urgent ? `<span class="ml-2 px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[8px] font-black uppercase"><i class="fa-solid fa-bell"></i> Urgent</span>` : '';
-        
-        const typeLabels = {
-            'MEDICAMENTS': '💊 Médicaments',
-            'MATERIEL': '🩺 Matériel médical',
-            'ALIMENTATION': '🍎 Alimentation',
-            'PUERICULTURE': '🍼 Puériculture',
-            'AUTRE': '📦 Autre'
-        };
-        const typeLabel = typeLabels[c.type_commande] || '📦 Commande';
-        
-        // 📸 GALERIE DES IMAGES DE LA COMMANDE (défilement horizontal)
-        const imagesHtml = c.images && c.images.length > 0 ? `
-            <div class="mt-3">
-                <p class="text-[9px] font-black text-slate-400 mb-2">📸 Documents joints (${c.images.length}) :</p>
-                <div class="overflow-x-auto pb-2">
-                    <div class="flex gap-2 min-w-min" style="width: max-content;">
-                        ${c.images.map(img => `
-                            <div class="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group flex-shrink-0 hover:scale-105 transition-transform" 
-                                 onclick="window.openImageModal('${img}', '📸 Document de la commande')">
-                                <img src="${img}" class="w-full h-full object-cover">
-                                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                                    <i class="fa-solid fa-eye text-white text-sm"></i>
+            if (!list.length) {
+                let emptyMessage = "Aucune commande";
+                if (isFamily && isMaman) emptyMessage = "Aucune commande bébé";
+                else if (isFamily && !isMaman) emptyMessage = "Aucune commande médicale";
+                
+                container.innerHTML = `<div class="text-center py-20"><i class="fa-solid fa-box-open text-5xl text-slate-300"></i><p class="text-xs font-black uppercase mt-2 text-slate-400">${emptyMessage}</p></div>`;
+                isRendering = false;
+                return;
+            }
+
+            const html = list.map((c, index) => {
+                const isPending = c.statut === "En attente";
+                const isInProgress = c.statut === "En cours de livraison";
+                const isDelivered = c.statut === "Livrée";
+                const isValidated = c.statut === "Validée";
+                
+                let statusColor = "bg-slate-100 text-slate-700";
+                let statusText = "En attente";
+                let statusIcon = "⏳";
+                
+                if (isValidated) {
+                    statusColor = "bg-emerald-100 text-emerald-700";
+                    statusText = "Validée ✅";
+                    statusIcon = "✅";
+                } else if (isDelivered) {
+                    statusColor = "bg-amber-100 text-amber-700";
+                    statusText = "Livrée - À valider";
+                    statusIcon = "📦";
+                } else if (isInProgress) {
+                    statusColor = "bg-blue-100 text-blue-700";
+                    statusText = "En cours de livraison";
+                    statusIcon = "🚚";
+                }
+                
+                const urgentBadge = c.urgent ? `<span class="ml-2 px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[8px] font-black uppercase"><i class="fa-solid fa-bell"></i> Urgent</span>` : '';
+                
+                const typeLabels = {
+                    'MEDICAMENTS': '💊 Médicaments',
+                    'MATERIEL': '🩺 Matériel médical',
+                    'ALIMENTATION': '🍎 Alimentation',
+                    'PUERICULTURE': '🍼 Puériculture',
+                    'AUTRE': '📦 Autre'
+                };
+                const typeLabel = typeLabels[c.type_commande] || '📦 Commande';
+                
+                // 📸 GALERIE DES IMAGES DE LA COMMANDE
+                const imagesHtml = c.images && c.images.length > 0 ? `
+                    <div class="mt-3">
+                        <p class="text-[9px] font-black text-slate-400 mb-2">📸 Documents joints (${c.images.length}) :</p>
+                        <div class="overflow-x-auto pb-2">
+                            <div class="flex gap-2 min-w-min" style="width: max-content;">
+                                ${c.images.map(img => `
+                                    <div class="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group flex-shrink-0 hover:scale-105 transition-transform" 
+                                         onclick="window.openImageModal('${img}', '📸 Document de la commande')">
+                                        <img src="${img}" class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                            <i class="fa-solid fa-eye text-white text-sm"></i>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                ` : '';
+                
+                // 📋 NOTES DU COORDINATEUR
+                const notesHtml = c.notes_coordinateur ? `
+                    <div class="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                        <p class="text-[9px] font-black text-blue-600 mb-1">📋 Note du coordinateur :</p>
+                        <p class="text-xs text-slate-700">${escapeHtml(c.notes_coordinateur)}</p>
+                    </div>
+                ` : '';
+                
+                // 📸 GALERIE DES PHOTOS DE LIVRAISON
+                const deliveryPhotos = c.photos_livraison && c.photos_livraison.length > 0 
+                    ? c.photos_livraison 
+                    : (c.photo_livraison ? [c.photo_livraison] : []);
+                
+                let deliveryPhotosHtml = '';
+                if (deliveryPhotos.length > 0) {
+                    deliveryPhotosHtml = `
+                        <div class="mt-4 pt-3 border-t border-slate-100">
+                            <p class="text-[10px] font-black text-slate-500 mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-camera-retro"></i> 
+                                Preuves de livraison (${deliveryPhotos.length} photo${deliveryPhotos.length > 1 ? 's' : ''})
+                                ${isDelivered && isCoordinateur ? '<span class="text-amber-500 text-[8px] ml-2">⚠️ En attente de validation</span>' : ''}
+                                ${isValidated ? '<span class="text-emerald-500 text-[8px] ml-2">✓ Validée</span>' : ''}
+                            </p>
+                            <div class="overflow-x-auto pb-2 -mx-1 px-1">
+                                <div class="flex gap-3" style="width: max-content; min-width: 100%;">
+                                    ${deliveryPhotos.map(img => `
+                                        <div class="relative flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden border-2 border-slate-100 cursor-pointer group hover:scale-105 transition-transform" 
+                                             onclick="window.openImageModal('${img}', '📸 Preuve de livraison')">
+                                            <img src="${img}" class="w-full h-full object-cover" loading="lazy">
+                                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                                <i class="fa-solid fa-magnifying-glass-plus text-white text-xl"></i>
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
                             </div>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>
-        ` : '';
-        
-        
-        // 📋 NOTES DU COORDINATEUR
-        const notesHtml = c.notes_coordinateur ? `
-            <div class="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
-                <p class="text-[9px] font-black text-blue-600 mb-1">📋 Note du coordinateur :</p>
-                <p class="text-xs text-slate-700">${escapeHtml(c.notes_coordinateur)}</p>
-            </div>
-        ` : '';
-        
-        // 📸 GALERIE DES PHOTOS DE LIVRAISON (défilement horizontal)
-        // Supporte à la fois photos_livraison (tableau) et photo_livraison (ancien format)
-        const deliveryPhotos = c.photos_livraison && c.photos_livraison.length > 0 
-            ? c.photos_livraison 
-            : (c.photo_livraison ? [c.photo_livraison] : []);
-        
-        let deliveryPhotosHtml = '';
-        if (deliveryPhotos.length > 0) {
-            deliveryPhotosHtml = `
-                <div class="mt-4 pt-3 border-t border-slate-100">
-                    <p class="text-[10px] font-black text-slate-500 mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-camera-retro"></i> 
-                        Preuves de livraison (${deliveryPhotos.length} photo${deliveryPhotos.length > 1 ? 's' : ''})
-                        ${isDelivered && isCoordinateur ? '<span class="text-amber-500 text-[8px] ml-2">⚠️ En attente de validation</span>' : ''}
-                        ${isValidated ? '<span class="text-emerald-500 text-[8px] ml-2">✓ Validée</span>' : ''}
-                    </p>
-                    <div class="overflow-x-auto pb-2 -mx-1 px-1">
-                        <div class="flex gap-3" style="width: max-content; min-width: 100%;">
-                            ${deliveryPhotos.map(img => `
-                                <div class="relative flex-shrink-0 w-28 h-28 rounded-xl overflow-hidden border-2 border-slate-100 cursor-pointer group hover:scale-105 transition-transform" 
-                                     onclick="window.openImageModal('${img}', '📸 Preuve de livraison')">
-                                    <img src="${img}" class="w-full h-full object-cover" loading="lazy">
-                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                        <i class="fa-solid fa-magnifying-glass-plus text-white text-xl"></i>
-                                    </div>
+                            ${c.notes_livraison ? `
+                                <div class="mt-3 p-3 bg-slate-50 rounded-xl">
+                                    <p class="text-[9px] font-black text-slate-500 mb-1">📝 Notes de livraison :</p>
+                                    <p class="text-xs text-slate-600">${escapeHtml(c.notes_livraison)}</p>
                                 </div>
-                            `).join('')}
+                            ` : ''}
                         </div>
+                    `;
+                } else if (isDelivered || isValidated) {
+                    deliveryPhotosHtml = `
+                        <div class="mt-4 pt-3 border-t border-slate-100">
+                            <p class="text-[10px] font-black text-amber-500 flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                Aucune photo de livraison disponible
+                            </p>
+                        </div>
+                    `;
+                }
+                
+                // 📍 INFOS COMPLÉMENTAIRES
+                const infoHtml = `
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-[9px] text-slate-500 bg-slate-50 p-2 rounded-lg">
+                        <div><span class="font-black">👤 Demandeur:</span> ${c.demandeur?.nom || 'Inconnu'}</div>
+                        <div><span class="font-black">📅 Date commande:</span> ${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
+                        ${c.date_livraison ? `<div><span class="font-black">🚚 Livrée le:</span> ${new Date(c.date_livraison).toLocaleDateString('fr-FR')}</div>` : ''}
+                        ${c.aidant?.nom ? `<div><span class="font-black">👨‍⚕️ Livreur:</span> ${c.aidant.nom}</div>` : ''}
                     </div>
-                    ${c.notes_livraison ? `
-                        <div class="mt-3 p-3 bg-slate-50 rounded-xl">
-                            <p class="text-[9px] font-black text-slate-500 mb-1">📝 Notes de livraison :</p>
-                            <p class="text-xs text-slate-600">${escapeHtml(c.notes_livraison)}</p>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        } else if (isDelivered || isValidated) {
-            deliveryPhotosHtml = `
-                <div class="mt-4 pt-3 border-t border-slate-100">
-                    <p class="text-[10px] font-black text-amber-500 flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        Aucune photo de livraison disponible
-                    </p>
-                </div>
-            `;
-        }
-        
-        // 📍 INFOS COMPLÉMENTAIRES (visibles par tous)
-        const infoHtml = `
-            <div class="mt-3 grid grid-cols-2 gap-2 text-[9px] text-slate-500 bg-slate-50 p-2 rounded-lg">
-                <div><span class="font-black">👤 Demandeur:</span> ${c.demandeur?.nom || 'Inconnu'}</div>
-                <div><span class="font-black">📅 Date commande:</span> ${new Date(c.created_at).toLocaleDateString('fr-FR')}</div>
-                ${c.date_livraison ? `<div><span class="font-black">🚚 Livrée le:</span> ${new Date(c.date_livraison).toLocaleDateString('fr-FR')}</div>` : ''}
-                ${c.aidant?.nom ? `<div><span class="font-black">👨‍⚕️ Livreur:</span> ${c.aidant.nom}</div>` : ''}
-            </div>
-        `;
+                `;
 
-        return `
-            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4" style="animation-delay: ${index * 0.03}s">
-                <!-- En-tête -->
-                <div class="flex justify-between items-start mb-3">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">#${c.id?.substring(0, 8)}</span>
-                            ${urgentBadge}
+                return `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4" style="animation-delay: ${index * 0.03}s">
+                        <!-- En-tête -->
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-[8px] font-black text-slate-300 uppercase tracking-widest">#${c.id?.substring(0, 8)}</span>
+                                    ${urgentBadge}
+                                </div>
+                                <h4 class="font-black text-slate-800 text-sm mt-1">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
+                                <p class="text-[9px] text-slate-400">${typeLabel}</p>
+                            </div>
+                            <span class="px-2 py-1 rounded-md text-[8px] font-black uppercase ${statusColor} whitespace-nowrap ml-2">${statusIcon} ${statusText}</span>
                         </div>
-                        <h4 class="font-black text-slate-800 text-sm mt-1">${c.patient?.nom_complet || 'Patient inconnu'}</h4>
-                        <p class="text-[9px] text-slate-400">${typeLabel}</p>
+
+                        <!-- Description -->
+                        <div class="p-3 bg-slate-50 rounded-xl mb-3">
+                            <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
+                        </div>
+                        
+                        <!-- Images de la commande -->
+                        ${imagesHtml}
+                        
+                        <!-- Notes du coordinateur -->
+                        ${notesHtml}
+                        
+                        <!-- Infos complémentaires -->
+                        ${infoHtml}
+
+                        <!-- Photos de livraison -->
+                        ${deliveryPhotosHtml}
+
+                        ${isAidant && isPending && (!c.aidant_id || c.aidant_id !== currentUserId) ? `
+                            <button onclick="window.takeCommand('${c.id}')" 
+                                    class="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                                🚚 Prendre en charge cette commande
+                            </button>
+                        ` : ''}
+                        
+                        ${isAidant && isInProgress && c.aidant_id === currentUserId ? `
+                            <button onclick="window.deliverCommand('${c.id}')" 
+                                    class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                                📸 Confirmer la livraison (avec photos)
+                            </button>
+                        ` : ''}
+
+                        ${isCoordinateur && isDelivered ? `
+                            <button onclick="window.validateDelivery('${c.id}')" 
+                                    class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
+                                ✅ Valider la livraison
+                            </button>
+                        ` : ''}
+
+                        ${isCoordinateur && isPending ? `
+                            <div class="space-y-3 mt-4 pt-3 border-t border-slate-100">
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400">👨‍⚕️ Assigner à un aidant</label>
+                                    <select id="aidant-${c.id}" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
+                                        <option value="">Choisir un aidant</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[9px] font-black text-slate-400">📝 Instructions</label>
+                                    <textarea id="notes-${c.id}" rows="2" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Instructions pour l'aidant..."></textarea>
+                                </div>
+                                <button onclick="window.assignCommand('${c.id}')" 
+                                        class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md hover:bg-emerald-700 transition">
+                                    📋 Assigner à l'aidant
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>
-                    <span class="px-2 py-1 rounded-md text-[8px] font-black uppercase ${statusColor} whitespace-nowrap ml-2">${statusIcon} ${statusText}</span>
-                </div>
-
-                <!-- Description -->
-                <div class="p-3 bg-slate-50 rounded-xl mb-3">
-                    <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
-                </div>
-                
-                <!-- Images de la commande (documents joints) -->
-                ${imagesHtml}
-                
-                <!-- Notes du coordinateur -->
-                ${notesHtml}
-                
-                <!-- Infos complémentaires -->
-                ${infoHtml}
-
-                <!-- Photos de livraison (avec défilement horizontal) -->
-                ${deliveryPhotosHtml}
-
-
-            ${isAidant && isPending && (!c.aidant_id || c.aidant_id !== currentUserId) ? `
-                <button onclick="window.takeCommand('${c.id}')" 
-                        class="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-                    🚚 Prendre en charge cette commande
-                </button>
-            ` : ''}
+                `;
+            }).join("");
             
-            <!-- BOUTON POUR AIDANT - Livrer (si commande en cours ET assignée à lui) -->
-            ${isAidant && isInProgress && c.aidant_id === currentUserId ? `
-                <button onclick="window.deliverCommand('${c.id}')" 
-                        class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
-                    📸 Confirmer la livraison (avec photos)
-                </button>
-            ` : ''}
-
-                <!-- BOUTON POUR COORDINATEUR - Valider livraison -->
-                ${isCoordinateur && isDelivered ? `
-                    <button onclick="window.validateDelivery('${c.id}')" 
-                            class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
-                        ✅ Valider la livraison
-                    </button>
-                ` : ''}
-
-                <!-- BOUTON POUR COORDINATEUR - Assigner -->
-                ${isCoordinateur && isPending ? `
-                    <div class="space-y-3 mt-4 pt-3 border-t border-slate-100">
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400">👨‍⚕️ Assigner à un aidant</label>
-                            <select id="aidant-${c.id}" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm">
-                                <option value="">Choisir un aidant</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-[9px] font-black text-slate-400">📝 Instructions</label>
-                            <textarea id="notes-${c.id}" rows="2" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Instructions pour l'aidant..."></textarea>
-                        </div>
-                        <button onclick="window.assignCommand('${c.id}')" 
-                                class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md hover:bg-emerald-700 transition">
-                            📋 Assigner à l'aidant
+            // Mise à jour unique du DOM
+            container.innerHTML = html;
+            
+            // Bouton "Faire le point du jour" pour le coordinateur
+            if (isCoordinateur) {
+                let existingBtn = document.getElementById('validate-all-deliveries-btn');
+                if (!existingBtn) {
+                    const todayBtn = document.createElement('div');
+                    todayBtn.id = 'validate-all-deliveries-btn';
+                    todayBtn.className = 'mb-4 flex justify-end';
+                    todayBtn.innerHTML = `
+                        <button onclick="window.validateAllDeliveriesWithoutReload()" 
+                                class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-md hover:bg-emerald-700 transition">
+                            📋 Faire le point du jour
                         </button>
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }).join("");
-    
-
-if (isCoordinateur) {
-    // Vérifier si le bouton existe déjà
-    let existingBtn = document.getElementById('validate-all-deliveries-btn');
-    if (!existingBtn) {
-        const todayBtn = document.createElement('div');
-        todayBtn.id = 'validate-all-deliveries-btn';
-        todayBtn.className = 'mb-4 flex justify-end';
-        todayBtn.innerHTML = `
-            <button onclick="window.validateAllDeliveriesWithoutReload()" 
-                    class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-md hover:bg-emerald-700 transition">
-                📋 Faire le point du jour
-            </button>
-        `;
-        container.parentNode.insertBefore(todayBtn, container);
-    }
-    loadAidantsForSelect();
+                    `;
+                    container.parentNode.insertBefore(todayBtn, container);
+                }
+                loadAidantsForSelect();
+            }
+            
+        } catch (err) {
+            console.error("Erreur renderCommandes:", err);
+        } finally {
+            isRendering = false;
+            
+            // Traiter le rendu en attente s'il y en a un
+            if (pendingRender !== null) {
+                const pending = pendingRender;
+                pendingRender = null;
+                renderCommandes(pending);
+            }
+        }
+    });
 }
-}
-
 
 /**
  * 🚚 AIDANT - PRENDRE EN CHARGE UNE COMMANDE
