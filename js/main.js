@@ -116,34 +116,7 @@ function handleRealtimeUpdate() {
 }
 
 
-function initRealtimeMessages() {
-    const patientId = AppState.currentPatient;
 
-    if (!patientId) return;
-
-    if (realtimeSubscribed) {
-        console.log("⚠️ Realtime déjà actif");
-        return;
-    }
-
-    realtimeSubscribed = true;
-
-    window.Realtime.subscribe(patientId, (event, message) => {
-        console.log("💬 Message reçu en temps réel:", message);
-
-        if (AppState.currentView === 'feed' && window.renderFeed) {
-            window.renderFeed();
-        }
-
-        if (window.refreshMenuBadges) {
-            setTimeout(() => window.refreshMenuBadges(), 500);
-        }
-
-        showToast("💬 Nouveau message", "info", 3000);
-
-        handleRealtimeUpdate();
-    });
-}
 
 
 // Met à jour l'icône PWA selon le thème (Maman ou général)
@@ -487,7 +460,6 @@ if (window.Realtime && window.Realtime.subscribeToCommandes) {
 
             setTimeout(() => {
             if (AppState.currentPatient) {
-                initRealtimeMessages();
                 console.log("✅ Realtime messages démarré");
             }
         }, 1000);
@@ -1276,7 +1248,6 @@ window.selectPack = (packId, price) => {
     setTimeout(() => {
         if (AppState.currentPatient) {
             resetRealtimeMessages();    
-            initRealtimeMessages();    
             console.log("🔁 Realtime messages relancé (propre)");
         }
     }, 500);
