@@ -272,7 +272,7 @@ function renderCommandes(list) {
         `;
     }).join("");
     
-// Bouton "Faire le point du jour" pour le coordinateur (ajouté une seule fois)
+
 if (isCoordinateur) {
     // Vérifier si le bouton existe déjà
     let existingBtn = document.getElementById('validate-all-deliveries-btn');
@@ -281,7 +281,7 @@ if (isCoordinateur) {
         todayBtn.id = 'validate-all-deliveries-btn';
         todayBtn.className = 'mb-4 flex justify-end';
         todayBtn.innerHTML = `
-            <button onclick="window.validateAllDeliveries()" 
+            <button onclick="window.validateAllDeliveriesWithoutReload()" 
                     class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-md hover:bg-emerald-700 transition">
                 📋 Faire le point du jour
             </button>
@@ -448,39 +448,41 @@ window.validateAllDeliveries = async () => {
     try {
         await secureFetch("/commandes/validate-all", { method: "POST" });
         Swal.fire({ icon: "success", title: "Point effectué !", timer: 2000, showConfirmButton: false });
-        loadCommandes();
     } catch (err) {
         Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
     }
 };
 
 
-window.acceptCommand = async (commandeId) => {
+window.validateAllDeliveriesWithoutReload = async () => {
     const result = await Swal.fire({
-        title: "Prendre en charge",
-        text: "Voulez-vous prendre cette commande en charge ?",
+        title: "📋 Point des livraisons du jour",
+        text: "Voulez-vous valider toutes les livraisons en attente ?",
         icon: "question",
         showCancelButton: true,
-        confirmButtonText: "OUI, JE PRENDS",
-        confirmButtonColor: "#10B981"
+        confirmButtonText: "✅ OUI, TOUT VALIDER",
+        confirmButtonColor: "#10B981",
+        cancelButtonText: "Annuler"
     });
     
     if (!result.isConfirmed) return;
     
-    Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading() });
+    Swal.fire({ title: "Validation...", didOpen: () => Swal.showLoading() });
     
     try {
-        await secureFetch("/commandes/accept", {
-            method: "POST",
-            body: JSON.stringify({ commande_id: commandeId })
-        });
+        await secureFetch("/commandes/validate-all", { method: "POST" });
+        Swal.fire({ icon: "success", title: "Point effectué !", timer: 2000, showConfirmButton: false });
         
-        Swal.fire("Succès", "Commande prise en charge", "success");
-        loadCommandes();
+        // Rafraîchir uniquement les données sans recréer le bouton
+        const data = await secureFetch("/commandes");
+        renderCommandes(data); // Cette fonction gère déjà le bouton sans duplication
+        
     } catch (err) {
-        Swal.fire("Erreur", err.message, "error");
+        Swal.fire({ title: "Erreur", text: err.message, icon: "error" });
     }
 };
+
+
 
 // ✅ Fonction pour ouvrir la galerie d'images
 window.openImageGallery = (commandeId, images) => {
