@@ -638,81 +638,96 @@ function initRealtimeForCurrentPatient() {
 
     cleanupRealtime();
 
-    try {
-        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-        AppState.messages = data;
-        // 🔴 INITIALISER LES NON LUS AU CHARGEMENT
-        AppState.unreadByPatient = {};
+try {
+    const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+    AppState.messages = data;
+    
+    // 🔴 INITIALISER LES NON LUS AU CHARGEMENT (CORRIGÉ)
+    AppState.unreadByPatient = {};
+    const currentUserId = localStorage.getItem("user_id");
+    
+    data.forEach(msg => {
+        const patientId = msg.patient_id;
         
-        data.forEach(msg => {
-            const patientId = msg.patient_id;
-            const currentUserId = localStorage.getItem("user_id");
-        
-            if (msg.sender_id !== currentUserId) {
-                if (!AppState.unreadByPatient[patientId]) {
-                    AppState.unreadByPatient[patientId] = 0;
-                }
-                AppState.unreadByPatient[patientId]++;
+        // 🔥 CRITIQUE : Ne compter que les messages QUI NE SONT PAS de l'utilisateur courant
+        // ET qui ne sont pas marqués comme lus
+        if (msg.sender_id !== currentUserId && !msg.read) {
+            if (!AppState.unreadByPatient[patientId]) {
+                AppState.unreadByPatient[patientId] = 0;
             }
+            AppState.unreadByPatient[patientId]++;
+        }
+    });
+    
+    console.log("🔴 [CHARGEMENT] unreadByPatient initialisé:", AppState.unreadByPatient);
+    updatePatientBadges();
+    
+    // Nettoyer l'ancien abonnement Realtime
+    if (window.Realtime) {
+        window.Realtime.unsubscribe();
+    }
+    
+    initRealtimeForCurrentPatient();
+    renderFeed();
+
+    // ✅ Marquer les messages comme lus (MAIS SANS EFFACER LE COMPTEUR AVANT)
+    const now = new Date().toISOString();
+    localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
+
+    try {
+        await secureFetch('/messages/mark-read', {
+            method: 'POST',
+            body: JSON.stringify({
+                patient_id: AppState.currentPatient,
+                user_id: localStorage.getItem("user_id")
+            })
         });
+
+        console.log("👁️ Messages marqués comme lus (backend)");
+        
+        // 🔥 IMPORTANT : On réinitialise le compteur POUR CE PATIENT UNIQUEMENT
+        // Mais on garde les compteurs des autres patients
+        if (AppState.currentPatient && AppState.unreadByPatient) {
+            AppState.unreadByPatient[AppState.currentPatient] = 0;
+        }
         
         updatePatientBadges();
         
-        initRealtimeForCurrentPatient();
-        renderFeed();
-
-        // ✅ Marquer les messages comme lus
-        const now = new Date().toISOString();
-        localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
-
-try {
-    await secureFetch('/messages/mark-read', {
-        method: 'POST',
-        body: JSON.stringify({
-            patient_id: AppState.currentPatient,
-            user_id: localStorage.getItem("user_id")
-        })
-    });
-
-    console.log("👁️ Messages marqués comme lus (backend)");
-    const patientId = AppState.currentPatient;
-
-if (patientId && AppState.unreadByPatient) {
-    AppState.unreadByPatient[patientId] = 0;
-}
-
-updatePatientBadges();
-} catch (err) {
-    console.error("Erreur read:", err);
-}
-        
-        // ✅ Réinitialiser le compteur de messages non lus
-        unreadMessagesCount = 0;
-        hideNewMessageBadge();
-
-        // ✅ Initialiser la détection de scroll
-        setTimeout(() => {
-            initScrollDetection();
-            isUserAtBottom = true;
-        }, 500);
-        
-        // ✅ Rafraîchir les badges du menu
+        // Rafraîchir les badges du menu
         if (typeof window.refreshMenuBadges === 'function') {
-            setTimeout(() => window.refreshMenuBadges(), 500);
+            setTimeout(() => window.refreshMenuBadges(), 100);
         }
-
+        
     } catch (err) {
-        console.error("Erreur Feed:", err);
-        const contentDiv = document.getElementById('care-feed-content');
-        if (contentDiv) {
-            contentDiv.innerHTML = `
-                <div class="text-center py-20">
-                    <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
-                    <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
-                    <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
-                </div>
-            `;
-        }
+        console.error("Erreur mark-read:", err);
+    }
+    
+    // ✅ Réinitialiser le compteur de messages non lus (UI)
+    unreadMessagesCount = 0;
+    hideNewMessageBadge();
+
+    // ✅ Initialiser la détection de scroll
+    setTimeout(() => {
+        initScrollDetection();
+        isUserAtBottom = true;
+    }, 500);
+    
+    // ✅ Rafraîchir les badges du menu
+    if (typeof window.refreshMenuBadges === 'function') {
+        setTimeout(() => window.refreshMenuBadges(), 500);
+    }
+
+} catch (err) {
+    console.error("Erreur Feed:", err);
+    const contentDiv = document.getElementById('care-feed-content');
+    if (contentDiv) {
+        contentDiv.innerHTML = `
+            <div class="text-center py-20">
+                <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+            </div>
+        `;
     }
 }
 
@@ -721,12 +736,10 @@ if (!readSubscribed) {
     readSubscribed = true;
 
     window.Realtime.subscribeToRead((data) => {
-        console.log("👁️ Messages lus:", data);
+        console.log("👁️ Messages lus (Realtime):", data);
         updateSeenStatus(data);
     });
 }
-
-
 
 
 // ============================================================
