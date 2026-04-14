@@ -15,18 +15,31 @@
     /**
      * Initialiser l'écoute des nouveaux messages pour le patient actuel
      */
-    function initRealtimeForCurrentPatient() {
-        if (!AppState.currentPatient) return;
-        
-        // Se désabonner de l'ancien patient
-        if (window.Realtime) {
-            window.Realtime.unsubscribe();
-            
-            // S'abonner au nouveau patient
+function initRealtimeForCurrentPatient() {
+    if (!AppState.currentPatient) return;
+    
+    // Se désabonner de l'ancien patient
+    if (window.Realtime) {
+        window.Realtime.unsubscribe();
+
+        // S'abonner au nouveau patient
+       
+
+
+
+
+
+ 
+// ============================================================
+// 📡 REALTIME — NOUVEAUX MESSAGES
+// ============================================================
+
 window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
     console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
-    // 🔥 1. bloquer faux messages
+    // ========================================================
+    // 🔒 1. VALIDATION DU MESSAGE
+    // ========================================================
     if (!newMessage || typeof newMessage !== "object") {
         console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
         return;
@@ -34,40 +47,70 @@ window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => 
 
     const currentUserId = localStorage.getItem("user_id");
 
-    // 🔥 2. ignorer ses propres messages
-    if (newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId)) {
+    // ========================================================
+    // 🚫 2. IGNORER SES PROPRES MESSAGES
+    // ========================================================
+    if (
+        newMessage.sender_id &&
+        String(newMessage.sender_id) === String(currentUserId)
+    ) {
         console.log("📨 Message ignoré (c'est nous)");
         return;
     }
 
-    // 🔥 3. éviter doublons
-    const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
-    if (exists) {
+    // ========================================================
+    // 🚫 3. ÉVITER LES DOUBLONS
+    // ========================================================
+    const alreadyExists = (AppState.messages || []).some(
+        (msg) => msg.id === newMessage.id
+    );
+
+    if (alreadyExists) {
         console.log("📨 Message déjà présent");
         return;
     }
 
     try {
-        // 🔥 4. récupérer message enrichi (OBLIGATOIRE)
-        const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
+        // ====================================================
+        // 🔄 4. RÉCUPÉRER LE MESSAGE ENRICHI (BACKEND)
+        // ====================================================
+        const response = await secureFetch(
+            `/messages?message_id=${newMessage.id}`
+        );
 
-        if (!data || !data[0]) {
+        if (!response || !response[0]) {
             console.warn("⚠️ Message enrichi introuvable");
             return;
         }
 
-        const fullMessage = data[0];
+        const fullMessage = response[0];
 
-        // 🔥 5. filtrer patient
-        if (fullMessage.patient_id !== AppState.currentPatient) return;
+        // ====================================================
+        // 🎯 5. FILTRER PAR PATIENT
+        // ====================================================
+        if (fullMessage.patient_id !== AppState.currentPatient) {
+            return;
+        }
 
-        // 🔥 6. ajout direct (FIABLE)
-        if (!AppState.messages.some(m => m.id === fullMessage.id)) {
+        // ====================================================
+        // ➕ 6. AJOUT SÉCURISÉ DANS LE STATE
+        // ====================================================
+        const existsInState = AppState.messages.some(
+            (msg) => msg.id === fullMessage.id
+        );
+
+        if (!existsInState) {
             AppState.messages.push(fullMessage);
         }
-        // 🔥 7. AFFICHAGE IMMÉDIAT (CRITIQUE)
+
+        // ====================================================
+        // ⚡ 7. AFFICHAGE IMMÉDIAT (UX OPTIMISÉE)
+        // ====================================================
         window.appendMessagesToFeed([fullMessage]);
-        // 🔥 8. scroll intelligent
+
+        // ====================================================
+        // 📍 8. GESTION SCROLL + BADGE
+        // ====================================================
         if (isUserAtBottom) {
             scrollToBottom();
         } else {
@@ -77,12 +120,10 @@ window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => 
 
         console.log("✅ Message ajouté et affiché");
 
-    } catch (err) {
-        console.error("❌ Erreur traitement message realtime:", err);
+    } catch (error) {
+        console.error("❌ Erreur traitement message realtime:", error);
     }
 });
-    
-
    
     function renderFeed() {
     const content = document.getElementById('care-feed-content');
@@ -1352,5 +1393,3 @@ function initScrollDetection() {
     window.loadFeed = loadFeed;
     window.cleanupRealtime = cleanupRealtime;
     window.renderFeed = renderFeed;
-    // ✅ Exporter la fonction cancelReply pour qu'elle soit accessible
-    window.cancelReply = window.cancelReply || cancelReply;
