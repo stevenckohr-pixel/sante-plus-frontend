@@ -95,6 +95,7 @@ function initRealtimeForCurrentPatient() {
                 }
 
                 AppState.unreadByPatient[patientId]++;
+                console.log("DEBUG compteur:", AppState.unreadByPatient);
                 updatePatientBadges();
 
                 console.log(
