@@ -23,8 +23,72 @@ function initRealtimeForCurrentPatient() {
         window.Realtime.unsubscribe();
 
         // S'abonner au nouveau patient
-       
+        window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
+            console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
+            // 🔥 1. bloquer faux messages
+            if (!newMessage || typeof newMessage !== "object") {
+                console.warn("⚠️ Message realtime invalide ignoré:", newMessage);
+                return;
+            }
+
+            const currentUserId = localStorage.getItem("user_id");
+
+            // 🔥 2. ignorer ses propres messages
+            if (newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId)) {
+                console.log("📨 Message ignoré (c'est nous)");
+                return;
+            }
+
+            // 🔥 3. éviter doublons
+            const exists = (AppState.messages || []).some(m => m.id === newMessage.id);
+            if (exists) {
+                console.log("📨 Message déjà présent");
+                return;
+            }
+
+            try {
+                // 🔥 4. récupérer message enrichi
+                const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
+
+                if (!data || !data[0]) {
+                    console.warn("⚠️ Message enrichi introuvable");
+                    return;
+                }
+
+                const fullMessage = data[0];
+
+                // 🔥 5. filtrer patient
+                if (fullMessage.patient_id !== AppState.currentPatient) return;
+
+                // 🔥 6. ajout sécurisé
+                if (!AppState.messages.some(m => m.id === fullMessage.id)) {
+                    AppState.messages.push(fullMessage);
+                }
+
+                // 🔥 7. affichage direct (SANS re-render complet)
+                window.appendMessagesToFeed([fullMessage]);
+                playNotificationBeep();
+                if (navigator.vibrate) navigator.vibrate(100);
+
+                // 🔥 8. scroll intelligent
+                if (isUserAtBottom) {
+                    scrollToBottom();
+                } else {
+                    unreadMessagesCount++;
+                    showNewMessageBadge();
+                }
+
+                console.log("✅ Message ajouté et affiché");
+
+            } catch (err) {
+                console.error("❌ Erreur traitement message realtime:", err);
+            }
+        });
+
+    }  
+
+} 
 
 
 
@@ -95,7 +159,7 @@ window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => 
         // ====================================================
         // ➕ 6. AJOUT SÉCURISÉ DANS LE STATE
         // ====================================================
-        const existsInState = AppState.messages.some(
+        const existsInState = (AppState.messages || []).some(
             (msg) => msg.id === fullMessage.id
         );
 
@@ -107,6 +171,8 @@ window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => 
         // ⚡ 7. AFFICHAGE IMMÉDIAT (UX OPTIMISÉE)
         // ====================================================
         window.appendMessagesToFeed([fullMessage]);
+        playNotificationBeep();
+        if (navigator.vibrate) navigator.vibrate(100);
 
         // ====================================================
         // 📍 8. GESTION SCROLL + BADGE
