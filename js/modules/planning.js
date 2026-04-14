@@ -1,5 +1,6 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
+import { CONFIG } from "../core/config.js"; 
 
 
 /**
@@ -546,10 +547,27 @@ function setupAssignTypeHandlers() {
 /**
  * 💡 TRANSITION INTELLIGENTE - Briefing
  */
+ 
 window.openMissionBriefing = (patientId, planningId) => {
-    UI.vibrate();
-    localStorage.setItem("active_planning_id", planningId);
-    window.viewPatientFeed(patientId);
+    console.log("📋 openMissionBriefing appelée avec:", patientId, planningId);
+    
+    // Vérifier que UI est disponible
+    if (typeof UI !== 'undefined' && UI.vibrate) {
+        UI.vibrate();
+    }
+    
+    if (planningId) {
+        localStorage.setItem("active_planning_id", planningId);
+    }
+    
+    // Vérifier que viewPatientFeed existe
+    if (typeof window.viewPatientFeed === 'function') {
+        window.viewPatientFeed(patientId);
+    } else {
+        console.error("❌ window.viewPatientFeed n'est pas définie");
+        // Fallback: aller directement sur la page des patients
+        window.switchView('patients');
+    }
 };
 
 // Fonction pour lier le planning au démarrage de la visite
@@ -639,7 +657,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-window.openMissionBriefing = openMissionBriefing;
 
 
 window.unassignAidant = unassignAidant;
