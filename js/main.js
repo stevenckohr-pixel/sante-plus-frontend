@@ -2670,6 +2670,7 @@ window.openOrderModal = Commandes.openOrderModal;
 window.loadPlanning = Planning.loadPlanning;
 window.loadCommandes = Commandes.loadCommandes;
 window.openMissionBriefing = Planning.openMissionBriefing;
+console.log("✅ openMissionBriefing assignée depuis Planning:", typeof window.openMissionBriefing);
 window.loadRegistrations = Admin.loadRegistrations;
 window.confirmActivation = Admin.confirmActivation;
 window.fetchStats = Dashboard.fetchStats;
