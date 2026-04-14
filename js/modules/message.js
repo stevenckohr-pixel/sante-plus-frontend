@@ -83,15 +83,29 @@ function initRealtimeForCurrentPatient() {
             // ========================================
             const patientId = fullMessage.patient_id;
             
-            // init sécurité
-            if (!AppState.unreadByPatient[patientId]) {
-                AppState.unreadByPatient[patientId] = 0;
+            const isCurrentPatient =
+                String(patientId) === String(AppState.currentPatient);
+            
+            const isInFeed = AppState.currentView === "feed";
+            
+            // ========================================
+            // 🔴 COMPTEUR INTELLIGENT
+            // ========================================
+            if (!(isCurrentPatient && isInFeed)) {
+                if (!AppState.unreadByPatient[patientId]) {
+                    AppState.unreadByPatient[patientId] = 0;
+                }
+            
+                AppState.unreadByPatient[patientId]++;
+            
+                console.log(
+                    "🔴 compteur patient:",
+                    patientId,
+                    AppState.unreadByPatient[patientId]
+                );
+            } else {
+                console.log("✅ message lu en direct → pas compté");
             }
-            
-            // incrémenter
-            AppState.unreadByPatient[patientId]++;
-            
-            console.log("🔴 compteur patient:", patientId, AppState.unreadByPatient[patientId]);
 
             // ====================================================
             // 🎯 5. FILTRE PATIENT (CRITIQUE)
