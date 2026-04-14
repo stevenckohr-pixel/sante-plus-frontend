@@ -12,9 +12,6 @@
             AppState.unreadByPatient = {};
         }
 
-// ============================================================
-// 🟢 REALTIME - MESSAGES EN TEMPS RÉEL (VERSION CORRIGÉE)
-// ============================================================
 
 // ============================================================
 // 🟢 REALTIME - MESSAGES EN TEMPS RÉEL (VERSION CORRIGÉE)
@@ -516,7 +513,7 @@ function initRealtimeForCurrentPatient() {
      * 📥 CHARGER LE JOURNAL DE SOINS
      */
 
- async function loadFeed() {
+async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
 
@@ -524,71 +521,82 @@ function initRealtimeForCurrentPatient() {
         return window.switchView('patients');
     }
 
+    // ✅ NOUVEAU DESIGN - Barre de saisie EN BAS, style chat
     container.innerHTML = `
-        <div class="animate-fadeIn pb-32">
-            <!-- Header avec Retour -->
-            <div class="flex items-center gap-4 mb-8">
-                <button onclick="window.switchView('patients')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
-                    <i class="fa-solid fa-arrow-left"></i>
+        <div class="flex flex-col h-full animate-fadeIn">
+            <!-- Header compact sticky -->
+            <div class="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-4 py-3 flex items-center gap-3">
+                <button onclick="window.switchView('patients')" 
+                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95 transition-all">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
                 </button>
-                <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Suivi en Direct</h3>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Dossier Patient : #${AppState.currentPatient?.substring(0, 4) || '0000'}</p>
+                <div class="flex-1">
+                    <h3 class="font-bold text-slate-800 text-sm">Journal de bord</h3>
+                    <p class="text-[10px] text-slate-400">Patient #${AppState.currentPatient?.substring(0, 6) || '000000'}</p>
+                </div>
+                <button onclick="window.filterFeed('DOCUMENT')" 
+                        class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95">
+                    <i class="fa-solid fa-paperclip text-xs"></i>
+                </button>
+            </div>
+
+            <!-- Switcher de vues compact -->
+            <div class="bg-white px-4 pt-2 border-b border-slate-100">
+                <div class="flex gap-4">
+                    <button onclick="window.filterFeed('STORY')" id="tab-story" 
+                            class="py-2 text-[11px] font-bold uppercase tracking-wider border-b-2 transition-all">
+                        💬 Messages
+                    </button>
+                    <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" 
+                            class="py-2 text-[11px] font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 transition-all">
+                        📎 Documents
+                    </button>
                 </div>
             </div>
 
-            <!-- Switcher de vues -->
-            <div class="bg-slate-100/50 p-1.5 rounded-2xl flex items-center gap-1 mb-8 max-w-md mx-auto border border-slate-200/30">
-                <button onclick="window.filterFeed('STORY')" id="tab-story" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all">
-                    Journal de Vie
-                </button>
-                <button onclick="window.filterFeed('DOCUMENT')" id="tab-doc" class="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all">
-                    Pièces Jointes
-                </button>
+            <!-- Zone des messages (scrollable) -->
+            <div id="care-feed-content" class="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scroll">
+                <div class="flex justify-center py-10">
+                    <div class="relative w-8 h-8">
+                        <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Zone de saisie rapide -->
-            <div id="input-area" class="mb-8">
+            <!-- Zone de saisie (collée en bas) -->
+            <div class="sticky bottom-0 bg-white/95 backdrop-blur-sm border-t border-slate-100 p-3">
+                
                 <!-- Indicateur de réponse -->
-                <div id="reply-indicator" class="hidden mb-3 p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
+                <div id="reply-indicator" class="hidden mb-2 p-2 bg-amber-50 rounded-xl border border-amber-200 flex items-center justify-between">
                     <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-reply-all text-amber-500 text-sm"></i>
-                        <span class="text-xs font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
+                        <i class="fa-solid fa-reply-all text-amber-500 text-xs"></i>
+                        <span class="text-[10px] font-medium text-amber-700">Réponse à <span id="replying-to-name" class="font-black"></span></span>
                     </div>
-                    <button onclick="window.cancelReply()" class="text-amber-500 hover:text-amber-700">
-                        <i class="fa-solid fa-times"></i>
+                    <button onclick="window.cancelReply()" class="text-amber-500">
+                        <i class="fa-solid fa-times text-xs"></i>
                     </button>
                 </div>
                 
-                <!-- Zone de saisie avec boutons -->
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-2">
-                        <button id="photo-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 transition-all flex items-center justify-center" title="Photo">
-                            <i class="fa-solid fa-camera text-base"></i>
-                        </button>
-                        
-                        <button id="document-btn" class="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600 transition-all flex items-center justify-center" title="Joindre un document">
-                            <i class="fa-solid fa-paperclip text-base"></i>
-                        </button>
-                        
-                        <input id="quick-msg" class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-medium outline-none focus:ring-2 focus:ring-emerald-100 transition-all" placeholder="Écrire un message à l'équipe...">
-                        
-                        <button id="send-btn" class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                <!-- Barre de saisie compacte -->
+                <div class="flex items-center gap-2">
+                    <button id="photo-btn" 
+                            class="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center active:scale-95 transition-all">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                    </button>
+                    
+                    <div class="flex-1 bg-slate-100 rounded-full px-4 py-2 flex items-center gap-2">
+                        <input id="quick-msg" 
+                               class="flex-1 bg-transparent border-none outline-none text-sm font-medium placeholder:text-slate-400"
+                               placeholder="Écrire un message...">
+                        <button id="send-btn" 
+                                class="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center active:scale-90 transition-all">
                             <i class="fa-solid fa-paper-plane text-xs"></i>
                         </button>
                     </div>
-                    <input type="file" id="photo-input" accept="image/*" class="hidden">
-                    <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
                 </div>
-            </div>
-
-            <!-- Contenu dynamique -->
-            <div id="care-feed-content" class="space-y-8">
-                <div class="flex justify-center py-20">
-                    <div class="relative">
-                        <div class="w-10 h-10 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                    </div>
-                </div>
+                
+                <input type="file" id="photo-input" accept="image/*" class="hidden">
+                <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
             </div>
         </div>
     `;
@@ -599,28 +607,35 @@ function initRealtimeForCurrentPatient() {
     const sendBtn = document.getElementById('send-btn');
     const documentBtn = document.getElementById('document-btn');
     const documentInput = document.getElementById('document-input');
-
     const input = document.getElementById('quick-msg');
 
     let typingTimeout;
 
-        if (input) {
-            input.addEventListener('input', () => {
-                if (!AppState.currentPatient) return;
-        
-                window.Realtime.sendTyping({
-                    patient_id: AppState.currentPatient,
-                    user_id: localStorage.getItem("user_id")
-                });
-        
-                clearTimeout(typingTimeout);
-                typingTimeout = setTimeout(() => {
-                    window.Realtime.stopTyping({
-                        patient_id: AppState.currentPatient
-                    });
-                }, 2000);
+    if (input) {
+        input.addEventListener('input', () => {
+            if (!AppState.currentPatient) return;
+    
+            window.Realtime.sendTyping({
+                patient_id: AppState.currentPatient,
+                user_id: localStorage.getItem("user_id")
             });
-        }
+    
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                window.Realtime.stopTyping({
+                    patient_id: AppState.currentPatient
+                });
+            }, 2000);
+        });
+        
+        // ✅ ENVOI AVEC ENTRÉE
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                window.sendQuickMessage();
+            }
+        });
+    }
     
     if (documentBtn && documentInput) {
         documentBtn.onclick = () => documentInput.click();
@@ -638,101 +653,94 @@ function initRealtimeForCurrentPatient() {
 
     cleanupRealtime();
 
-try {
-    const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-    AppState.messages = data;
-    
-    // 🔴 INITIALISER LES NON LUS AU CHARGEMENT (CORRIGÉ)
-    AppState.unreadByPatient = {};
-    const currentUserId = localStorage.getItem("user_id");
-    
-    data.forEach(msg => {
-        const patientId = msg.patient_id;
-        
-        // 🔥 CRITIQUE : Ne compter que les messages QUI NE SONT PAS de l'utilisateur courant
-        // ET qui ne sont pas marqués comme lus
-        if (msg.sender_id !== currentUserId && !msg.read) {
-            if (!AppState.unreadByPatient[patientId]) {
-                AppState.unreadByPatient[patientId] = 0;
-            }
-            AppState.unreadByPatient[patientId]++;
-        }
-    });
-    
-    console.log("🔴 [CHARGEMENT] unreadByPatient initialisé:", AppState.unreadByPatient);
-    updatePatientBadges();
-    
-    // Nettoyer l'ancien abonnement Realtime
-    if (window.Realtime) {
-        window.Realtime.unsubscribe();
-    }
-    
-    initRealtimeForCurrentPatient();
-    renderFeed();
-
-    // ✅ Marquer les messages comme lus (MAIS SANS EFFACER LE COMPTEUR AVANT)
-    const now = new Date().toISOString();
-    localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
-
     try {
-        await secureFetch('/messages/mark-read', {
-            method: 'POST',
-            body: JSON.stringify({
-                patient_id: AppState.currentPatient,
-                user_id: localStorage.getItem("user_id")
-            })
+        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+        AppState.messages = data;
+        
+        // 🔴 INITIALISER LES NON LUS AU CHARGEMENT
+        AppState.unreadByPatient = {};
+        const currentUserId = localStorage.getItem("user_id");
+        
+        data.forEach(msg => {
+            const patientId = msg.patient_id;
+            
+            if (msg.sender_id !== currentUserId && !msg.read) {
+                if (!AppState.unreadByPatient[patientId]) {
+                    AppState.unreadByPatient[patientId] = 0;
+                }
+                AppState.unreadByPatient[patientId]++;
+            }
         });
-
-        console.log("👁️ Messages marqués comme lus (backend)");
         
-        // 🔥 IMPORTANT : On réinitialise le compteur POUR CE PATIENT UNIQUEMENT
-        // Mais on garde les compteurs des autres patients
-        if (AppState.currentPatient && AppState.unreadByPatient) {
-            AppState.unreadByPatient[AppState.currentPatient] = 0;
-        }
-        
+        console.log("🔴 [CHARGEMENT] unreadByPatient initialisé:", AppState.unreadByPatient);
         updatePatientBadges();
         
-        // Rafraîchir les badges du menu
-        if (typeof window.refreshMenuBadges === 'function') {
-            setTimeout(() => window.refreshMenuBadges(), 100);
+        // Nettoyer l'ancien abonnement Realtime
+        if (window.Realtime) {
+            window.Realtime.unsubscribe();
         }
         
+        initRealtimeForCurrentPatient();
+        renderFeed();
+
+        // ✅ Marquer les messages comme lus
+        const now = new Date().toISOString();
+        localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
+
+        try {
+            await secureFetch('/messages/mark-read', {
+                method: 'POST',
+                body: JSON.stringify({
+                    patient_id: AppState.currentPatient,
+                    user_id: localStorage.getItem("user_id")
+                })
+            });
+
+            console.log("👁️ Messages marqués comme lus (backend)");
+            
+            if (AppState.currentPatient && AppState.unreadByPatient) {
+                AppState.unreadByPatient[AppState.currentPatient] = 0;
+            }
+            
+            updatePatientBadges();
+            
+            if (typeof window.refreshMenuBadges === 'function') {
+                setTimeout(() => window.refreshMenuBadges(), 100);
+            }
+            
+        } catch (err) {
+            console.error("Erreur mark-read:", err);
+        }
+        
+        // ✅ Réinitialiser le compteur
+        unreadMessagesCount = 0;
+        hideNewMessageBadge();
+
+        // ✅ Initialiser la détection de scroll et scroll en bas
+        setTimeout(() => {
+            initScrollDetection();
+            isUserAtBottom = true;
+            scrollToBottom(); // ← AJOUTÉ pour voir le dernier message
+        }, 500);
+        
+        if (typeof window.refreshMenuBadges === 'function') {
+            setTimeout(() => window.refreshMenuBadges(), 500);
+        }
+
     } catch (err) {
-        console.error("Erreur mark-read:", err);
-    }
-    
-    // ✅ Réinitialiser le compteur de messages non lus (UI)
-    unreadMessagesCount = 0;
-    hideNewMessageBadge();
-
-    // ✅ Initialiser la détection de scroll
-    setTimeout(() => {
-        initScrollDetection();
-        isUserAtBottom = true;
-    }, 500);
-    
-    // ✅ Rafraîchir les badges du menu
-    if (typeof window.refreshMenuBadges === 'function') {
-        setTimeout(() => window.refreshMenuBadges(), 500);
-    }
-
-} catch (err) {
-    console.error("Erreur Feed:", err);
-    const contentDiv = document.getElementById('care-feed-content');
-    if (contentDiv) {
-        contentDiv.innerHTML = `
-            <div class="text-center py-20">
-                <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
-                <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
-                <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
-            </div>
-        `;
+        console.error("Erreur Feed:", err);
+        const contentDiv = document.getElementById('care-feed-content');
+        if (contentDiv) {
+            contentDiv.innerHTML = `
+                <div class="text-center py-20">
+                    <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                    <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                    <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+                </div>
+            `;
+        }
     }
 }
-
-}
-
      
 if (!readSubscribed) {
     readSubscribed = true;
@@ -897,7 +905,7 @@ function updateSeenStatus(data) {
      * @param {boolean} isReply - Si c'est une réponse (style indenté)
      */
    
-   function renderStoryCard(msg, isReply = false) {
+function renderStoryCard(msg, isReply = false) {
     const isPhoto = msg.is_photo || msg.photo_url;
     let content = msg.content || '';
     let humeurBadge = "";
@@ -905,7 +913,7 @@ function updateSeenStatus(data) {
     // Utiliser photo_url si disponible
     const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
     
-    // Décodage de l'humeur (inchangé)
+    // Décodage de l'humeur
     if (!isPhoto && content && content.includes('|')) {
         const parts = content.split('|');
         const humeur = parts[0];
@@ -917,12 +925,9 @@ function updateSeenStatus(data) {
             "Triste": "😔"
         };
         humeurBadge = `
-            <div class="absolute bottom-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-amber-200 flex items-center gap-3 animate-fadeIn">
-                <span class="text-lg">${emojis[humeur] || '✨'}</span>
-                <div class="flex flex-col">
-                    <span class="text-[8px] font-black text-amber-600 uppercase tracking-wider">Humeur du proche</span>
-                    <span class="text-[10px] font-black text-slate-800 uppercase">${humeur}</span>
-                </div>
+            <div class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
+                <span class="text-sm">${emojis[humeur] || '✨'}</span>
+                <span class="text-[9px] font-bold text-amber-700">${humeur}</span>
             </div>`;
         content = notes;
     }
@@ -935,166 +940,151 @@ function updateSeenStatus(data) {
     let avatarBg = 'bg-slate-100';
     let roleIcon = 'fa-user';
     let roleBadge = '';
+    let roleInitial = '';
     
     if (isAidant) {
         roleColorClass = 'text-emerald-600';
         avatarBg = 'bg-emerald-100';
         roleIcon = 'fa-user-nurse';
-        roleBadge = `<span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[8px] font-black uppercase ml-2">
-                        <i class="fa-solid fa-shield-check mr-1"></i> Aidant certifié
+        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'A';
+        roleBadge = `<span class="text-[8px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full ml-1">
+                        <i class="fa-solid fa-shield-check text-[8px] mr-0.5"></i> Aidant
                     </span>`;
     } else if (isFamily) {
         roleColorClass = 'text-blue-600';
         avatarBg = 'bg-blue-100';
-        roleIcon = 'fa-family';
-        roleBadge = `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[8px] font-black uppercase ml-2">
-                        <i class="fa-regular fa-heart mr-1"></i> Famille
+        roleIcon = 'fa-user';
+        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'F';
+        roleBadge = `<span class="text-[8px] font-black text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full ml-1">
+                        <i class="fa-regular fa-heart text-[8px] mr-0.5"></i> Famille
                     </span>`;
     } else if (isCoordinator) {
         roleColorClass = 'text-purple-600';
         avatarBg = 'bg-purple-100';
         roleIcon = 'fa-user-tie';
-        roleBadge = `<span class="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[8px] font-black uppercase ml-2">
-                        <i class="fa-solid fa-star mr-1"></i> Coordination
+        roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'C';
+        roleBadge = `<span class="text-[8px] font-black text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full ml-1">
+                        <i class="fa-solid fa-star text-[8px] mr-0.5"></i> Coordination
                     </span>`;
     }
     
-        const rawDate = msg.created_at || msg.createdAt || new Date().toISOString();
-        const safeDate = new Date(rawDate);
-        
-        const timeStr = isNaN(safeDate)
-            ? "Maintenant"
-            : safeDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        
-        const dateStr = isNaN(safeDate)
-            ? ""
-            : safeDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    const rawDate = msg.created_at || msg.createdAt || new Date().toISOString();
+    const safeDate = new Date(rawDate);
+    const timeStr = isNaN(safeDate) ? "Maintenant" : safeDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = isNaN(safeDate) ? "" : safeDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
-    // ✅ NOUVEAU : Récupérer le message parent si c'est une réponse
+    // Message parent (réponse)
     let parentMessageHtml = '';
     if (msg.reply_to_id) {
         const parentMsg = AppState.messages?.find(m => m.id === msg.reply_to_id);
         if (parentMsg) {
-            const parentContent = parentMsg.is_photo ? '📷 Photo' : (parentMsg.content?.substring(0, 80) + (parentMsg.content?.length > 80 ? '...' : ''));
+            const parentContent = parentMsg.is_photo ? '📷 Photo' : (parentMsg.content?.substring(0, 60) + (parentMsg.content?.length > 60 ? '...' : ''));
             parentMessageHtml = `
-                <div class="mb-3 p-3 bg-slate-100 rounded-xl border-l-3 border-l-amber-400">
-                    <div class="flex items-center gap-2 text-[9px] text-slate-500 mb-1">
-                        <i class="fa-solid fa-reply-all text-amber-500 text-[10px]"></i>
-                        <span class="font-black">Réponse à ${escapeHtml(parentMsg.sender_name || 'un message')}</span>
-                    </div>
-                    <p class="text-[11px] text-slate-600 italic">"${escapeHtml(parentContent)}"</p>
+                <div class="mb-2 pl-2 border-l-2 border-amber-400">
+                    <p class="text-[9px] text-amber-600 font-medium">↳ Réponse à ${escapeHtml(parentMsg.sender_name || 'un message')}</p>
+                    <p class="text-[10px] text-slate-500 italic truncate">"${escapeHtml(parentContent)}"</p>
                 </div>
             `;
         }
     }
 
+    // Version compacte mais COMPLÈTE
     return `
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 animate-fadeIn mb-5 hover:shadow-md transition-shadow" data-message-id="${msg.id}">
-            <div class="message-status"></div>
-            <!-- Header avec photo et identité -->
-            <div class="flex items-start justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="relative">
-                        <div class="w-12 h-12 rounded-xl overflow-hidden ${avatarBg} flex items-center justify-center">
-                            ${msg.sender_photo ? 
-                                `<img src="${msg.sender_photo}" class="w-full h-full object-cover">` : 
-                                `<i class="fa-solid ${roleIcon} text-${isAidant ? 'emerald' : isFamily ? 'blue' : 'purple'}-500 text-xl"></i>`
-                            }
-                        </div>
-                        ${isAidant ? `
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white shadow-sm" title="Aidant vérifié"></div>
-                        ` : ''}
-                        ${isFamily ? `
-                            <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-sm" title="Membre de la famille"></div>
-                        ` : ''}
-                    </div>
-                    
-                    <div>
-                        <div class="flex items-center flex-wrap gap-1">
-                            <h4 class="font-black text-slate-800 text-sm">${escapeHtml(msg.sender_name || 'Système')}</h4>
-                            ${roleBadge}
-                        </div>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="w-1.5 h-1.5 rounded-full ${isAidant ? 'bg-emerald-500' : isFamily ? 'bg-blue-500' : 'bg-purple-500'}"></span>
-                            <p class="text-[9px] font-bold ${roleColorClass} uppercase tracking-wider">${msg.sender_role || 'COORDINATEUR'}</p>
-                            <span class="text-[9px] text-slate-300">•</span>
-                            <span class="text-[9px] text-slate-400">${dateStr} à ${timeStr}</span>
-                        </div>
-                    </div>
+        <div class="flex items-start gap-2 ${isReply ? 'ml-6' : ''} animate-fadeIn mb-3" data-message-id="${msg.id}">
+            <!-- Statut de lecture (caché mais présent) -->
+            <div class="message-status hidden"></div>
+            
+            <!-- Avatar -->
+            <div class="relative flex-shrink-0">
+                <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center overflow-hidden">
+                    ${msg.sender_photo ? 
+                        `<img src="${msg.sender_photo}" class="w-full h-full rounded-full object-cover">` : 
+                        `<i class="fa-solid ${roleIcon} ${roleColorClass} text-sm"></i>`
+                    }
                 </div>
-                
                 ${isAidant ? `
-                    <div class="bg-emerald-50 px-2 py-1 rounded-full">
-                        <span class="text-[8px] font-black text-emerald-600 uppercase tracking-wider">
-                            <i class="fa-solid fa-circle-check text-[8px] mr-1"></i> Intervention certifiée
-                        </span>
-                    </div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border border-white shadow-sm" title="Aidant vérifié"></div>
+                ` : ''}
+                ${isFamily ? `
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border border-white shadow-sm" title="Membre de la famille"></div>
                 ` : ''}
             </div>
-
-            <!-- ✅ INDICATEUR DE RÉPONSE (si c'est une réponse) -->
-            ${parentMessageHtml}
-
-            <!-- Contenu du message -->
-            ${imageUrl ? `
-                <div class="relative rounded-xl overflow-hidden shadow-lg border border-slate-100 mt-2">
-                    <img src="${imageUrl}" class="w-full max-h-96 object-cover cursor-pointer" onclick="window.open('${imageUrl}')">
-                    <div class="absolute top-3 right-3 bg-slate-900/60 backdrop-blur-sm px-2 py-1 rounded-lg">
-                        <span class="text-[8px] font-black text-white uppercase tracking-wider">Photo</span>
-                    </div>
-                    ${humeurBadge}
-                </div>
-            ` : content ? `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 text-sm leading-relaxed mt-2 break-words whitespace-normal overflow-hidden">
-                    <i class="fa-solid fa-quote-left text-slate-200 text-lg mr-2 float-left"></i>
-                    <span class="font-medium break-words">${escapeHtml(content)}</span>
-                </div>
-            ` : ''}
             
-            <!-- Réactions et interactions -->
-            <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <div class="flex gap-1">
-                        ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
-                            <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
-                                    class="flex items-center gap-0.5 px-2 py-1 bg-slate-50 hover:bg-slate-100 rounded-full text-sm transition-all active:scale-95">
-                                <span class="text-base">${emoji}</span>
-                                <span class="text-[10px] font-bold text-slate-500">${count}</span>
-                            </button>
-                        `).join('')}
+            <div class="flex-1 min-w-0">
+                <!-- En-tête compact -->
+                <div class="flex items-center gap-1 mb-0.5 flex-wrap">
+                    <span class="font-bold text-slate-800 text-xs">${escapeHtml(msg.sender_name || 'Système')}</span>
+                    ${roleBadge}
+                    <span class="text-[9px] text-slate-400">• ${timeStr}</span>
+                    <span class="text-[9px] text-slate-300">${dateStr ? '• ' + dateStr : ''}</span>
+                </div>
+                
+                ${parentMessageHtml}
+                
+                <!-- Contenu du message -->
+                ${imageUrl ? `
+                    <div class="relative rounded-xl overflow-hidden mb-1 max-w-[250px]">
+                        <img src="${imageUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" onclick="window.open('${imageUrl}')">
+                        <div class="absolute top-2 right-2 bg-slate-900/60 backdrop-blur-sm px-1.5 py-0.5 rounded-lg">
+                            <span class="text-[7px] font-black text-white uppercase">Photo</span>
+                        </div>
                     </div>
-                    
-                    <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
-                            class="w-7 h-7 rounded-full bg-slate-50 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-all active:scale-95">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                    </button>
-                    
+                ` : ''}
+                
+                ${content ? `
+                    <div class="bg-slate-100 rounded-2xl px-3 py-2 max-w-[280px]">
+                        <p class="text-xs text-slate-700 break-words leading-relaxed">${escapeHtml(content)}</p>
+                    </div>
+                ` : ''}
+                
+                ${humeurBadge}
+                
+                <!-- Actions compactes -->
+                <div class="flex items-center gap-2 mt-1">
                     <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
-                            class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 text-slate-500 rounded-full hover:bg-amber-50 hover:text-amber-600 transition-all active:scale-95">
-                        <i class="fa-solid fa-reply text-xs"></i>
-                        <span class="text-[10px] font-medium">Répondre</span>
+                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                        <i class="fa-solid fa-reply text-[8px]"></i> Répondre
                     </button>
-                    
+                    <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
+                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                        <i class="fa-regular fa-face-smile"></i> Réagir
+                    </button>
                     ${isAidant && msg.id ? `
                         <button onclick="window.reportIssue('${msg.id}')" 
-                                class="text-[9px] text-slate-400 hover:text-amber-500 transition">
-                            <i class="fa-regular fa-flag mr-1"></i>
+                                class="text-[9px] text-slate-400 hover:text-rose-500 transition">
+                            <i class="fa-regular fa-flag"></i>
                         </button>
                     ` : ''}
                 </div>
                 
+                <!-- Réactions -->
+                ${Object.keys(msg.reactions || {}).length > 0 ? `
+                    <div class="flex gap-1 mt-1">
+                        ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
+                            <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
+                                    class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded-full text-xs transition">
+                                <span class="text-sm">${emoji}</span>
+                                <span class="text-[9px] font-medium text-slate-500">${count}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                ` : ''}
+                
+                <!-- Signature photo pour aidant -->
                 ${imageUrl && isAidant ? `
-                    <div class="mt-3 text-right">
-                        <span class="text-[8px] text-slate-400">
-                            <i class="fa-regular fa-camera mr-1"></i>
-                            Photo prise par ${msg.sender_name}
+                    <div class="mt-1">
+                        <span class="text-[7px] text-slate-400">
+                            <i class="fa-regular fa-camera"></i> Photo par ${msg.sender_name}
                         </span>
                     </div>
                 ` : ''}
             </div>
         </div>
     `;
-} 
+}
+
+
+
     // ============================================
     // ✅ NOUVELLES FONCTIONS
     // ============================================
