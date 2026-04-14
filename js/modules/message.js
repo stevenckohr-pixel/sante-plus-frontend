@@ -129,7 +129,8 @@ function initRealtimeForCurrentPatient() {
         console.error("❌ Erreur traitement message realtime:", err);
     }
 });
-       
+    } 
+} 
 
 
 
