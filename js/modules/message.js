@@ -1573,6 +1573,43 @@ function updatePatientBadges() {
     });
 }
 
-    window.loadFeed = loadFeed;
-    window.cleanupRealtime = cleanupRealtime;
-    window.renderFeed = renderFeed;
+
+
+
+// ============================================================
+// TYPING INDICATOR (EN TRAIN D'ÉCRIRE)
+// ============================================================
+
+function showTypingIndicator(show, name = '') {
+    const indicator = document.getElementById('typing-indicator');
+    if (!indicator) return;
+    
+    if (show) {
+        indicator.classList.remove('hidden');
+        const textSpan = indicator.querySelector('.typing-text');
+        if (textSpan) {
+            textSpan.textContent = name ? `${name} écrit...` : 'quelqu\'un écrit...';
+        }
+    } else {
+        indicator.classList.add('hidden');
+    }
+}
+
+// Initialiser l'écoute des événements "en train d'écrire"
+if (window.Realtime && window.Realtime.subscribeToTyping) {
+    window.Realtime.subscribeToTyping((data) => {
+        const currentUserId = localStorage.getItem("user_id");
+        if (data.user_id === currentUserId) return;
+        
+        showTypingIndicator(true, data.user_name);
+        setTimeout(() => showTypingIndicator(false), 3000);
+    });
+}
+
+// ============================================================
+// EXPORTS
+// ============================================================
+
+window.loadFeed = loadFeed;
+window.cleanupRealtime = cleanupRealtime;
+window.renderFeed = renderFeed;
