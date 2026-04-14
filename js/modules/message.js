@@ -28,6 +28,7 @@ function initRealtimeForCurrentPatient() {
     console.log("📡 Realtime initialisé pour:", AppState.currentPatient);
 
     window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
+        console.log("STEP 1 - realtime déclenché");
         console.log("📨 [Realtime] Nouveau message reçu:", newMessage);
 
         // ====================================================
