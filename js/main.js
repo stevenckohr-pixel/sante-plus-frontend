@@ -2241,7 +2241,7 @@ async function performViewSwitch(viewName) {
                     window.switchView("patients");
                     return;
                 }
-                await Messages.loadFeed();
+                await window.loadFeed();
                 break;
             case "billing": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
