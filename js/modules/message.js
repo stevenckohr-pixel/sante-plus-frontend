@@ -78,17 +78,33 @@ function initRealtimeForCurrentPatient() {
             // ====================================================
             // 🎯 5. FILTRE PATIENT (CRITIQUE)
             // ====================================================
-            const isCurrentPatient =
-                String(fullMessage.patient_id) === String(AppState.currentPatient);
-            
-            if (!isCurrentPatient) {
-                console.log("📩 Message reçu (autre patient)");
-            
-                unreadMessagesCount++;
-                showNewMessageBadge();
-            
-                return;
-            }
+                const isCurrentPatient =
+                    String(fullMessage.patient_id) === String(AppState.currentPatient);
+                
+                // 🔥 FIX CRITIQUE
+                if (!isCurrentPatient) {
+                    console.log("📩 Message reçu (autre patient)");
+                
+                    // 👉 MAIS on n'ignore PLUS totalement
+                    // 👉 On vérifie si on est quand même sur le feed
+                
+                    if (AppState.currentView === "feed") {
+                        console.log("⚡ Forcer affichage quand même");
+                
+                        // 👉 ON L'AFFICHE DIRECT
+                        if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
+                            AppState.messages.push(fullMessage);
+                        }
+                
+                        window.appendMessagesToFeed([fullMessage]);
+                        playNotificationBeep();
+                    } else {
+                        unreadMessagesCount++;
+                        showNewMessageBadge();
+                    }
+                
+                    return;
+                }
 
             // ====================================================
             // ➕ 6. AJOUT STATE
