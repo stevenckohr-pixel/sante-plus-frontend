@@ -1499,9 +1499,9 @@ function renderMobileHub() {
         bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // Menu items
+    // Menu items - pour Maman, rediriger vers dashboard-maman au lieu de dashboard
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', color: 'text-emerald-600', bg: 'bg-emerald-50', roles: ['COORDINATEUR'] },
+        { id: isMaman ? 'dashboard-maman' : 'dashboard', label: isMaman ? 'Accueil' : 'Dashboard', desc: isMaman ? 'Suivi quotidien' : 'Statistiques', icon: 'fa-chart-pie', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
         { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
@@ -1591,14 +1591,17 @@ function renderMobileHub() {
         const tile = document.querySelector(`.menu-tile[data-menu="${menuId}"]`);
         if (!tile) return;
         
-        const badge = tile.querySelector('.menu-badge');
-        if (!badge) return;
+        let badge = tile.querySelector('.menu-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'menu-badge hidden';
+            tile.appendChild(badge);
+        }
         
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
-            badge.className = `menu-badge absolute -top-2 -right-2 ${colorClass} text-white text-[10px] font-black rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5 shadow-md border-2 border-white`;
+            badge.className = `menu-badge absolute -top-2 -right-2 ${colorClass} text-white text-[10px] font-black rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5 shadow-md border-2 border-white`;
             badge.classList.remove('hidden');
-            // Animation d'apparition
             badge.style.animation = 'badgePop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1)';
         } else {
             badge.classList.add('hidden');
@@ -1609,127 +1612,109 @@ function renderMobileHub() {
      * Rafraîchir tous les badges
      */
     async function refreshBadges() {
-    try {
-        let messagesCount = 0;
-        let commandesCount = 0;
-        let visitesCount = 0;
-        let notificationsCount = 0;
-        
-        const currentUserId = localStorage.getItem("user_id");
-        const userRole = localStorage.getItem("user_role");
-        
-       // 1. Messages non lus (badge Journal) - IGNORER SES PROPRES MESSAGES
-if (AppState.currentPatient) {
-    const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
-    const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-    const currentUserName = localStorage.getItem("user_name");
+        try {
+            let messagesCount = 0;
+            let commandesCount = 0;
+            let visitesCount = 0;
+            let notificationsCount = 0;
+            
+            const currentUserId = localStorage.getItem("user_id");
+            const userRole = localStorage.getItem("user_role");
+            
+            // 1. Messages non lus (badge Journal)
+            if (AppState.currentPatient) {
+                const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
+                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                const currentUserName = localStorage.getItem("user_name");
+                
+                const otherMessages = messages.filter(m => m.sender_name !== currentUserName);
+                
+                if (lastRead) {
+                    messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
+                } else if (otherMessages.length > 0) {
+                    messagesCount = otherMessages.length;
+                }
+                console.log(`📬 Messages non lus (autres): ${messagesCount}`);
+            }
+            
+            // 2. Commandes en attente
+            try {
+                const commandes = await secureFetch("/commandes", { noCache: true });
+                
+                if (userRole === "COORDINATEUR") {
+                    commandesCount = commandes.filter(c => c.statut === "Livrée").length;
+                } else if (userRole === "AIDANT") {
+                    commandesCount = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
+                } else if (userRole === "FAMILLE") {
+                    commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
+                }
+                console.log(`📦 Commandes à traiter: ${commandesCount}`);
+            } catch (err) {
+                console.error("Erreur chargement commandes:", err);
+            }
+            
+            // 3. Visites à valider
+            if (userRole === "COORDINATEUR") {
+                try {
+                    const visites = await secureFetch("/visites", { noCache: true });
+                    visitesCount = visites.filter(v => v.statut === "En attente").length;
+                    console.log(`📋 Visites à valider: ${visitesCount}`);
+                } catch (err) {
+                    console.error("Erreur chargement visites:", err);
+                }
+            }
+            
+            // 4. Notifications système
+            try {
+                const notifications = await secureFetch("/notifications", { noCache: true });
+                notificationsCount = notifications.filter(n => !n.read && n.user_id === currentUserId).length;
+                console.log(`🔔 Notifications non lues: ${notificationsCount}`);
+            } catch (err) {
+                console.error("Erreur chargement notifications:", err);
+            }
+            
+            // 5. Mettre à jour les badges des tuiles
+            updateBadgeUI('feed', messagesCount, 'bg-rose-500');
+            updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
+            updateBadgeUI('visits', visitesCount, 'bg-blue-500');
+            
+            // 6. Mettre à jour la cloche
+            const headerBadge = document.getElementById('notification-badge');
+            if (headerBadge) {
+                if (notificationsCount > 0) {
+                    headerBadge.style.display = 'flex';
+                    headerBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
+                } else {
+                    headerBadge.style.display = 'none';
+                }
+            }
+            
+        } catch (err) {
+            console.error("❌ Erreur refreshBadges:", err);
+        }
+    }
     
-    console.log(`🔍 currentUserName: "${currentUserName}"`);
+    // Charger les badges au démarrage
+    refreshBadges();
     
-    // ⚠️ L'API ne retourne pas sender_id, on utilise sender_name
-    const otherMessages = messages.filter(m => {
-        const isOwnMessage = m.sender_name === currentUserName;
-        console.log(`  Message ${m.id.substring(0,8)}: sender_name="${m.sender_name}", isOwn=${isOwnMessage}`);
-        return !isOwnMessage;
+    // Rafraîchir périodiquement
+    let intervalId = setInterval(() => {
+        if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
+            refreshBadges();
+        }
+    }, 120000);
+    
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            refreshBadges();
+        }
     });
     
-    if (lastRead) {
-        messagesCount = otherMessages.filter(m => new Date(m.created_at) > new Date(lastRead)).length;
-    } else if (otherMessages.length > 0) {
-        messagesCount = otherMessages.length;
-    }
-    console.log(`📬 Messages non lus (autres): ${messagesCount}`);
-}
-        
-        // 2. Commandes en attente (badge Commandes) - IGNORER SES PROPRES COMMANDES
-        try {
-            const commandes = await secureFetch("/commandes", { noCache: true });
-            
-            if (userRole === "COORDINATEUR") {
-                // 🔥 Ne compter que les commandes livrées NON validées par lui-même
-                commandesCount = commandes.filter(c => c.statut === "Livrée").length;
-            } else if (userRole === "AIDANT") {
-                // 🔥 Ne compter que les commandes en attente NON assignées
-                commandesCount = commandes.filter(c => c.statut === "En attente" && !c.aidant_id).length;
-            } else if (userRole === "FAMILLE") {
-                // Pour la famille, on compte ses propres commandes en cours
-                commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
-            }
-            console.log(`📦 Commandes à traiter: ${commandesCount}`);
-        } catch (err) {
-            console.error("Erreur chargement commandes:", err);
-        }
-        
-        // 3. Visites à valider (badge Visites)
-        if (userRole === "COORDINATEUR") {
-            try {
-                const visites = await secureFetch("/visites", { noCache: true });
-                visitesCount = visites.filter(v => v.statut === "En attente").length;
-                console.log(`📋 Visites à valider: ${visitesCount}`);
-            } catch (err) {
-                console.error("Erreur chargement visites:", err);
-            }
-        }
-        
-        // 4. Notifications système (cloche en haut) - IGNORER LES SIENNES
-        try {
-            const notifications = await secureFetch("/notifications", { noCache: true });
-            // 🔥 Ne compter que les notifications NON lues de l'utilisateur courant
-            notificationsCount = notifications.filter(n => !n.read && n.user_id === currentUserId).length;
-            console.log(`🔔 Notifications non lues: ${notificationsCount}`);
-        } catch (err) {
-            console.error("Erreur chargement notifications:", err);
-        }
-        
-        // 5. Mettre à jour les badges des tuiles
-        updateBadgeUI('feed', messagesCount, 'bg-rose-500');
-        updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
-        updateBadgeUI('visits', visitesCount, 'bg-blue-500');
-        
-        // 6. Mettre à jour la cloche en haut (notifications système)
-        const headerBadge = document.getElementById('notification-badge');
-        if (headerBadge) {
-            if (notificationsCount > 0) {
-                headerBadge.style.display = 'flex';
-                headerBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
-            } else {
-                headerBadge.style.display = 'none';
-            }
-        }
-        
-    } catch (err) {
-        console.error("❌ Erreur refreshBadges:", err);
-    }
-}
-
-// Charger les badges au démarrage
-refreshBadges();
-
-// Rafraîchir toutes les 2 minutes (seulement si on est sur l'accueil)
-const intervalId = setInterval(() => {
-    if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
-        refreshBadges();
-    }
-}, 120000);
-
-
-    
-   
-    document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-        refreshBadges();
-    }
-});
-    
-    // Nettoyer l'intervalle si nécessaire (optionnel)
     window.addEventListener('beforeunload', () => {
         clearInterval(intervalId);
     });
     
-    // ============================================
-    // RECHERCHE
-    // ============================================
-    
+    // Recherche
     const searchInput = document.getElementById('mobile-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -1743,14 +1728,14 @@ const intervalId = setInterval(() => {
         });
     }
 }
-// ✅ Exposer la fonction pour rafraîchir les badges depuis d'autres modules
+
+// ✅ Exposer la fonction pour rafraîchir les badges
 window.refreshMenuBadges = () => {
     console.log("🔄 refreshMenuBadges appelée, currentView:", AppState.currentView);
     if (AppState.currentView === 'home') {
         renderMobileHub();
     }
 };
-
 
 // ============================================================
 // LAYOUT PRINCIPAL (HEADER, SIDEBAR, FOOTER)
@@ -2023,17 +2008,24 @@ setTimeout(() => {
 // ============================================================
 // LIENS DE NAVIGATION (DESKTOP)
 // ============================================================
+
 function getNavLinks(role, mode) {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && role === "FAMILLE";
     
+    // 🔥 Dashboard différent pour Maman
+    const dashboardId = isMaman ? 'dashboard-maman' : 'dashboard';
+    const dashboardLabel = isMaman ? 'Accueil' : 'Dashboard';
+    const dashboardIcon = isMaman ? 'fa-home' : 'fa-chart-pie';
+    
     const tabs = [
-        { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
+        { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
         { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', icon: 'fa-rss', label: isMaman ? 'Journal de bord' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'feed', icon: 'fa-rss', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
         { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
         { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
@@ -2055,6 +2047,8 @@ function getNavLinks(role, mode) {
         }
     }).join('');
 }
+
+
 
 // ============================================================
 // TRANSITION ENTRE LES VUES (SWITCHVIEW)
@@ -2336,6 +2330,16 @@ async function performViewSwitch(viewName) {
             case "notifications":
                 await Notifications.renderNotificationsPage();
                 break;
+            case "dashboard-maman":
+                container.innerHTML = document.getElementById("template-dashboard-maman").innerHTML;
+                // Remplacer {{userName}} par le vrai nom
+                const nameSpan = container.querySelector('.maman-header h2');
+                if (nameSpan) nameSpan.textContent = localStorage.getItem("user_name") || 'Maman';
+                break;
+            case "dashboard-maman":
+                await loadMamanDashboard();
+                break;
+                
         }
         
         // Animation d'entrée
