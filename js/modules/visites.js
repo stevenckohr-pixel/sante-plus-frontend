@@ -340,8 +340,13 @@ export async function submitEndVisit() {
         const notes = document.getElementById("visit-notes").value;
         const humeur = document.getElementById("visit-humeur").value;
         const activites = JSON.stringify(Array.from(document.querySelectorAll('.task-check:checked')).map(el => el.value));
-        const compressedPhoto = await compressImage(photoInput.files[0]);
 
+        let fileToUpload = photoInput.files[0];
+        if (fileToUpload.size > 1024 * 1024) { // plus de 1MB
+            fileToUpload = await compressImage(fileToUpload, 1024, 0.7);
+            console.log(`📸 Photo compressée: ${(photoInput.files[0].size / 1024).toFixed(1)}KB → ${(fileToUpload.size / 1024).toFixed(1)}KB`);
+        }
+        
         const fd = new FormData();
         fd.append("visite_id", visiteId);
         fd.append("notes", notes);
