@@ -32,8 +32,21 @@ export const UI = {
 };
 
 // Compression d'image avant envoi au serveur 
-export async function compressImage(file, maxWidth = 800, quality = 0.5) {  // quality plus bas
-    return new Promise((resolve) => {
+/**
+ * 🖼️ COMPRESSION D'IMAGE AVANT UPLOAD
+ * @param {File} file - Fichier image
+ * @param {number} maxWidth - Largeur max (défaut: 1024)
+ * @param {number} quality - Qualité JPEG (0.1 à 1, défaut: 0.7)
+ * @returns {Promise<Blob>} Image compressée
+ */
+export async function compressImage(file, maxWidth = 1024, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        // Si c'est déjà une image compressée ou trop petite, on garde
+        if (file.size < 500 * 1024) { // moins de 500KB
+            resolve(file);
+            return;
+        }
+        
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
@@ -44,6 +57,7 @@ export async function compressImage(file, maxWidth = 800, quality = 0.5) {  // q
                 let width = img.width;
                 let height = img.height;
                 
+                // Redimensionner proportionnellement
                 if (width > maxWidth) {
                     height = (height * maxWidth) / width;
                     width = maxWidth;
@@ -54,15 +68,57 @@ export async function compressImage(file, maxWidth = 800, quality = 0.5) {  // q
                 const ctx = canvas.getContext("2d");
                 ctx.drawImage(img, 0, 0, width, height);
                 
+                // Compression adaptative selon la taille
+                let finalQuality = quality;
+                const originalSizeMB = file.size / (1024 * 1024);
+                if (originalSizeMB > 5) finalQuality = 0.5;
+                if (originalSizeMB > 10) finalQuality = 0.4;
+                
                 canvas.toBlob(
                     (blob) => {
+                        console.log(`📸 Compression: ${(file.size / 1024).toFixed(1)}KB → ${(blob.size / 1024).toFixed(1)}KB (${Math.round((1 - blob.size/file.size) * 100)}% gain)`);
                         resolve(blob);
                     },
                     "image/jpeg",
-                    quality  // ← qualité réduite
+                    finalQuality
                 );
             };
+            img.onerror = reject;
         };
+        reader.onerror = reject;
+    });
+}
+
+/**
+ * 🖼️ COMPRESSION D'IMAGE DEPUIS UNE URL (pour les téléchargements)
+ */
+export async function compressImageFromUrl(url, maxWidth = 1024, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = url;
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let width = img.width;
+            let height = img.height;
+            
+            if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            canvas.toBlob(
+                (blob) => resolve(blob),
+                "image/jpeg",
+                quality
+            );
+        };
+        img.onerror = reject;
     });
 }
 /**
