@@ -2334,12 +2334,6 @@ async function performViewSwitch(viewName) {
                 await Notifications.renderNotificationsPage();
                 break;
             case "dashboard-maman":
-                container.innerHTML = document.getElementById("template-dashboard-maman").innerHTML;
-                // Remplacer {{userName}} par le vrai nom
-                const nameSpan = container.querySelector('.maman-header h2');
-                if (nameSpan) nameSpan.textContent = localStorage.getItem("user_name") || 'Maman';
-                break;
-            case "dashboard-maman":
                 await loadMamanDashboard();
                 break;
             case "maman-planning":
