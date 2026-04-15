@@ -2347,3 +2347,22 @@ button[type="submit"]:active,
     transform: scale(0.97) !important;
     background: var(--role-primary-dark) !important;
 }
+
+
+
+/* Menu latéral (drawer) */
+#mobile-drawer {
+    transition: visibility 0.3s ease;
+}
+
+#mobile-drawer.show {
+    visibility: visible;
+}
+
+#mobile-drawer.show .absolute {
+    transform: translateX(0);
+}
+
+#mobile-drawer .absolute {
+    transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
