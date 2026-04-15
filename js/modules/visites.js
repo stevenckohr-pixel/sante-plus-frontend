@@ -433,20 +433,23 @@ export async function submitEndVisit() {
  */
 export async function renderEndVisitView() {
     const container = document.getElementById("view-container");
-
-    // 1. Récupérer les infos du patient
+    
+    // Récupérer les infos du patient
     const patient = await secureFetch(`/patients/${AppState.currentPatient}`);
-
+    const isMaman = patient?.categorie_service === 'MAMAN_BEBE';
+    
     container.innerHTML = `
         <div class="animate-fadeIn max-w-lg mx-auto pb-24">
-            <!-- Header de Page -->
+            <!-- Header -->
             <div class="flex items-center gap-4 mb-8">
-                <button onclick="window.switchView('visits')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors active:scale-95">
+                <button onclick="window.switchView('visits')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 active:scale-95">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
                 <div>
                     <h3 class="font-black text-2xl text-slate-800 tracking-tight">Rapport d'Intervention</h3>
-                    <p class="text-[10px] text-emerald-600 font-black uppercase tracking-widest mt-1"><i class="fa-solid fa-circle-dot animate-pulse mr-1"></i> Tracking actif</p>
+                    <p class="text-[10px] text-${isMaman ? 'pink' : 'emerald'}-600 font-black uppercase tracking-widest mt-1">
+                        <i class="fa-solid fa-circle-dot animate-pulse mr-1"></i> Tracking actif
+                    </p>
                 </div>
             </div>
 
@@ -460,7 +463,35 @@ export async function renderEndVisitView() {
                     </div>
                 </div>
 
-                <!-- 2. HUMEUR (Émojis cliquables) -->
+                ${isMaman ? `
+                <!-- 🌸 SECTION BÉBÉ (Uniquement pour les dossiers Maman) -->
+                <div class="border-t border-pink-100 pt-4">
+                    <label class="text-[10px] font-black text-pink-500 uppercase tracking-widest ml-2 mb-3 block flex items-center gap-2">
+                        <i class="fa-solid fa-baby-carriage"></i> Métriques bébé
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">🍼 Dernière tétée</label>
+                            <input type="number" id="baby-feeding" step="0.5" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="heures (ex: 2.5)">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">😴 Sommeil</label>
+                            <input type="number" id="baby-sleep" step="0.5" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="heures (ex: 8)">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">🧷 Couches</label>
+                            <input type="number" id="baby-diapers" step="1" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="nombre (ex: 6)">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">⚖️ Poids</label>
+                            <input type="number" id="baby-weight" step="10" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="grammes (ex: 3500)">
+                        </div>
+                    </div>
+                    <p class="text-[8px] text-slate-400 mt-2 text-center">Ces données seront visibles dans le tableau de bord de la maman</p>
+                </div>
+                ` : ''}
+
+                <!-- 2. HUMEUR (toujours présent) -->
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Humeur du patient</label>
                     <select id="visit-humeur" class="app-input font-black text-slate-700 cursor-pointer">
@@ -474,13 +505,15 @@ export async function renderEndVisitView() {
                 <!-- 3. NOTES -->
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Message à la famille</label>
-                    <textarea id="visit-notes" class="app-input h-28 !py-4" placeholder="Décrivez comment s'est passée la visite pour rassurer la famille..."></textarea>
+                    <textarea id="visit-notes" class="app-input h-28 !py-4" placeholder="Décrivez comment s'est passée la visite..."></textarea>
                 </div>
 
-                <!-- 4. UPLOAD PHOTO (Look App Native) -->
+                <!-- 4. PHOTO -->
                 <div>
-                    <label class="text-[10px] font-black text-emerald-500 uppercase tracking-widest ml-2 mb-3 block"><i class="fa-solid fa-asterisk text-[8px] mr-1"></i> Preuve Photo requise</label>
-                    <div class="relative w-full h-32 bg-slate-50 rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer">
+                    <label class="text-[10px] font-black text-${isMaman ? 'pink' : 'emerald'}-500 uppercase tracking-widest ml-2 mb-3 block">
+                        <i class="fa-solid fa-asterisk text-[8px] mr-1"></i> Preuve Photo requise
+                    </label>
+                    <div class="relative w-full h-32 bg-slate-50 rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-${isMaman ? 'pink' : 'emerald'}-500 hover:bg-${isMaman ? 'pink' : 'emerald'}-50 transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer">
                         <input type="file" id="visit-photo" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="document.getElementById('photo-label').innerText = '📸 Photo capturée avec succès'">
                         <i class="fa-solid fa-camera text-3xl text-slate-300 mb-2"></i>
                         <p id="photo-label" class="text-xs font-black text-slate-500 uppercase tracking-widest">Prendre une photo</p>
@@ -488,7 +521,7 @@ export async function renderEndVisitView() {
                 </div>
 
                 <div class="pt-6 border-t border-slate-50 mt-4">
-                    <button onclick="window.submitEndVisit()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-emerald-500 transition-all active:scale-95 flex items-center justify-center gap-3">
+                    <button onclick="window.submitEndVisitWithBabyMetrics()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-${isMaman ? 'pink' : 'emerald'}-500 transition-all active:scale-95 flex items-center justify-center gap-3">
                         Transmettre le rapport <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
@@ -496,6 +529,129 @@ export async function renderEndVisitView() {
         </div>
     `;
 }
+
+
+
+
+
+/**
+ * 📤 SOUMISSION DU BILAN AVEC MÉTRIQUES BÉBÉ (pour dossiers Maman)
+ */
+window.submitEndVisitWithBabyMetrics = async () => {
+    const visiteId = localStorage.getItem("active_visit_id");
+    const photoInput = document.getElementById("visit-photo");
+    
+    if (!photoInput.files || !photoInput.files[0]) {
+        UI.vibrate('error');
+        return Swal.fire("Photo Manquante", "La photo est obligatoire pour clôturer l'intervention.", "warning");
+    }
+
+    // Récupérer les métriques bébé si présentes
+    const babyFeeding = document.getElementById("baby-feeding")?.value;
+    const babySleep = document.getElementById("baby-sleep")?.value;
+    const babyDiapers = document.getElementById("baby-diapers")?.value;
+    const babyWeight = document.getElementById("baby-weight")?.value;
+
+    try {
+        Swal.fire({
+            title: '<i class="fa-solid fa-cloud-arrow-up fa-bounce text-blue-500 mb-4 text-4xl"></i><br><span class="text-xl font-black">Transmission...</span>',
+            html: '<p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Envoi du bilan certifié en cours...</p>',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            customClass: { popup: 'rounded-[3rem] p-8' },
+            didOpen: () => Swal.showLoading(),
+        });
+
+        // Récupération GPS
+        let gpsEnd = "0,0";
+        try {
+            if(navigator.geolocation) {
+                const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout:5000}));
+                gpsEnd = `${pos.coords.latitude},${pos.coords.longitude}`;
+            }
+        } catch (e) { console.warn("GPS final ignoré"); }
+
+        // Récupération des données
+        const notes = document.getElementById("visit-notes").value;
+        const humeur = document.getElementById("visit-humeur").value;
+        const activites = JSON.stringify(Array.from(document.querySelectorAll('.task-check:checked')).map(el => el.value));
+        
+        // Compression photo
+        let fileToUpload = photoInput.files[0];
+        if (fileToUpload.size > 1024 * 1024) {
+            fileToUpload = await compressImage(fileToUpload, 1024, 0.7);
+        }
+
+        // 1. Envoyer la visite
+        const fd = new FormData();
+        fd.append("visite_id", visiteId);
+        fd.append("notes", notes);
+        fd.append("humeur", humeur);
+        fd.append("activites_faites", activites);
+        fd.append("gps_end", gpsEnd);
+        fd.append("photo_visite", fileToUpload);
+
+        const response = await fetch(`${CONFIG.API_URL}/visites/end`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            body: fd,
+        });
+
+        if (!response.ok) throw new Error("Erreur de transmission réseau.");
+
+        // 2. Envoyer les métriques bébé si présentes
+        if (babyFeeding || babySleep || babyDiapers || babyWeight) {
+            const patientId = localStorage.getItem("active_patient_id");
+            
+            const metrics = [];
+            if (babyFeeding) metrics.push({ metric_type: 'feeding', value: parseFloat(babyFeeding) });
+            if (babySleep) metrics.push({ metric_type: 'sleep', value: parseFloat(babySleep) });
+            if (babyDiapers) metrics.push({ metric_type: 'diapers', value: parseInt(babyDiapers) });
+            if (babyWeight) metrics.push({ metric_type: 'weight', value: parseInt(babyWeight) });
+            
+            for (const metric of metrics) {
+                await secureFetch('/educational/baby-metric', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        patient_id: patientId,
+                        metric_type: metric.metric_type,
+                        value: metric.value,
+                        source: 'aidant_visite'
+                    })
+                });
+            }
+            console.log(`✅ ${metrics.length} métriques bébé enregistrées`);
+        }
+
+        // Nettoyage
+        const watchId = localStorage.getItem("geo_watch_id");
+        if (watchId) {
+            navigator.geolocation.clearWatch(parseInt(watchId));
+            localStorage.removeItem("geo_watch_id");
+        }
+        localStorage.removeItem("active_visit_id");
+        
+        UI.vibrate("success");
+        await Swal.fire({
+            icon: "success",
+            title: '<span class="text-emerald-500 font-black">Mission Accomplie</span>',
+            html: `<div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-center gap-2 mt-2">
+                    <i class="fa-solid fa-shield-check text-emerald-500"></i>
+                    <span class="text-[10px] font-black text-emerald-600 uppercase">Données Sécurisées</span>
+                   </div>`,
+            confirmButtonColor: "#0F172A",
+            confirmButtonText: "RETOUR AU PLANNING",
+            customClass: { popup: 'rounded-[3rem]' }
+        });
+
+        window.viewPatientFeed(AppState.currentPatient); 
+        window.switchView("visits");
+
+    } catch (err) {
+        UI.vibrate("error");
+        Swal.fire("Échec", err.message, "error");
+    }
+};
 
 //----------------------------------------------------------
 //----------------------------------------------------------
@@ -963,3 +1119,23 @@ window.savePatientHomeGPS = async (patientId) => {
         }
     }
 };
+
+
+/**
+ * 🍼 VÉRIFIER SI LE PATIENT EST UN DOSSIER MAMAN
+ */
+async function isMamanPatient(patientId) {
+    try {
+        const { data, error } = await supabase
+            .from("patients")
+            .select("categorie_service")
+            .eq("id", patientId)
+            .single();
+        
+        if (error) throw error;
+        return data?.categorie_service === 'MAMAN_BEBE';
+    } catch (err) {
+        console.error("Erreur vérification catégorie:", err);
+        return false;
+    }
+}
