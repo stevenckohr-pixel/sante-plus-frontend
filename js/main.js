@@ -1800,7 +1800,6 @@ window.refreshMenuBadges = () => {
 
 
 // Appeler dans performViewSwitch après avoir changé de vue
-updateBottomNav(viewName);
 
 
 
