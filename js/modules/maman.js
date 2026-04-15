@@ -467,4 +467,4 @@ function escapeHtml(str) {
 }
 
 // Export
-export { loadMamanDashboard, updateMamanNotifications };
+export {updateMamanNotifications};
