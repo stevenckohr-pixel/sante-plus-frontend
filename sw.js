@@ -2,10 +2,10 @@
 // SERVICE WORKER - SANTÉ PLUS SERVICES (OFFLINE-FIRST)
 // ============================================================
 
-const CACHE_NAME = 'sps-v8';
-const STATIC_CACHE = 'sps-static-v8';
-const IMAGE_CACHE = 'sps-images-v8';
-const API_CACHE = 'sps-api-v8';
+const CACHE_NAME = 'sps-v9';
+const STATIC_CACHE = 'sps-static-v9';
+const IMAGE_CACHE = 'sps-images-v9';
+const API_CACHE = 'sps-api-v9';
 
 // Fichiers statiques à mettre en cache immédiatement
 const STATIC_URLS = [
@@ -14,13 +14,11 @@ const STATIC_URLS = [
   './style.css',
   './js/main.js',
   './manifest.json',
+  'offline.html',
   '/sante-plus-frontend/assets/images/logo-general-icon.png',
   '/sante-plus-frontend/assets/images/logo-general-text.png',
   '/sante-plus-frontend/assets/images/logo-maman-icon.png',
-  '/sante-plus-frontend/assets/images/logo-maman-text.png',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+  '/sante-plus-frontend/assets/images/logo-maman-text.png'
 ];
 
 // 🔥 FIREBASE (gardé)
@@ -50,34 +48,37 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // ============================================================
-// INSTALLATION - Cache des assets statiques
+// INSTALLATION
 // ============================================================
 self.addEventListener('install', (event) => {
   console.log('🔧 SW installation...');
   event.waitUntil(
-    caches.open(STATIC_CACHE).then(cache => {
-      return cache.addAll(STATIC_URLS);
-    }).catch(err => console.warn('⚠️ Erreur cache statique:', err))
+    Promise.all([
+      caches.open(STATIC_CACHE).then(cache => cache.addAll(STATIC_URLS)),
+      self.skipWaiting()
+    ])
   );
-  self.skipWaiting();
 });
 
 // ============================================================
-// ACTIVATION - Nettoyage des anciens caches
+// ACTIVATION - Nettoyage
 // ============================================================
 self.addEventListener('activate', (event) => {
   console.log('✨ SW activation...');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cache => {
-          if (![STATIC_CACHE, IMAGE_CACHE, API_CACHE, CACHE_NAME].includes(cache)) {
-            console.log(`🗑️ Suppression: ${cache}`);
-            return caches.delete(cache);
-          }
-        })
-      );
-    }).then(() => self.clients.claim())
+    Promise.all([
+      caches.keys().then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cache => {
+            if (![STATIC_CACHE, IMAGE_CACHE, API_CACHE, CACHE_NAME].includes(cache)) {
+              console.log(`🗑️ Suppression: ${cache}`);
+              return caches.delete(cache);
+            }
+          })
+        );
+      }),
+      self.clients.claim()
+    ])
   );
 });
 
@@ -88,18 +89,26 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
   // ============================================================
-  // 1. REQUÊTES API (avec fallback IndexedDB)
+  // 1. IGNORER LES REQUÊTES NON-GET
+  // ============================================================
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  
+  // ============================================================
+  // 2. REQUÊTES API (Network first, fallback cache)
   // ============================================================
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request, {
         credentials: 'include',
         headers: {
-          'Authorization': event.request.headers.get('Authorization') || ''
+          'Authorization': event.request.headers.get('Authorization') || '',
+          'Cache-Control': 'no-cache'
         }
       })
       .then(response => {
-        // Mettre en cache les réponses API réussies
         if (response && response.status === 200) {
           const responseToCache = response.clone();
           caches.open(API_CACHE).then(cache => {
@@ -109,19 +118,19 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(async () => {
-        // Fallback: essayer le cache
         const cachedResponse = await caches.match(event.request);
         if (cachedResponse) {
           console.log(`📦 [SW] API Cache hit: ${url.pathname}`);
           return cachedResponse;
         }
         
-        // Fallback: retourner une réponse offline générique
+        // Retourner une réponse offline structurée
         return new Response(JSON.stringify({
-          error: 'offline',
-          message: 'Vous êtes hors-ligne. Les données affichées sont en cache.'
+          offline: true,
+          message: "Mode hors-ligne - Données en cache",
+          timestamp: Date.now()
         }), {
-          status: 503,
+          status: 200,
           headers: { 'Content-Type': 'application/json' }
         });
       })
@@ -130,7 +139,7 @@ self.addEventListener('fetch', (event) => {
   }
   
   // ============================================================
-  // 2. IMAGES (Cache first)
+  // 3. IMAGES (Cache first avec fallback)
   // ============================================================
   if (event.request.destination === 'image') {
     event.respondWith(
@@ -146,7 +155,6 @@ self.addEventListener('fetch', (event) => {
           return network;
         });
       }).catch(() => {
-        // Image par défaut hors-ligne
         return caches.match('/sante-plus-frontend/assets/images/logo-general-icon.png');
       })
     );
@@ -154,7 +162,7 @@ self.addEventListener('fetch', (event) => {
   }
   
   // ============================================================
-  // 3. ASSETS STATIQUES (Cache first)
+  // 4. ASSETS STATIQUES (Cache first)
   // ============================================================
   event.respondWith(
     caches.match(event.request).then(cached => {
@@ -172,18 +180,18 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        // Fallback: page offline personnalisée
+        // Fallback pour les pages HTML
         if (url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname === './') {
           return caches.match('./offline.html');
         }
-        return new Response('Vous êtes hors-ligne', { status: 503 });
+        return new Response('Page non disponible hors-ligne', { status: 503 });
       });
     })
   );
 });
 
 // ============================================================
-// 4. NOTIFICATION CLICK
+// 5. NOTIFICATION CLICK
 // ============================================================
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
@@ -201,4 +209,19 @@ self.addEventListener("notificationclick", function (event) {
         }
       })
   );
+});
+
+// ============================================================
+// 6. SYNC BACKGROUND (pour les requêtes en attente)
+// ============================================================
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-queued-requests') {
+    event.waitUntil(
+      clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SYNC_REQUIRED' });
+        });
+      })
+    );
+  }
 });
