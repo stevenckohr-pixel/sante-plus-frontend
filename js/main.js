@@ -1500,150 +1500,130 @@ function renderMobileHub() {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
     
-    // Couleurs de branding
-    const primaryBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+    // Couleurs de branding (vives, pas fades)
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
+    const primaryText = isMaman ? '#881337' : '#064E3B';
+    const gradientFrom = isMaman ? '#E11D48' : '#059669';
+    const gradientTo = isMaman ? '#BE123C' : '#047857';
     
-    // Texte de la bannière
-    let bannerText = "";
-    let bannerIcon = "";
-    let bannerDesc = "";
-    let bannerBg = "";
+    // Bannière
+    let bannerIcon = isMaman ? 'fa-baby-carriage' : (isSenior ? 'fa-crown' : 'fa-chart-pie');
+    let bannerDesc = isMaman ? "Soutien et bien-être pour maman et bébé" : (isSenior ? "Maintien à domicile et soins au quotidien" : "Gestion complète de la plateforme");
     
-    if (isMaman) {
-        bannerText = "🌸 Programme Maman & Bébé";
-        bannerIcon = "fa-baby-carriage";
-        bannerDesc = "Soutien et bien-être pour maman et bébé";
-        bannerBg = "bg-gradient-to-r from-pink-50 to-pink-100 border-pink-200";
-    } else if (isSenior) {
-        bannerText = "⭐ Programme Sénior";
-        bannerIcon = "fa-crown";
-        bannerDesc = "Maintien à domicile et soins au quotidien";
-        bannerBg = "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-200";
-    } else if (userRole === "COORDINATEUR") {
-        bannerText = "📊 Tableau de bord";
-        bannerIcon = "fa-chart-pie";
-        bannerDesc = "Gestion complète de la plateforme";
-        bannerBg = "bg-gradient-to-r from-slate-50 to-slate-100 border-slate-200";
-    } else {
-        bannerText = "⭐ Programme Premium";
-        bannerIcon = "fa-crown";
-        bannerDesc = "Accès prioritaire aux soins";
-        bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
-    }
-    
-const menuItems = [
-    { id: isMaman ? 'dashboard-maman' : 'dashboard', label: isMaman ? 'Accueil' : 'Dashboard', desc: isMaman ? 'Suivi quotidien' : 'Statistiques', icon: 'fa-chart-pie', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE'] },
-    { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-    { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-    { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-    { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-    { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-    { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', color: 'text-blue-600', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'AIDANT'] },
-    { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', color: 'text-pink-500', bg: 'bg-pink-50', roles: ['FAMILLE'] },
-    { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', color: 'text-purple-600', bg: 'bg-purple-50', roles: ['COORDINATEUR'] },
-    { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', color: 'text-indigo-600', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
-    { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE'] },
-    { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
-    { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', color: 'text-purple-500', bg: 'bg-purple-50', roles: ['FAMILLE'] },
-    { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
-];
+    // Menu items modernisés
+    const menuItems = [
+        { id: isMaman ? 'dashboard-maman' : 'dashboard', label: isMaman ? 'Accueil' : 'Dashboard', desc: isMaman ? 'Suivi quotidien' : 'Statistiques', icon: 'fa-home', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
+        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
+        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
+        { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', roles: ['FAMILLE'] },
+        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+    ];
 
     // Filtrer selon le rôle
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
-    // Générer le HTML
+    // Générer le HTML moderne
     container.innerHTML = `
-        <div class="animate-fadeIn pb-32">
-            <!-- Bannière Branding -->
-            <div class="${bannerBg} p-5 rounded-2xl mb-8 shadow-md border">
-                <div class="flex items-center justify-between">
+        <div class="animate-fadeIn pb-32" style="background: #F8FAFC;">
+            <!-- Bannière moderne avec gradient -->
+            <div style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); border-radius: 24px; padding: 24px; margin-bottom: 24px; color: white;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center">
-                                <i class="fa-solid ${bannerIcon} ${isMaman ? 'text-pink-500' : 'text-emerald-500'} text-sm"></i>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                            <div style="background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid ${bannerIcon}" style="color: white; font-size: 14px;"></i>
                             </div>
-                            <span class="text-[8px] font-black uppercase tracking-wider text-slate-500">${bannerText}</span>
+                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.8;">BIENVENUE</span>
                         </div>
-                        <p class="text-xl font-black ${isMaman ? 'text-pink-600' : 'text-emerald-700'}">
-                            ${userName?.split(' ')[0] || 'Utilisateur'}
-                        </p>
-                        <p class="text-[10px] text-slate-500 mt-0.5">${bannerDesc}</p>
+                        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 4px;">${userName?.split(' ')[0] || 'Utilisateur'}</h2>
+                        <p style="font-size: 12px; opacity: 0.9;">${bannerDesc}</p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-gradient-to-br ${isMaman ? 'from-pink-400 to-pink-600' : 'from-emerald-400 to-emerald-600'} flex items-center justify-center shadow-lg">
-                        <i class="fa-solid fa-gem text-white text-lg"></i>
+                    <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                        <i class="fa-regular fa-bell" style="color: white; font-size: 20px;"></i>
+                        <span id="mobile-notif-badge" style="position: absolute; top: -4px; right: -4px; background: #EF4444; color: white; font-size: 9px; font-weight: 800; min-width: 18px; height: 18px; border-radius: 18px; display: none; align-items: center; justify-content: center; border: 2px solid white;">0</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Barre de recherche -->
-            <div class="bg-white border border-slate-100 p-3 rounded-xl flex items-center gap-3 mb-8 shadow-sm">
-                <i class="fa-solid fa-magnifying-glass text-slate-300 text-sm"></i>
-                <input type="text" id="mobile-search" placeholder="Rechercher..." class="bg-transparent border-none outline-none text-sm font-medium w-full">
+            <!-- Section rapide (stats ou infos) -->
+            <div style="background: white; border-radius: 20px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <p style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : 'Prochaine intervention'}</p>
+                        <p style="font-size: 14px; font-weight: 600; color: #1E293B; margin-top: 4px;">${isMaman ? 'Aujourd'hui, 10h30' : 'À venir'}</p>
+                    </div>
+                    <div style="background: ${primaryLight}; padding: 6px 12px; border-radius: 20px;">
+                        <span style="font-size: 10px; font-weight: 700; color: ${primaryColor};">${isMaman ? 'Visite prévue' : 'Planifié'}</span>
+                    </div>
+                </div>
             </div>
             
             <!-- Titre menu -->
-            <h4 class="text-[10px] font-black uppercase tracking-wider mb-4 ml-1 ${isMaman ? 'text-pink-400' : 'text-emerald-400'}">
-                MENU PRINCIPAL
-            </h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h4 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${primaryColor};">MENU PRINCIPAL</h4>
+                <span style="font-size: 9px; color: #94A3B8;">${filteredMenu.length} services</span>
+            </div>
             
-            <!-- Grille menu -->
-            <div class="grid grid-cols-2 gap-4" id="menu-grid">
+            <!-- Grille menu moderne -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
                 ${filteredMenu.map((item, index) => `
                     <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
-                         class="menu-tile relative cursor-pointer hover-lift bg-white border border-slate-100 rounded-2xl p-4 shadow-sm transition-all hover:shadow-md active:scale-95" 
-                         style="animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0;">
-                        <div class="${item.bg} w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all">
-                            <i class="fa-solid ${item.icon} ${item.color} text-xl"></i>
+                         style="background: white; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; border: 1px solid #E2E8F0; box-shadow: 0 1px 2px rgba(0,0,0,0.02); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
+                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';"
+                         onmousedown="this.style.transform='scale(0.98)'"
+                         onmouseup="this.style.transform='translateY(-2px)'">
+                        <div style="background: ${primaryLight}; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                            <i class="fa-solid ${item.icon}" style="color: ${primaryColor}; font-size: 20px;"></i>
                         </div>
                         <div>
-                            <p class="font-black text-slate-800 text-sm">${item.label}</p>
-                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">${item.desc}</p>
+                            <p style="font-weight: 700; color: #1E293B; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
+                            <p style="font-size: 10px; color: #64748B;">${item.desc}</p>
                         </div>
-                        <span class="menu-badge hidden absolute -top-2 -right-2 text-white text-[10px] font-black rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5 shadow-md border-2 border-white"></span>
+                        <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
                     </div>
                 `).join('')}
             </div>
             
             <!-- Badge de marque -->
-            <div class="text-center mt-8 pt-4 border-t border-slate-100">
-                <p class="text-[8px] font-black uppercase tracking-wider text-slate-300">
-                    Santé Plus Services — <span class="${isMaman ? 'text-pink-400' : 'text-emerald-400'}">Élite</span>
+            <div style="text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #E2E8F0;">
+                <p style="font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #CBD5E1;">
+                    Santé Plus Services — <span style="color: ${primaryColor};">Élite</span>
                 </p>
             </div>
         </div>
     `;
     
     // ============================================
-    // GESTION DES BADGES
+    // GESTION DES BADGES (version moderne)
     // ============================================
     
-    /**
-     * Mettre à jour un badge individuel
-     */
-    function updateBadgeUI(menuId, count, colorClass) {
-        const tile = document.querySelector(`.menu-tile[data-menu="${menuId}"]`);
+    function updateBadgeUI(menuId, count) {
+        const tile = document.querySelector(`[data-menu="${menuId}"]`);
         if (!tile) return;
         
-        let badge = tile.querySelector('.menu-badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'menu-badge hidden';
-            tile.appendChild(badge);
-        }
+        const badge = tile.querySelector('.menu-badge');
+        if (!badge) return;
         
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
-            badge.className = `menu-badge absolute -top-2 -right-2 ${colorClass} text-white text-[10px] font-black rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1.5 shadow-md border-2 border-white`;
-            badge.classList.remove('hidden');
+            badge.style.display = 'flex';
             badge.style.animation = 'badgePop 0.3s cubic-bezier(0.34, 1.2, 0.64, 1)';
         } else {
-            badge.classList.add('hidden');
+            badge.style.display = 'none';
         }
     }
     
-    /**
-     * Rafraîchir tous les badges
-     */
     async function refreshBadges() {
         try {
             let messagesCount = 0;
@@ -1654,7 +1634,7 @@ const menuItems = [
             const currentUserId = localStorage.getItem("user_id");
             const userRole = localStorage.getItem("user_role");
             
-            // 1. Messages non lus (badge Journal)
+            // 1. Messages non lus
             if (AppState.currentPatient) {
                 const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
                 const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
@@ -1667,13 +1647,11 @@ const menuItems = [
                 } else if (otherMessages.length > 0) {
                     messagesCount = otherMessages.length;
                 }
-                console.log(`📬 Messages non lus (autres): ${messagesCount}`);
             }
             
-            // 2. Commandes en attente
+            // 2. Commandes
             try {
                 const commandes = await secureFetch("/commandes", { noCache: true });
-                
                 if (userRole === "COORDINATEUR") {
                     commandesCount = commandes.filter(c => c.statut === "Livrée").length;
                 } else if (userRole === "AIDANT") {
@@ -1681,53 +1659,45 @@ const menuItems = [
                 } else if (userRole === "FAMILLE") {
                     commandesCount = commandes.filter(c => c.statut === "En attente" || c.statut === "En cours de livraison").length;
                 }
-                console.log(`📦 Commandes à traiter: ${commandesCount}`);
-            } catch (err) {
-                console.error("Erreur chargement commandes:", err);
-            }
+            } catch (err) {}
             
-            // 3. Visites à valider
+            // 3. Visites à valider (Coordinateur)
             if (userRole === "COORDINATEUR") {
                 try {
                     const visites = await secureFetch("/visites", { noCache: true });
                     visitesCount = visites.filter(v => v.statut === "En attente").length;
-                    console.log(`📋 Visites à valider: ${visitesCount}`);
-                } catch (err) {
-                    console.error("Erreur chargement visites:", err);
-                }
+                } catch (err) {}
             }
             
-            // 4. Notifications système
+            // 4. Notifications
             try {
                 const notifications = await secureFetch("/notifications", { noCache: true });
                 notificationsCount = notifications.filter(n => !n.read && n.user_id === currentUserId).length;
-                console.log(`🔔 Notifications non lues: ${notificationsCount}`);
-            } catch (err) {
-                console.error("Erreur chargement notifications:", err);
-            }
-            
-            // 5. Mettre à jour les badges des tuiles
-            updateBadgeUI('feed', messagesCount, 'bg-rose-500');
-            updateBadgeUI('commandes', commandesCount, 'bg-amber-500');
-            updateBadgeUI('visits', visitesCount, 'bg-blue-500');
-            
-            // 6. Mettre à jour la cloche
-            const headerBadge = document.getElementById('notification-badge');
-            if (headerBadge) {
-                if (notificationsCount > 0) {
-                    headerBadge.style.display = 'flex';
+                
+                const headerBadge = document.getElementById('notification-badge');
+                if (headerBadge) {
+                    headerBadge.style.display = notificationsCount > 0 ? 'flex' : 'none';
                     headerBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
-                } else {
-                    headerBadge.style.display = 'none';
                 }
-            }
+                
+                const mobileBadge = document.getElementById('mobile-notif-badge');
+                if (mobileBadge) {
+                    mobileBadge.style.display = notificationsCount > 0 ? 'flex' : 'none';
+                    mobileBadge.textContent = notificationsCount > 9 ? '9+' : notificationsCount;
+                }
+            } catch (err) {}
+            
+            // Mettre à jour les badges
+            updateBadgeUI('feed', messagesCount);
+            updateBadgeUI('commandes', commandesCount);
+            updateBadgeUI('visits', visitesCount);
             
         } catch (err) {
             console.error("❌ Erreur refreshBadges:", err);
         }
     }
     
-    // Charger les badges au démarrage
+    // Charger les badges
     refreshBadges();
     
     // Rafraîchir périodiquement
@@ -1735,32 +1705,29 @@ const menuItems = [
         if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
             refreshBadges();
         }
-    }, 120000);
+    }, 60000);
     
     document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") {
-            refreshBadges();
-        }
+        if (document.visibilityState === "visible") refreshBadges();
     });
     
-    window.addEventListener('beforeunload', () => {
-        clearInterval(intervalId);
-    });
+    window.addEventListener('beforeunload', () => clearInterval(intervalId));
     
     // Recherche
     const searchInput = document.getElementById('mobile-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
-            const tiles = document.querySelectorAll('.menu-tile');
+            const tiles = document.querySelectorAll('#menu-grid > div');
             tiles.forEach(tile => {
-                const label = tile.querySelector('p.font-black')?.innerText.toLowerCase() || '';
-                const desc = tile.querySelector('p.text-slate-400')?.innerText.toLowerCase() || '';
-                tile.style.display = (label.includes(searchTerm) || desc.includes(searchTerm)) ? 'flex' : 'none';
+                const label = tile.querySelector('p:first-of-type')?.innerText.toLowerCase() || '';
+                const desc = tile.querySelector('p:last-of-type')?.innerText.toLowerCase() || '';
+                tile.style.display = (label.includes(searchTerm) || desc.includes(searchTerm)) ? 'block' : 'none';
             });
         });
     }
 }
+
 
 // ✅ Exposer la fonction pour rafraîchir les badges
 window.refreshMenuBadges = () => {
