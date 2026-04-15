@@ -2,6 +2,7 @@ import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI, compressImage } from "../core/utils.js";
 import { syncService } from "../core/syncService.js";
+import db from '../core/db.js';
 
 // ============================================================
 // VARIABLES GLOBALES
@@ -1268,13 +1269,17 @@ async function loadFeed() {
     if (input) {
         input.addEventListener('input', () => {
             if (!AppState.currentPatient) return;
-            window.Realtime.sendTyping({ 
-                patient_id: AppState.currentPatient, 
-                user_id: localStorage.getItem("user_id") 
-            });
+            if (window.Realtime && window.Realtime.sendTyping) {
+                window.Realtime.sendTyping({ 
+                    patient_id: AppState.currentPatient, 
+                    user_id: localStorage.getItem("user_id") 
+                });
+            }
             clearTimeout(typingTimeout);
             typingTimeout = setTimeout(() => {
-                window.Realtime.stopTyping({ patient_id: AppState.currentPatient });
+                if (window.Realtime && window.Realtime.stopTyping) {
+                    window.Realtime.stopTyping({ patient_id: AppState.currentPatient });
+                }
             }, 2000);
         });
         
@@ -1302,9 +1307,64 @@ async function loadFeed() {
 
     cleanupRealtime();
 
+    // ============================================================
+    // 🚀 CHARGEMENT AVEC CACHE INDEXEDDB
+    // ============================================================
+    let data = null;
+    let fromCache = false;
+    
     try {
-        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, { noCache: true });
+        // Tentative de chargement depuis le réseau
+        data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, { noCache: true });
+        console.log(`✅ ${data.length} messages chargés depuis le réseau`);
         
+        // Sauvegarder en IndexedDB pour l'offline
+        if (db && db.isReady) {
+            await db.saveMessages(AppState.currentPatient, data);
+            console.log("💾 Messages sauvegardés en IndexedDB");
+        }
+        
+    } catch (networkError) {
+        console.warn("⚠️ Erreur réseau, tentative de chargement depuis IndexedDB:", networkError.message);
+        
+        // Fallback: charger depuis IndexedDB
+        if (db && db.isReady) {
+            const cachedMessages = await db.getMessages(AppState.currentPatient);
+            if (cachedMessages && cachedMessages.length > 0) {
+                data = cachedMessages;
+                fromCache = true;
+                console.log(`📦 ${data.length} messages chargés depuis IndexedDB (mode offline)`);
+                
+                // Afficher un toast informatif
+                if (window.showToast) {
+                    window.showToast("Mode hors-ligne - Affichage des messages en cache", "info", 3000);
+                }
+            } else {
+                throw new Error("Aucun message en cache disponible");
+            }
+        } else {
+            throw networkError;
+        }
+    }
+    
+    if (!data || data.length === 0) {
+        // Aucun message, afficher un message vide
+        const contentDiv = document.getElementById('care-feed-content');
+        if (contentDiv) {
+            contentDiv.innerHTML = `
+                <div class="flex justify-center py-20">
+                    <div class="text-center">
+                        <i class="fa-regular fa-comment-dots text-4xl text-slate-300 mb-3"></i>
+                        <p class="text-sm font-bold text-slate-400">Aucun message</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Soyez le premier à envoyer un message</p>
+                    </div>
+                </div>
+            `;
+        }
+        return;
+    }
+    
+    try {
         // 🔥 S'assurer que chaque message a un sender_id correct
         const currentUserId = localStorage.getItem("user_id");
         AppState.messages = data.map(msg => ({
@@ -1337,30 +1397,33 @@ async function loadFeed() {
         initRealtimeForCurrentPatient();
         renderFeed();
 
-        const now = new Date().toISOString();
-        localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
+        // Ne marquer comme lu que si on est en ligne (pas depuis le cache)
+        if (!fromCache) {
+            const now = new Date().toISOString();
+            localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
 
-        try {
-            await secureFetch('/messages/mark-read', {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    patient_id: AppState.currentPatient, 
-                    user_id: localStorage.getItem("user_id") 
-                })
-            });
-            console.log("👁️ Messages marqués comme lus (backend)");
-            
-            if (AppState.currentPatient && AppState.unreadByPatient) {
-                AppState.unreadByPatient[AppState.currentPatient] = 0;
+            try {
+                await secureFetch('/messages/mark-read', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        patient_id: AppState.currentPatient, 
+                        user_id: localStorage.getItem("user_id") 
+                    })
+                });
+                console.log("👁️ Messages marqués comme lus (backend)");
+                
+                if (AppState.currentPatient && AppState.unreadByPatient) {
+                    AppState.unreadByPatient[AppState.currentPatient] = 0;
+                }
+                
+                updatePatientBadges();
+                
+                if (typeof window.refreshMenuBadges === 'function') {
+                    setTimeout(() => window.refreshMenuBadges(), 100);
+                }
+            } catch (err) { 
+                console.error("Erreur mark-read:", err); 
             }
-            
-            updatePatientBadges();
-            
-            if (typeof window.refreshMenuBadges === 'function') {
-                setTimeout(() => window.refreshMenuBadges(), 100);
-            }
-        } catch (err) { 
-            console.error("Erreur mark-read:", err); 
         }
         
         unreadMessagesCount = 0;
@@ -1377,7 +1440,7 @@ async function loadFeed() {
         }
 
     } catch (err) {
-        console.error("Erreur Feed:", err);
+        console.error("Erreur traitement Feed:", err);
         const contentDiv = document.getElementById('care-feed-content');
         if (contentDiv) {
             contentDiv.innerHTML = `
