@@ -43,6 +43,13 @@ export async function loadMamanDashboard() {
         calculateProgress(patientId)
     ]);
 
+    // Calculer les stats pour les graphiques circulaires
+    const feedingStats = calculateFeedingStats(feedingHistory);
+    const sleepStats = calculateSleepStats(sleepHistory);
+    const diaperCount = babyMetrics?.diapers || 0;
+    const diaperTarget = 8;
+    const diaperPercentage = Math.min(100, Math.round((diaperCount / diaperTarget) * 100));
+
     // Formater les données
     const formatFeedingTime = (hours) => {
         if (!hours) return '--';
@@ -108,9 +115,9 @@ export async function loadMamanDashboard() {
                 </div>
             </div>
 
-            <!-- MÉTRIQUES BÉBÉ (4 cartes cliquables) -->
+            <!-- MÉTRIQUES BÉBÉ (4 cartes lecture seule) -->
             <div class="grid grid-cols-2 gap-3 mb-5">
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
                     <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-baby-bottle text-pink-500 text-base"></i>
                     </div>
@@ -120,7 +127,7 @@ export async function loadMamanDashboard() {
                     <span class="text-[7px] text-pink-400">${feedingTrend}</span>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" >
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-moon text-blue-500 text-base"></i>
                     </div>
@@ -130,7 +137,7 @@ export async function loadMamanDashboard() {
                     <span class="text-[7px] text-pink-400">${sleepTrend}</span>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
                     <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-droplet text-amber-500 text-base"></i>
                     </div>
@@ -139,7 +146,7 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">changées aujourd'hui</p>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-chart-line text-emerald-500 text-base"></i>
                     </div>
@@ -147,6 +154,59 @@ export async function loadMamanDashboard() {
                     <p class="text-xl font-black text-slate-800">${formatWeight(babyMetrics?.weight)}</p>
                     <p class="text-[9px] text-slate-400">cette semaine</p>
                     <span class="text-[7px] text-pink-400">${weightProgress}</span>
+                </div>
+            </div>
+
+            <!-- GRAPHIQUES CIRCULAIRES (DONUTS) -->
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <!-- Camembert Tétées -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-pink-100 text-center">
+                    <div class="relative mx-auto" style="width: 100px; height: 100px;">
+                        <canvas id="feeding-donut" width="100" height="100" style="width: 100px; height: 100px;"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-xl font-black text-slate-800">${feedingStats.avg}</span>
+                            <span class="text-[8px] text-slate-400">heures</span>
+                        </div>
+                    </div>
+                    <p class="text-[9px] font-bold text-slate-700 mt-2">🍼 Tétées</p>
+                    <p class="text-[8px] text-slate-400">moyenne/jour</p>
+                </div>
+
+                <!-- Camembert Sommeil -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-pink-100 text-center">
+                    <div class="relative mx-auto" style="width: 100px; height: 100px;">
+                        <canvas id="sleep-donut" width="100" height="100" style="width: 100px; height: 100px;"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-xl font-black text-slate-800">${sleepStats.avg}</span>
+                            <span class="text-[8px] text-slate-400">heures</span>
+                        </div>
+                    </div>
+                    <p class="text-[9px] font-bold text-slate-700 mt-2">😴 Sommeil</p>
+                    <p class="text-[8px] text-slate-400">moyenne/jour</p>
+                </div>
+            </div>
+
+            <!-- Camembert Couches (pleine largeur) -->
+            <div class="bg-white rounded-2xl p-4 mb-5 shadow-sm border border-pink-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase">🧷 Couches</p>
+                        <p class="text-2xl font-black text-slate-800">${diaperCount}</p>
+                        <p class="text-[8px] text-slate-400">aujourd'hui</p>
+                    </div>
+                    <div class="relative" style="width: 80px; height: 80px;">
+                        <canvas id="diapers-donut" width="80" height="80" style="width: 80px; height: 80px;"></canvas>
+                    </div>
+                </div>
+                <div class="flex justify-around mt-3 pt-2 border-t border-slate-100">
+                    <div class="text-center">
+                        <span class="text-[11px] font-black text-amber-600">${diaperPercentage}%</span>
+                        <p class="text-[7px] text-slate-400">de l'objectif</p>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-[11px] font-black text-emerald-600">${Math.max(0, diaperTarget - diaperCount)}</span>
+                        <p class="text-[7px] text-slate-400">restantes</p>
+                    </div>
                 </div>
             </div>
 
@@ -158,13 +218,13 @@ export async function loadMamanDashboard() {
                     <span class="text-[9px] text-pink-500 font-bold">${getProgressMessage(weightHistory)}</span>
                 </div>
                 <canvas id="weight-chart" height="160" style="max-height: 160px;"></canvas>
-                <p class="text-[8px] text-slate-400 text-center mt-2">👆 Cliquez sur la carte Croissance pour ajouter une mesure</p>
+                <p class="text-[8px] text-slate-400 text-center mt-2">Les mesures sont prises par l'accompagnatrice lors des visites</p>
             </div>
             ` : `
             <div class="bg-white rounded-2xl p-5 mb-5 shadow-sm border border-pink-100 text-center">
                 <i class="fa-solid fa-chart-line text-3xl text-slate-300 mb-2"></i>
-                <p class="text-xs text-slate-400">Ajoutez des mesures de poids pour voir la courbe d'évolution</p>
-                <button  class="mt-3 text-pink-500 text-[10px] font-bold">+ Ajouter un poids</button>
+                <p class="text-xs text-slate-400">Aucune mesure de poids pour le moment</p>
+                <p class="text-[9px] text-slate-400 mt-1">L'accompagnatrice enregistrera le poids lors des visites</p>
             </div>
             `}
 
@@ -265,13 +325,105 @@ export async function loadMamanDashboard() {
         </div>
     `;
 
-    // Dessiner les graphiques après le rendu
-    setTimeout(() => {
-        if (weightHistory.length > 1) drawWeightChart(weightHistory);
-        if (feedingHistory.length > 1 || sleepHistory.length > 1) drawMiniCharts(feedingHistory, sleepHistory);
-    }, 100);
+    // Dessiner tous les graphiques après le rendu
+setTimeout(() => {
+    // Graphique de poids
+    if (weightHistory.length > 1) drawWeightChart(weightHistory);
+    
+    // Graphique linéaire tétées vs sommeil
+    if (feedingHistory.length > 1 || sleepHistory.length > 1) drawMiniCharts(feedingHistory, sleepHistory);
+    
+    // 🍩 GRAPHIQUES CIRCULAIRES AVEC TEXTE AU CENTRE
+    drawDonutChart('feeding-donut', feedingStats.percentage, '#F472B6', '#FBCFE8', `${feedingStats.avg}h`);
+    drawDonutChart('sleep-donut', sleepStats.percentage, '#60A5FA', '#BFDBFE', `${sleepStats.avg}h`);
+    drawDonutChart('diapers-donut', diaperPercentage, '#F59E0B', '#FDE68A', `${diaperCount}`);
+    
+}, 100);
 
     await updateMamanNotifications();
+}
+
+// ============================================================
+// FONCTIONS POUR LES GRAPHIQUES CIRCULAIRES
+// ============================================================
+
+/**
+ * 📊 CALCULER LES STATISTIQUES DE TÉTÉES
+ */
+function calculateFeedingStats(data) {
+    if (!data.length) return { avg: 0, percentage: 0 };
+    const avg = (data.reduce((a, b) => a + b.value, 0) / data.length).toFixed(1);
+    const percentage = Math.min(100, Math.round((parseFloat(avg) / 4) * 100));
+    return { avg: parseFloat(avg), percentage: percentage };
+}
+
+/**
+ * 📊 CALCULER LES STATISTIQUES DE SOMMEIL
+ */
+function calculateSleepStats(data) {
+    if (!data.length) return { avg: 0, percentage: 0 };
+    const avg = (data.reduce((a, b) => a + b.value, 0) / data.length).toFixed(1);
+    const percentage = Math.min(100, Math.round((parseFloat(avg) / 12) * 100));
+    return { avg: parseFloat(avg), percentage: percentage };
+}
+
+/**
+ * 🍩 DESSINER UN CAMEMBERT (DONUT)
+ */
+/**
+ * 🍩 DESSINER UN CAMEMBERT (DONUT)
+ * @param {string} canvasId - ID du canvas
+ * @param {number} percentage - Pourcentage (0-100)
+ * @param {string} color1 - Couleur principale
+ * @param {string} color2 - Couleur de fond
+ * @param {string} centerText - Texte optionnel au centre
+ */
+function drawDonutChart(canvasId, percentage, color1, color2, centerText = null) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 5;
+    
+    // Nettoyer
+    ctx.clearRect(0, 0, width, height);
+    
+    // Cercle de fond
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color2;
+    ctx.fill();
+    
+    // Cercle de progression (seulement si percentage > 0)
+    if (percentage > 0) {
+        const startAngle = -0.5 * Math.PI;
+        const endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
+        
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.lineTo(centerX, centerY);
+        ctx.fillStyle = color1;
+        ctx.fill();
+    }
+    
+    // Trou intérieur (effet donut)
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius * 0.65, 0, 2 * Math.PI);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    
+    // Texte au centre
+    if (centerText) {
+        ctx.font = `bold ${radius * 0.4}px system-ui`;
+        ctx.fillStyle = '#1E293B';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(centerText, centerX, centerY);
+    }
 }
 
 // ============================================================
