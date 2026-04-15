@@ -33,11 +33,7 @@ import * as Notifications from "./modules/notifications.js";
 // ============================================================
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-// Vues à charger immédiatement (pas de lazy loading)
-const CRITICAL_VIEWS = ['home', 'patients', 'dashboard'];
 
-// Dans performViewSwitch, pour les vues critiques, on charge normalement
-const isCritical = CRITICAL_VIEWS.includes(viewName);
 
 
 const moduleCache = {};
