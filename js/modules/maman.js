@@ -161,6 +161,209 @@ export async function loadMamanDashboard() {
     await updateMamanNotifications();
 }
 
+
+
+
+/**
+ * 📅 CHARGER LE PLANNING DES VISITES MAMAN
+ */
+export async function loadMamanPlanning() {
+    const container = document.getElementById("view-container");
+    if (!container) return;
+
+    try {
+        const visites = await secureFetch("/visites");
+        const planning = visites.filter(v => v.statut === "Planifié" || v.statut === "En cours");
+        
+        // Grouper par date
+        const groupedByDate = {};
+        planning.forEach(visit => {
+            const date = new Date(visit.heure_debut).toLocaleDateString('fr-FR');
+            if (!groupedByDate[date]) groupedByDate[date] = [];
+            groupedByDate[date].push(visit);
+        });
+
+        container.innerHTML = `
+            <div class="maman-planning-container">
+                <div class="flex items-center gap-4 mb-6">
+                    <button onclick="window.switchView('home')" 
+                            class="w-10 h-10 rounded-full bg-white shadow-sm border border-pink-100 flex items-center justify-center">
+                        <i class="fa-solid fa-arrow-left text-pink-500"></i>
+                    </button>
+                    <div>
+                        <h3 class="font-black text-xl text-slate-800">Mon Planning</h3>
+                        <p class="text-[10px] text-pink-500 font-bold uppercase tracking-wider">Visites à domicile</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    ${Object.entries(groupedByDate).length === 0 ? `
+                        <div class="text-center py-16 bg-white rounded-2xl border border-pink-100">
+                            <i class="fa-solid fa-calendar-check text-4xl text-pink-200 mb-3"></i>
+                            <p class="text-slate-400">Aucune visite planifiée</p>
+                            <p class="text-[10px] text-slate-300 mt-1">Votre accompagnatrice viendra bientôt</p>
+                        </div>
+                    ` : Object.entries(groupedByDate).map(([date, visits]) => `
+                        <div class="bg-white rounded-2xl border border-pink-100 overflow-hidden">
+                            <div class="bg-pink-50 px-4 py-2 border-b border-pink-100">
+                                <p class="font-bold text-pink-600 text-sm">${formatDateHeader(date)}</p>
+                            </div>
+                            <div class="divide-y divide-pink-50">
+                                ${visits.map(visit => `
+                                    <div class="p-4 flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-12 h-12 rounded-xl bg-pink-100 flex items-center justify-center">
+                                                <i class="fa-solid fa-user-nurse text-pink-500 text-lg"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-slate-800">${visit.aidant?.nom || 'Accompagnatrice'}</p>
+                                                <p class="text-[10px] text-slate-400">${visit.heure_prevue || '10:00'} • ${visit.statut}</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="window.viewVisitDetails('${visit.id}')" 
+                                                    class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                                                <i class="fa-solid fa-eye text-slate-500 text-xs"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- Rappel push -->
+                <div class="fixed bottom-20 right-4 z-50">
+                    <button onclick="window.enableVisitReminders()" 
+                            class="w-12 h-12 rounded-full bg-pink-500 shadow-lg flex items-center justify-center active:scale-95 transition-all">
+                        <i class="fa-regular fa-bell text-white text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Ajouter les styles
+        addMamanPlanningStyles();
+
+    } catch (err) {
+        console.error("Erreur chargement planning:", err);
+        container.innerHTML = `<div class="text-center py-20 text-rose-500">Erreur: ${err.message}</div>`;
+    }
+}
+
+/**
+ * 📅 FORMATER L'EN-TÊTE DE DATE
+ */
+function formatDateHeader(dateStr) {
+    const today = new Date().toLocaleDateString('fr-FR');
+    const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('fr-FR');
+    
+    if (dateStr === today) return "Aujourd'hui";
+    if (dateStr === tomorrow) return "Demain";
+    return dateStr;
+}
+
+/**
+ * 🎨 AJOUTER LES STYLES DU PLANNING MAMAN
+ */
+function addMamanPlanningStyles() {
+    if (document.getElementById('maman-planning-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'maman-planning-styles';
+    style.textContent = `
+        .maman-planning-container {
+            padding: 20px;
+            background: #FDF2F8;
+            min-height: 100%;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+/**
+ * 🔔 ACTIVER LES RAPPELS DE VISITE
+ */
+window.enableVisitReminders = async () => {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+        Swal.fire({
+            icon: "success",
+            title: "Rappels activés",
+            text: "Vous recevrez une notification avant chaque visite",
+            confirmButtonColor: "#DB2777",
+            timer: 2000
+        });
+        
+        // Sauvegarder la préférence
+        localStorage.setItem('maman_reminders_enabled', 'true');
+    } else {
+        Swal.fire({
+            icon: "warning",
+            title: "Notifications désactivées",
+            text: "Activez les notifications dans les paramètres",
+            confirmButtonColor: "#DB2777"
+        });
+    }
+};
+
+/**
+ * 👁️ VOIR LES DÉTAILS D'UNE VISITE
+ */
+window.viewVisitDetails = async (visitId) => {
+    try {
+        const visites = await secureFetch("/visites");
+        const visit = visites.find(v => v.id === visitId);
+        
+        if (!visit) return;
+        
+        Swal.fire({
+            title: "Détails de la visite",
+            html: `
+                <div class="text-left space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-pink-50 rounded-xl">
+                        <div class="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center">
+                            <i class="fa-solid fa-user-nurse text-pink-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800">${visit.aidant?.nom || 'Accompagnatrice'}</p>
+                            <p class="text-[10px] text-slate-500">${visit.aidant?.telephone || 'Téléphone non renseigné'}</p>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <p class="text-[10px] font-bold text-slate-400">📍 Adresse</p>
+                        <p class="text-sm text-slate-700">${visit.patient?.adresse || 'À domicile'}</p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl">
+                        <p class="text-[10px] font-bold text-slate-400">📅 Date et heure</p>
+                        <p class="text-sm text-slate-700">${new Date(visit.heure_debut).toLocaleString('fr-FR')}</p>
+                    </div>
+                    ${visit.notes ? `
+                        <div class="p-3 bg-amber-50 rounded-xl">
+                            <p class="text-[10px] font-bold text-amber-600">📝 Note</p>
+                            <p class="text-xs text-slate-600">${visit.notes}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `,
+            confirmButtonText: "Fermer",
+            confirmButtonColor: "#DB2777",
+            customClass: { popup: 'rounded-2xl' }
+        });
+        
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+
+
+
+
+
+
+
 /**
  * 📥 RÉCUPÉRER LES DONNÉES MAMAN
  */
@@ -572,6 +775,7 @@ async function createMamanAlert(type, message, level) {
         console.error("Erreur création alerte:", err);
     }
 }
+
 
 
 export { loadMamanDashboard, updateMamanNotifications, checkForAlerts };
