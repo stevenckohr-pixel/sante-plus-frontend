@@ -1499,43 +1499,73 @@ function renderMobileHub() {
     const container = document.getElementById("view-container");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && userRole === "FAMILLE";
+    const isCoordinateur = userRole === "COORDINATEUR";
+    const isAidant = userRole === "AIDANT";
     
-    // Couleurs de branding (vives, pas fades)
+    // Couleurs dynamiques selon le rôle
     const primaryColor = isMaman ? '#E11D48' : '#059669';
     const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
-    const primaryText = isMaman ? '#881337' : '#064E3B';
-    const gradientFrom = isMaman ? '#E11D48' : '#059669';
-    const gradientTo = isMaman ? '#BE123C' : '#047857';
+    const goldColor = '#FFD700';
     
-    // Bannière
-    let bannerIcon = isMaman ? 'fa-baby-carriage' : (isSenior ? 'fa-crown' : 'fa-chart-pie');
-    let bannerDesc = isMaman ? "Soutien et bien-être pour maman et bébé" : (isSenior ? "Maintien à domicile et soins au quotidien" : "Gestion complète de la plateforme");
+    // Configuration de la bannière
+    let bannerIcon = 'fa-chart-pie';
+    let bannerDesc = "Gestion complète de la plateforme";
     
-    // Menu items modernisés
+    if (isMaman) {
+        bannerIcon = 'fa-baby-carriage';
+        bannerDesc = "Soutien et bien-être pour maman et bébé";
+    } else if (isSenior) {
+        bannerIcon = 'fa-crown';
+        bannerDesc = "Maintien à domicile et soins au quotidien";
+    } else if (isAidant) {
+        bannerIcon = 'fa-user-nurse';
+        bannerDesc = "Gestion de vos interventions";
+    } else if (isCoordinateur) {
+        bannerIcon = 'fa-chart-pie';
+        bannerDesc = "Gestion complète de la plateforme";
+    }
+    
+    // Menu items avec séparation stricte des rôles
     const menuItems = [
-        { id: isMaman ? 'dashboard-maman' : 'dashboard', label: isMaman ? 'Accueil' : 'Dashboard', desc: isMaman ? 'Suivi quotidien' : 'Statistiques', icon: 'fa-home', roles: ['COORDINATEUR', 'FAMILLE'] },
+        // Accueil / Dashboard
+        { id: isMaman ? 'dashboard-maman' : (isCoordinateur ? 'dashboard' : 'patients'), 
+          label: isMaman ? 'Accueil' : (isCoordinateur ? 'Dashboard' : (isAidant ? 'Patients' : 'Mon suivi')), 
+          desc: isMaman ? 'Suivi quotidien' : (isCoordinateur ? 'Statistiques' : 'Mes dossiers'), 
+          icon: isMaman ? 'fa-home' : (isCoordinateur ? 'fa-chart-pie' : 'fa-folder-open'), 
+          roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        
+        // Fonctions communes
         { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', label: 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
-        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
+        
+        // Facturation (Famille + Coordinateur)
         { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
+        
+        // Planning (Aidant + Coordinateur)
+        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
+        { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
+        
+        // RH (Coordinateur uniquement)
+        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
+        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
+        
+        // Éducation (Famille uniquement)
         { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', roles: ['FAMILLE'] },
+        
+        // Profil (tous)
         { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
-    // Filtrer selon le rôle
+    // Filtrer selon le rôle de l'utilisateur
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
-    // Générer le HTML moderne
+    // Générer le HTML
     container.innerHTML = `
         <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 10px;">
-            <!-- Bannière moderne -->
+            <!-- Bannière -->
             <div style="background: ${primaryColor}; border-radius: 24px; padding: 20px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
@@ -1545,25 +1575,25 @@ function renderMobileHub() {
                             </div>
                             <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.8);">BIENVENUE</span>
                         </div>
-                        <h2 style="font-size: 28px; font-weight: 800; color: white; margin-bottom: 4px;">${userName?.split(' ')[0] || 'Utilisateur'}</h2>
+                        <h2 style="font-size: 28px; font-weight: 800; color: white; margin-bottom: 4px;">${escapeHtml(userName?.split(' ')[0] || 'Utilisateur')}</h2>
                         <p style="font-size: 12px; color: rgba(255,255,255,0.9);">${bannerDesc}</p>
                     </div>
-                    <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                    <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); position: relative;">
                         <i class="fa-regular fa-bell" style="color: white; font-size: 20px;"></i>
                         <span id="mobile-notif-badge" style="position: absolute; top: -4px; right: -4px; background: #EF4444; color: white; font-size: 9px; font-weight: 800; min-width: 18px; height: 18px; border-radius: 18px; display: none; align-items: center; justify-content: center; border: 2px solid white;">0</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Section rapide (stats ou infos) -->
+            <!-- Section info rapide -->
             <div style="background: white; border-radius: 20px; padding: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <p style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : 'Prochaine intervention'}</p>
+                        <p style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : (isAidant ? 'Prochaine mission' : 'Prochaine intervention')}</p>
                         <p style="font-size: 13px; font-weight: 600; color: #1E293B; margin-top: 2px;">${isMaman ? 'Aujourd\'hui, 10h30' : 'À venir'}</p>
                     </div>
                     <div style="background: ${primaryLight}; padding: 5px 10px; border-radius: 20px;">
-                        <span style="font-size: 9px; font-weight: 700; color: ${primaryColor};">${isMaman ? 'Visite prévue' : 'Planifié'}</span>
+                        <span style="font-size: 9px; font-weight: 700; color: ${primaryColor};">${isMaman ? 'Visite prévue' : (isAidant ? 'Mission assignée' : 'Planifié')}</span>
                     </div>
                 </div>
             </div>
@@ -1571,20 +1601,21 @@ function renderMobileHub() {
             <!-- Titre menu -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h4 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${primaryColor};">MENU PRINCIPAL</h4>
-                <span style="font-size: 9px; color: white;">${filteredMenu.length} services</span>
+                <span style="font-size: 9px; color: #94A3B8;">${filteredMenu.length} services</span>
             </div>
             
-            <!-- Grille menu moderne - TUILES COLORÉES -->
+            <!-- Grille des tuiles -->
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
                 ${filteredMenu.map((item, index) => `
                     <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
+                         class="menu-tile-dynamic"
                          style="background: ${primaryColor}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
-                         onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.15)';"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
+                         ontouchstart="this.style.transform='scale(0.97)'"
+                         ontouchend="this.style.transform='scale(1)'"
                          onmousedown="this.style.transform='scale(0.97)'"
-                         onmouseup="this.style.transform='translateY(-3px)'">
+                         onmouseup="this.style.transform='scale(1)'">
                         <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                            <i class="fa-solid ${item.icon}" style="color: ${isMaman ? '#FDE68A' : '#FFD700'}; font-size: 22px;"></i>
+                            <i class="fa-solid ${item.icon}" style="color: ${goldColor}; font-size: 22px;"></i>
                         </div>
                         <div>
                             <p style="font-weight: 700; color: white; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
@@ -1594,13 +1625,31 @@ function renderMobileHub() {
                     </div>
                 `).join('')}
             </div>
-            
         </div>
     `;
     
-    // ============================================
-    // GESTION DES BADGES (version moderne)
-    // ============================================
+    // Initialiser les badges
+    initBadges();
+    
+    // Initialiser la recherche
+    initSearch();
+    
+    // Fonctions internes
+    function initBadges() {
+        refreshBadges();
+        
+        let intervalId = setInterval(() => {
+            if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
+                refreshBadges();
+            }
+        }, 60000);
+        
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") refreshBadges();
+        });
+        
+        window.addEventListener('beforeunload', () => clearInterval(intervalId));
+    }
     
     function updateBadgeUI(menuId, count) {
         const tile = document.querySelector(`[data-menu="${menuId}"]`);
@@ -1626,14 +1675,12 @@ function renderMobileHub() {
             let notificationsCount = 0;
             
             const currentUserId = localStorage.getItem("user_id");
-            const userRole = localStorage.getItem("user_role");
             
-            // 1. Messages non lus
+            // Messages non lus
             if (AppState.currentPatient) {
                 const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
                 const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
                 const currentUserName = localStorage.getItem("user_name");
-                
                 const otherMessages = messages.filter(m => m.sender_name !== currentUserName);
                 
                 if (lastRead) {
@@ -1643,7 +1690,7 @@ function renderMobileHub() {
                 }
             }
             
-            // 2. Commandes
+            // Commandes
             try {
                 const commandes = await secureFetch("/commandes", { noCache: true });
                 if (userRole === "COORDINATEUR") {
@@ -1655,7 +1702,7 @@ function renderMobileHub() {
                 }
             } catch (err) {}
             
-            // 3. Visites à valider (Coordinateur)
+            // Visites à valider (Coordinateur uniquement)
             if (userRole === "COORDINATEUR") {
                 try {
                     const visites = await secureFetch("/visites", { noCache: true });
@@ -1663,7 +1710,7 @@ function renderMobileHub() {
                 } catch (err) {}
             }
             
-            // 4. Notifications
+            // Notifications
             try {
                 const notifications = await secureFetch("/notifications", { noCache: true });
                 notificationsCount = notifications.filter(n => !n.read && n.user_id === currentUserId).length;
@@ -1681,7 +1728,6 @@ function renderMobileHub() {
                 }
             } catch (err) {}
             
-            // Mettre à jour les badges
             updateBadgeUI('feed', messagesCount);
             updateBadgeUI('commandes', commandesCount);
             updateBadgeUI('visits', visitesCount);
@@ -1691,25 +1737,10 @@ function renderMobileHub() {
         }
     }
     
-    // Charger les badges
-    refreshBadges();
-    
-    // Rafraîchir périodiquement
-    let intervalId = setInterval(() => {
-        if (AppState.currentView === 'home' && document.visibilityState === 'visible') {
-            refreshBadges();
-        }
-    }, 60000);
-    
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") refreshBadges();
-    });
-    
-    window.addEventListener('beforeunload', () => clearInterval(intervalId));
-    
-    // Recherche
-    const searchInput = document.getElementById('mobile-search');
-    if (searchInput) {
+    function initSearch() {
+        const searchInput = document.getElementById('mobile-search');
+        if (!searchInput) return;
+        
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.toLowerCase();
             const tiles = document.querySelectorAll('#menu-grid > div');
@@ -1722,6 +1753,16 @@ function renderMobileHub() {
     }
 }
 
+// Fonction utilitaire
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 
 // ✅ Exposer la fonction pour rafraîchir les badges
 window.refreshMenuBadges = () => {
@@ -2006,28 +2047,64 @@ setTimeout(() => {
 function getNavLinks(role, mode) {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isSenior = !isMaman && role === "FAMILLE";
+    const isCoordinateur = role === "COORDINATEUR";
+    const isAidant = role === "AIDANT";
+    const isFamily = role === "FAMILLE";
     
-    // 🔥 Dashboard différent pour Maman
-    const dashboardId = isMaman ? 'dashboard-maman' : 'dashboard';
-    const dashboardLabel = isMaman ? 'Accueil' : 'Dashboard';
-    const dashboardIcon = isMaman ? 'fa-home' : 'fa-chart-pie';
+    // 🔥 Dashboard différent selon le rôle
+    let dashboardId = 'dashboard';
+    let dashboardLabel = 'Dashboard';
+    let dashboardIcon = 'fa-chart-pie';
+    
+    if (isMaman && isFamily) {
+        dashboardId = 'dashboard-maman';
+        dashboardLabel = 'Accueil';
+        dashboardIcon = 'fa-home';
+    } else if (isCoordinateur) {
+        dashboardId = 'dashboard';
+        dashboardLabel = 'Dashboard';
+        dashboardIcon = 'fa-chart-pie';
+    } else if (isAidant) {
+        dashboardId = 'patients';
+        dashboardLabel = 'Patients';
+        dashboardIcon = 'fa-users';
+    } else if (isSenior) {
+        dashboardId = 'patients';
+        dashboardLabel = 'Mon proche';
+        dashboardIcon = 'fa-user';
+    }
     
     const tabs = [
-        { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE'] },
+        // 📊 Dashboard / Accueil (adapté au rôle)
+        { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        
+        // 🗺️ Fonctions communes
         { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
         { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', icon: 'fa-rss', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        { id: 'feed', icon: 'fa-newspaper', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+        
+        // 💰 Facturation (Famille + Coordinateur)
         { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
+        
+        // 📅 Planning (Aidant + Coordinateur)
         { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
+        
+        // 👥 Gestion RH (Coordinateur uniquement)
         { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
         { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
+        
+        // 👤 Profil (tous)
         { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
-    return tabs.filter(tab => tab.roles.includes(role)).map(tab => {
+    // Filtrer les onglets selon le rôle de l'utilisateur
+    const allowedTabs = tabs.filter(tab => tab.roles.includes(role));
+
+    // Générer le HTML
+    return allowedTabs.map(tab => {
         if (mode === 'mobile') {
             return `<button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
                         <i class="fa-solid ${tab.icon} text-lg"></i>
@@ -2041,7 +2118,6 @@ function getNavLinks(role, mode) {
         }
     }).join('');
 }
-
 
 
 // ============================================================
@@ -2113,6 +2189,23 @@ async function performViewSwitch(viewName) {
     if (!container) return;
 
     const userRole = localStorage.getItem("user_role");
+
+    const adminOnlyViews = ["dashboard", "aidants", "rh-dashboard", "admin"];
+    if (adminOnlyViews.includes(viewName) && userRole !== "COORDINATEUR") {
+        UI.error("Accès non autorisé");
+        window.switchView("home");
+        return;
+    }
+    
+    // 🔒 VUES RÉSERVÉES AUX AIDANTS
+    const aidantOnlyViews = ["planning", "start-visit", "end-visit"];
+    if (aidantOnlyViews.includes(viewName) && userRole !== "AIDANT") {
+        UI.error("Accès non autorisé");
+        window.switchView("home");
+        return;
+    }
+
+    
     const paymentStatus = localStorage.getItem("payment_status");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isFamily = userRole === "FAMILLE";
