@@ -22,7 +22,10 @@ export async function loadAdminDashboard() {
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
                 <div class="p-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h3 class="text-xl font-black text-slate-800">Inscriptions en attente</h3>
+                        <div class="section-title">
+                            <i class="fa-solid fa-user-plus"></i>
+                            <span>Inscriptions en attente</span>
+                        </div>
                         <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Validation des accès & Activation Duo Pack</p>
                     </div>
                     <div class="flex items-center gap-3">
@@ -56,7 +59,10 @@ export async function loadAdminDashboard() {
             <!-- Rapports de visite à valider -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
                 <div class="p-6 border-b border-slate-50">
-                    <h3 class="text-xl font-black text-slate-800">Derniers rapports de soins</h3>
+                    <div class="section-title">
+                        <i class="fa-solid fa-file-alt"></i>
+                        <span>Derniers rapports de soins</span>
+                    </div>
                     <p class="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Certification des interventions terrain</p>
                 </div>
                 <div id="pending-visits-list" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4"></div>
