@@ -1595,12 +1595,6 @@ function renderMobileHub() {
     `).join('')}
 </div>
             
-            <!-- Badge de marque -->
-            <div style="text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid #E2E8F0;">
-                <p style="font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #CBD5E1;">
-                    Santé Plus Services — <span style="color: ${primaryColor};">Élite</span>
-                </p>
-            </div>
         </div>
     `;
     
