@@ -352,5 +352,4 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// Exporter
-export { loadEducationPage };
+
