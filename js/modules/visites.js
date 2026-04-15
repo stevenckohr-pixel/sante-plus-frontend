@@ -434,9 +434,12 @@ export async function submitEndVisit() {
 export async function renderEndVisitView() {
     const container = document.getElementById("view-container");
     
-    // Récupérer les infos du patient
+    // Récupérer le patient (déjà fait dans le code existant)
     const patient = await secureFetch(`/patients/${AppState.currentPatient}`);
+    
+    // ✅ Utiliser directement la catégorie du patient
     const isMaman = patient?.categorie_service === 'MAMAN_BEBE';
+    const themeColor = isMaman ? 'pink' : 'emerald';
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-lg mx-auto pb-24">
@@ -447,7 +450,7 @@ export async function renderEndVisitView() {
                 </button>
                 <div>
                     <h3 class="font-black text-2xl text-slate-800 tracking-tight">Rapport d'Intervention</h3>
-                    <p class="text-[10px] text-${isMaman ? 'pink' : 'emerald'}-600 font-black uppercase tracking-widest mt-1">
+                    <p class="text-[10px] text-${themeColor}-600 font-black uppercase tracking-widest mt-1">
                         <i class="fa-solid fa-circle-dot animate-pulse mr-1"></i> Tracking actif
                     </p>
                 </div>
@@ -491,7 +494,7 @@ export async function renderEndVisitView() {
                 </div>
                 ` : ''}
 
-                <!-- 2. HUMEUR (toujours présent) -->
+                <!-- 2. HUMEUR -->
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Humeur du patient</label>
                     <select id="visit-humeur" class="app-input font-black text-slate-700 cursor-pointer">
@@ -510,10 +513,10 @@ export async function renderEndVisitView() {
 
                 <!-- 4. PHOTO -->
                 <div>
-                    <label class="text-[10px] font-black text-${isMaman ? 'pink' : 'emerald'}-500 uppercase tracking-widest ml-2 mb-3 block">
+                    <label class="text-[10px] font-black text-${themeColor}-500 uppercase tracking-widest ml-2 mb-3 block">
                         <i class="fa-solid fa-asterisk text-[8px] mr-1"></i> Preuve Photo requise
                     </label>
-                    <div class="relative w-full h-32 bg-slate-50 rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-${isMaman ? 'pink' : 'emerald'}-500 hover:bg-${isMaman ? 'pink' : 'emerald'}-50 transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer">
+                    <div class="relative w-full h-32 bg-slate-50 rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-${themeColor}-500 hover:bg-${themeColor}-50 transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer">
                         <input type="file" id="visit-photo" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="document.getElementById('photo-label').innerText = '📸 Photo capturée avec succès'">
                         <i class="fa-solid fa-camera text-3xl text-slate-300 mb-2"></i>
                         <p id="photo-label" class="text-xs font-black text-slate-500 uppercase tracking-widest">Prendre une photo</p>
@@ -521,7 +524,7 @@ export async function renderEndVisitView() {
                 </div>
 
                 <div class="pt-6 border-t border-slate-50 mt-4">
-                    <button onclick="window.submitEndVisitWithBabyMetrics()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-${isMaman ? 'pink' : 'emerald'}-500 transition-all active:scale-95 flex items-center justify-center gap-3">
+                    <button onclick="window.submitEndVisitWithBabyMetrics()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-${themeColor}-500 transition-all active:scale-95 flex items-center justify-center gap-3">
                         Transmettre le rapport <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
@@ -529,7 +532,6 @@ export async function renderEndVisitView() {
         </div>
     `;
 }
-
 
 
 
@@ -1121,21 +1123,3 @@ window.savePatientHomeGPS = async (patientId) => {
 };
 
 
-/**
- * 🍼 VÉRIFIER SI LE PATIENT EST UN DOSSIER MAMAN
- */
-async function isMamanPatient(patientId) {
-    try {
-        const { data, error } = await supabase
-            .from("patients")
-            .select("categorie_service")
-            .eq("id", patientId)
-            .single();
-        
-        if (error) throw error;
-        return data?.categorie_service === 'MAMAN_BEBE';
-    } catch (err) {
-        console.error("Erreur vérification catégorie:", err);
-        return false;
-    }
-}
