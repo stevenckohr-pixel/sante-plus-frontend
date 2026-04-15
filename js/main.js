@@ -3271,6 +3271,11 @@ window.renderRHDashboard = async () => {
     if (module?.renderRHDashboard) await module.renderRHDashboard();
 };
 
+window.renderFeed = async () => {
+    const module = await lazyLoadModule('messages');
+    if (module?.loadFeed) await module.loadFeed();
+};
+
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
