@@ -1668,7 +1668,8 @@ function renderMobileHub() {
             
             if (AppState.currentPatient) {
                 const lastRead = localStorage.getItem(`last_read_${AppState.currentPatient}`);
-                const messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                let messages = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
+                if (!Array.isArray(messages)) messages = messages?.data || [];
                 const currentUserName = localStorage.getItem("user_name");
                 const otherMessages = messages.filter(m => m.sender_name !== currentUserName);
                 
