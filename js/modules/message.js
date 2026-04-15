@@ -1251,7 +1251,11 @@ function renderStoryCard(msg, isReply = false) {
             // ✅ AFFICHER LE CONTENU DU FormData POUR DEBUG
             console.log("📤 Envoi du FormData:");
             for (let pair of formData.entries()) {
-                console.log("   ", pair[0], pair[1] instanceof File ? `[Fichier: ${pair[1].name}, ${pair[1].size} bytes]` : pair[1]);
+                if (pair[1] instanceof File) {
+                    console.log("   ", pair[0], "[Fichier: " + pair[1].name + ", " + pair[1].size + " bytes]");
+                } else {
+                    console.log("   ", pair[0], pair[1]);
+                }
             }
             
             const token = localStorage.getItem('token');
