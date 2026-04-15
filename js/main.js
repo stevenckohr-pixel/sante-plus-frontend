@@ -2565,6 +2565,28 @@ async function checkActiveVisit() {
 
 
 /**
+ * 🎨 Applique les couleurs dynamiques aux éléments
+ */
+function applyDynamicColors() {
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
+    
+    // Appliquer aux boutons sans classe
+    document.querySelectorAll('.dynamic-btn, button[class*="bg-emerald"], button[class*="bg-pink"]').forEach(btn => {
+        btn.style.backgroundColor = primaryColor;
+    });
+    
+    // Appliquer aux bordures
+    document.querySelectorAll('.dynamic-border').forEach(el => {
+        el.style.borderColor = primaryColor;
+    });
+}
+
+// Appeler après chaque chargement de vue
+window.addEventListener('view-loaded', () => applyDynamicColors());
+
+/**
  * 🎨 Met à jour les couleurs du branding partout
  */
 
