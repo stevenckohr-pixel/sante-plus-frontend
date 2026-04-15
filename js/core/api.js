@@ -1,4 +1,4 @@
-import { CONFIG } from "./config.js";
+ import { CONFIG } from "./config.js";
 import ErrorHandler from './errorHandler.js';
 import db from './db.js';
 
@@ -10,6 +10,27 @@ const CACHE_DURATION = 30 * 1000; // 30 secondes
 // Liste des endpoints à NE PAS mettre en cache
 const NO_CACHE_ENDPOINTS = ['/visites/active', '/notifications'];
 // Les messages sont maintenant gérés par IndexedDB
+
+// ============================================================
+// UTILITAIRE : FORCER LE FORMAT TABLEAU
+// ============================================================
+function ensureArray(data, endpoint) {
+    if (Array.isArray(data)) return data;
+    if (data && typeof data === 'object' && Array.isArray(data.data)) {
+        console.log(`📦 [api.js] Conversion: ${endpoint} → utilisation de data.data`);
+        return data.data;
+    }
+    if (data && typeof data === 'object' && Array.isArray(data.results)) {
+        console.log(`📦 [api.js] Conversion: ${endpoint} → utilisation de data.results`);
+        return data.results;
+    }
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+        console.log(`📦 [api.js] Conversion: ${endpoint} → objet unique converti en tableau`);
+        return [data];
+    }
+    console.warn(`⚠️ [api.js] Données invalides pour ${endpoint}:`, data);
+    return [];
+}
 
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
@@ -26,7 +47,7 @@ export async function secureFetch(endpoint, options = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // Vérifier le cache IndexedDB pour les GET (sauf messages qui ont leur propre logique)
+  // Vérifier le cache IndexedDB pour les GET
   const isMessagesEndpoint = endpoint.includes('/messages');
   const shouldUseIndexedDB = method === 'GET' && !options.noCache && 
     !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern)) && !isMessagesEndpoint;
@@ -87,6 +108,14 @@ export async function secureFetch(endpoint, options = {}) {
       if (method === 'GET') {
         responseData = await response.json();
         
+        // ✅ FORCER LE FORMAT TABLEAU POUR CERTAINS ENDPOINTS
+        const arrayEndpoints = ['/visites', '/commandes', '/notifications', '/messages', '/patients', '/planning', '/aidants', '/baby_metrics', '/mama_moods'];
+        const shouldBeArray = arrayEndpoints.some(e => endpoint.includes(e));
+        
+        if (shouldBeArray) {
+          responseData = ensureArray(responseData, endpoint);
+        }
+        
         // Cache mémoire pour les endpoints rapides
         const shouldUseMemoryCache = !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
         
@@ -99,7 +128,7 @@ export async function secureFetch(endpoint, options = {}) {
         
         // Cache IndexedDB pour les endpoints GET (sauf messages)
         if (shouldUseIndexedDB && db.isReady && responseData) {
-          await db.cacheApiResponse(endpoint, responseData, 5); // 5 minutes de cache
+          await db.cacheApiResponse(endpoint, responseData, 5);
         }
       } else {
         responseData = await response.json();
@@ -107,39 +136,22 @@ export async function secureFetch(endpoint, options = {}) {
 
       // Invalider le cache après les modifications
       if (method !== 'GET') {
-        // Invalider le cache mémoire
         apiCache.delete(endpoint);
-        
-        // Invalider le cache IndexedDB
         if (db.isReady) {
           await db.delete('api_cache', endpoint);
         }
         
-        // Invalider le cache pour les endpoints liés
-        if (endpoint.includes('/messages')) {
-          apiCache.forEach((_, key) => {
-            if (key.includes('/messages')) apiCache.delete(key);
-          });
-        }
-        if (endpoint.includes('/visites')) {
-          apiCache.forEach((_, key) => {
-            if (key.includes('/visites')) apiCache.delete(key);
-          });
-        }
-        if (endpoint.includes('/commandes')) {
-          apiCache.forEach((_, key) => {
-            if (key.includes('/commandes')) apiCache.delete(key);
-          });
-        }
-        if (endpoint.includes('/patients')) {
-          apiCache.forEach((_, key) => {
-            if (key.includes('/patients')) apiCache.delete(key);
-          });
-        }
+        const relatedEndpoints = ['/messages', '/visites', '/commandes', '/patients', '/planning'];
+        relatedEndpoints.forEach(related => {
+          if (endpoint.includes(related)) {
+            apiCache.forEach((_, key) => {
+              if (key.includes(related)) apiCache.delete(key);
+            });
+          }
+        });
         
         console.log(`🗑️ Cache invalidé pour: ${endpoint}`);
         
-        // Déclencher l'événement de rafraîchissement
         if (typeof window !== 'undefined') {
           let resourceType = 'unknown';
           if (endpoint.includes('/messages')) resourceType = 'message_sent';
@@ -165,17 +177,14 @@ export async function secureFetch(endpoint, options = {}) {
 
     } catch (error) {
       clearTimeout(timeoutId);
-      
       if (error.name === 'AbortError') {
         throw new Error("Le serveur ne répond pas. Vérifiez votre connexion.");
       }
-      
       throw error;
     }
   };
 
   try {
-    // Utiliser le cache mémoire pour les endpoints rapides
     const shouldUseMemoryCache = method === 'GET' && !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
     
     if (shouldUseMemoryCache) {
@@ -197,8 +206,6 @@ export async function secureFetch(endpoint, options = {}) {
 export function clearApiCache() {
   apiCache.clear();
   console.log('🗑️ Cache mémoire vidé');
-  
-  // Nettoyer aussi IndexedDB
   if (db.isReady) {
     db.clear('api_cache').then(() => {
       console.log('🗑️ Cache IndexedDB vidé');
@@ -208,13 +215,10 @@ export function clearApiCache() {
   }
 }
 
-
-// Vérifier si on est en ligne
 export function isOnline() {
     return navigator.onLine;
 }
 
-// Écouter les changements de connexion
 window.addEventListener('online', () => {
     console.log('📶 Connexion rétablie');
     if (window.showToast) {
