@@ -1559,8 +1559,19 @@ function renderMobileHub() {
         { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
     ];
 
-    // Filtrer selon le rôle de l'utilisateur
-    const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
+    
+        const filteredMenu = menuItems.filter(item => {
+            // Filtrer par rôle
+            if (!item.roles.includes(userRole)) return false;
+            
+            // 🔥 Pour l'onglet éducation, ne l'afficher que si c'est une maman
+            if (item.id === 'education') {
+                return isMaman;
+            }
+            
+            return true;
+        });
+
 
     // Générer le HTML
     container.innerHTML = `
@@ -2074,34 +2085,47 @@ function getNavLinks(role, mode) {
         dashboardIcon = 'fa-user';
     }
     
-    const tabs = [
-        // 📊 Dashboard / Accueil (adapté au rôle)
-        { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        // 🗺️ Fonctions communes
-        { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', icon: 'fa-newspaper', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        // 💰 Facturation (Famille + Coordinateur)
-        { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
-        
-        // 📅 Planning (Aidant + Coordinateur)
-        { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
-        
-        // 👥 Gestion RH (Coordinateur uniquement)
-        { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
-        
-        // 👤 Profil (tous)
-        { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
-    ];
-
-    // Filtrer les onglets selon le rôle de l'utilisateur
-    const allowedTabs = tabs.filter(tab => tab.roles.includes(role));
+            const tabs = [
+                // 📊 Dashboard / Accueil (adapté au rôle)
+                { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+                
+                // 🗺️ Fonctions communes
+                { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+                { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+                { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+                { id: 'feed', icon: 'fa-newspaper', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+                { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+                
+                // 💰 Facturation (Famille + Coordinateur)
+                { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
+                { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
+                
+                // 📅 Planning (Aidant + Coordinateur)
+                { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
+                
+                // 👥 Gestion RH (Coordinateur uniquement)
+                { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
+                { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
+                
+                // 📚 Éducation (Maman uniquement - filtré ci-dessous)
+                { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] },
+                
+                // 👤 Profil (tous)
+                { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+            ];
+            
+            // Filtrer les onglets selon le rôle et selon le type d'utilisateur
+            const allowedTabs = tabs.filter(tab => {
+                // Filtrer par rôle
+                if (!tab.roles.includes(role)) return false;
+                
+                // 🔥 Pour l'onglet éducation, ne l'afficher que si c'est une maman
+                if (tab.id === 'education') {
+                    return isMaman;
+                }
+                
+                return true;
+            });
 
     // Générer le HTML
     return allowedTabs.map(tab => {
@@ -2442,8 +2466,14 @@ async function performViewSwitch(viewName) {
                 }
                 break;
             case "education":
-                    await loadEducationPage();
-                    break;
+                // 🔥 Si ce n'est pas une maman, rediriger vers l'accueil
+                if (!isMaman) {
+                    UI.warning("Cette section est réservée aux mamans");
+                    window.switchView("home");
+                    return;
+                }
+                await loadEducationPage();
+                break;
                 
         }
         
