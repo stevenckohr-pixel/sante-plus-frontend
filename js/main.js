@@ -2783,17 +2783,32 @@ if (Commandes && typeof Commandes.markAsDelivered === 'function') {
 } else {
     console.error("❌ Commandes.markAsDelivered n'est pas une fonction");
 }
-window.viewPatientFeed = async (id) => { 
+
+window.viewPatientFeed = async (patientId) => {
     const userRole = localStorage.getItem("user_role");
-    const titleElement = document.getElementById("view-title");
-    localStorage.setItem("current_patient_id", id);
-    AppState.currentPatient = id;
+    
+    // 🔥 METTRE À JOUR LE PATIENT COURANT
+    localStorage.setItem("current_patient_id", patientId);
+    AppState.currentPatient = patientId;
+    
+    // 🔥 VIDER LE CACHE DES MESSAGES POUR FORCER LE REHAVCHARGEMENT
+    if (window.clearApiCache) {
+        window.clearApiCache();
+    }
+    
+    // 🔥 NETTOYER L'ANCIEN ABONNEMENT REALTIME
+    if (window.cleanupRealtime) {
+        window.cleanupRealtime();
+    }
+    
     if (userRole === 'AIDANT') {
         UI.vibrate();
+        const titleElement = document.getElementById("view-title");
         if (titleElement) titleElement.innerText = "Briefing Patient";
-        await Patients.renderPatientDetailsView(id);
+        await Patients.renderPatientDetailsView(patientId);
     } else {
-        window.switchView("feed"); 
+        // 🔥 FORCER LE REHAVCHARGEMENT COMPLET DU FEED
+        await window.switchView("feed");
     }
 };
 window.viewPatientDetails = Patients.renderPatientDetailsView;
