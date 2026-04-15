@@ -2314,16 +2314,28 @@ async function performViewSwitch(viewName) {
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
                 await Visites.loadVisits(); 
                 break;
-            case "feed":
-                // Nettoyer l'ancienne souscription Realtime
-                if (window.cleanupRealtime) window.cleanupRealtime();
-                
-                if (!AppState.currentPatient && userRole === "FAMILLE") {
-                    window.switchView("patients");
-                    return;
-                }
-                await window.loadFeed();
-                break;
+           case "feed":
+                    // Nettoyer l'ancienne souscription Realtime
+                    if (window.cleanupRealtime) window.cleanupRealtime();
+                    
+                    if (!AppState.currentPatient && userRole === "FAMILLE") {
+                        window.switchView("patients");
+                        return;
+                    }
+                    
+                    // 🔥 S'assurer que le patient est bien défini
+                    if (!AppState.currentPatient) {
+                        const patients = await secureFetch("/patients");
+                        if (patients && patients.length > 0) {
+                            AppState.currentPatient = patients[0].id;
+                            localStorage.setItem("current_patient_id", AppState.currentPatient);
+                        }
+                    }
+                    
+                    console.log("🔄 [switchView] Ouverture du feed pour patient:", AppState.currentPatient);
+                    
+                    await window.loadFeed();
+                    break;
             case "billing": 
                 container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
                 await Billing.loadBilling(); 
@@ -2784,14 +2796,18 @@ if (Commandes && typeof Commandes.markAsDelivered === 'function') {
     console.error("❌ Commandes.markAsDelivered n'est pas une fonction");
 }
 
+
 window.viewPatientFeed = async (patientId) => {
     const userRole = localStorage.getItem("user_role");
+    const titleElement = document.getElementById("view-title");
     
     // 🔥 METTRE À JOUR LE PATIENT COURANT
     localStorage.setItem("current_patient_id", patientId);
     AppState.currentPatient = patientId;
     
-    // 🔥 VIDER LE CACHE DES MESSAGES POUR FORCER LE REHAVCHARGEMENT
+    console.log("🔄 [viewPatientFeed] Changement de patient vers:", patientId);
+    
+    // 🔥 VIDER LE CACHE DES MESSAGES
     if (window.clearApiCache) {
         window.clearApiCache();
     }
@@ -2801,9 +2817,11 @@ window.viewPatientFeed = async (patientId) => {
         window.cleanupRealtime();
     }
     
+    // 🔥 RÉINITIALISER LES MESSAGES
+    AppState.messages = [];
+    
     if (userRole === 'AIDANT') {
         UI.vibrate();
-        const titleElement = document.getElementById("view-title");
         if (titleElement) titleElement.innerText = "Briefing Patient";
         await Patients.renderPatientDetailsView(patientId);
     } else {
@@ -2811,6 +2829,9 @@ window.viewPatientFeed = async (patientId) => {
         await window.switchView("feed");
     }
 };
+
+
+
 window.viewPatientDetails = Patients.renderPatientDetailsView;
 window.renderAuthView = renderAuthView;
 window.nextAuthStep = nextAuthStep;
