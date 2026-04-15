@@ -121,11 +121,12 @@ export async function loadMamanDashboard() {
                 </div>
             </div>
 
-            <!-- ============================================ -->
+           <!-- ============================================ -->
             <!-- MÉTRIQUES BÉBÉ (4 cartes) -->
             <!-- ============================================ -->
             <div class="grid grid-cols-2 gap-3 mb-5">
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.switchView('feed')">
+                <!-- Tétée -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('feeding')">
                     <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-baby-bottle text-pink-500 text-base"></i>
                     </div>
@@ -134,7 +135,8 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">depuis dernier repas</p>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.switchView('feed')">
+                <!-- Sommeil -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('sleep')">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-moon text-blue-500 text-base"></i>
                     </div>
@@ -143,7 +145,8 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">aujourd'hui</p>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.switchView('feed')">
+                <!-- Couches -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('diapers')">
                     <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-droplet text-amber-500 text-base"></i>
                     </div>
@@ -152,7 +155,8 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">changées aujourd'hui</p>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.switchView('feed')">
+                <!-- Croissance -->
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('weight')">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-chart-line text-emerald-500 text-base"></i>
                     </div>
@@ -161,7 +165,6 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">cette semaine</p>
                 </div>
             </div>
-
             <!-- ============================================ -->
             <!-- TRACKER D'HUMEUR -->
             <!-- ============================================ -->
@@ -683,6 +686,81 @@ async function calculateProgress(patientId) {
     } catch (err) {
         console.error("Erreur calcul progression:", err);
         return 0;
+    }
+}
+
+
+
+/**
+ * 🍼 OUVRIRE LA MODALE POUR AJOUTER UNE MÉTRIQUE
+ */
+window.openAddMetricModal = (metricType) => {
+    const titles = {
+        feeding: 'Dernière tétée',
+        sleep: 'Heures de sommeil',
+        diapers: 'Nombre de couches',
+        weight: 'Poids (g)'
+    };
+    
+    const units = {
+        feeding: 'heures',
+        sleep: 'heures',
+        diapers: 'couches',
+        weight: 'grammes'
+    };
+    
+    Swal.fire({
+        title: `📝 ${titles[metricType]}`,
+        html: `
+            <div class="text-left">
+                <label class="text-[10px] font-bold text-slate-500 block mb-2">Valeur (en ${units[metricType]})</label>
+                <input type="number" id="metric-value" class="w-full p-3 bg-slate-50 rounded-xl" placeholder="Saisir la valeur" step="${metricType === 'weight' ? '10' : '0.5'}">
+                ${metricType === 'weight' ? '<p class="text-[9px] text-slate-400 mt-1">Exemple: 3500 pour 3.5 kg</p>' : ''}
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '✅ Enregistrer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#E11D48',
+        preConfirm: () => {
+            const value = document.getElementById('metric-value').value;
+            if (!value) {
+                Swal.showValidationMessage('Veuillez saisir une valeur');
+                return false;
+            }
+            return { value: parseFloat(value) };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            await saveBabyMetric(metricType, result.value.value);
+            Swal.fire('✅ Enregistré', `${titles[metricType]} mise à jour`, 'success');
+            loadMamanDashboard(); // Recharger le dashboard
+        }
+    });
+};
+
+/**
+ * 💾 SAUVEGARDER UNE MÉTRIQUE BÉBÉ
+ */
+async function saveBabyMetric(metricType, value) {
+    try {
+        let patients = await secureFetch("/patients");
+        if (!Array.isArray(patients)) patients = patients?.data || [];
+        const patientId = patients[0]?.id;
+        
+        if (!patientId) return;
+        
+        await secureFetch('/educational/baby-metric', {
+            method: 'POST',
+            body: JSON.stringify({
+                patient_id: patientId,
+                metric_type: metricType,
+                value: value,
+                unit: metricType === 'weight' ? 'g' : 'h'
+            })
+        });
+    } catch (err) {
+        console.error("Erreur sauvegarde métrique:", err);
     }
 }
 // Export
