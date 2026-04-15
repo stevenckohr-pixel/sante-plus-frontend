@@ -1745,14 +1745,13 @@ window.refreshMenuBadges = () => {
 };
 
 
-// Appeler dans performViewSwitch après avoir changé de vue
 
 
 
 // ============================================================
 // LAYOUT PRINCIPAL (HEADER, SIDEBAR, FOOTER)
 // ============================================================
- function renderLayout() {
+function renderLayout() {
     const userRole = localStorage.getItem("user_role");
     const userName = localStorage.getItem("user_name");
     const userPhoto = localStorage.getItem("user_photo");
@@ -1839,11 +1838,12 @@ window.refreshMenuBadges = () => {
                     </div>
                 </header>
 
-                <!-- Menu latéral mobile (drawer) -->
+                <!-- Menu latéral mobile (drawer) - VERSION AMÉLIORÉE -->
                 <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
                     <div class="absolute inset-0 bg-black/50" id="drawer-overlay"></div>
-                    <div class="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300">
-                        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                    <div class="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col">
+                        <!-- En-tête du drawer -->
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center shrink-0">
                             <div class="flex items-center gap-2">
                                 <div class="w-10 h-10 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
                                     <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-6 h-6 object-contain">
@@ -1857,9 +1857,13 @@ window.refreshMenuBadges = () => {
                                 <i class="fa-solid fa-times text-slate-500"></i>
                             </button>
                         </div>
-                        <nav class="p-4 space-y-2" id="drawer-menu"></nav>
-                        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100">
-                            <button onclick="window.logout()" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase">
+                        
+                        <!-- Navigation - sans scroll interne (flex-1 avec overflow-y-auto si nécessaire) -->
+                        <nav class="flex-1 overflow-y-auto" id="drawer-menu"></nav>
+                        
+                        <!-- Bouton déconnexion en bas -->
+                        <div class="shrink-0 p-4 border-t border-slate-100">
+                            <button onclick="window.logout()" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase active:scale-98 transition-all">
                                 <i class="fa-solid fa-power-off mr-2"></i> Déconnexion
                             </button>
                         </div>
@@ -1878,58 +1882,168 @@ window.refreshMenuBadges = () => {
         </div>
     `;
 
-    // Remplir le menu latéral
+    // ============================================================
+    // MENU LATÉRAL MOBILE - CONTENU DYNAMIQUE & COLORÉ
+    // ============================================================
     const drawerMenu = document.getElementById('drawer-menu');
     if (drawerMenu) {
-        const drawerLinks = [
+        const primaryColor = isMaman ? '#E11D48' : '#059669';
+        const primaryBgLight = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+        const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
+        
+        // Navigation principale
+        const mainNav = [
             { id: 'home', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
             { id: 'patients', icon: 'fa-folder-open', label: isMaman ? 'Mon suivi' : 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'feed', icon: 'fa-newspaper', label: 'Journal', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            { id: 'billing', icon: 'fa-receipt', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
-            { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
             { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
-            { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
-            { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
-            { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] },
-            { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
         ];
         
-        const filteredDrawerLinks = drawerLinks.filter(link => link.roles.includes(userRole) && (!isMaman ? link.id !== 'education' : true));
+        // Services (selon rôle)
+        const serviceNav = [];
+        if (userRole === 'COORDINATEUR') {
+            serviceNav.push(
+                { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
+                { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
+                { id: 'rh-dashboard', icon: 'fa-users', label: 'RH & Assignations', roles: ['COORDINATEUR'] }
+            );
+        }
+        if (userRole === 'FAMILLE') {
+            serviceNav.push(
+                { id: 'billing', icon: 'fa-receipt', label: 'Factures', roles: ['FAMILLE'] },
+                { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] }
+            );
+            if (isMaman) {
+                serviceNav.push({ id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] });
+            }
+        }
         
-        drawerMenu.innerHTML = filteredDrawerLinks.map(link => `
-            <button onclick="window.switchView('${link.id}'); document.getElementById('mobile-drawer')?.classList.remove('show'); setTimeout(() => document.getElementById('mobile-drawer')?.classList.add('hidden'), 300);" 
-                    class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all active:scale-98">
-                <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                    <i class="fa-solid ${link.icon} text-slate-500 text-sm"></i>
+        const filteredMainNav = mainNav.filter(item => item.roles.includes(userRole));
+        const filteredServiceNav = serviceNav.filter(item => item.roles.includes(userRole));
+        
+        // Compter les notifications pour les badges
+        const unreadMessages = Object.values(AppState.unreadByPatient || {}).reduce((a, b) => a + b, 0);
+        const pendingVisits = (AppState.visites || []).filter(v => v.statut === "En attente").length;
+        
+        drawerMenu.innerHTML = `
+            <div class="flex flex-col h-full">
+                <!-- Navigation principale -->
+                <div class="flex-1 px-3 py-4">
+                    <p class="text-[9px] font-black uppercase tracking-wider ${primaryText} px-3 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-[10px]"></i> PRINCIPAL
+                    </p>
+                    <div class="space-y-0.5">
+                        ${filteredMainNav.map(link => `
+                            <button onclick="window.switchView('${link.id}'); window.closeDrawerMobile?.()" 
+                                    class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
+                                <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center">
+                                    <i class="fa-solid ${link.icon} ${primaryText} text-sm"></i>
+                                </div>
+                                <span class="font-medium text-sm text-slate-700 flex-1 text-left">${link.label}</span>
+                                ${link.id === 'feed' && unreadMessages > 0 ? `
+                                    <span class="min-w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center px-1">${unreadMessages > 9 ? '9+' : unreadMessages}</span>
+                                ` : ''}
+                                ${link.id === 'visits' && pendingVisits > 0 && userRole === 'COORDINATEUR' ? `
+                                    <span class="min-w-[18px] h-[18px] rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center px-1">${pendingVisits}</span>
+                                ` : ''}
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    ${filteredServiceNav.length > 0 ? `
+                        <p class="text-[9px] font-black uppercase tracking-wider ${primaryText} px-3 mt-6 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-briefcase text-[10px]"></i> SERVICES
+                        </p>
+                        <div class="space-y-0.5">
+                            ${filteredServiceNav.map(link => `
+                                <button onclick="window.switchView('${link.id}'); window.closeDrawerMobile?.()" 
+                                        class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
+                                    <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center">
+                                        <i class="fa-solid ${link.icon} ${primaryText} text-sm"></i>
+                                    </div>
+                                    <span class="font-medium text-sm text-slate-700 flex-1 text-left">${link.label}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Section Profil -->
+                    <p class="text-[9px] font-black uppercase tracking-wider ${primaryText} px-3 mt-6 mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-user-circle text-[10px]"></i> COMPTE
+                    </p>
+                    <div class="space-y-0.5">
+                        <button onclick="window.switchView('profile'); window.closeDrawerMobile?.()" 
+                                class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
+                            <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center overflow-hidden">
+                                ${userPhoto ? 
+                                    `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
+                                    `<i class="fa-regular fa-user-circle ${primaryText} text-sm"></i>`
+                                }
+                            </div>
+                            <span class="font-medium text-sm text-slate-700 flex-1 text-left">Mon profil</span>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </button>
+                    </div>
                 </div>
-                <span class="font-medium text-slate-700 text-sm">${link.label}</span>
-            </button>
-        `).join('');
+            </div>
+        `;
+        
+        // Ajouter les styles dynamiques pour le drawer
+        const styleId = 'drawer-dynamic-styles';
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `
+                .drawer-nav-item:active {
+                    background: ${primaryBgLight};
+                    transform: scale(0.98);
+                }
+                .drawer-nav-item.active {
+                    background: ${primaryBgLight};
+                }
+                .drawer-nav-item.active i {
+                    color: ${primaryColor};
+                }
+                .drawer-nav-item.active span {
+                    color: ${primaryColor};
+                }
+            `;
+            document.head.appendChild(style);
+        }
     }
 
-    // Initialisation du drawer
+    // ============================================================
+    // INITIALISATION DU DRAWER (ouverture/fermeture)
+    // ============================================================
     setTimeout(() => {
         const menuBtn = document.getElementById('menu-hamburger');
         const drawer = document.getElementById('mobile-drawer');
         const overlay = document.getElementById('drawer-overlay');
         const closeBtn = document.getElementById('close-drawer');
         
+        // Fonction globale pour fermer le drawer (utilisée par les boutons)
+        window.closeDrawerMobile = () => {
+            if (drawer) {
+                drawer.classList.remove('show');
+                setTimeout(() => {
+                    drawer.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        };
+        
         if (menuBtn && drawer) {
             menuBtn.onclick = () => {
                 drawer.classList.remove('hidden');
                 setTimeout(() => drawer.classList.add('show'), 10);
+                document.body.style.overflow = 'hidden';
             };
             
-            const closeDrawer = () => {
-                drawer.classList.remove('show');
-                setTimeout(() => drawer.classList.add('hidden'), 300);
-            };
-            
-            if (overlay) overlay.onclick = closeDrawer;
-            if (closeBtn) closeBtn.onclick = closeDrawer;
+            if (overlay) overlay.onclick = window.closeDrawerMobile;
+            if (closeBtn) closeBtn.onclick = window.closeDrawerMobile;
         }
     }, 100);
 
