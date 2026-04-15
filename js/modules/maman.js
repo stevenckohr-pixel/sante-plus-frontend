@@ -510,5 +510,68 @@ function extractBabyMetrics(messages) {
     if (diaperCount) localStorage.setItem('maman_diapers', diaperCount);
     if (lastWeight) localStorage.setItem('maman_weight', lastWeight);
 }
-// Export
-export { loadMamanDashboard, updateMamanNotifications };
+
+
+
+
+
+/**
+ * 🚨 DÉTECTION DES ALERTES (saignements, douleurs, fièvre)
+ */
+function checkForAlerts(content) {
+    const alertKeywords = {
+        'saignement': { level: 'urgent', message: '⚠️ Saignement signalé - Contacter immédiatement' },
+        'douleur': { level: 'warning', message: '📢 Douleur signalée - Suivi nécessaire' },
+        'fièvre': { level: 'warning', message: '🌡️ Fièvre détectée - Surveiller la température' },
+        'malaise': { level: 'urgent', message: '🚨 Malaise signalé - Intervention urgente' },
+        'vertige': { level: 'warning', message: '🎢 Vertiges - Repos recommandé' }
+    };
+    
+    const lowerContent = content.toLowerCase();
+    
+    for (const [keyword, alert] of Object.entries(alertKeywords)) {
+        if (lowerContent.includes(keyword)) {
+            // Créer une notification d'alerte
+            createMamanAlert(keyword, alert.message, alert.level);
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * 🔔 CRÉER UNE ALERTE MAMAN
+ */
+async function createMamanAlert(type, message, level) {
+    try {
+        // Envoyer une notification au coordinateur
+        await secureFetch('/notifications/send', {
+            method: 'POST',
+            body: JSON.stringify({
+                userId: localStorage.getItem("user_id"),
+                title: level === 'urgent' ? '🚨 ALERTE MAMAN' : '⚠️ Attention Maman',
+                message: `${type.toUpperCase()}: ${message}`,
+                type: 'alert',
+                url: '/#feed'
+            })
+        });
+        
+        // Afficher une alerte visuelle
+        Swal.fire({
+            title: level === 'urgent' ? '🚨 Alerte Santé' : '⚠️ Attention',
+            text: message,
+            icon: level === 'urgent' ? 'error' : 'warning',
+            confirmButtonColor: '#DB2777',
+            timer: 5000
+        });
+        
+        // Journaliser l'alerte
+        console.log(`📋 Alerte ${level}: ${type} - ${message}`);
+        
+    } catch (err) {
+        console.error("Erreur création alerte:", err);
+    }
+}
+
+
+export { loadMamanDashboard, updateMamanNotifications, checkForAlerts };
