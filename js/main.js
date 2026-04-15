@@ -2096,94 +2096,83 @@ function renderLayout() {
 
 function getNavLinks(role, mode) {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const isSenior = !isMaman && role === "FAMILLE";
-    const isCoordinateur = role === "COORDINATEUR";
-    const isAidant = role === "AIDANT";
     const isFamily = role === "FAMILLE";
+    const isAidant = role === "AIDANT";
+    const isCoordinateur = role === "COORDINATEUR";
     
-    // 🔥 Dashboard différent selon le rôle
-    let dashboardId = 'dashboard';
-    let dashboardLabel = 'Dashboard';
-    let dashboardIcon = 'fa-chart-pie';
+    // ============================================================
+    // DÉFINITION DES ONGLETS SELON LE RÔLE
+    // ============================================================
+    let tabs = [];
     
-    if (isMaman && isFamily) {
-        dashboardId = 'dashboard-maman';
-        dashboardLabel = 'Accueil';
-        dashboardIcon = 'fa-home';
-    } else if (isCoordinateur) {
-        dashboardId = 'dashboard';
-        dashboardLabel = 'Dashboard';
-        dashboardIcon = 'fa-chart-pie';
-    } else if (isAidant) {
-        dashboardId = 'patients';
-        dashboardLabel = 'Patients';
-        dashboardIcon = 'fa-users';
-    } else if (isSenior) {
-        dashboardId = 'patients';
-        dashboardLabel = 'Mon proche';
-        dashboardIcon = 'fa-user';
-    }
-    
-                   const tabs = [
-            // 🏠 ACCUEIL (vue avec les tuiles) - pour tous les rôles
-            { id: 'home', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            
-            // 📊 Dashboard (adapté au rôle) - pour stats et gestion
-            { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            
-            // 🗺️ Fonctions communes
-            { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-            { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            { id: 'feed', icon: 'fa-newspaper', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-            
-            // 💰 Facturation (Famille + Coordinateur)
-            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
-            { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
-            
-            // 📅 Planning (Aidant + Coordinateur)
-            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
-            
-            // 👥 Gestion RH (Coordinateur uniquement)
-            { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
-            { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
-            
-            // 📚 Éducation (Maman uniquement - filtré ci-dessous)
-            { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] },
-            
-            // 👤 Profil (tous)
-            { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+    if (isCoordinateur) {
+        // 👔 COORDINATEUR
+        tabs = [
+            { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
+            { id: 'patients', icon: 'fa-hospital-user', label: 'Patients' },
+            { id: 'aidants', icon: 'fa-user-nurse', label: 'Aidants' },
+            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning' },
+            { id: 'rh-dashboard', icon: 'fa-users', label: 'RH' },
+            { id: 'map', icon: 'fa-location-dot', label: 'Radar' },
+            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures' },
+            { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
         ];
-            // Filtrer les onglets selon le rôle et selon le type d'utilisateur
-            const allowedTabs = tabs.filter(tab => {
-                // Filtrer par rôle
-                if (!tab.roles.includes(role)) return false;
-                
-                // 🔥 Pour l'onglet éducation, ne l'afficher que si c'est une maman
-                if (tab.id === 'education') {
-                    return isMaman;
-                }
-                
-                return true;
-            });
+    } 
+    else if (isAidant) {
+        // 🩺 AIDANT
+        tabs = [
+            { id: 'patients', icon: 'fa-folder-open', label: 'Mes patients' },
+            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning' },
+            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },
+            { id: 'commandes', icon: 'fa-box', label: 'Livraisons' },
+            { id: 'map', icon: 'fa-location-dot', label: 'Radar' },
+            { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
+        ];
+    } 
+    else if (isFamily && isMaman) {
+        // 🌸 MAMAN & BÉBÉ
+        tabs = [
+            { id: 'dashboard-maman', icon: 'fa-home', label: 'Accueil' },
+            { id: 'feed', icon: 'fa-newspaper', label: 'Journal bébé' },
+            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning' },
+            { id: 'commandes', icon: 'fa-box', label: 'Commandes bébé' },
+            { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation' },
+            { id: 'billing', icon: 'fa-receipt', label: 'Factures' },
+            { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
+        ];
+    } 
+    else if (isFamily && !isMaman) {
+        // 👴 SENIOR
+        tabs = [
+            { id: 'dashboard', icon: 'fa-chart-line', label: 'Tableau de bord' },
+            { id: 'feed', icon: 'fa-newspaper', label: 'Journal de soins' },
+            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },
+            { id: 'commandes', icon: 'fa-box', label: 'Commandes' },
+            { id: 'billing', icon: 'fa-receipt', label: 'Factures' },
+            { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement' },
+            { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
+        ];
+    }
 
-    // Générer le HTML
-    return allowedTabs.map(tab => {
-        if (mode === 'mobile') {
-            return `<button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
-                        <i class="fa-solid ${tab.icon} text-lg"></i>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
-                    </button>`;
-        } else {
-            return `<button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm mb-1">
-                        <i class="fa-solid ${tab.icon} text-lg"></i>
-                        <span>${tab.label}</span>
-                    </button>`;
-        }
-    }).join('');
+    // ============================================================
+    // GÉNÉRATION DU HTML
+    // ============================================================
+    if (mode === 'mobile') {
+        return tabs.map(tab => `
+            <button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="nav-btn flex flex-col items-center gap-1 flex-1 text-slate-400 transition-all">
+                <i class="fa-solid ${tab.icon} text-lg"></i>
+                <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
+            </button>
+        `).join('');
+    } else {
+        return tabs.map(tab => `
+            <button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm mb-1">
+                <i class="fa-solid ${tab.icon} text-lg"></i>
+                <span>${tab.label}</span>
+            </button>
+        `).join('');
+    }
 }
-
 
 // ============================================================
 // TRANSITION ENTRE LES VUES (SWITCHVIEW)
@@ -2353,9 +2342,16 @@ async function performViewSwitch(viewName) {
 
     try {
         switch (viewName) {
-            case "dashboard": 
-                container.innerHTML = document.getElementById("template-dashboard").innerHTML;
-                await Dashboard.loadAdminDashboard(); 
+            case "dashboard":
+                if (userRole === "FAMILLE" && !isMaman) {
+                    // Senior dashboard
+                    const module = await import('./modules/dashboard.js');
+                    if (module.loadSeniorDashboard) await module.loadSeniorDashboard();
+                } else {
+                    // Coordinateur dashboard
+                    container.innerHTML = document.getElementById("template-dashboard").innerHTML;
+                    await Dashboard.loadAdminDashboard();
+                }
                 break;
             case "map": 
                 await MapModule.initLiveMap(); 
