@@ -1080,11 +1080,25 @@ async function loadFeed() {
     const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
     const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
     
-    let patientInfo = null;
-    try {
-        const patients = await secureFetch("/patients");
-        if (patients && patients.length > 0) patientInfo = patients[0];
-    } catch(e) {}
+            // 🔥 RÉCUPÉRER LES INFOS DU PATIENT COURANT
+            let patientInfo = null;
+            try {
+                // Ne pas utiliser le cache pour être sûr d'avoir le bon patient
+                const patients = await secureFetch("/patients", { noCache: true });
+                // Trouver le patient correspondant à AppState.currentPatient
+                patientInfo = patients.find(p => p.id === AppState.currentPatient);
+                
+                if (!patientInfo && patients.length > 0) {
+                    // Fallback : prendre le premier patient
+                    patientInfo = patients[0];
+                    AppState.currentPatient = patientInfo.id;
+                }
+                
+                console.log("🔄 [FEED] Patient chargé:", patientInfo?.nom_complet, "ID:", AppState.currentPatient);
+                
+            } catch(e) {
+                console.error("Erreur chargement patient:", e);
+            }
 
     container.innerHTML = `
         <div class="chat-container">
