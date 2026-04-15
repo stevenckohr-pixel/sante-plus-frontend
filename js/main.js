@@ -1351,13 +1351,22 @@ async function submitRegistration() {
 // ============================================================
 // VUE AUTHENTIFICATION (LOGIN / REGISTER / OTP)
 // ============================================================
+
+
+
 function renderAuthView(mode = 'login', stepSource = 1) {
     const app = document.getElementById("app");
     currentStep = typeof stepSource === 'number' ? stepSource : 1; 
     const otpEmail = mode === 'otp' ? stepSource : null;
 
     const isMamanFlow = registrationData.categorie === 'MAMAN_BEBE';
+    
+    // 🔥 COULEURS DYNAMIQUES SELON LE CHOIX
+    const primaryColor = isMamanFlow ? '#E11D48' : '#059669';
+    const primaryLight = isMamanFlow ? '#FFF1F2' : '#ECFDF5';
     const progressColor = isMamanFlow ? 'bg-pink-500' : 'bg-emerald-500';
+    const focusBorderColor = isMamanFlow ? 'focus:border-pink-500' : 'focus:border-emerald-500';
+    const iconColor = isMamanFlow ? 'text-pink-500' : 'text-emerald-500';
 
     let dynamicContent = "";
     let stepTitle = mode === 'login' ? "Espace Sécurisé" : 
@@ -1375,7 +1384,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     <i class="fa-solid fa-shield-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
                     <input id="password" type="password" class="app-input !pl-12" placeholder="Code d'accès">
                 </div>
-                <button onclick="window.login()" id="btn-login" class="w-full mt-4 py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3" style="background: var(--role-primary); color: white;">
+                <button onclick="window.login()" id="btn-login" class="w-full mt-4 py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3" style="background: ${primaryColor}; color: white;">
                     Accéder à mon espace <i class="fa-solid fa-arrow-right-long opacity-50"></i>
                 </button>
             </div>`;
@@ -1392,7 +1401,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                             <i class="fa-solid fa-arrow-left"></i>
                         </button>
                     ` : ''}                    
-                    <button onclick="window.nextAuthStep()" class="next-btn flex-1 text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg active:scale-95 transition-all" style="background: var(--role-primary);">
+                    <button onclick="window.nextAuthStep()" class="next-btn flex-1 text-white py-3 rounded-[1.25rem] font-black uppercase text-[10px] tracking-[0.2em] shadow-lg active:scale-95 transition-all" style="background: ${primaryColor};">
                         ${currentStep === 6 ? 'Valider le dossier' : 'Étape Suivante'}
                     </button>
                 </div>
@@ -1401,7 +1410,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     else if (mode === 'otp') {
         dynamicContent = `
             <div class="px-8 pb-8 space-y-6 animate-fadeIn flex flex-col justify-center min-h-full text-center">
-                <div class="w-16 h-16 mx-auto ${isMamanFlow ? 'bg-pink-100 text-pink-600' : 'bg-amber-50 text-amber-500'} border-4 border-white shadow-xl rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
+                <div class="w-16 h-16 mx-auto ${isMamanFlow ? 'bg-pink-100 text-pink-600' : 'bg-emerald-100 text-emerald-600'} border-4 border-white shadow-xl rounded-[1.5rem] flex items-center justify-center text-2xl mb-2">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <div>
@@ -1409,9 +1418,9 @@ function renderAuthView(mode = 'login', stepSource = 1) {
                     <p class="text-xs text-slate-500 font-medium mt-2 leading-relaxed">Code à 6 chiffres envoyé à <br><b class="text-slate-800">${otpEmail}</b></p>
                 </div>
                 <div class="pt-2">
-                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white focus:${isMamanFlow ? 'border-pink-500' : 'border-emerald-500'} transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
+                    <input id="otp-code" type="text" maxlength="6" inputmode="numeric" autocomplete="one-time-code" class="w-full py-4 bg-slate-50 border-2 border-slate-100 rounded-[1.5rem] outline-none focus:bg-white ${focusBorderColor} transition-all text-2xl font-black text-slate-800 text-center tracking-[0.5em] shadow-inner" placeholder="••••••">
                 </div>
-                <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-2 py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3" style="background: var(--role-primary); color: white;">
+                <button onclick="window.verifyOTP('${otpEmail}')" id="btn-otp" class="w-full mt-2 py-4 rounded-[1.5rem] font-black shadow-xl active:scale-95 transition-all uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-3" style="background: ${primaryColor}; color: white;">
                     Vérifier l'identité <i class="fa-solid fa-shield-check"></i>
                 </button>
                 <button onclick="window.renderAuthView('login')" class="w-full text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 hover:text-slate-700 transition-colors">
