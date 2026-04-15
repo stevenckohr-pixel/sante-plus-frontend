@@ -208,6 +208,29 @@ export function clearApiCache() {
   }
 }
 
+
+// Vérifier si on est en ligne
+export function isOnline() {
+    return navigator.onLine;
+}
+
+// Écouter les changements de connexion
+window.addEventListener('online', () => {
+    console.log('📶 Connexion rétablie');
+    if (window.showToast) {
+        window.showToast("Connexion rétablie", "success", 2000);
+    }
+    window.dispatchEvent(new CustomEvent('connection-restored'));
+});
+
+window.addEventListener('offline', () => {
+    console.log('📶 Connexion perdue');
+    if (window.showToast) {
+        window.showToast("Mode hors-ligne - Données en cache", "warning", 3000);
+    }
+    window.dispatchEvent(new CustomEvent('connection-lost'));
+});
+
 export async function retryQueuedRequests() {
   await ErrorHandler.processRetryQueue();
 }
