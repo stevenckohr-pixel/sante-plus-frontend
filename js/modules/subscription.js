@@ -1,7 +1,6 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
-toLocaleString()}
-
+ 
 
 // Fonction pour charger FedaPay
 function loadFedaPay() {
