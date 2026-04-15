@@ -21,6 +21,8 @@ import {
 import { syncService } from "./core/syncService.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
+import db from './core/db.js';
+window.db = db;
 
 // Modules essentiels au démarrage
 import * as Auth from "./modules/auth.js";
