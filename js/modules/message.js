@@ -1263,7 +1263,7 @@ function renderStoryCard(msg, isReply = false) {
                 throw new Error("Token d'authentification manquant");
             }
             
-            const response = await fetch(`${window.CONFIG.API_URL}/messages/send-photo`, {
+            const response = await fetch(window.CONFIG.API_URL + "/messages/send-photo", {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -1629,6 +1629,10 @@ function updatePatientBadges() {
 // TYPING INDICATOR (EN TRAIN D'ÉCRIRE)
 // ============================================================
 
+// ============================================================
+// TYPING INDICATOR (EN TRAIN D'ÉCRIRE)
+// ============================================================
+
 function showTypingIndicator(show, name = '') {
     const indicator = document.getElementById('typing-indicator');
     if (!indicator) return;
@@ -1647,9 +1651,10 @@ function showTypingIndicator(show, name = '') {
 // Initialiser l'écoute des événements "en train d'écrire"
 if (window.Realtime && window.Realtime.subscribeToTyping) {
     window.Realtime.subscribeToTyping((data) => {
-        const currentUserId = localStorage.getItem("user_id");
-        if (data.user_id === currentUserId) return;
-        
+        console.log("✍️ Typing:", data);
+
+        if (data.user_id === localStorage.getItem("user_id")) return;
+
         showTypingIndicator(true, data.user_name);
         setTimeout(() => showTypingIndicator(false), 3000);
     });
