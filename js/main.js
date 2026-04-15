@@ -295,6 +295,8 @@ async function initApp() {
     updateThemeColor();            //Color auto
     preloadOnboardingImages();
     initPushNotifications();
+    applyUserTheme();
+
 
 if ("Notification" in window) {
     Notification.requestPermission().then(permission => {
@@ -635,6 +637,34 @@ function showGlobalLoader() {
     loader.style.opacity = '1';
 }
 
+
+
+
+/**
+ * 🎨 APPLIQUER LE THÈME SELON LE RÔLE UTILISATEUR
+ */
+function applyUserTheme() {
+    const userRole = localStorage.getItem("user_role");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    
+    // Enlever les anciennes classes
+    document.body.classList.remove('maman-mode', 'senior-mode', 'aidant-mode', 'coordinateur-mode');
+    
+    // Appliquer la classe selon le rôle
+    if (isMaman || (userRole === "FAMILLE" && localStorage.getItem("user_categorie") === "MAMAN_BEBE")) {
+        document.body.classList.add('maman-mode');
+        console.log("🎨 Thème Maman appliqué");
+    } else if (userRole === "FAMILLE") {
+        document.body.classList.add('senior-mode');
+        console.log("🎨 Thème Senior appliqué");
+    } else if (userRole === "AIDANT") {
+        document.body.classList.add('aidant-mode');
+        console.log("🎨 Thème Aidant appliqué");
+    } else if (userRole === "COORDINATEUR") {
+        document.body.classList.add('coordinateur-mode');
+        console.log("🎨 Thème Coordinateur appliqué");
+    }
+}
 
 /**
  * Cache le loader global
