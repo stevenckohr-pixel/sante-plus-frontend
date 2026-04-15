@@ -1,4 +1,5 @@
 import { UI } from "../core/utils.js";
+import supabase from "../core/supabaseClient.js";
 
 /**
  * 🟢 GESTION DE LA CONNEXION
@@ -36,41 +37,57 @@ export async function handleLogin() {
       return;
     }
 
-    // 🟢 CONNEXION NORMALE (Aidant / Famille)
+    // 🟢 CONNEXION NORMALE
     localStorage.setItem("token", data.token);
     localStorage.setItem("user_role", data.role);
     localStorage.setItem("user_name", data.nom);
     localStorage.setItem("user_email", email);
     
-    // ✅ AJOUT DE LA PHOTO DANS LOCALSTORAGE
     if (data.photo_url) {
       localStorage.setItem("user_photo", data.photo_url);
     } else {
       localStorage.setItem("user_photo", "");
     }
     
-    // Stocker aussi l'ID utilisateur si disponible
     if (data.user_id) {
       localStorage.setItem("user_id", data.user_id);
     }
 
-    // ✅ CORRECTION : Gérer correctement le flag user_is_maman
+    // ============================================================
+    // 🔥 CORRECTION : RÉCUPÉRER LA CATÉGORIE DEPUIS LA BDD
+    // ============================================================
     if (data.role === 'FAMILLE') {
-      const userCategorie = localStorage.getItem("user_categorie");
-      const isMaman = userCategorie === 'MAMAN_BEBE';
-      
-      // 🔴 Important : mettre à jour le flag pour la famille
-      localStorage.setItem("user_is_maman", isMaman ? "true" : "false");
-      
-      if (isMaman) {
-        window.setThemeColor('#DB2777'); // Rose pour Maman
-      } else {
-        window.setThemeColor('#D4AF37'); // Or pour les autres familles
+      try {
+        // Récupérer le patient lié à cette famille
+        const { data: patient, error } = await supabase
+          .from("patients")
+          .select("categorie_service")
+          .eq("famille_user_id", data.user_id)
+          .maybeSingle();
+        
+        console.log("📋 Patient trouvé:", patient);
+        
+        if (patient?.categorie_service === 'MAMAN_BEBE') {
+          localStorage.setItem("user_is_maman", "true");
+          localStorage.setItem("user_categorie", "MAMAN_BEBE");
+          console.log("🌸 Mode Maman ACTIVÉ");
+          window.setThemeColor('#DB2777'); // Rose pour Maman
+        } else {
+          localStorage.setItem("user_is_maman", "false");
+          localStorage.setItem("user_categorie", "SENIOR");
+          console.log("👴 Mode Senior ACTIVÉ");
+          window.setThemeColor('#D4AF37'); // Or pour les autres familles
+        }
+        
+      } catch (err) {
+        console.error("❌ Erreur récupération catégorie:", err);
+        localStorage.setItem("user_is_maman", "false");
+        localStorage.setItem("user_categorie", "SENIOR");
       }
     } else {
-      // ✅ Pour les aidants et coordinateurs, désactiver le mode Maman
+      // Pour les aidants et coordinateurs, désactiver le mode Maman
       localStorage.setItem("user_is_maman", "false");
-      window.setThemeColor('#0F172A'); // Noir pour Coordinateur/Aidant
+      window.setThemeColor('#0F172A');
     }
 
     console.log("🌸 Mode Maman après connexion:", localStorage.getItem("user_is_maman") === "true");
@@ -124,16 +141,41 @@ export async function verifyOTP(email) {
     localStorage.setItem("user_name", verifyData.nom);
     localStorage.setItem("user_email", email);
     
-    // ✅ AJOUT DE LA PHOTO DANS LOCALSTORAGE
     if (verifyData.photo_url) {
       localStorage.setItem("user_photo", verifyData.photo_url);
     } else {
       localStorage.setItem("user_photo", "");
     }
     
-    // Stocker aussi l'ID utilisateur si disponible
     if (verifyData.user_id) {
       localStorage.setItem("user_id", verifyData.user_id);
+    }
+    
+    // Récupérer la catégorie pour les familles
+    if (verifyData.role === 'FAMILLE') {
+      try {
+        const { data: patient } = await supabase
+          .from("patients")
+          .select("categorie_service")
+          .eq("famille_user_id", verifyData.user_id)
+          .maybeSingle();
+        
+        if (patient?.categorie_service === 'MAMAN_BEBE') {
+          localStorage.setItem("user_is_maman", "true");
+          localStorage.setItem("user_categorie", "MAMAN_BEBE");
+          window.setThemeColor('#DB2777');
+        } else {
+          localStorage.setItem("user_is_maman", "false");
+          localStorage.setItem("user_categorie", "SENIOR");
+          window.setThemeColor('#D4AF37');
+        }
+      } catch (err) {
+        console.error("Erreur récupération catégorie:", err);
+        localStorage.setItem("user_is_maman", "false");
+      }
+    } else {
+      localStorage.setItem("user_is_maman", "false");
+      window.setThemeColor('#0F172A');
     }
     
     UI.success("Connexion réussie");
