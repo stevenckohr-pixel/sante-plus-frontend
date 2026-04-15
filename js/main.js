@@ -1534,7 +1534,7 @@ function renderMobileHub() {
 
     // Générer le HTML moderne
     container.innerHTML = `
-        <div class="animate-fadeIn pb-32" style="background: #F8FAFC;">
+        <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 10px;">
             <!-- Bannière moderne avec gradient -->
             <div style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); border-radius: 24px; padding: 24px; margin-bottom: 24px; color: white;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
