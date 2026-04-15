@@ -1191,7 +1191,14 @@ async function loadFeed() {
     // 🔥 RÉCUPÉRER LES INFOS DU PATIENT COURANT
     let patientInfo = null;
     try {
-        const patients = await secureFetch("/patients", { noCache: true });
+        let patients = await secureFetch("/patients", { noCache: true });
+        
+        // ✅ S'assurer que patients est un tableau
+        if (!Array.isArray(patients)) {
+            console.warn("⚠️ La réponse patients n'est pas un tableau, conversion");
+            patients = patients?.data || patients?.results || [];
+        }
+        
         patientInfo = patients.find(p => p.id === AppState.currentPatient);
         
         if (!patientInfo && patients.length > 0) {
@@ -1204,6 +1211,7 @@ async function loadFeed() {
         
     } catch(e) {
         console.error("Erreur chargement patient:", e);
+        patientInfo = null;
     }
 
     container.innerHTML = `
