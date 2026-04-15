@@ -1535,18 +1535,18 @@ function renderMobileHub() {
     // Générer le HTML moderne
     container.innerHTML = `
         <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 10px;">
-            <!-- Bannière moderne avec gradient -->
-            <div style="background: linear-gradient(135deg, ${gradientFrom} 0%, ${gradientTo} 100%); border-radius: 24px; padding: 24px; margin-bottom: 24px; color: white;">
+            <!-- Bannière moderne -->
+            <div style="background: ${primaryColor}; border-radius: 24px; padding: 20px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                             <div style="background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fa-solid ${bannerIcon}" style="color: white; font-size: 14px;"></i>
                             </div>
-                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.8;">BIENVENUE</span>
+                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.8);">BIENVENUE</span>
                         </div>
-                        <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 4px;">${userName?.split(' ')[0] || 'Utilisateur'}</h2>
-                        <p style="font-size: 12px; opacity: 0.9;">${bannerDesc}</p>
+                        <h2 style="font-size: 28px; font-weight: 800; color: white; margin-bottom: 4px;">${userName?.split(' ')[0] || 'Utilisateur'}</h2>
+                        <p style="font-size: 12px; color: rgba(255,255,255,0.9);">${bannerDesc}</p>
                     </div>
                     <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
                         <i class="fa-regular fa-bell" style="color: white; font-size: 20px;"></i>
@@ -1571,29 +1571,29 @@ function renderMobileHub() {
             <!-- Titre menu -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h4 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${primaryColor};">MENU PRINCIPAL</h4>
-                <span style="font-size: 9px; color: #94A3B8;">${filteredMenu.length} services</span>
+                <span style="font-size: 9px; color: white;">${filteredMenu.length} services</span>
             </div>
             
-            <!-- Grille menu moderne -->
-<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
-    ${filteredMenu.map((item, index) => `
-        <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
-             style="background: white; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; border: 1px solid #E2E8F0; box-shadow: 0 1px 2px rgba(0,0,0,0.02); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
-             onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.08)';"
-             onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 2px rgba(0,0,0,0.02)';"
-             onmousedown="this.style.transform='scale(0.98)'"
-             onmouseup="this.style.transform='translateY(-2px)'">
-            <div style="background: ${primaryLight}; width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                <i class="fa-solid ${item.icon}" style="color: ${primaryColor}; font-size: 20px;"></i>
+            <!-- Grille menu moderne - TUILES COLORÉES -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
+                ${filteredMenu.map((item, index) => `
+                    <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
+                         style="background: ${primaryColor}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
+                         onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.15)';"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)';"
+                         onmousedown="this.style.transform='scale(0.97)'"
+                         onmouseup="this.style.transform='translateY(-3px)'">
+                        <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                            <i class="fa-solid ${item.icon}" style="color: ${isMaman ? '#FDE68A' : '#FFD700'}; font-size: 22px;"></i>
+                        </div>
+                        <div>
+                            <p style="font-weight: 700; color: white; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
+                            <p style="font-size: 10px; color: rgba(255,255,255,0.7);">${item.desc}</p>
+                        </div>
+                        <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
+                    </div>
+                `).join('')}
             </div>
-            <div>
-                <p style="font-weight: 700; color: #1E293B; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
-                <p style="font-size: 10px; color: #64748B;">${item.desc}</p>
-            </div>
-            <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
-        </div>
-    `).join('')}
-</div>
             
         </div>
     `;
