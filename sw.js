@@ -45,7 +45,7 @@ messaging.onBackgroundMessage((payload) => {
     icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
     badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
     vibrate: [200, 100, 200],
-    sound: "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3",  
+    sound: "/sante-plus-frontend/sounds/notification.mp3",
     silent: false,
     requireInteraction: true,
     tag: "sante-plus-notif",
