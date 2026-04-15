@@ -336,6 +336,132 @@ function escapeHtml(str) {
 }
 
 
+
+/**
+ * 📊 DASHBOARD SENIOR (pour les familles non-maman)
+ */
+export async function loadSeniorDashboard() {
+    const container = document.getElementById("view-container");
+    if (!container) return;
+
+    const userName = localStorage.getItem("user_name") || "Utilisateur";
+    
+    container.innerHTML = `
+        <div class="animate-fadeIn pb-32">
+            <!-- Bienvenue -->
+            <div class="bg-gradient-to-r from-emerald-600 to-emerald-500 rounded-2xl p-6 mb-6 text-white">
+                <p class="text-[10px] font-bold opacity-80">Bonjour</p>
+                <h2 class="text-2xl font-black">${escapeHtml(userName)}</h2>
+                <p class="text-sm opacity-90 mt-1">Suivi de votre proche</p>
+            </div>
+            
+            <!-- Statistiques rapides -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">Visites</span>
+                        <i class="fa-solid fa-calendar-check text-emerald-500"></i>
+                    </div>
+                    <p class="text-2xl font-black text-slate-800" id="senior-visits-count">-</p>
+                    <p class="text-[10px] text-slate-400">ce mois</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[9px] font-black text-slate-400 uppercase">Commandes</span>
+                        <i class="fa-solid fa-box text-emerald-500"></i>
+                    </div>
+                    <p class="text-2xl font-black text-slate-800" id="senior-orders-count">-</p>
+                    <p class="text-[10px] text-slate-400">en cours</p>
+                </div>
+            </div>
+            
+            <!-- Dernières activités -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-100 mb-6">
+                <h3 class="font-black text-slate-800 mb-3">📋 Dernières activités</h3>
+                <div id="senior-recent-activities" class="space-y-3">
+                    <div class="text-center py-8 text-slate-400">Chargement...</div>
+                </div>
+            </div>
+            
+            <!-- Actions rapides -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="window.switchView('feed')" class="bg-emerald-50 text-emerald-700 p-4 rounded-xl font-bold text-sm active:scale-95 transition-all">
+                    <i class="fa-solid fa-newspaper mr-2"></i> Journal
+                </button>
+                <button onclick="window.switchView('commandes')" class="bg-emerald-50 text-emerald-700 p-4 rounded-xl font-bold text-sm active:scale-95 transition-all">
+                    <i class="fa-solid fa-box mr-2"></i> Commander
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // Charger les données
+    await loadSeniorStats();
+}
+
+async function loadSeniorStats() {
+    try {
+        // Récupérer le patient
+        const { data: patients } = await supabase
+            .from("patients")
+            .select("id")
+            .eq("famille_user_id", localStorage.getItem("user_id"))
+            .maybeSingle();
+        
+        if (!patients) return;
+        
+        // Compter les visites du mois
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const { data: visites } = await supabase
+            .from("visites")
+            .select("id")
+            .eq("patient_id", patients.id)
+            .gte("created_at", startOfMonth.toISOString());
+        
+        document.getElementById("senior-visits-count").innerText = visites?.length || 0;
+        
+        // Compter les commandes en cours
+        const { data: commandes } = await supabase
+            .from("commandes_meds")
+            .select("id")
+            .eq("patient_id", patients.id)
+            .in("statut", ["En attente", "En cours", "En cours de livraison"]);
+        
+        document.getElementById("senior-orders-count").innerText = commandes?.length || 0;
+        
+        // Derniers messages
+        const { data: messages } = await supabase
+            .from("messages")
+            .select("content, created_at, sender:profiles!sender_id(nom)")
+            .eq("patient_id", patients.id)
+            .order("created_at", { ascending: false })
+            .limit(5);
+        
+        const activitiesDiv = document.getElementById("senior-recent-activities");
+        if (messages && messages.length > 0) {
+            activitiesDiv.innerHTML = messages.map(msg => `
+                <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <i class="fa-solid fa-comment text-emerald-600 text-xs"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-slate-700 line-clamp-2">${escapeHtml(msg.content?.substring(0, 100) || 'Photo')}</p>
+                        <p class="text-[9px] text-slate-400 mt-1">${new Date(msg.created_at).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            activitiesDiv.innerHTML = '<div class="text-center py-8 text-slate-400">Aucune activité récente</div>';
+        }
+        
+    } catch (err) {
+        console.error("Erreur chargement stats senior:", err);
+    }
+}
+
 // ✅ Exposer la fonction globalement pour les appels HTML
 window.quickValidate = quickValidate;
 window.fetchStats = fetchStats;
