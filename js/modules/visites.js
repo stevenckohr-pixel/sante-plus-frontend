@@ -188,49 +188,107 @@ export async function loadVisits() {
  * Affiche les visites sous forme de Timeline
  */
 export function renderVisits() {
-  const container = document.getElementById("visits-list");
-  if (!container) return;
+    const container = document.getElementById("visits-list");
+    if (!container) return;
 
-  if (AppState.visites.length === 0) {
-    container.innerHTML = `<p class="text-slate-400 text-center py-10 italic">Aucune visite enregistrée.</p>`;
-    return;
-  }
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const themeColor = isMaman ? 'pink' : 'emerald';
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
 
-container.innerHTML = AppState.visites
-    .map((v, index) => {  
-      const isPending =  v.statut === "En attente";
-      const statusColor =
-         v.statut === "Validé"
-          ? "text-green-500"
-          :  v.statut === "Rejeté"
-            ? "text-red-500"
-            : "text-orange-500";
+    if (AppState.visites.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-16 bg-white rounded-2xl border border-slate-100">
+                <i class="fa-solid fa-calendar-check text-4xl text-slate-300 mb-3"></i>
+                <p class="text-slate-400 font-medium">Aucune visite enregistrée</p>
+                <p class="text-[10px] text-slate-300 mt-1">Les visites apparaîtront ici</p>
+            </div>`;
+        return;
+    }
 
-      return `
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm mb-4 list-item-animate" style="animation-delay: ${index * 0.05}s">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h4 class="font-black text-slate-800 uppercase text-xs">${v.patient.nom_complet}</h4>
-                        <p class="text-[10px] text-slate-400">${UI.formatDate(v.heure_debut)}</p>
+    container.innerHTML = AppState.visites
+        .map((v, index) => {
+            const statusColor = v.statut === "Validé" ? "text-emerald-600" :
+                               v.statut === "Rejeté" ? "text-rose-500" :
+                               "text-amber-600";
+            
+            const statusBg = v.statut === "Validé" ? "bg-emerald-50" :
+                            v.statut === "Rejeté" ? "bg-rose-50" :
+                            "bg-amber-50";
+
+            return `
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-all hover:border-${themeColor}-200" 
+                     style="animation: fadeInUp 0.25s ease ${index * 0.05}s forwards; opacity: 0;">
+                    
+                    <!-- En-tête coloré selon le statut -->
+                    <div class="px-4 py-3 ${statusBg} border-b border-slate-100 flex justify-between items-center">
+                        <div>
+                            <h4 class="font-black text-slate-800 text-sm">${v.patient?.nom_complet || 'Patient inconnu'}</h4>
+                            <p class="text-[10px] text-slate-500 mt-0.5">
+                                <i class="fa-regular fa-calendar mr-1"></i>${UI.formatDate(v.heure_debut)}
+                            </p>
+                        </div>
+                        <span class="text-[9px] font-black uppercase ${statusColor} px-2 py-1 rounded-full ${statusBg}">
+                            ${v.statut === "Validé" ? '✓ Validé' : v.statut === "Rejeté" ? '✗ Rejeté' : '⏳ En attente'}
+                        </span>
                     </div>
-                    <span class="text-[9px] font-black uppercase ${statusColor}">${ v.statut}</span>
-                </div>
-                
-                ${v.photo_url ? `<img src="${v.photo_url}" class="w-full h-32 object-cover rounded-2xl mb-3 shadow-inner">` : ""}
-                
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
-                        ${v.aidant?.photo_url ? 
-                            `<img src="${v.aidant.photo_url}" class="w-full h-full object-cover">` : 
-                            `<i class="fa-solid fa-user-nurse text-slate-400 text-xs"></i>`
-                        }
+                    
+                    <!-- Corps de la carte -->
+                    <div class="p-4">
+                        ${v.photo_url ? `
+                            <div class="relative mb-3 rounded-xl overflow-hidden">
+                                <img src="${v.photo_url}" class="w-full h-40 object-cover cursor-pointer" onclick="window.open('${v.photo_url}')">
+                                <div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur px-2 py-1 rounded-lg">
+                                    <span class="text-[8px] text-white font-bold">📸 Preuve</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${v.activites_faites && v.activites_faites.length ? `
+                            <div class="mb-3">
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Activités réalisées</p>
+                                <div class="flex flex-wrap gap-1">
+                                    ${v.activites_faites.map(act => `
+                                        <span class="text-[9px] px-2 py-1 rounded-full" style="background: ${primaryLight}; color: ${primaryColor};">✓ ${act}</span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        ${v.notes ? `
+                            <div class="mb-3 p-3 bg-slate-50 rounded-xl">
+                                <p class="text-[9px] font-bold text-slate-400 mb-1">📝 Note de l'aidant</p>
+                                <p class="text-xs text-slate-600 italic">"${v.notes}"</p>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Aidant -->
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                                    ${v.aidant?.photo_url ? 
+                                        `<img src="${v.aidant.photo_url}" class="w-full h-full object-cover">` : 
+                                        `<i class="fa-solid fa-user-nurse text-slate-400 text-xs"></i>`
+                                    }
+                                </div>
+                                <div>
+                                    <p class="text-[11px] font-bold text-slate-700">${v.aidant?.nom || 'Aidant'}</p>
+                                    <p class="text-[9px] text-slate-400">Intervenant</p>
+                                </div>
+                            </div>
+                            ${v.statut === "En attente" ? `
+                                <button onclick="window.quickValidate('${v.id}', 'Validé')" 
+                                        class="px-3 py-1.5 rounded-lg text-[9px] font-bold text-white transition-all active:scale-95"
+                                        style="background: ${primaryColor};">
+                                    <i class="fa-solid fa-check mr-1"></i> Valider
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
-                    <p class="text-[11px] font-bold text-slate-600">${v.aidant.nom}</p>
                 </div>
-            </div>
-        `;
-    })
-    .join("");
+            `;
+        })
+        .join("");
 }
 
 
