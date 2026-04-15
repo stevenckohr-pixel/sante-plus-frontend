@@ -3274,6 +3274,28 @@ window.renderFeed = async () => {
     if (module?.loadFeed) await module.loadFeed();
 };
 
+
+// ============================================================
+// EXPOSER LES VARIABLES LAZY POUR LE DEBUG
+// ============================================================
+window.moduleCache = moduleCache;
+window.lazyLoadModule = lazyLoadModule;
+
+// ============================================================
+// ASSIGNER LES FONCTIONS MANQUANTES
+// ============================================================
+window.startVisit = async (patientId) => {
+    const module = await lazyLoadModule('visites');
+    if (module?.startVisit) await module.startVisit(patientId);
+};
+
+window.submitEndVisit = async () => {
+    const module = await lazyLoadModule('visites');
+    if (module?.submitEndVisit) await module.submitEndVisit();
+};
+
+window.confirmStartVisit = window.startVisit; // Alias
+
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
