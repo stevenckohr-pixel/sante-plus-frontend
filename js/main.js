@@ -1556,14 +1556,14 @@ function renderMobileHub() {
             </div>
             
             <!-- Section rapide (stats ou infos) -->
-            <div style="background: white; border-radius: 20px; padding: 16px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #E2E8F0;">
+            <div style="background: white; border-radius: 20px; padding: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <p style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : 'Prochaine intervention'}</p>
-                        <p style="font-size: 14px; font-weight: 600; color: #1E293B; margin-top: 4px;">${isMaman ? 'Aujourd&apos;hui, 10h30' : 'À venir'}</p>
+                        <p style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : 'Prochaine intervention'}</p>
+                        <p style="font-size: 13px; font-weight: 600; color: #1E293B; margin-top: 2px;">${isMaman ? 'Aujourd\'hui, 10h30' : 'À venir'}</p>
                     </div>
-                    <div style="background: ${primaryLight}; padding: 6px 12px; border-radius: 20px;">
-                        <span style="font-size: 10px; font-weight: 700; color: ${primaryColor};">${isMaman ? 'Visite prévue' : 'Planifié'}</span>
+                    <div style="background: ${primaryLight}; padding: 5px 10px; border-radius: 20px;">
+                        <span style="font-size: 9px; font-weight: 700; color: ${primaryColor};">${isMaman ? 'Visite prévue' : 'Planifié'}</span>
                     </div>
                 </div>
             </div>
