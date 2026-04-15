@@ -2438,6 +2438,7 @@ async function performViewSwitch(viewName) {
             container.style.opacity = "1";
             container.style.transform = "translateY(0)";
             updateActiveNavButtons(viewName);
+            updateBottomNav(viewName);  // ← ICI
             setTimeout(() => {
                 if (container) container.style.transition = "";
             }, 150);
