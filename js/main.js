@@ -1844,44 +1844,85 @@ window.refreshMenuBadges = () => {
             </aside>
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
     
-                <header class="h-16 lg:h-20 bg-white/80 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
-                    
+            <header class="h-14 lg:h-16 bg-white/95 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
+                
+                <!-- Menu hamburger (mobile uniquement) -->
+                <button id="menu-hamburger" class="lg:hidden w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95 transition-all">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                
                 <!-- Logo mobile avec texte dynamique -->
-                    <div class="lg:hidden flex items-center gap-2">
-                        <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
-                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
-                        </div>
-                        <div class="flex items-baseline gap-0">
-                            <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
-                            <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
-                            <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
-                        </div>
+                <div class="lg:hidden flex items-center gap-2">
+                    <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
+                        <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
                     </div>
-                    
-                    <!-- Titre desktop uniquement -->
-                    <div class="hidden lg:block">
-                        <div class="brand-container">
-                            <span id="header-sante" class="brand-sante-md font-black">Santé</span>
-                            <span class="brand-plus-md font-black">Plus</span>
-                            <span id="header-service" class="brand-service-md font-black"> Service</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                    <div class="flex items-baseline gap-0">
+                        <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
+                        <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
+                        <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
                     </div>
-                    
-                    <!-- Espace vide pour équilibre sur mobile -->
-                    <div class="lg:hidden"></div>
-
-
+                </div>
+                
+                <!-- Titre desktop uniquement -->
+                <div class="hidden lg:block">
+                    <div class="brand-container">
+                        <span id="header-sante" class="brand-sante-md font-black">Santé</span>
+                        <span class="brand-plus-md font-black">Plus</span>
+                        <span id="header-service" class="brand-service-md font-black"> Service</span>
+                    </div>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                </div>
+                
+                <!-- Actions droite -->
+                <div class="flex items-center gap-2">
                     <!-- Notifications -->
-                    <div class="flex items-center gap-3">
-                        <button onclick="window.switchView('notifications')" 
-                                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 transition-all shadow-sm flex items-center justify-center">
-                            <i class="fa-regular fa-bell text-base"></i>
-                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                    <button onclick="window.switchView('notifications')" 
+                            class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-all active:scale-95">
+                        <i class="fa-regular fa-bell text-base"></i>
+                        <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                    </button>
+                    
+                    <!-- Profil -->
+                    <button onclick="window.switchView('profile')" 
+                            class="w-9 h-9 lg:w-10 lg:h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-all active:scale-95">
+                        ${userPhoto ? 
+                            `<img src="${userPhoto}" class="w-8 h-8 rounded-full object-cover">` : 
+                            `<i class="fa-regular fa-user-circle text-slate-500 text-xl"></i>`
+                        }
+                    </button>
+                </div>
+                
+            </header>
+            
+            
+            <!-- Menu latéral mobile (drawer) -->
+            <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+                <div class="absolute inset-0 bg-black/50" id="drawer-overlay"></div>
+                <div class="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300">
+                    <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
+                                <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-6 h-6 object-contain">
+                            </div>
+                            <div>
+                                <p class="font-bold text-slate-800">${userName?.split(' ')[0] || 'Utilisateur'}</p>
+                                <p class="text-[9px] text-slate-400">${userRole}</p>
+                            </div>
+                        </div>
+                        <button id="close-drawer" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                            <i class="fa-solid fa-times text-slate-500"></i>
                         </button>
                     </div>
-                    
-                </header>
+                    <nav class="p-4 space-y-2" id="drawer-menu">
+                        <!-- Les liens seront injectés ici -->
+                    </nav>
+                    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100">
+                        <button onclick="window.logout()" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase">
+                            <i class="fa-solid fa-power-off mr-2"></i> Déconnexion
+                        </button>
+                    </div>
+                </div>
+            </div>
                 
                 <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
                 <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
@@ -2062,6 +2103,30 @@ setTimeout(() => {
     });
     
 }, 100);
+
+     // Dans renderLayout(), après avoir créé le HTML
+setTimeout(() => {
+    const menuBtn = document.getElementById('menu-hamburger');
+    const drawer = document.getElementById('mobile-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const closeBtn = document.getElementById('close-drawer');
+    
+    if (menuBtn && drawer) {
+        menuBtn.onclick = () => {
+            drawer.classList.remove('hidden');
+            setTimeout(() => drawer.classList.add('show'), 10);
+        };
+        
+        const closeDrawer = () => {
+            drawer.classList.remove('show');
+            setTimeout(() => drawer.classList.add('hidden'), 300);
+        };
+        
+        if (overlay) overlay.onclick = closeDrawer;
+        if (closeBtn) closeBtn.onclick = closeDrawer;
+    }
+}, 100);
+     
     setTimeout(() => {
         updateBrandingColors();
     }, 50);
