@@ -522,6 +522,10 @@ async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
 
+    container.style.padding = '0';
+    container.style.margin = '0';
+    container.style.overflow = 'hidden';
+    
     if (!AppState.currentPatient) {
         return window.switchView('patients');
     }
