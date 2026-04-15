@@ -33,40 +33,31 @@ import * as Notifications from "./modules/notifications.js";
 // ============================================================
 //--------------------------------------------------------------
 //--------------------------------------------------------------
+// Vues à charger immédiatement (pas de lazy loading)
+const CRITICAL_VIEWS = ['home', 'patients', 'dashboard'];
 
+// Dans performViewSwitch, pour les vues critiques, on charge normalement
+const isCritical = CRITICAL_VIEWS.includes(viewName);
 
 
 const moduleCache = {};
 
 async function lazyLoadModule(moduleName, viewName) {
-  // Si déjà chargé, utiliser le cache
+  // Si déjà chargé, retourner immédiatement
   if (moduleCache[moduleName]) {
-    console.log(`📦 [Lazy] Module ${moduleName} déjà en cache`);
     return moduleCache[moduleName];
   }
   
   console.log(`⏳ [Lazy] Chargement du module ${moduleName}...`);
   
   try {
-    // Afficher un indicateur de chargement léger
+    // AFFICHER UN SQUELETTE IMMÉDIATEMENT (pas de loader)
     const container = document.getElementById("view-container");
-    if (container && !container.querySelector('.lazy-loading')) {
-      const loader = document.createElement('div');
-      loader.className = 'lazy-loading fixed inset-0 bg-white/80 z-50 flex items-center justify-center';
-      loader.innerHTML = `
-        <div class="text-center">
-          <div class="relative w-10 h-10 mx-auto mb-3">
-            <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
-            <img src="${localStorage.getItem('user_is_maman') === 'true' ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4">
-          </div>
-          <p class="text-[9px] font-black text-slate-400">Chargement...</p>
-        </div>
-      `;
-      document.body.appendChild(loader);
-      setTimeout(() => loader.remove(), 500);
+    if (container && !container.querySelector('.skeleton-view')) {
+      container.innerHTML = getSkeletonHTML(viewName);
     }
     
-    // Charger le module dynamiquement
+    // Charger le module
     let module;
     switch(moduleName) {
       case 'visites':
@@ -115,24 +106,91 @@ async function lazyLoadModule(moduleName, viewName) {
         module = await import('./modules/subscription.js');
         break;
       default:
-        console.warn(`Module ${moduleName} non reconnu`);
         return null;
     }
     
     moduleCache[moduleName] = module;
-    console.log(`✅ [Lazy] Module ${moduleName} chargé avec succès`);
-    
-    // Déclencher un événement pour que la vue s'affiche
-    window.dispatchEvent(new CustomEvent('module-loaded', { detail: { moduleName, viewName } }));
+    console.log(`✅ [Lazy] Module ${moduleName} chargé`);
     
     return module;
     
   } catch (err) {
     console.error(`❌ [Lazy] Erreur chargement ${moduleName}:`, err);
+    // Afficher une erreur dans le conteneur
+    const container = document.getElementById("view-container");
+    if (container) {
+      container.innerHTML = `
+        <div class="text-center py-20">
+          <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-3"></i>
+          <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+          <button onclick="window.switchView('${viewName}')" class="mt-4 px-4 py-2 bg-slate-800 text-white rounded-xl text-xs">Réessayer</button>
+        </div>
+      `;
+    }
     return null;
   }
 }
 
+// Fonction pour afficher un squelette (skeleton) pendant le chargement
+function getSkeletonHTML(viewName) {
+  const skeletons = {
+    'patients': `
+      <div class="space-y-4">
+        ${Array(3).fill().map(() => `
+          <div class="bg-white rounded-2xl p-4 animate-pulse">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-slate-200 rounded-xl"></div>
+              <div class="flex-1">
+                <div class="h-4 bg-slate-200 rounded w-3/4 mb-2"></div>
+                <div class="h-3 bg-slate-200 rounded w-1/2"></div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `,
+    'visits': `
+      <div class="space-y-4">
+        ${Array(3).fill().map(() => `
+          <div class="bg-white rounded-2xl p-4 animate-pulse">
+            <div class="flex justify-between mb-3">
+              <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+              <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+            </div>
+            <div class="h-3 bg-slate-200 rounded w-full mb-2"></div>
+            <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+          </div>
+        `).join('')}
+      </div>
+    `,
+    'commandes': `
+      <div class="space-y-4">
+        ${Array(2).fill().map(() => `
+          <div class="bg-white rounded-2xl p-4 animate-pulse">
+            <div class="flex justify-between mb-3">
+              <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+              <div class="h-4 bg-slate-200 rounded w-1/4"></div>
+            </div>
+            <div class="h-3 bg-slate-200 rounded w-full"></div>
+          </div>
+        `).join('')}
+      </div>
+    `,
+    'default': `
+      <div class="space-y-4">
+        ${Array(3).fill().map(() => `
+          <div class="bg-white rounded-2xl p-4 animate-pulse">
+            <div class="h-4 bg-slate-200 rounded w-1/2 mb-3"></div>
+            <div class="h-3 bg-slate-200 rounded w-full mb-2"></div>
+            <div class="h-3 bg-slate-200 rounded w-2/3"></div>
+          </div>
+        `).join('')}
+      </div>
+    `
+  };
+  
+  return skeletons[viewName] || skeletons.default;
+}
 // Attendre le chargement du module puis afficher la vue
 window.addEventListener('module-loaded', async (e) => {
   const { moduleName, viewName } = e.detail;
