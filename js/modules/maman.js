@@ -1,26 +1,10 @@
+// js/modules/maman.js
 import { secureFetch } from "../core/api.js";
-import { AppState } from "../core/state.js";
 import { UI } from "../core/utils.js";
 import supabase from "../core/supabaseClient.js";
 
-// Stockage des données Maman
-let mamanData = {
-    babyMetrics: {
-        lastFeeding: null,
-        sleep: null,
-        diapers: null,
-        weight: null
-    },
-    nextVisit: null,
-    packs: []
-};
-
 /**
- * 📊 CHARGER LE DASHBOARD MAMAN
- */
-
-/**
- * 📱 DASHBOARD MAMAN (Page d'accueil unique)
+ * 📱 DASHBOARD MAMAN COMPLET (Accueil unique)
  */
 export async function loadMamanDashboard() {
     const container = document.getElementById("view-container");
@@ -50,11 +34,10 @@ export async function loadMamanDashboard() {
     }
 
     // Charger toutes les données
-    const [babyMetrics, nextVisit, progress, todayMood] = await Promise.all([
+    const [babyMetrics, nextVisit, progress] = await Promise.all([
         fetchBabyMetrics(patientId),
         fetchNextVisit(patientId),
-        calculateProgress(patientId),
-        fetchTodayMood(patientId)
+        calculateProgress(patientId)
     ]);
 
     // Formater les données
@@ -83,9 +66,7 @@ export async function loadMamanDashboard() {
 
     container.innerHTML = `
         <div class="maman-dashboard-container animate-fadeIn pb-24">
-            <!-- ============================================ -->
             <!-- HEADER ROSE -->
-            <!-- ============================================ -->
             <div class="bg-gradient-to-r from-pink-500 to-pink-600 rounded-2xl p-5 mb-5 text-white">
                 <div class="flex justify-between items-start">
                     <div>
@@ -102,9 +83,7 @@ export async function loadMamanDashboard() {
                 </div>
             </div>
 
-            <!-- ============================================ -->
             <!-- PROCHAINE VISITE -->
-            <!-- ============================================ -->
             <div class="bg-white rounded-xl p-4 mb-5 shadow-sm border border-pink-100">
                 <div class="flex justify-between items-start mb-2">
                     <div>
@@ -121,11 +100,8 @@ export async function loadMamanDashboard() {
                 </div>
             </div>
 
-           <!-- ============================================ -->
-            <!-- MÉTRIQUES BÉBÉ (4 cartes) -->
-            <!-- ============================================ -->
+            <!-- MÉTRIQUES BÉBÉ (4 cartes cliquables) -->
             <div class="grid grid-cols-2 gap-3 mb-5">
-                <!-- Tétée -->
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('feeding')">
                     <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-baby-bottle text-pink-500 text-base"></i>
@@ -135,7 +111,6 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">depuis dernier repas</p>
                 </div>
                 
-                <!-- Sommeil -->
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('sleep')">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-moon text-blue-500 text-base"></i>
@@ -145,7 +120,6 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">aujourd'hui</p>
                 </div>
                 
-                <!-- Couches -->
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('diapers')">
                     <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-droplet text-amber-500 text-base"></i>
@@ -155,7 +129,6 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">changées aujourd'hui</p>
                 </div>
                 
-                <!-- Croissance -->
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('weight')">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-chart-line text-emerald-500 text-base"></i>
@@ -165,9 +138,8 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">cette semaine</p>
                 </div>
             </div>
-            <!-- ============================================ -->
+
             <!-- TRACKER D'HUMEUR -->
-            <!-- ============================================ -->
             <div class="bg-white rounded-xl p-4 mb-5 shadow-sm border border-pink-100">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-bold text-slate-800 text-sm">💝 Comment vous sentez-vous ?</h4>
@@ -193,9 +165,7 @@ export async function loadMamanDashboard() {
                 </div>
             </div>
 
-            <!-- ============================================ -->
             <!-- FORFAITS -->
-            <!-- ============================================ -->
             <div class="mb-5">
                 <div class="flex justify-between items-center mb-3">
                     <h4 class="font-bold text-slate-800 text-sm">🎁 Nos Forfaits</h4>
@@ -233,17 +203,15 @@ export async function loadMamanDashboard() {
                 </div>
             </div>
 
-            <!-- ============================================ -->
             <!-- NAVIGATION RAPIDE -->
-            <!-- ============================================ -->
             <div class="grid grid-cols-4 gap-2">
                 <button onclick="window.switchView('feed')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
                     <i class="fa-regular fa-message text-base"></i>
-                    <span class="text-[8px] font-bold">Messages</span>
+                    <span class="text-[8px] font-bold">Journal</span>
                 </button>
-                <button onclick="window.switchView('planning')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
-                    <i class="fa-regular fa-calendar text-base"></i>
-                    <span class="text-[8px] font-bold">Planning</span>
+                <button onclick="window.switchView('visits')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
+                    <i class="fa-regular fa-calendar-check text-base"></i>
+                    <span class="text-[8px] font-bold">Visites</span>
                 </button>
                 <button onclick="window.switchView('commandes')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
                     <i class="fa-solid fa-box text-base"></i>
@@ -257,349 +225,31 @@ export async function loadMamanDashboard() {
         </div>
     `;
 
-    // Mettre à jour le badge des notifications
     await updateMamanNotifications();
 }
-/**
- * 📥 RÉCUPÉRER LES DONNÉES MAMAN DEPUIS LA BDD
- */
-async function fetchMamanDataFromDB() {
-    try {
-        // Récupérer le patient
-        const patients = await secureFetch("/patients");
-        const patient = patients?.[0];
-        
-        if (!patient) return;
-        
-        // Récupérer les métriques bébé depuis la BDD
-        const metrics = await secureFetch(`/educational/baby-metrics/${patient.id}?limit=1`);
-        if (metrics && metrics.length > 0) {
-            const latest = metrics[0];
-            if (latest.metric_type === 'feeding') mamanData.babyMetrics.lastFeeding = latest.value;
-            if (latest.metric_type === 'sleep') mamanData.babyMetrics.sleep = latest.value;
-            if (latest.metric_type === 'diapers') mamanData.babyMetrics.diapers = latest.value;
-            if (latest.metric_type === 'weight') mamanData.babyMetrics.weight = latest.value;
-        }
-        
-        // Récupérer la prochaine visite
-        const visites = await secureFetch("/visites");
-        const nextVisit = visites?.find(v => v.statut === "Planifié" && new Date(v.heure_debut) > new Date());
-        if (nextVisit) {
-            mamanData.nextVisit = {
-                date: nextVisit.heure_debut,
-                time: nextVisit.heure_prevue,
-                location: patient.adresse,
-                status: nextVisit.statut
-            };
-        }
-        
-    } catch (err) {
-        console.error("Erreur chargement données Maman:", err);
-    }
-}
+
+// ============================================================
+// FONCTIONS DE RÉCUPÉRATION DES DONNÉES
+// ============================================================
 
 /**
- * 😊 SAUVEGARDER L'HUMEUR DANS LA BDD
- */
-window.saveMoodToDB = async (mood) => {
-    const moodEmojis = {
-        excellent: '😊',
-        bien: '😐',
-        fatigue: '😴',
-        triste: '😔'
-    };
-    
-    try {
-        const patients = await secureFetch("/patients");
-        const patient = patients?.[0];
-        
-        if (!patient) {
-            UI.error("Patient non trouvé");
-            return;
-        }
-        
-        await secureFetch('/educational/mood', {
-            method: 'POST',
-            body: JSON.stringify({
-                patient_id: patient.id,
-                mood: mood,
-                notes: null
-            })
-        });
-        
-        // Feedback visuel
-        const btn = document.querySelector(`[data-mood="${mood}"] div`);
-        if (btn) {
-            btn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                btn.style.transform = '';
-            }, 200);
-        }
-        
-        UI.success("Humeur enregistrée !");
-        
-        // Rafraîchir le dashboard
-        setTimeout(() => loadMamanDashboard(), 500);
-        
-    } catch (err) {
-        console.error("Erreur sauvegarde humeur:", err);
-        UI.error("Impossible d'enregistrer l'humeur");
-    }
-};
-
-/**
- * 📊 AFFICHER L'HISTORIQUE DES HUMEURS DEPUIS LA BDD
- */
-window.showMoodHistoryFromDB = async () => {
-    try {
-        const patients = await secureFetch("/patients");
-        const patient = patients?.[0];
-        
-        if (!patient) return;
-        
-        const moods = await secureFetch(`/educational/moods/${patient.id}`);
-        
-        if (moods.length === 0) {
-            Swal.fire({
-                title: "Pas encore d'humeur",
-                text: "Utilisez le tracker pour enregistrer votre humeur",
-                icon: "info",
-                confirmButtonColor: "#DB2777"
-            });
-            return;
-        }
-        
-        Swal.fire({
-            title: "📊 Mon évolution",
-            html: `
-                <div class="space-y-2 max-h-96 overflow-y-auto">
-                    ${moods.map(m => `
-                        <div class="flex justify-between items-center p-3 bg-pink-50 rounded-xl">
-                            <span class="text-lg">${getMoodEmoji(m.mood)}</span>
-                            <span class="text-xs text-slate-500">${new Date(m.recorded_at).toLocaleDateString('fr-FR')}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            `,
-            confirmButtonText: "Fermer",
-            confirmButtonColor: "#DB2777",
-            customClass: { popup: 'rounded-2xl' }
-        });
-        
-    } catch (err) {
-        console.error(err);
-        UI.error("Impossible de charger l'historique");
-    }
-};
-
-function getMoodEmoji(mood) {
-    const emojis = {
-        excellent: '😊',
-        bien: '😐',
-        fatigue: '😴',
-        triste: '😔'
-    };
-    return emojis[mood] || '😊';
-}
-
-/**
- * 📅 FORMATER LA DATE DE VISITE
- */
-function formatVisitDate(dateStr) {
-    if (!dateStr) return 'À venir';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-/**
- * 📊 CALCULER LA PROGRESSION
- */
-
-/**
- * 🍼 FORMATER L'HEURE DE LA DERNIÈRE TÉTÉE
- */
-function formatFeedingTime(hours) {
-    if (!hours) return '--';
-    if (hours < 1) return `${Math.round(hours * 60)} min`;
-    return `${hours}h`;
-}
-
-/**
- * 😴 FORMATER LES HEURES DE SOMMEIL
- */
-function formatSleepHours(hours) {
-    if (!hours) return '--';
-    return `${hours}h`;
-}
-
-/**
- * ⚖️ FORMATER LE POIDS
- */
-function formatWeight(grams) {
-    if (!grams) return '--';
-    if (grams < 1000) return `${grams}g`;
-    return `${(grams / 1000).toFixed(1)} kg`;
-}
-
-/**
- * 🎨 AFFICHER LES PACKS
- */
-function renderPacks() {
-    const packs = [
-        { name: 'Essentiel', desc: '2 visites / semaine', price: '45 000', popular: false },
-        { name: 'Confort', desc: '3-4 visites / semaine', price: '85 000', popular: true },
-        { name: 'Sérénité', desc: '6-7 visites / semaine', price: '150 000', popular: false }
-    ];
-    
-    return packs.map(pack => `
-        <div class="maman-pack-card ${pack.popular ? 'border-pink-200 bg-pink-50/30' : ''}" onclick="window.switchView('subscription')">
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="font-bold text-slate-800">${pack.name}</p>
-                    <p class="text-[9px] text-slate-400">${pack.desc}</p>
-                </div>
-                <p class="font-black text-pink-600">${pack.price} F</p>
-            </div>
-            ${pack.popular ? '<span class="text-[8px] font-bold text-pink-500 mt-1 block">⭐ Populaire</span>' : ''}
-        </div>
-    `).join('');
-}
-
-/**
- * 🔔 METTRE À JOUR LES NOTIFICATIONS MAMAN
- */
-async function updateMamanNotifications() {
-    try {
-        let notifications = await secureFetch("/notifications", { noCache: true });
-        
-        // ✅ S'assurer que notifications est un tableau
-        if (!Array.isArray(notifications)) {
-            console.warn("⚠️ La réponse notifications n'est pas un tableau, conversion");
-            notifications = notifications?.data || notifications?.results || [];
-        }
-        
-        const unreadCount = notifications.filter(n => !n.read).length;
-        
-        const badge = document.getElementById('maman-notif-badge');
-        if (badge) {
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-        
-        // Mettre à jour aussi le badge général si nécessaire
-        const headerBadge = document.getElementById('notification-badge');
-        if (headerBadge) {
-            if (unreadCount > 0) {
-                headerBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-                headerBadge.style.display = 'flex';
-            } else {
-                headerBadge.style.display = 'none';
-            }
-        }
-        
-    } catch (err) {
-        console.error("Erreur notifications:", err);
-    }
-}
-/**
- * 🚨 DÉTECTION DES ALERTES
- */
-export function checkForAlerts(content) {
-    const alertKeywords = {
-        'saignement': { level: 'urgent', message: '⚠️ Saignement signalé - Contacter immédiatement' },
-        'douleur': { level: 'warning', message: '📢 Douleur signalée - Suivi nécessaire' },
-        'fièvre': { level: 'warning', message: '🌡️ Fièvre détectée - Surveiller la température' },
-        'malaise': { level: 'urgent', message: '🚨 Malaise signalé - Intervention urgente' },
-        'vertige': { level: 'warning', message: '🎢 Vertiges - Repos recommandé' }
-    };
-    
-    const lowerContent = content.toLowerCase();
-    
-    for (const [keyword, alert] of Object.entries(alertKeywords)) {
-        if (lowerContent.includes(keyword)) {
-            createMamanAlert(keyword, alert.message, alert.level);
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * 🔔 CRÉER UNE ALERTE MAMAN
- */
-async function createMamanAlert(type, message, level) {
-    try {
-        await secureFetch('/notifications/send', {
-            method: 'POST',
-            body: JSON.stringify({
-                userId: localStorage.getItem("user_id"),
-                title: level === 'urgent' ? '🚨 ALERTE MAMAN' : '⚠️ Attention Maman',
-                message: `${type.toUpperCase()}: ${message}`,
-                type: 'alert',
-                url: '/#feed'
-            })
-        });
-        
-        Swal.fire({
-            title: level === 'urgent' ? '🚨 Alerte Santé' : '⚠️ Attention',
-            text: message,
-            icon: level === 'urgent' ? 'error' : 'warning',
-            confirmButtonColor: '#DB2777',
-            timer: 5000
-        });
-        
-        console.log(`📋 Alerte ${level}: ${type} - ${message}`);
-        
-    } catch (err) {
-        console.error("Erreur création alerte:", err);
-    }
-}
-
-/**
- * 🔧 ESCAPE HTML
- */
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-
-
-/**
- * 📥 RÉCUPÉRER LES MÉTRIQUES BÉBÉ DEPUIS LA BDD
+ * 📥 RÉCUPÉRER LES MÉTRIQUES BÉBÉ
  */
 async function fetchBabyMetrics(patientId) {
     try {
         const { data, error } = await supabase
             .from("baby_metrics")
-            .select("metric_type, value, unit, recorded_at")
+            .select("metric_type, value")
             .eq("patient_id", patientId)
             .order("recorded_at", { ascending: false });
         
         if (error) throw error;
         
-        const metrics = {
-            lastFeeding: null,
-            sleep: null,
-            diapers: null,
-            weight: null
-        };
-        
-        // Prendre la dernière valeur pour chaque type
+        const metrics = { lastFeeding: null, sleep: null, diapers: null, weight: null };
         const latestByType = {};
+        
         for (const item of data || []) {
-            if (!latestByType[item.metric_type]) {
-                latestByType[item.metric_type] = item;
-            }
+            if (!latestByType[item.metric_type]) latestByType[item.metric_type] = item;
         }
         
         if (latestByType.feeding) metrics.lastFeeding = latestByType.feeding.value;
@@ -647,29 +297,7 @@ async function fetchNextVisit(patientId) {
 }
 
 /**
- * 📥 RÉCUPÉRER L'HUMEUR DU JOUR
- */
-async function fetchTodayMood(patientId) {
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        const { data, error } = await supabase
-            .from("mama_moods")
-            .select("mood")
-            .eq("patient_id", patientId)
-            .gte("recorded_at", `${today}T00:00:00`)
-            .lte("recorded_at", `${today}T23:59:59`)
-            .maybeSingle();
-        
-        if (error) throw error;
-        return data?.mood || null;
-    } catch (err) {
-        console.error("Erreur fetch mood:", err);
-        return null;
-    }
-}
-
-/**
- * 📊 CALCULER LA PROGRESSION (visites validées / total visites)
+ * 📊 CALCULER LA PROGRESSION
  */
 async function calculateProgress(patientId) {
     try {
@@ -689,7 +317,9 @@ async function calculateProgress(patientId) {
     }
 }
 
-
+// ============================================================
+// MÉTRIQUES BÉBÉ (MODALE + SAUVEGARDE)
+// ============================================================
 
 /**
  * 🍼 OUVRIRE LA MODALE POUR AJOUTER UNE MÉTRIQUE
@@ -734,7 +364,7 @@ window.openAddMetricModal = (metricType) => {
         if (result.isConfirmed) {
             await saveBabyMetric(metricType, result.value.value);
             Swal.fire('✅ Enregistré', `${titles[metricType]} mise à jour`, 'success');
-            loadMamanDashboard(); // Recharger le dashboard
+            loadMamanDashboard();
         }
     });
 };
@@ -761,7 +391,135 @@ async function saveBabyMetric(metricType, value) {
         });
     } catch (err) {
         console.error("Erreur sauvegarde métrique:", err);
+        UI.error("Impossible d'enregistrer la métrique");
     }
 }
-// Export
-export {updateMamanNotifications};
+
+// ============================================================
+// GESTION DE L'HUMEUR
+// ============================================================
+
+/**
+ * 😊 SAUVEGARDER L'HUMEUR
+ */
+window.saveMoodToDB = async (mood) => {
+    try {
+        let patients = await secureFetch("/patients");
+        if (!Array.isArray(patients)) patients = patients?.data || [];
+        const patient = patients?.[0];
+        
+        if (!patient) {
+            UI.error("Patient non trouvé");
+            return;
+        }
+        
+        await secureFetch('/educational/mood', {
+            method: 'POST',
+            body: JSON.stringify({
+                patient_id: patient.id,
+                mood: mood,
+                notes: null
+            })
+        });
+        
+        UI.success("Humeur enregistrée !");
+        setTimeout(() => loadMamanDashboard(), 500);
+        
+    } catch (err) {
+        console.error("Erreur sauvegarde humeur:", err);
+        UI.error("Impossible d'enregistrer l'humeur");
+    }
+};
+
+/**
+ * 📊 AFFICHER L'HISTORIQUE DES HUMEURS
+ */
+window.showMoodHistoryFromDB = async () => {
+    try {
+        let patients = await secureFetch("/patients");
+        if (!Array.isArray(patients)) patients = patients?.data || [];
+        const patient = patients?.[0];
+        
+        if (!patient) return;
+        
+        let moods = await secureFetch(`/educational/moods/${patient.id}`);
+        if (!Array.isArray(moods)) moods = moods?.data || [];
+        
+        if (moods.length === 0) {
+            Swal.fire({
+                title: "Pas encore d'humeur",
+                text: "Utilisez le tracker pour enregistrer votre humeur",
+                icon: "info",
+                confirmButtonColor: "#DB2777"
+            });
+            return;
+        }
+        
+        Swal.fire({
+            title: "📊 Mon évolution",
+            html: `
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    ${moods.map(m => `
+                        <div class="flex justify-between items-center p-3 bg-pink-50 rounded-xl">
+                            <span class="text-lg">${getMoodEmoji(m.mood)}</span>
+                            <span class="text-xs text-slate-500">${new Date(m.recorded_at).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `,
+            confirmButtonText: "Fermer",
+            confirmButtonColor: "#DB2777",
+            customClass: { popup: 'rounded-2xl' }
+        });
+        
+    } catch (err) {
+        console.error(err);
+        UI.error("Impossible de charger l'historique");
+    }
+};
+
+function getMoodEmoji(mood) {
+    const emojis = { excellent: '😊', bien: '😐', fatigue: '😴', triste: '😔' };
+    return emojis[mood] || '😊';
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+async function updateMamanNotifications() {
+    try {
+        let notifications = await secureFetch("/notifications", { noCache: true });
+        if (!Array.isArray(notifications)) notifications = notifications?.data || [];
+        
+        const unreadCount = notifications.filter(n => !n.read).length;
+        const badge = document.getElementById('maman-notif-badge');
+        
+        if (badge) {
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+    } catch (err) {
+        console.error("Erreur notifications:", err);
+    }
+}
+
+// ============================================================
+// UTILITAIRES
+// ============================================================
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+export { updateMamanNotifications };
