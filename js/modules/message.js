@@ -1350,6 +1350,11 @@ function renderStoryCard(msg, isReply = false) {
                 if (realEl) realEl.setAttribute('data-message-id', result.id);
             }
         }
+
+                // Après avoir envoyé le message, vérifier les alertes
+        if (localStorage.getItem("user_is_maman") === "true") {
+            checkForAlerts(content);
+        }
         
         initRealtimeForCurrentPatient();
         
