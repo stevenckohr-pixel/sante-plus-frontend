@@ -1798,6 +1798,23 @@ window.refreshMenuBadges = () => {
     }
 };
 
+
+function updateBottomNav(viewName) {
+    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        const btnView = btn.getAttribute('onclick')?.match(/switchView\('([^']+)'\)/)?.[1];
+        if (btnView === viewName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
+// Appeler dans performViewSwitch après avoir changé de vue
+updateBottomNav(viewName);
+
+
+
 // ============================================================
 // LAYOUT PRINCIPAL (HEADER, SIDEBAR, FOOTER)
 // ============================================================
@@ -1807,10 +1824,10 @@ window.refreshMenuBadges = () => {
     const userPhoto = localStorage.getItem("user_photo");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isFamily = userRole === "FAMILLE";
-    const themeColor = isMaman ? 'pink' : 'emerald';
 
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
+            <!-- Sidebar Desktop -->
             <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
                 <div class="flex items-center gap-4 mb-14 px-2">
                     <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
@@ -1842,291 +1859,147 @@ window.refreshMenuBadges = () => {
                     </button>
                 </div>
             </aside>
+
+            <!-- Contenu principal -->
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
-    
-            <header class="h-14 lg:h-16 bg-white/95 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
-                
-                <!-- Menu hamburger (mobile uniquement) -->
-                <button id="menu-hamburger" class="lg:hidden w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95 transition-all">
-                    <i class="fa-solid fa-bars text-lg"></i>
-                </button>
-                
-                <!-- Logo mobile avec texte dynamique -->
-                <div class="lg:hidden flex items-center gap-2">
-                    <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
-                        <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
-                    </div>
-                    <div class="flex items-baseline gap-0">
-                        <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
-                        <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
-                        <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
-                    </div>
-                </div>
-                
-                <!-- Titre desktop uniquement -->
-                <div class="hidden lg:block">
-                    <div class="brand-container">
-                        <span id="header-sante" class="brand-sante-md font-black">Santé</span>
-                        <span class="brand-plus-md font-black">Plus</span>
-                        <span id="header-service" class="brand-service-md font-black"> Service</span>
-                    </div>
-                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
-                </div>
-                
-                <!-- Actions droite -->
-                <div class="flex items-center gap-2">
-                    <!-- Notifications -->
-                    <button onclick="window.switchView('notifications')" 
-                            class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-all active:scale-95">
-                        <i class="fa-regular fa-bell text-base"></i>
-                        <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                <!-- Header -->
+                <header class="h-14 lg:h-16 bg-white/95 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-4 lg:px-6 shrink-0 z-40">
+                    <!-- Menu hamburger (mobile) -->
+                    <button id="menu-hamburger" class="lg:hidden w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 active:scale-95 transition-all">
+                        <i class="fa-solid fa-bars text-lg"></i>
                     </button>
                     
-                    <!-- Profil -->
-                    <button onclick="window.switchView('profile')" 
-                            class="w-9 h-9 lg:w-10 lg:h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-all active:scale-95">
-                        ${userPhoto ? 
-                            `<img src="${userPhoto}" class="w-8 h-8 rounded-full object-cover">` : 
-                            `<i class="fa-regular fa-user-circle text-slate-500 text-xl"></i>`
-                        }
-                    </button>
-                </div>
-                
-            </header>
-            
-            
-            <!-- Menu latéral mobile (drawer) -->
-            <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
-                <div class="absolute inset-0 bg-black/50" id="drawer-overlay"></div>
-                <div class="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300">
-                    <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <div class="w-10 h-10 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
-                                <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-6 h-6 object-contain">
-                            </div>
-                            <div>
-                                <p class="font-bold text-slate-800">${userName?.split(' ')[0] || 'Utilisateur'}</p>
-                                <p class="text-[9px] text-slate-400">${userRole}</p>
-                            </div>
+                    <!-- Logo mobile -->
+                    <div class="lg:hidden flex items-center gap-2">
+                        <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
+                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
                         </div>
-                        <button id="close-drawer" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
-                            <i class="fa-solid fa-times text-slate-500"></i>
+                        <div class="flex items-baseline gap-0">
+                            <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
+                            <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
+                            <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Titre desktop -->
+                    <div class="hidden lg:block">
+                        <div class="brand-container">
+                            <span id="header-sante" class="brand-sante-md font-black">Santé</span>
+                            <span class="brand-plus-md font-black">Plus</span>
+                            <span id="header-service" class="brand-service-md font-black"> Service</span>
+                        </div>
+                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
+                    </div>
+                    
+                    <!-- Actions droite -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="window.switchView('notifications')" 
+                                class="relative w-9 h-9 lg:w-10 lg:h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-all active:scale-95">
+                            <i class="fa-regular fa-bell text-base"></i>
+                            <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-1 border-2 border-white hidden">0</span>
+                        </button>
+                        <button onclick="window.switchView('profile')" 
+                                class="w-9 h-9 lg:w-10 lg:h-10 rounded-full hover:bg-slate-100 flex items-center justify-center transition-all active:scale-95">
+                            ${userPhoto ? `<img src="${userPhoto}" class="w-8 h-8 rounded-full object-cover">` : `<i class="fa-regular fa-user-circle text-slate-500 text-xl"></i>`}
                         </button>
                     </div>
-                    <nav class="p-4 space-y-2" id="drawer-menu">
-                        <!-- Les liens seront injectés ici -->
-                    </nav>
-                    <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100">
-                        <button onclick="window.logout()" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase">
-                            <i class="fa-solid fa-power-off mr-2"></i> Déconnexion
-                        </button>
+                </header>
+
+                <!-- Menu latéral mobile (drawer) -->
+                <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+                    <div class="absolute inset-0 bg-black/50" id="drawer-overlay"></div>
+                    <div class="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                            <div class="flex items-center gap-2">
+                                <div class="w-10 h-10 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
+                                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-6 h-6 object-contain">
+                                </div>
+                                <div>
+                                    <p class="font-bold text-slate-800">${userName?.split(' ')[0] || 'Utilisateur'}</p>
+                                    <p class="text-[9px] text-slate-400">${userRole}</p>
+                                </div>
+                            </div>
+                            <button id="close-drawer" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                                <i class="fa-solid fa-times text-slate-500"></i>
+                            </button>
+                        </div>
+                        <nav class="p-4 space-y-2" id="drawer-menu"></nav>
+                        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-100">
+                            <button onclick="window.logout()" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase">
+                                <i class="fa-solid fa-power-off mr-2"></i> Déconnexion
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-                
+
+                <!-- Effets de fond -->
                 <div class="absolute top-40 left-[-5%] w-[500px] h-[500px] bg-green-200/20 rounded-full blur-[120px] pointer-events-none z-0 animate-blob"></div>
                 <div class="absolute bottom-[-10%] right-[-5%] w-[400px] h-[400px] bg-blue-200/20 rounded-full blur-[100px] pointer-events-none z-0 animate-blob animation-delay-2000"></div>
-                
+
+                <!-- Main content -->
                 <main id="main-content" class="flex-1 overflow-y-auto custom-scroll p-6 lg:p-12 z-10 relative">
                     <div id="view-container" class="max-w-7xl mx-auto min-h-full"></div>
                 </main>
-                
-                <!-- ✅ Menu flottant - UNIQUEMENT SUR MOBILE -->
-                                <div class="fab-container">
-                    <div class="fab-menu" id="fab-menu">
-                        <div class="fab-menu-item" data-view="home">
-                            <i class="fa-solid fa-house-chimney"></i>
-                        </div>
-                        <div class="fab-menu-item" data-view="visits">
-                            <i class="fa-solid fa-calendar-check"></i>
-                        </div>
-                        <div class="fab-menu-item" data-view="feed">
-                            <i class="fa-regular fa-newspaper"></i>
-                        </div>
-                        <div class="fab-menu-item" data-view="profile">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
-                        <div class="fab-menu-item" data-view="map">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                    </div>
-                    <div class="fab-button" id="fab-button">
-                        <i class="fa-solid fa-plus"></i>
-                    </div>
-                </div>
-                 
             </div>
         </div>
     `;
 
-    // ✅ Initialisation du menu UNIQUEMENT sur mobile
-  // Initialisation du menu (toujours exécuté)
-setTimeout(() => {
-    const fabContainer = document.querySelector('.fab-container');
-    const fabButton = document.getElementById('fab-button');
-    const fabMenu = document.getElementById('fab-menu');
-    const isMaman = localStorage.getItem('user_is_maman') === 'true';
-    let currentView = localStorage.getItem('last_view') || 'home';
-    let longPressTimer = null;
-    let isDragging = false;
-    let startX, startY, startLeft, startBottom;
-    let isLongPress = false;
-    
-    if (!fabButton || !fabMenu) return;
-    
-    // Appliquer la couleur Maman
-    if (isMaman) {
-        document.body.classList.add('maman-mode');
-        fabButton.style.background = 'linear-gradient(135deg, #DB2777 0%, #BE185D 100%)';
+    // Remplir le menu latéral
+    const drawerMenu = document.getElementById('drawer-menu');
+    if (drawerMenu) {
+        const drawerLinks = [
+            { id: isMaman ? 'dashboard-maman' : 'dashboard', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE'] },
+            { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+            { id: 'patients', icon: 'fa-folder-open', label: isMaman ? 'Mon suivi' : 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'feed', icon: 'fa-newspaper', label: 'Journal', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'billing', icon: 'fa-receipt', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
+            { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
+            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
+            { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
+            { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
+            { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] },
+            { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        ];
+        
+        const filteredDrawerLinks = drawerLinks.filter(link => link.roles.includes(userRole) && (!isMaman ? link.id !== 'education' : true));
+        
+        drawerMenu.innerHTML = filteredDrawerLinks.map(link => `
+            <button onclick="window.switchView('${link.id}'); document.getElementById('mobile-drawer')?.classList.remove('show'); setTimeout(() => document.getElementById('mobile-drawer')?.classList.add('hidden'), 300);" 
+                    class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all active:scale-98">
+                <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <i class="fa-solid ${link.icon} text-slate-500 text-sm"></i>
+                </div>
+                <span class="font-medium text-slate-700 text-sm">${link.label}</span>
+            </button>
+        `).join('');
     }
-    
-    // Mettre à jour l'élément actif
-    function updateActiveMenuItem(viewName) {
-        document.querySelectorAll('.fab-menu-item').forEach(item => {
-            if (item.getAttribute('data-view') === viewName) {
-                item.classList.add('active');
-            } else {
-                item.classList.remove('active');
-            }
-        });
-    }
-    updateActiveMenuItem(currentView);
-    
-    // Restaurer la position sauvegardée
-    const savedLeft = localStorage.getItem('fab_left');
-    const savedBottom = localStorage.getItem('fab_bottom');
-    if (savedLeft && savedBottom) {
-        fabContainer.style.left = savedLeft;
-        fabContainer.style.bottom = savedBottom;
-        fabContainer.style.right = 'auto';
-    }
-    
-    // GESTION DU DÉPLACEMENT (APPUI LONG)
-    const startLongPress = (clientX, clientY) => {
-        startX = clientX;
-        startY = clientY;
-        const rect = fabContainer.getBoundingClientRect();
-        startLeft = rect.left;
-        startBottom = window.innerHeight - rect.bottom;
-        
-        longPressTimer = setTimeout(() => {
-            isLongPress = true;
-            isDragging = true;
-            fabContainer.style.opacity = '0.7';
-            if (navigator.vibrate) navigator.vibrate(50);
-        }, 800);
-    };
-    
-    const onMove = (clientX, clientY) => {
-        if (!isDragging) return;
-        
-        const deltaX = clientX - startX;
-        const deltaY = startY - clientY;
-        
-        let newLeft = startLeft + deltaX;
-        let newBottom = startBottom + deltaY;
-        
-        newLeft = Math.max(10, Math.min(window.innerWidth - 70, newLeft));
-        newBottom = Math.max(10, Math.min(window.innerHeight - 80, newBottom));
-        
-        fabContainer.style.left = newLeft + 'px';
-        fabContainer.style.bottom = newBottom + 'px';
-        fabContainer.style.right = 'auto';
-    };
-    
-    const endDrag = () => {
-        if (longPressTimer) clearTimeout(longPressTimer);
-        if (isDragging) {
-            isDragging = false;
-            fabContainer.style.opacity = '1';
-            const left = fabContainer.style.left;
-            const bottom = fabContainer.style.bottom;
-            if (left && bottom) {
-                localStorage.setItem('fab_left', left);
-                localStorage.setItem('fab_bottom', bottom);
-            }
-        }
-        isLongPress = false;
-        longPressTimer = null;
-    };
-    
-    // Événements souris (Desktop)
-    fabContainer.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        startLongPress(e.clientX, e.clientY);
-    });
-    window.addEventListener('mousemove', (e) => onMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', endDrag);
-    
-    // Événements tactiles (Mobile)
-    fabContainer.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        startLongPress(touch.clientX, touch.clientY);
-    }, { passive: false });
-    
-    window.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        onMove(touch.clientX, touch.clientY);
-    }, { passive: false });
-    
-    window.addEventListener('touchend', endDrag);
-    
-    // Clic pour ouvrir/fermer le menu
-    fabButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (isLongPress || isDragging) return;
-        fabMenu.classList.toggle('open');
-        fabButton.classList.toggle('active');
-    });
-    
-    // Clic sur les items du menu
-    document.querySelectorAll('.fab-menu-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const view = item.getAttribute('data-view');
-            if (view) {
-                currentView = view;
-                updateActiveMenuItem(view);
-                window.switchView(view);
-            }
-        });
-    });
-    
-    // Fermer le menu si on clique ailleurs
-    document.addEventListener('click', (e) => {
-        if (!fabButton.contains(e.target) && !fabMenu.contains(e.target)) {
-            fabMenu.classList.remove('open');
-            fabButton.classList.remove('active');
-        }
-    });
-    
-}, 100);
 
-     // Dans renderLayout(), après avoir créé le HTML
-setTimeout(() => {
-    const menuBtn = document.getElementById('menu-hamburger');
-    const drawer = document.getElementById('mobile-drawer');
-    const overlay = document.getElementById('drawer-overlay');
-    const closeBtn = document.getElementById('close-drawer');
-    
-    if (menuBtn && drawer) {
-        menuBtn.onclick = () => {
-            drawer.classList.remove('hidden');
-            setTimeout(() => drawer.classList.add('show'), 10);
-        };
+    // Initialisation du drawer
+    setTimeout(() => {
+        const menuBtn = document.getElementById('menu-hamburger');
+        const drawer = document.getElementById('mobile-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        const closeBtn = document.getElementById('close-drawer');
         
-        const closeDrawer = () => {
-            drawer.classList.remove('show');
-            setTimeout(() => drawer.classList.add('hidden'), 300);
-        };
-        
-        if (overlay) overlay.onclick = closeDrawer;
-        if (closeBtn) closeBtn.onclick = closeDrawer;
-    }
-}, 100);
-     
+        if (menuBtn && drawer) {
+            menuBtn.onclick = () => {
+                drawer.classList.remove('hidden');
+                setTimeout(() => drawer.classList.add('show'), 10);
+            };
+            
+            const closeDrawer = () => {
+                drawer.classList.remove('show');
+                setTimeout(() => drawer.classList.add('hidden'), 300);
+            };
+            
+            if (overlay) overlay.onclick = closeDrawer;
+            if (closeBtn) closeBtn.onclick = closeDrawer;
+        }
+    }, 100);
+
+    // Mettre à jour les couleurs du branding
     setTimeout(() => {
         updateBrandingColors();
     }, 50);
