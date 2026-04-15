@@ -1839,9 +1839,8 @@ input[type="range"] {
 }
 
 
-
 /* ============================================
-   CARTES PATIENTS MODERNISÉES
+   CARTES PATIENTS MODERNES
    ============================================ */
 
 .patient-card-modern {
@@ -1851,22 +1850,16 @@ input[type="range"] {
     margin-bottom: 12px;
     transition: all 0.2s ease;
     border: 1px solid #E2E8F0;
-    cursor: pointer;
 }
 
 .patient-card-modern:active {
     transform: scale(0.98);
 }
 
-.patient-card-modern:hover {
-    border-color: var(--role-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
 .patient-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1874,19 +1867,14 @@ input[type="range"] {
     font-size: 18px;
 }
 
-.patient-avatar.maman {
-    background: #FFF1F2;
-    color: #E11D48;
-}
-
 .badge-dynamic {
     background: var(--role-primary-light);
     color: var(--role-primary);
     border-radius: 20px;
-    padding: 4px 12px;
-    font-size: 10px;
+    padding: 4px 10px;
+    font-size: 9px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
