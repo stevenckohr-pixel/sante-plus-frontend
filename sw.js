@@ -1,4 +1,9 @@
-// 🔥 FIREBASE (AJOUT)
+// ============================================================
+// SERVICE WORKER - SANTÉ PLUS SERVICES
+// Version unifiée (FCM uniquement)
+// ============================================================
+
+// 🔥 FIREBASE INITIALIZATION
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
 
@@ -12,7 +17,9 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// 🔥 AJOUT : réception FCM en background
+// ============================================================
+// 🔔 NOTIFICATIONS FCM (BACKGROUND)
+// ============================================================
 messaging.onBackgroundMessage((payload) => {
   console.log("🔥 FCM Background:", payload);
 
@@ -28,11 +35,12 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(title, options);
 });
 
-// ================= EXISTANT (INTOUCHÉ) =================
-
-const CACHE_NAME = 'sps-v6';
-const STATIC_CACHE = 'sps-static-v6';
-const IMAGE_CACHE = 'sps-images-v6';
+// ============================================================
+// 📦 CACHES
+// ============================================================
+const CACHE_NAME = 'sps-v7';
+const STATIC_CACHE = 'sps-static-v7';
+const IMAGE_CACHE = 'sps-images-v7';
 
 const staticUrls = [
   './',
@@ -46,6 +54,9 @@ const staticUrls = [
   '/sante-plus-frontend/assets/images/logo-maman-text.png'
 ];
 
+// ============================================================
+// 🔧 INSTALLATION
+// ============================================================
 self.addEventListener('install', (event) => {
   console.log('🔧 SW installation...');
   event.waitUntil(
@@ -54,6 +65,9 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+// ============================================================
+// ✨ ACTIVATION
+// ============================================================
 self.addEventListener('activate', (event) => {
   console.log('✨ SW activation...');
   event.waitUntil(
@@ -61,7 +75,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames.map(cache => {
           if (cache !== STATIC_CACHE && cache !== IMAGE_CACHE && cache !== CACHE_NAME) {
-            console.log(`🗑️ Suppression: ${cache}`);
+            console.log(`🗑️ Suppression ancien cache: ${cache}`);
             return caches.delete(cache);
           }
         })
@@ -70,17 +84,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 🔧 CORRECTION : Gestion des requêtes API avec les bons headers
+// ============================================================
+// 🌐 GESTION DES REQUÊTES
+// ============================================================
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // Pour les requêtes non-GET, on laisse passer sans cache
+  // Requêtes non-GET → on laisse passer
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // Pour les requêtes API, on ajoute les credentials et on évite le cache problématique
+  // Requêtes API → pas de cache, juste credentials
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request, {
@@ -89,22 +105,13 @@ self.addEventListener('fetch', (event) => {
           'Authorization': event.request.headers.get('Authorization') || ''
         }
       })
-      .then(response => {
-        // On ne cache que les réponses 200
-        if (response && response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+      .then(response => response)
+      .catch(() => new Response('Network error', { status: 503 }))
     );
     return;
   }
   
-  // Pour les images
+  // Images → cache avec fallback
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -123,7 +130,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Pour les assets statiques
+  // Assets statiques → cache first
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request).then(networkResponse => {
@@ -141,35 +148,27 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// 🔔 PUSH fallback (gardé mais moins prioritaire que FCM)
-self.addEventListener("push", function (event) {
-  // Éviter les doublons avec FCM
-  if (event.data) {
-    let data = {};
-    try {
-      data = event.data.json();
-    } catch (e) {
-      data = { title: "Santé Plus", message: "Nouvelle notification" };
-    }
-    
-    const options = {
-      body: data.message,
-      icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
-      badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
-      vibrate: [100, 50, 100],
-      data: { url: data.url || "/" },
-      actions: [
-        { action: "open", title: "Voir" },
-        { action: "close", title: "Fermer" }
-      ]
-    };
-    
-    event.waitUntil(self.registration.showNotification(data.title || "Santé Plus", options));
-  }
-});
-
+// ============================================================
+// 🔔 CLIC SUR NOTIFICATION
+// ============================================================
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
-  if (event.action === 'close') return;
-  event.waitUntil(clients.openWindow(event.notification.data.url));
+  
+  const url = event.notification.data?.url || "/";
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(windowClients => {
+        // Si une fenêtre est déjà ouverte, on l'utilise
+        for (let client of windowClients) {
+          if (client.url.includes(url) && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Sinon on ouvre une nouvelle fenêtre
+        if (clients.openWindow) {
+          return clients.openWindow(url);
+        }
+      })
+  );
 });
