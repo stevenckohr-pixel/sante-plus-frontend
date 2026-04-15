@@ -35,18 +35,27 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// 🔥 FCM Background (amélioré)
 messaging.onBackgroundMessage((payload) => {
+  console.log("🔥 FCM Background:", payload);
+
   const title = payload.notification?.title || "Santé Plus";
   const options = {
     body: payload.notification?.body || "Nouvelle notification",
     icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
     badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
-    vibrate: [100, 50, 100],
-    data: { url: payload.data?.url || "/" }
+    vibrate: [200, 100, 200],           // ← VIBRATION AJOUTÉE
+    silent: false,                       // ← SON ACTIF
+    requireInteraction: true,            // ← RESTE À L'ÉCRAN
+    tag: "sante-plus-notif",             // ← ÉVITE LES DOUBLONS
+    data: { 
+      url: payload.data?.url || "/",
+      timestamp: Date.now()
+    }
   };
+
   self.registration.showNotification(title, options);
 });
-
 // ============================================================
 // INSTALLATION
 // ============================================================
