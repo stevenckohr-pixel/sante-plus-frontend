@@ -422,15 +422,17 @@ function initRealtimeForCurrentPatient() {
     }
     
     
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
+function escapeHtml(str) {
+    if (!str) return '';
+
+    return String(str)
+        .normalize('NFC')  
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
     
     
     
@@ -798,16 +800,7 @@ function updateSeenStatus(data) {
 }
 
 
-    /**
-     * 🎨 RENDU FILTRÉ (MODIFIÉ pour organiser les réponses en cascade)
-     */
-    
-    
-    
-    
-    /**
-     * 📄 CARTE DOCUMENT (améliorée)
-     */
+
     /**
      * 📄 CARTE DOCUMENT (Version corrigée avec affichage propre)
      */
@@ -1159,185 +1152,140 @@ function renderStoryCard(msg, isReply = false) {
 }
 
 
+// ============================================================
+// RÉPONSES AUX MESSAGES
+// ============================================================
 
-    // ============================================
-    // ✅ NOUVELLES FONCTIONS
-    // ============================================
+window.replyToMessage = (messageId, senderName) => {
+    currentReplyTo = messageId;
+    currentReplyToName = senderName;
     
-    /**
-     * ↩️ Répondre à un message spécifique
-     */
-    window.replyToMessage = (messageId, senderName) => {
-        currentReplyTo = messageId;
-        currentReplyToName = senderName;
-        
-        const indicator = document.getElementById('reply-indicator');
-        const replyingToName = document.getElementById('replying-to-name');
-        
-        if (indicator && replyingToName) {
-            replyingToName.textContent = senderName;
-            indicator.classList.remove('hidden');
-            document.getElementById('quick-msg')?.focus();
-        }
-        
-        UI.vibrate('light');
-    };
+    const indicator = document.getElementById('reply-indicator');
+    const replyingToName = document.getElementById('replying-to-name');
     
-    /**
-     * ❌ Annuler la réponse
-     */
-    window.cancelReply = () => {
-        currentReplyTo = null;
-        currentReplyToName = null;
-        
-        const indicator = document.getElementById('reply-indicator');
-        if (indicator) {
-            indicator.classList.add('hidden');
-        }
-        
-        UI.vibrate('light');
-    };
+    if (indicator && replyingToName) {
+        replyingToName.textContent = senderName;
+        indicator.classList.remove('hidden');
+        document.getElementById('quick-msg')?.focus();
+    }
     
-    /**
-     * 📸 Envoyer une photo
-     */
-    async function sendPhotoMessage() {
-        const photoInput = document.getElementById('photo-input');
-        const file = photoInput?.files?.[0];
-        
-        if (!file) {
-            console.log("❌ Aucun fichier sélectionné");
-            return;
+    UI.vibrate('light');
+};
+
+window.cancelReply = () => {
+    currentReplyTo = null;
+    currentReplyToName = null;
+    
+    const indicator = document.getElementById('reply-indicator');
+    if (indicator) {
+        indicator.classList.add('hidden');
+    }
+    
+    UI.vibrate('light');
+};
+
+// ============================================================
+// ENVOI DE PHOTO
+// ============================================================
+
+async function sendPhotoMessage() {
+    const photoInput = document.getElementById('photo-input');
+    const file = photoInput?.files?.[0];
+    
+    if (!file) {
+        console.log("❌ Aucun fichier sélectionné");
+        return;
+    }
+    
+    console.log("📸 Fichier sélectionné:", file.name, file.size, file.type);
+    
+    if (file.size > 5 * 1024 * 1024) {
+        UI.error("Photo trop lourde (max 5MB)");
+        photoInput.value = '';
+        return;
+    }
+    
+    Swal.fire({
+        title: "Envoi de la photo...",
+        text: "Veuillez patienter",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    try {
+        let fileToSend = file;
+        if (file.size > 2 * 1024 * 1024) {
+            console.log("🔄 Compression de l'image...");
+            fileToSend = await compressImage(file, 1024, 0.7);
+            console.log("✅ Image compressée:", fileToSend.size, "bytes");
         }
         
-        console.log("📸 Fichier sélectionné:", file.name, file.size, file.type);
+        const formData = new FormData();
+        formData.append('patient_id', AppState.currentPatient);
+        formData.append('photo', fileToSend, fileToSend.name || 'photo.jpg');
         
-        // Vérifier la taille
-        if (file.size > 5 * 1024 * 1024) {
-            UI.error("Photo trop lourde (max 5MB)");
-            photoInput.value = '';
-            return;
+        if (currentReplyTo) {
+            formData.append('reply_to_id', currentReplyTo);
         }
         
-        Swal.fire({
-            title: "Envoi de la photo...",
-            text: "Veuillez patienter",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
+        if (currentReplyToName) {
+            formData.append('caption', "Réponse à " + currentReplyToName);
+        }
+        
+        const token = localStorage.getItem('token');
+        if (!token) {
+            throw new Error("Token d'authentification manquant");
+        }
+        
+        const response = await fetch(window.CONFIG.API_URL + "/messages/send-photo", {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData
         });
         
-        try {
-            // Compression si nécessaire
-            let fileToSend = file;
-            if (file.size > 2 * 1024 * 1024) {
-                console.log("🔄 Compression de l'image...");
-                fileToSend = await compressImage(file, 1024, 0.7);
-                console.log("✅ Image compressée:", fileToSend.size, "bytes");
-            }
-            
-            // ✅ CRÉATION CORRECTE DU FormData
-            const formData = new FormData();
-            formData.append('patient_id', AppState.currentPatient);
-            formData.append('photo', fileToSend, fileToSend.name || 'photo.jpg');
-            
-            if (currentReplyTo) {
-                formData.append('reply_to_id', currentReplyTo);
-            }
-            
-            if (currentReplyToName) {
-                formData.append('caption', "Réponse à " + currentReplyToName);
-            }
-            
-            // ✅ AFFICHER LE CONTENU DU FormData POUR DEBUG
-            console.log("📤 Envoi du FormData:");
-            for (let pair of formData.entries()) {
-                if (pair[1] instanceof File) {
-                    console.log("   ", pair[0], "[Fichier: " + pair[1].name + ", " + pair[1].size + " bytes]");
-                } else {
-                    console.log("   ", pair[0], pair[1]);
-                }
-            }
-            
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error("Token d'authentification manquant");
-            }
-            
-            const response = await fetch(window.CONFIG.API_URL + "/messages/send-photo", {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                    // ⚠️ NE PAS mettre 'Content-Type' - le navigateur le fait automatiquement avec le boundary
-                },
-                body: formData
-            });
-            
-            console.log("📥 Réponse status:", response.status);
-            
-            if (!response.ok) {
-                let errorMessage;
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.error || `Erreur ${response.status}`;
-                } catch (e) {
-                    errorMessage = `Erreur serveur ${response.status}`;
-                }
-                throw new Error(errorMessage);
-            }
-            
-            const result = await response.json();
-            console.log("✅ Réponse serveur:", result);
-     
-            
-            // Réinitialiser
-            photoInput.value = '';
-            window.cancelReply();
-            
-            Swal.fire({
-                icon: "success",
-                title: "Photo envoyée",
-                timer: 1500,
-                showConfirmButton: false
-            });
-            
-            await loadFeed();
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Erreur ${response.status}`);
+        }
+        
+        photoInput.value = '';
+        window.cancelReply();
+        
+        Swal.fire({ icon: "success", title: "Photo envoyée", timer: 1500, showConfirmButton: false });
+        await loadFeed();
+        
+    } catch (err) {
+        console.error("❌ Erreur sendPhotoMessage:", err);
+        Swal.close();
+        UI.error(err.message || "Erreur lors de l'envoi de la photo");
+        photoInput.value = '';
+    }
+}
 
-            window.dispatchEvent(new CustomEvent('app-data-updated', {
-                detail: { endpoint: '/messages', method: 'POST', resourceType: 'message_sent' }
-            }));
+// ============================================================
+// FILTRAGE DU FEED
+// ============================================================
+
+window.filterFeed = (type) => {
+    UI.vibrate();
+    activeTab = type;
     
-            
-        } catch (err) {
-            console.error("❌ Erreur sendPhotoMessage:", err);
-            Swal.close();
-            UI.error(err.message || "Erreur lors de l'envoi de la photo");
-            photoInput.value = '';
+    if (type !== 'STORY') {
+        cleanupRealtime();
+    } else {
+        if (AppState.currentPatient) {
+            initRealtimeForCurrentPatient();
         }
     }
     
-    // ============================================
-    // BRANCHEMENTS WINDOW (INCHANGÉS mais avec reply_to_id ajouté)
-    // ============================================
-    
-    window.filterFeed = (type) => {
-        UI.vibrate();
-        activeTab = type;
-        
-        // Si on quitte l'onglet STORY, nettoyer Realtime
-        if (type !== 'STORY') {
-            cleanupRealtime();
-        } else {
-            // Si on revient à STORY, réinitialiser
-            if (AppState.currentPatient) {
-                initRealtimeForCurrentPatient();
-            }
-        }
-        
-        renderFeed();
-    };
-    
-    
-    window.sendQuickMessage = async () => {
+    renderFeed();
+};
+
+// ============================================================
+// ENVOI DE MESSAGE RAPIDE (AVEC OPTIMISTIC UI)
+// ============================================================
+
+window.sendQuickMessage = async () => {
     const input = document.getElementById('quick-msg');
     const content = input?.value?.trim();
     if (!content) return;
@@ -1345,7 +1293,6 @@ function renderStoryCard(msg, isReply = false) {
     try {
         UI.vibrate();
         
-        // ✅ OPTIMISTIC UI : Ajouter le message immédiatement
         const tempId = 'temp_' + Date.now();
         const currentUserId = localStorage.getItem("user_id");
         const currentUserName = localStorage.getItem("user_name");
@@ -1361,13 +1308,11 @@ function renderStoryCard(msg, isReply = false) {
             type_media: 'STORY',
             created_at: new Date().toISOString(),
             reactions: {},
-            is_temp: true  // Marqueur temporaire
+            is_temp: true
         };
         
-        // Ajouter au state et au DOM
         AppState.messages.push(tempMessage);
         
-        // Re-rendu ou ajout direct
         if (activeTab === 'STORY') {
             const container = document.getElementById('care-feed-content');
             const tempHtml = renderStoryCard(tempMessage, false);
@@ -1375,7 +1320,6 @@ function renderStoryCard(msg, isReply = false) {
             scrollToBottom();
         }
         
-        // Afficher un indicateur de chargement sur le message temporaire
         const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
         if (tempMessageEl) {
             tempMessageEl.classList.add('opacity-50');
@@ -1385,11 +1329,9 @@ function renderStoryCard(msg, isReply = false) {
             tempMessageEl.querySelector('.flex-1')?.appendChild(sendingIndicator);
         }
         
-        // Réinitialiser l'input
         input.value = '';
         window.cancelReply();
         
-        // Envoyer réellement
         const body = {
             patient_id: AppState.currentPatient,
             content: content,
@@ -1406,14 +1348,12 @@ function renderStoryCard(msg, isReply = false) {
             body: JSON.stringify(body)
         });
         
-        // Supprimer l'indicateur de chargement
         if (tempMessageEl) {
             tempMessageEl.classList.remove('opacity-50');
             const indicator = tempMessageEl.querySelector('.sending-indicator');
             if (indicator) indicator.remove();
         }
         
-        // Remplacer l'ID temporaire par le vrai ID
         if (result && result.id) {
             const index = AppState.messages.findIndex(m => m.id === tempId);
             if (index !== -1) {
@@ -1423,8 +1363,7 @@ function renderStoryCard(msg, isReply = false) {
                 if (realEl) realEl.setAttribute('data-message-id', result.id);
             }
         }
-
-                // Après avoir envoyé le message, vérifier les alertes
+        
         if (localStorage.getItem("user_is_maman") === "true") {
             checkForAlerts(content);
         }
@@ -1435,7 +1374,6 @@ function renderStoryCard(msg, isReply = false) {
         console.error(err);
         UI.error("Erreur lors de l'envoi du message");
         
-        // Marquer le message comme échoué
         const tempMessageEl = document.querySelector(`[data-message-id="temp_${Date.now() - 500}"]`);
         if (tempMessageEl) {
             tempMessageEl.classList.add('border-rose-200', 'bg-rose-50');
@@ -1447,58 +1385,80 @@ function renderStoryCard(msg, isReply = false) {
         }
     }
 };
-    window.sendReaction = async (msgId, type) => {
-        try {
-            UI.vibrate();
-            await secureFetch('/messages/react', {
-                method: 'POST',
-                body: JSON.stringify({ message_id: msgId, reaction_type: type })
-            });
-            await loadFeed();
-        } catch (err) {
-            console.error(err);
-            UI.error("Erreur lors de l'envoi de la réaction");
+
+// ============================================================
+// RÉACTIONS AUX MESSAGES
+// ============================================================
+
+window.sendReaction = async (msgId, type) => {
+    try {
+        UI.vibrate();
+        await secureFetch('/messages/react', {
+            method: 'POST',
+            body: JSON.stringify({ message_id: msgId, reaction_type: type })
+        });
+        await loadFeed();
+    } catch (err) {
+        console.error(err);
+        UI.error("Erreur lors de l'envoi de la réaction");
+    }
+};
+
+// ============================================================
+// TYPING INDICATOR
+// ============================================================
+
+function showTypingIndicator(show, name = '') {
+    const indicator = document.getElementById('typing-indicator');
+    if (!indicator) return;
+    
+    if (show) {
+        indicator.classList.remove('hidden');
+        const textSpan = indicator.querySelector('.typing-text');
+        if (textSpan) {
+            textSpan.textContent = name ? `${name} écrit...` : 'quelqu\'un écrit...';
         }
-    };
-    
-    
+    } else {
+        indicator.classList.add('hidden');
+    }
+}
 
+if (window.Realtime && window.Realtime.subscribeToTyping) {
+    window.Realtime.subscribeToTyping((data) => {
+        console.log("✍️ Typing:", data);
+        if (data.user_id === localStorage.getItem("user_id")) return;
+        showTypingIndicator(true, data.user_name);
+        setTimeout(() => showTypingIndicator(false), 3000);
+    });
+}
 
-window.Realtime.subscribeToTyping((data) => {
-    console.log("✍️ Typing:", data);
+// ============================================================
+// EMOJI PICKER
+// ============================================================
 
-    if (data.user_id === localStorage.getItem("user_id")) return;
+window.showEmojiPickerForMessage = (messageId, buttonElement) => {
+    showEmojiPicker(messageId, buttonElement);
+};
 
-    showTypingIndicator(data);
+document.addEventListener('click', (e) => {
+    if (emojiPickerVisible && !e.target.closest('#emoji-picker-container')) {
+        closeEmojiPicker();
+    }
 });
 
+// ============================================================
+// AJOUT DE MESSAGES AU FEED SANS RE-RENDU COMPLET
+// ============================================================
 
-    // Exposer la fonction d'émoji picker globalement
-    window.showEmojiPickerForMessage = (messageId, buttonElement) => {
-        showEmojiPicker(messageId, buttonElement);
-    };
-    
-    // Fermer le picker quand on clique ailleurs
-    document.addEventListener('click', (e) => {
-        if (emojiPickerVisible && !e.target.closest('#emoji-picker-container')) {
-            closeEmojiPicker();
-        }
-    });
-
-/**
- * Ajouter des messages au feed sans re-rendu complet
- */
 window.appendMessagesToFeed = (newMessages) => {
     const container = document.getElementById('care-feed-content');
     if (!container) return;
     
-    // ✅ Sauvegarder la position de scroll actuelle
     const mainContent = document.querySelector('main');
     const wasAtBottom = mainContent 
         ? mainContent.scrollHeight - mainContent.scrollTop <= mainContent.clientHeight + 100
         : false;
     
-    // Générer le HTML des nouveaux messages
     const newMessagesHtml = newMessages.map(msg => {
         if (activeTab === 'DOCUMENT') {
             return renderDocCard(msg);
@@ -1507,33 +1467,27 @@ window.appendMessagesToFeed = (newMessages) => {
         }
     }).join('');
     
-    // Ajouter à la fin du conteneur
     container.insertAdjacentHTML('beforeend', newMessagesHtml);
     
-    // ✅ Scroll uniquement si l'utilisateur était déjà en bas
     if (wasAtBottom) {
         scrollToBottom();
     }
     
-    // Notification sonore (optionnel)
     playNotificationBeep();
-    
     console.log(`✅ ${newMessages.length} nouveau(x) message(s) ajouté(s) sans flash`);
 };
 
+// ============================================================
+// BADGE NOUVEAU MESSAGE
+// ============================================================
 
-/**
- * 🔔 Afficher le badge "Nouveau message"
- */
 function showNewMessageBadge() {
-    // ✅ Vérifier qu'on est bien dans la vue feed
     const currentView = AppState?.currentView;
     if (currentView !== 'feed') {
         console.log("📌 Pas dans le feed, badge ignoré");
         return;
     }
     
-    // Créer le badge s'il n'existe pas
     if (!newMessageBadge) {
         newMessageBadge = document.createElement('div');
         newMessageBadge.id = 'new-message-badge';
@@ -1559,25 +1513,23 @@ function showNewMessageBadge() {
         document.body.appendChild(newMessageBadge);
     }
     
-    // Afficher avec animation
     setTimeout(() => {
         if (newMessageBadge) {
             newMessageBadge.style.transform = 'translateY(0)';
         }
     }, 100);
 }
-/**
- * 🙈 Cacher le badge "Nouveau message"
- */
+
 function hideNewMessageBadge() {
     if (newMessageBadge) {
         newMessageBadge.style.transform = 'translateY(100px)';
     }
 }
 
-/**
- * 📜 Détecter si l'utilisateur est en bas du scroll
- */
+// ============================================================
+// DÉTECTION DE SCROLL
+// ============================================================
+
 function initScrollDetection() {
     const mainContent = document.querySelector('main');
     if (!mainContent) return;
@@ -1585,7 +1537,6 @@ function initScrollDetection() {
     mainContent.addEventListener('scroll', () => {
         const isBottom = mainContent.scrollHeight - mainContent.scrollTop <= mainContent.clientHeight + 50;
         isUserAtBottom = isBottom;
-        
         if (isBottom) {
             hideNewMessageBadge();
             unreadMessagesCount = 0;
@@ -1593,10 +1544,8 @@ function initScrollDetection() {
     });
 }
 
-
-
 // ============================================================
-// 🔴 MISE À JOUR DES BADGES SUR LES CARTES PATIENTS
+// BADGES PATIENTS
 // ============================================================
 
 function updatePatientBadges() {
@@ -1605,16 +1554,12 @@ function updatePatientBadges() {
     document.querySelectorAll(".patient-item").forEach(el => {
         const patientId = el.dataset.patientId;
         const badge = el.querySelector(".patient-badge");
-
         if (!badge) return;
-
         const count = AppState.unreadByPatient?.[patientId] || 0;
         console.log(`🔴 Patient ${patientId} → ${count} non lus`);
-
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
             badge.classList.remove("hidden");
-            // Animation d'apparition
             badge.style.animation = 'badgePop 0.3s ease';
         } else {
             badge.classList.add("hidden");
@@ -1622,46 +1567,8 @@ function updatePatientBadges() {
     });
 }
 
-
-
-
 // ============================================================
-// TYPING INDICATOR (EN TRAIN D'ÉCRIRE)
-// ============================================================
-
-// ============================================================
-// TYPING INDICATOR (EN TRAIN D'ÉCRIRE)
-// ============================================================
-
-function showTypingIndicator(show, name = '') {
-    const indicator = document.getElementById('typing-indicator');
-    if (!indicator) return;
-    
-    if (show) {
-        indicator.classList.remove('hidden');
-        const textSpan = indicator.querySelector('.typing-text');
-        if (textSpan) {
-            textSpan.textContent = name ? `${name} écrit...` : 'quelqu\'un écrit...';
-        }
-    } else {
-        indicator.classList.add('hidden');
-    }
-}
-
-// Initialiser l'écoute des événements "en train d'écrire"
-if (window.Realtime && window.Realtime.subscribeToTyping) {
-    window.Realtime.subscribeToTyping((data) => {
-        console.log("✍️ Typing:", data);
-
-        if (data.user_id === localStorage.getItem("user_id")) return;
-
-        showTypingIndicator(true, data.user_name);
-        setTimeout(() => showTypingIndicator(false), 3000);
-    });
-}
-
-// ============================================================
-// EXPORTS
+// EXPORTS GLOBAUX
 // ============================================================
 
 window.loadFeed = loadFeed;
