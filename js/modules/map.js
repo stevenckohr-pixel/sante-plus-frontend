@@ -776,7 +776,6 @@ async function initAidantMap() {
                     <button id="center-map-btn" class="bg-white p-2 rounded-xl shadow-md border border-slate-100">
                         <i class="fa-solid fa-location-crosshairs text-slate-600"></i>
                     </button>
-                    // Ajoute ce bouton à côté des autres boutons
                     <button id="improve-gps-btn" 
                             class="bg-blue-500 text-white p-2 rounded-xl shadow-md border border-slate-100 active:scale-95 transition-all"
                             title="Améliorer la précision GPS">
