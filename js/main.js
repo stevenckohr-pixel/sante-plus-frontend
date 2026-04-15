@@ -1560,7 +1560,7 @@ function renderMobileHub() {
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <p style="font-size: 11px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : 'Prochaine intervention'}</p>
-                        <p style="font-size: 14px; font-weight: 600; color: #1E293B; margin-top: 4px;">${isMaman ? 'Aujourd'hui, 10h30' : 'À venir'}</p>
+                        <p style="font-size: 14px; font-weight: 600; color: #1E293B; margin-top: 4px;">${isMaman ? 'Aujourd&apos;hui, 10h30' : 'À venir'}</p>
                     </div>
                     <div style="background: ${primaryLight}; padding: 6px 12px; border-radius: 20px;">
                         <span style="font-size: 10px; font-weight: 700; color: ${primaryColor};">${isMaman ? 'Visite prévue' : 'Planifié'}</span>
