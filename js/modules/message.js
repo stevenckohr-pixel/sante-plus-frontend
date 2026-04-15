@@ -1150,7 +1150,7 @@ function renderStoryCard(msg, isReply = false) {
         </div>
     );
 }
-
+`; 
 
 // ============================================================
 // RÉPONSES AUX MESSAGES
@@ -1239,13 +1239,13 @@ async function sendPhotoMessage() {
         
         const response = await fetch(window.CONFIG.API_URL + "/messages/send-photo", {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` },
+            headers: { 'Authorization': 'Bearer ' + token },
             body: formData
         });
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || `Erreur ${response.status}`);
+        throw new Error(errorData.error || "Erreur " + response.status);
         }
         
         photoInput.value = '';
@@ -1320,8 +1320,8 @@ window.sendQuickMessage = async () => {
             scrollToBottom();
         }
         
-        const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
-        if (tempMessageEl) {
+const tempMessageEl = document.querySelector('[data-message-id="' + tempId + '"]');
+if (tempMessageEl) {
             tempMessageEl.classList.add('opacity-50');
             const sendingIndicator = document.createElement('div');
             sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
@@ -1359,8 +1359,8 @@ window.sendQuickMessage = async () => {
             if (index !== -1) {
                 AppState.messages[index].id = result.id;
                 AppState.messages[index].is_temp = false;
-                const realEl = document.querySelector(`[data-message-id="${tempId}"]`);
-                if (realEl) realEl.setAttribute('data-message-id', result.id);
+const realEl = document.querySelector('[data-message-id="' + tempId + '"]');
+if (realEl) realEl.setAttribute('data-message-id', result.id);
             }
         }
         
@@ -1374,8 +1374,9 @@ window.sendQuickMessage = async () => {
         console.error(err);
         UI.error("Erreur lors de l'envoi du message");
         
-        const tempMessageEl = document.querySelector(`[data-message-id="temp_${Date.now() - 500}"]`);
-        if (tempMessageEl) {
+const tempMessageEl = document.querySelector('[data-message-id="temp_' + (Date.now() - 500) + '"]');
+        
+                if (tempMessageEl) {
             tempMessageEl.classList.add('border-rose-200', 'bg-rose-50');
             const errorIndicator = tempMessageEl.querySelector('.sending-indicator');
             if (errorIndicator) {
@@ -1416,8 +1417,9 @@ function showTypingIndicator(show, name = '') {
         indicator.classList.remove('hidden');
         const textSpan = indicator.querySelector('.typing-text');
         if (textSpan) {
-            textSpan.textContent = name ? `${name} écrit...` : 'quelqu\'un écrit...';
-        }
+
+            textSpan.textContent = name ? (name + ' écrit...') : 'quelqu\'un écrit...';
+                    }
     } else {
         indicator.classList.add('hidden');
     }
@@ -1459,7 +1461,7 @@ window.appendMessagesToFeed = (newMessages) => {
         ? mainContent.scrollHeight - mainContent.scrollTop <= mainContent.clientHeight + 100
         : false;
     
-    const newMessagesHtml = newMessages.map(msg => {
+    const newMessagesHtml = newMessages.map(function(msg) {
         if (activeTab === 'DOCUMENT') {
             return renderDocCard(msg);
         } else {
@@ -1474,7 +1476,7 @@ window.appendMessagesToFeed = (newMessages) => {
     }
     
     playNotificationBeep();
-    console.log(`✅ ${newMessages.length} nouveau(x) message(s) ajouté(s) sans flash`);
+    console.log("✅ " + newMessages.length + " nouveau(x) message(s) ajouté(s) sans flash");
 };
 
 // ============================================================
@@ -1491,29 +1493,20 @@ function showNewMessageBadge() {
     if (!newMessageBadge) {
         newMessageBadge = document.createElement('div');
         newMessageBadge.id = 'new-message-badge';
-        newMessageBadge.innerHTML = `
-            <div class="bg-emerald-500 text-white rounded-full px-4 py-2 shadow-lg flex items-center gap-2 cursor-pointer active:scale-95 transition-all">
-                <i class="fa-solid fa-message text-xs"></i>
-                <span class="text-xs font-black">Nouveau message</span>
-                <i class="fa-solid fa-arrow-down text-xs"></i>
-            </div>
-        `;
-        newMessageBadge.style.cssText = `
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            z-index: 1000;
-            transform: translateY(100px);
-            transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        `;
-        newMessageBadge.onclick = () => {
+        newMessageBadge.innerHTML = '<div class="bg-emerald-500 text-white rounded-full px-4 py-2 shadow-lg flex items-center gap-2 cursor-pointer active:scale-95 transition-all">' +
+            '<i class="fa-solid fa-message text-xs"></i>' +
+            '<span class="text-xs font-black">Nouveau message</span>' +
+            '<i class="fa-solid fa-arrow-down text-xs"></i>' +
+            '</div>';
+        newMessageBadge.style.cssText = 'position: fixed; bottom: 80px; right: 20px; z-index: 1000; transform: translateY(100px); transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);';
+        newMessageBadge.onclick = function() {
             scrollToBottom();
             hideNewMessageBadge();
         };
         document.body.appendChild(newMessageBadge);
     }
     
-    setTimeout(() => {
+    setTimeout(function() {
         if (newMessageBadge) {
             newMessageBadge.style.transform = 'translateY(0)';
         }
@@ -1551,12 +1544,12 @@ function initScrollDetection() {
 function updatePatientBadges() {
     console.log("🔴 [BADGE] Mise à jour des badges patients, unreadByPatient:", AppState.unreadByPatient);
     
-    document.querySelectorAll(".patient-item").forEach(el => {
+    document.querySelectorAll(".patient-item").forEach(function(el) {
         const patientId = el.dataset.patientId;
         const badge = el.querySelector(".patient-badge");
         if (!badge) return;
         const count = AppState.unreadByPatient?.[patientId] || 0;
-        console.log(`🔴 Patient ${patientId} → ${count} non lus`);
+        console.log("🔴 Patient " + patientId + " → " + count + " non lus");
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
             badge.classList.remove("hidden");
