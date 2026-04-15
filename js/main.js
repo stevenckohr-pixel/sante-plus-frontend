@@ -1972,35 +1972,37 @@ function getNavLinks(role, mode) {
         dashboardIcon = 'fa-user';
     }
     
-            const tabs = [
-                // 📊 Dashboard / Accueil (adapté au rôle)
-                { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-                
-                // 🗺️ Fonctions communes
-                { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-                { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-                { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-                { id: 'feed', icon: 'fa-newspaper', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-                { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-                
-                // 💰 Facturation (Famille + Coordinateur)
-                { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
-                { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
-                
-                // 📅 Planning (Aidant + Coordinateur)
-                { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
-                
-                // 👥 Gestion RH (Coordinateur uniquement)
-                { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
-                { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
-                
-                // 📚 Éducation (Maman uniquement - filtré ci-dessous)
-                { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] },
-                
-                // 👤 Profil (tous)
-                { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
-            ];
+                   const tabs = [
+            // 🏠 ACCUEIL (vue avec les tuiles) - pour tous les rôles
+            { id: 'home', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             
+            // 📊 Dashboard (adapté au rôle) - pour stats et gestion
+            { id: dashboardId, icon: dashboardIcon, label: dashboardLabel, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            
+            // 🗺️ Fonctions communes
+            { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+            { id: 'patients', icon: 'fa-hospital-user', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'feed', icon: 'fa-newspaper', label: isMaman ? 'Journal' : (isSenior ? 'Journal de soins' : 'Journal'), roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+            
+            // 💰 Facturation (Famille + Coordinateur)
+            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['COORDINATEUR', 'FAMILLE'] },
+            { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] },
+            
+            // 📅 Planning (Aidant + Coordinateur)
+            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
+            
+            // 👥 Gestion RH (Coordinateur uniquement)
+            { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
+            { id: 'rh-dashboard', icon: 'fa-users', label: 'RH', roles: ['COORDINATEUR'] },
+            
+            // 📚 Éducation (Maman uniquement - filtré ci-dessous)
+            { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] },
+            
+            // 👤 Profil (tous)
+            { id: 'profile', icon: 'fa-user-circle', label: 'Profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        ];
             // Filtrer les onglets selon le rôle et selon le type d'utilisateur
             const allowedTabs = tabs.filter(tab => {
                 // Filtrer par rôle
