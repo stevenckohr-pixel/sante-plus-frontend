@@ -282,8 +282,8 @@ main {
     footer button.w-16.h-16 { width: 56px !important; height: 56px !important; margin-top: -28px !important; }
     
     header { height: 56px !important; padding: 0 1rem !important; }
-    main { padding-bottom: 20px !important; }
-    .pb-32, .pb-24, .pb-20 { padding-bottom: 30px !important; }
+    main { padding-bottom: 10px !important; }
+    .pb-32, .pb-24, .pb-20 { padding-bottom: 20px !important; }
 }
 
 .nav-btn {
