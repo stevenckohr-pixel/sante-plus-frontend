@@ -2090,3 +2090,58 @@ button[type="submit"]:active,
     background: var(--role-primary);
     color: white;
 }
+
+
+/* ============================================
+   ONGLETS ET FILTRES DYNAMIQUES
+   ============================================ */
+
+/* Onglets actifs */
+.tab-active {
+    color: var(--role-primary) !important;
+    border-bottom-color: var(--role-primary) !important;
+}
+
+.tab-inactive {
+    color: #94A3B8 !important;
+    border-bottom-color: transparent !important;
+}
+
+/* Filtres */
+.filter-chip {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.filter-chip:active {
+    transform: scale(0.95);
+    background: var(--role-primary);
+    color: white;
+}
+
+.filter-chip.active {
+    background: var(--role-primary);
+    color: white;
+}
+
+/* Badge de comptage sur les onglets */
+.tab-badge {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+/* Indicateur de chargement coloré */
+.loader-color {
+    border-top-color: var(--role-primary) !important;
+}
