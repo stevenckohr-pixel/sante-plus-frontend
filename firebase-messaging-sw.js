@@ -1,1 +1,1 @@
-importScripts('./sw.js');
+importScripts('./sante-plus-frontend/sw.js');
