@@ -1062,6 +1062,14 @@ async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
 
+    // 🔥 RÉINITIALISER LES MESSAGES POUR LE NOUVEAU PATIENT
+    AppState.messages = [];
+    
+    // 🔥 NETTOYER L'ANCIEN ABONNEMENT REALTIME
+    if (window.cleanupRealtime) {
+        window.cleanupRealtime();
+    }
+
     container.style.padding = '0';
     container.style.margin = '0';
     container.style.overflow = 'hidden';
