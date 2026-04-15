@@ -3787,3 +3787,21 @@ body.maman-mode {
     transform: scale(0.92);
 }
 
+/* Animations de transition */
+.dashboard-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:active {
+    transform: scale(0.98);
+}
+
+/* Badge de notification animé */
+@keyframes badgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.badge-notification {
+    animation: badgePulse 0.5s ease;
+}
