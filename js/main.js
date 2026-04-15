@@ -2931,6 +2931,7 @@ window.fetchStats = Dashboard.fetchStats;
 window.openActivationPage = Admin.openActivationPage;
 window.confirmCommand = Commandes.confirmCommand;
 window.processValidation = Admin.processValidation;
+window.loadMamanDashboard = Maman.loadMamanDashboard;
 
 if (typeof quickValidate === 'function') {
     window.quickValidate = quickValidate;
