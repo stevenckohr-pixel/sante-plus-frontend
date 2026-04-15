@@ -30,8 +30,7 @@ import {
     UI, showToast, showSuccessToast, showErrorToast, 
     showWarningToast, showInfoToast, openModernSelector, 
     initMicroInteractions, setSoundsEnabled, getSoundsEnabled, 
-    refreshMicroInteractions, playSound, showLocalLoader, 
-    hideLocalLoader, initLazyLoading, secureFetchWithCache 
+    refreshMicroInteractions, playSound, initLazyLoading
 } from "./core/utils.js";
 import * as Subscription from "./modules/subscription.js";
 import { syncService } from "./core/syncService.js";
@@ -291,7 +290,6 @@ async function initApp() {
     
     // Initialisation des services
     initMicroInteractions();      // Feedback haptique
-    initLazyLoading();            // Chargement différé des images
     ErrorHandler.init();          // Gestion globale des erreurs
     startKeepAlive();             // Ping
     updateThemeColor();            //Color auto
@@ -2946,7 +2944,6 @@ window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
 window.renderRHDashboard = Admin.renderRHDashboard;
-window.openAssignModal = Planning.openAssignPage;
 
 
 
