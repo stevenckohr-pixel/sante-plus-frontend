@@ -2131,9 +2131,9 @@ function getNavLinks(role, mode) {
         ];
     } 
     else if (isFamily && isMaman) {
-        // 🌸 MAMAN & BÉBÉ
+        // 🌸 MAMAN & BÉBÉ - Dashboard unique
         tabs = [
-            { id: 'dashboard-maman', icon: 'fa-home', label: 'Accueil' },
+            { id: 'home', icon: 'fa-home', label: 'Accueil' },  
             { id: 'feed', icon: 'fa-newspaper', label: 'Journal bébé' },
             { id: 'planning', icon: 'fa-calendar-days', label: 'Planning' },
             { id: 'commandes', icon: 'fa-box', label: 'Commandes bébé' },
@@ -2141,7 +2141,7 @@ function getNavLinks(role, mode) {
             { id: 'billing', icon: 'fa-receipt', label: 'Factures' },
             { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
         ];
-    } 
+    }
     else if (isFamily && !isMaman) {
         // 👴 SENIOR
         tabs = [
@@ -2475,9 +2475,14 @@ async function performViewSwitch(viewName) {
                 }
                 await Visites.renderStartVisitView(AppState.currentPatient);
                 break;
-            case "home": 
-                container.innerHTML = document.getElementById("template-home").innerHTML;
-                renderMobileHub(); 
+            case "home":
+                if (isMaman && userRole === "FAMILLE") {
+                    // Charger le dashboard Maman comme page d'accueil
+                    await Maman.loadMamanDashboard();
+                } else {
+                    // Dashboard classique pour les autres
+                    renderMobileHub();
+                }
                 break;
             case "subscription":
                 await Subscription.renderSubscriptionPage();
