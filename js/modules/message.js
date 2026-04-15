@@ -1118,7 +1118,7 @@ function renderStoryCard(msg, isReply = false) {
                 
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[9px] text-slate-400">${timeStr}</span>
-                    <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || 'l\'utilisateur')}')" 
+                    <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || "l'utilisateur")}')" 
                             class="text-[9px] text-slate-400 hover:text-amber-500 transition">
                         <i class="fa-solid fa-reply text-[8px]"></i>
                     </button>
