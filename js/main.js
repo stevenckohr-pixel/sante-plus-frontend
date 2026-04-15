@@ -1882,7 +1882,7 @@ window.refreshMenuBadges = () => {
     const drawerMenu = document.getElementById('drawer-menu');
     if (drawerMenu) {
         const drawerLinks = [
-            { id: isMaman ? 'dashboard-maman' : 'dashboard', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE'] },
+            { id: 'home', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
             { id: 'patients', icon: 'fa-folder-open', label: isMaman ? 'Mon suivi' : 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
