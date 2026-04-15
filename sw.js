@@ -44,16 +44,19 @@ messaging.onBackgroundMessage((payload) => {
     body: payload.notification?.body || "Nouvelle notification",
     icon: "/sante-plus-frontend/assets/images/logo-general-icon.png",
     badge: "/sante-plus-frontend/assets/images/logo-general-icon.png",
-    vibrate: [200, 100, 200],           // ← VIBRATION AJOUTÉE
-    silent: false,                       // ← SON ACTIF
-    requireInteraction: true,            // ← RESTE À L'ÉCRAN
-    tag: "sante-plus-notif",             // ← ÉVITE LES DOUBLONS
+    vibrate: [200, 100, 200],
+    sound: "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3",  
+    silent: false,
+    requireInteraction: true,
+    tag: "sante-plus-notif",
     data: { 
       url: payload.data?.url || "/",
       timestamp: Date.now()
     }
   };
 
+  self.registration.showNotification(title, options);
+});
   self.registration.showNotification(title, options);
 });
 // ============================================================
