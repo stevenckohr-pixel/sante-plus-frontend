@@ -198,13 +198,35 @@ function renderStoryCard(msg, isReply = false) {
     const fileUrl = msg.photo_url || (isPhoto ? msg.content : null);
     const isImage = fileUrl && isImageUrl(fileUrl);
     const currentUserId = localStorage.getItem("user_id");
-    const isOwnMessage = String(msg.sender_id) === String(currentUserId);
+    const currentUserName = localStorage.getItem("user_name");
+
+    // 🔥 DÉTECTION ROBUSTE DU MESSAGE PROPRE
+    let isOwnMessage = false;
     
+    // Vérifier par sender_id (priorité)
+    if (msg.sender_id && String(msg.sender_id) === String(currentUserId)) {
+        isOwnMessage = true;
+    }
+    // Vérifier par sender_name (fallback)
+    else if (msg.sender_name && msg.sender_name === currentUserName) {
+        isOwnMessage = true;
+    }
+    // Vérifier si c'est un message temporaire
+    else if (msg.is_temp === true) {
+        isOwnMessage = true;
+    }
+    
+    // Décodage de l'humeur
     if (!isPhoto && content && content.includes('|')) {
         const parts = content.split('|');
         const humeur = parts[0];
         const notes = parts.slice(1).join('|');
-        const emojis = { "Très Joyeux": "😊", "Calme": "😐", "Fatigué": "😴", "Triste": "😔" };
+        const emojis = { 
+            "Très Joyeux": "😊", 
+            "Calme": "😐", 
+            "Fatigué": "😴", 
+            "Triste": "😔" 
+        };
         humeurBadge = `<span class="text-xs mr-1">${emojis[humeur] || '✨'}</span>`;
         content = notes;
     }
@@ -213,6 +235,7 @@ function renderStoryCard(msg, isReply = false) {
     const safeDate = new Date(rawDate);
     const timeStr = isNaN(safeDate) ? "Maintenant" : safeDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
+    // Message parent (réponse)
     let parentMessageHtml = '';
     if (msg.reply_to_id && !isOwnMessage) {
         const parentMsg = AppState.messages?.find(m => m.id === msg.reply_to_id);
@@ -230,10 +253,17 @@ function renderStoryCard(msg, isReply = false) {
     const isTemp = msg.is_temp === true;
     const tempClass = isTemp ? 'opacity-70' : '';
 
+    // ============================================================
+    // MESSAGE ENVOYÉ (À DROITE - VERT/ROSE)
+    // ============================================================
     if (isOwnMessage) {
         let statusIcon = '';
         if (!isTemp) {
-            statusIcon = msg.read ? '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>' : '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
+            if (msg.read) {
+                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
+            } else {
+                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
+            }
         } else {
             statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
         }
@@ -260,6 +290,9 @@ function renderStoryCard(msg, isReply = false) {
         `;
     }
 
+    // ============================================================
+    // MESSAGE REÇU (À GAUCHE - BLANC)
+    // ============================================================
     const isAidant = msg.sender_role === 'AIDANT';
     const isFamily = msg.sender_role === 'FAMILLE';
     const isCoordinator = msg.sender_role === 'COORDINATEUR';
@@ -291,14 +324,19 @@ function renderStoryCard(msg, isReply = false) {
     return `
         <div class="flex items-start gap-2 mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
             <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center flex-shrink-0">
-                ${msg.sender_photo ? `<img src="${msg.sender_photo}" class="w-full h-full rounded-full object-cover">` : `<span class="text-xs font-bold ${roleColor}">${roleInitial}</span>`}
+                ${msg.sender_photo ? 
+                    `<img src="${msg.sender_photo}" class="w-full h-full rounded-full object-cover">` : 
+                    `<span class="text-xs font-bold ${roleColor}">${roleInitial}</span>`
+                }
             </div>
             <div class="max-w-[75%] sm:max-w-[65%]">
                 <div class="flex items-center gap-1 mb-0.5 flex-wrap">
                     <span class="font-semibold text-slate-700 text-xs">${escapeHtml(msg.sender_name || 'Inconnu')}</span>
                     ${roleBadge}
                 </div>
+                
                 ${parentMessageHtml}
+                
                 ${fileUrl ? (isImage ? `
                     <div class="relative rounded-xl overflow-hidden mb-1 max-w-[200px]">
                         <img src="${fileUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" 
@@ -309,44 +347,58 @@ function renderStoryCard(msg, isReply = false) {
                         </div>
                     </div>
                 ` : renderDocumentCard(fileUrl, msg.titre_media)) : ''}
+                
                 ${content ? `
                     <div class="chat-message-received" style="background: #F1F5F9; border-bottom-left-radius: 4px;">
                         <p class="text-slate-700 text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
                     </div>
                 ` : ''}
+                
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[9px] text-slate-400">${timeStr}</span>
-                    <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || "l'utilisateur")}')" class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                    <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || "l'utilisateur")}')" 
+                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
                         <i class="fa-solid fa-reply text-[8px]"></i>
                     </button>
-                    <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" class="text-[9px] text-slate-400 hover:text-amber-500 transition">
+                    <button onclick="window.showEmojiPickerForMessage('${msg.id}', this)" 
+                            class="text-[9px] text-slate-400 hover:text-amber-500 transition">
                         <i class="fa-regular fa-face-smile"></i>
                     </button>
                     ${isAidant && msg.id && !msg.is_temp ? `
-                        <button onclick="window.reportIssue('${msg.id}')" class="text-[9px] text-slate-400 hover:text-rose-500 transition">
+                        <button onclick="window.reportIssue('${msg.id}')" 
+                                class="text-[9px] text-slate-400 hover:text-rose-500 transition">
                             <i class="fa-regular fa-flag"></i>
                         </button>
                     ` : ''}
                 </div>
+                
                 ${Object.keys(msg.reactions || {}).length > 0 ? `
                     <div class="flex gap-1 mt-1">
                         ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
-                            <button onclick="window.sendReaction('${msg.id}', '${emoji}')" class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded-full text-xs transition">
+                            <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
+                                    class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded-full text-xs transition">
                                 <span class="text-sm">${emoji}</span>
                                 <span class="text-[9px] font-medium text-slate-500">${count}</span>
                             </button>
                         `).join('')}
                     </div>
                 ` : ''}
+                
                 ${fileUrl && isImage && isAidant && !msg.is_temp ? `
                     <div class="mt-0.5">
-                        <span class="text-[7px] text-slate-400"><i class="fa-regular fa-camera"></i> Photo</span>
+                        <span class="text-[7px] text-slate-400">
+                            <i class="fa-regular fa-camera"></i> Photo
+                        </span>
                     </div>
                 ` : ''}
             </div>
         </div>
     `;
 }
+
+
+
+
 
 function renderFeed() {
     const content = document.getElementById('care-feed-content');
@@ -642,7 +694,6 @@ window.filterFeed = (type) => {
 // ============================================================
 // ENVOI DE MESSAGE RAPIDE (AVEC OPTIMISTIC UI)
 // ============================================================
-
 window.sendQuickMessage = async () => {
     const input = document.getElementById('quick-msg');
     const content = input?.value?.trim();
@@ -651,6 +702,7 @@ window.sendQuickMessage = async () => {
     try {
         UI.vibrate();
         
+        // 🔥 CRÉATION DU MESSAGE TEMPORAIRE
         const tempId = 'temp_' + Date.now();
         const currentUserId = localStorage.getItem("user_id");
         const currentUserName = localStorage.getItem("user_name");
@@ -666,9 +718,11 @@ window.sendQuickMessage = async () => {
             type_media: 'STORY',
             created_at: new Date().toISOString(),
             reactions: {},
-            is_temp: true
+            is_temp: true,
+            read: false
         };
         
+        // Ajouter au state et au DOM
         AppState.messages.push(tempMessage);
         
         if (activeTab === 'STORY') {
@@ -678,18 +732,22 @@ window.sendQuickMessage = async () => {
             scrollToBottom();
         }
         
+        // Afficher l'indicateur d'envoi
         const tempMessageEl = document.querySelector('[data-message-id="' + tempId + '"]');
         if (tempMessageEl) {
             tempMessageEl.classList.add('opacity-50');
             const sendingIndicator = document.createElement('div');
             sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
             sendingIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
-            tempMessageEl.querySelector('.flex-1')?.appendChild(sendingIndicator);
+            const targetEl = tempMessageEl.querySelector('.flex-1') || tempMessageEl.querySelector('.max-w-[75%]');
+            if (targetEl) targetEl.appendChild(sendingIndicator);
         }
         
+        // Réinitialiser l'input
         input.value = '';
         window.cancelReply();
         
+        // Envoyer le vrai message
         const body = {
             patient_id: AppState.currentPatient,
             content: content,
@@ -701,33 +759,69 @@ window.sendQuickMessage = async () => {
             body.reply_to_id = currentReplyTo;
         }
         
-        const result = await secureFetch('/messages/send', { method: 'POST', body: JSON.stringify(body) });
+        const result = await secureFetch('/messages/send', { 
+            method: 'POST', 
+            body: JSON.stringify(body) 
+        });
         
+        // Supprimer l'indicateur de chargement
         if (tempMessageEl) {
             tempMessageEl.classList.remove('opacity-50');
             const indicator = tempMessageEl.querySelector('.sending-indicator');
             if (indicator) indicator.remove();
         }
         
+        // Remplacer l'ID temporaire par le vrai ID
         if (result && result.id) {
             const index = AppState.messages.findIndex(m => m.id === tempId);
             if (index !== -1) {
-                AppState.messages[index].id = result.id;
-                AppState.messages[index].is_temp = false;
+                // Récupérer le message complet depuis le serveur
+                try {
+                    const fullMessage = await secureFetch('/messages?message_id=' + result.id);
+                    if (fullMessage && fullMessage[0]) {
+                        AppState.messages[index] = fullMessage[0];
+                    } else {
+                        AppState.messages[index].id = result.id;
+                        AppState.messages[index].is_temp = false;
+                    }
+                } catch (e) {
+                    AppState.messages[index].id = result.id;
+                    AppState.messages[index].is_temp = false;
+                }
+                
+                // Mettre à jour l'attribut data-message-id dans le DOM
                 const realEl = document.querySelector('[data-message-id="' + tempId + '"]');
                 if (realEl) realEl.setAttribute('data-message-id', result.id);
             }
         }
         
+        // Vérifier les alertes pour Maman
         if (localStorage.getItem("user_is_maman") === "true") {
-            checkForAlerts(content);
+            if (typeof checkForAlerts === 'function') {
+                checkForAlerts(content);
+            }
         }
         
+        // Réinitialiser Realtime
         initRealtimeForCurrentPatient();
         
     } catch (err) {
-        console.error(err);
+        console.error("Erreur sendQuickMessage:", err);
         UI.error("Erreur lors de l'envoi du message");
+        
+        // Marquer le message temporaire comme échoué
+        const tempId = 'temp_' + Date.now();
+        setTimeout(() => {
+            const failedEl = document.querySelector('[data-message-id="' + tempId + '"]');
+            if (failedEl) {
+                failedEl.classList.add('border-rose-200', 'bg-rose-50');
+                const indicator = failedEl.querySelector('.sending-indicator');
+                if (indicator) {
+                    indicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i> Échec';
+                    indicator.classList.add('text-rose-500');
+                }
+            }
+        }, 100);
     }
 };
 
@@ -1062,10 +1156,9 @@ async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
 
-    // 🔥 RÉINITIALISER LES MESSAGES POUR LE NOUVEAU PATIENT
+    // 🔥 RÉINITIALISATION COMPLÈTE POUR LE NOUVEAU PATIENT
     AppState.messages = [];
     
-    // 🔥 NETTOYER L'ANCIEN ABONNEMENT REALTIME
     if (window.cleanupRealtime) {
         window.cleanupRealtime();
     }
@@ -1074,55 +1167,75 @@ async function loadFeed() {
     container.style.margin = '0';
     container.style.overflow = 'hidden';
     
-    if (!AppState.currentPatient) return window.switchView('patients');
+    if (!AppState.currentPatient) {
+        return window.switchView('patients');
+    }
 
     const isMaman = localStorage.getItem('user_is_maman') === "true";
     const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
     const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
     
-            // 🔥 RÉCUPÉRER LES INFOS DU PATIENT COURANT
-            let patientInfo = null;
-            try {
-                // Ne pas utiliser le cache pour être sûr d'avoir le bon patient
-                const patients = await secureFetch("/patients", { noCache: true });
-                // Trouver le patient correspondant à AppState.currentPatient
-                patientInfo = patients.find(p => p.id === AppState.currentPatient);
-                
-                if (!patientInfo && patients.length > 0) {
-                    // Fallback : prendre le premier patient
-                    patientInfo = patients[0];
-                    AppState.currentPatient = patientInfo.id;
-                }
-                
-                console.log("🔄 [FEED] Patient chargé:", patientInfo?.nom_complet, "ID:", AppState.currentPatient);
-                
-            } catch(e) {
-                console.error("Erreur chargement patient:", e);
-            }
+    // 🔥 RÉCUPÉRER LES INFOS DU PATIENT COURANT
+    let patientInfo = null;
+    try {
+        const patients = await secureFetch("/patients", { noCache: true });
+        patientInfo = patients.find(p => p.id === AppState.currentPatient);
+        
+        if (!patientInfo && patients.length > 0) {
+            patientInfo = patients[0];
+            AppState.currentPatient = patientInfo.id;
+            localStorage.setItem("current_patient_id", patientInfo.id);
+        }
+        
+        console.log("🔄 [FEED] Patient chargé:", patientInfo?.nom_complet, "ID:", AppState.currentPatient);
+        
+    } catch(e) {
+        console.error("Erreur chargement patient:", e);
+    }
 
     container.innerHTML = `
         <div class="chat-container">
             <div class="chat-header">
-                <div class="chat-header-back" onclick="window.switchView('patients')"><i class="fa-solid fa-arrow-left"></i></div>
-                <div class="chat-header-avatar">${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}</div>
+                <div class="chat-header-back" onclick="window.switchView('patients')">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </div>
+                <div class="chat-header-avatar">
+                    ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
+                </div>
                 <div class="chat-header-info">
                     <div class="chat-header-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
-                    <div class="chat-header-status" id="chat-status"><span class="online-dot"></span> En ligne</div>
+                    <div class="chat-header-status" id="chat-status">
+                        <span class="online-dot"></span> En ligne
+                    </div>
                 </div>
-                <div class="chat-header-actions"><button id="attach-doc-btn" title="Pièce jointe"><i class="fa-solid fa-paperclip"></i></button></div>
+                <div class="chat-header-actions">
+                    <button id="attach-doc-btn" title="Pièce jointe">
+                        <i class="fa-solid fa-paperclip"></i>
+                    </button>
+                </div>
             </div>
             <div id="care-feed-content" class="chat-messages">
-                <div class="flex justify-center py-10"><div class="relative w-8 h-8"><div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div></div></div>
+                <div class="flex justify-center py-10">
+                    <div class="relative w-8 h-8">
+                        <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                    </div>
+                </div>
             </div>
             <div id="typing-indicator" class="typing-indicator hidden" style="margin: 0 16px 8px 16px;">
-                <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
                 <span class="typing-text">quelqu'un écrit...</span>
             </div>
             <div class="chat-input-area">
-                <button class="chat-input-attach" id="attach-photo-btn" title="Photo"><i class="fa-solid fa-camera"></i></button>
+                <button class="chat-input-attach" id="attach-photo-btn" title="Photo">
+                    <i class="fa-solid fa-camera"></i>
+                </button>
                 <div class="chat-input-wrapper">
                     <input type="text" id="quick-msg" class="chat-input" placeholder="Message" autocomplete="off">
-                    <button class="chat-input-send" id="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button class="chat-input-send" id="send-btn">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
             <input type="file" id="photo-input" accept="image/*" class="hidden">
@@ -1130,6 +1243,7 @@ async function loadFeed() {
         </div>
     `;
 
+    // Brancher les événements
     const photoBtn = document.getElementById('attach-photo-btn');
     const photoInput = document.getElementById('photo-input');
     const sendBtn = document.getElementById('send-btn');
@@ -1142,11 +1256,22 @@ async function loadFeed() {
     if (input) {
         input.addEventListener('input', () => {
             if (!AppState.currentPatient) return;
-            window.Realtime.sendTyping({ patient_id: AppState.currentPatient, user_id: localStorage.getItem("user_id") });
+            window.Realtime.sendTyping({ 
+                patient_id: AppState.currentPatient, 
+                user_id: localStorage.getItem("user_id") 
+            });
             clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => window.Realtime.stopTyping({ patient_id: AppState.currentPatient }), 2000);
+            typingTimeout = setTimeout(() => {
+                window.Realtime.stopTyping({ patient_id: AppState.currentPatient });
+            }, 2000);
         });
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendQuickMessage(); } });
+        
+        input.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                window.sendQuickMessage(); 
+            } 
+        });
     }
     
     if (attachDocBtn && documentInput) {
@@ -1159,20 +1284,33 @@ async function loadFeed() {
         photoInput.onchange = () => sendPhotoMessage();
     }
     
-    if (sendBtn) sendBtn.onclick = () => window.sendQuickMessage();
+    if (sendBtn) {
+        sendBtn.onclick = () => window.sendQuickMessage();
+    }
 
     cleanupRealtime();
 
     try {
-        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`);
-        AppState.messages = data;
-        AppState.unreadByPatient = {};
+        const data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, { noCache: true });
+        
+        // 🔥 S'assurer que chaque message a un sender_id correct
         const currentUserId = localStorage.getItem("user_id");
+        AppState.messages = data.map(msg => ({
+            ...msg,
+            sender_id: msg.sender_id || (msg.sender ? msg.sender.id : null)
+        }));
+        
+        // Trier par date croissante (plus ancien en haut)
+        AppState.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        AppState.unreadByPatient = {};
         
         data.forEach(msg => {
             const patientId = msg.patient_id;
             if (msg.sender_id !== currentUserId && !msg.read) {
-                if (!AppState.unreadByPatient[patientId]) AppState.unreadByPatient[patientId] = 0;
+                if (!AppState.unreadByPatient[patientId]) {
+                    AppState.unreadByPatient[patientId] = 0;
+                }
                 AppState.unreadByPatient[patientId]++;
             }
         });
@@ -1180,7 +1318,10 @@ async function loadFeed() {
         console.log("🔴 [COMPTEUR INITIAL] unreadByPatient:", AppState.unreadByPatient);
         updatePatientBadges();
         
-        if (window.Realtime) window.Realtime.unsubscribe();
+        if (window.Realtime) {
+            window.Realtime.unsubscribe();
+        }
+        
         initRealtimeForCurrentPatient();
         renderFeed();
 
@@ -1190,28 +1331,55 @@ async function loadFeed() {
         try {
             await secureFetch('/messages/mark-read', {
                 method: 'POST',
-                body: JSON.stringify({ patient_id: AppState.currentPatient, user_id: localStorage.getItem("user_id") })
+                body: JSON.stringify({ 
+                    patient_id: AppState.currentPatient, 
+                    user_id: localStorage.getItem("user_id") 
+                })
             });
             console.log("👁️ Messages marqués comme lus (backend)");
-            if (AppState.currentPatient && AppState.unreadByPatient) AppState.unreadByPatient[AppState.currentPatient] = 0;
+            
+            if (AppState.currentPatient && AppState.unreadByPatient) {
+                AppState.unreadByPatient[AppState.currentPatient] = 0;
+            }
+            
             updatePatientBadges();
-            if (typeof window.refreshMenuBadges === 'function') setTimeout(() => window.refreshMenuBadges(), 100);
-        } catch (err) { console.error("Erreur mark-read:", err); }
+            
+            if (typeof window.refreshMenuBadges === 'function') {
+                setTimeout(() => window.refreshMenuBadges(), 100);
+            }
+        } catch (err) { 
+            console.error("Erreur mark-read:", err); 
+        }
         
         unreadMessagesCount = 0;
         hideNewMessageBadge();
-        setTimeout(() => { initScrollDetection(); isUserAtBottom = true; scrollToBottom(); }, 500);
-        if (typeof window.refreshMenuBadges === 'function') setTimeout(() => window.refreshMenuBadges(), 500);
+        
+        setTimeout(() => { 
+            initScrollDetection(); 
+            isUserAtBottom = true; 
+            scrollToBottom(); 
+        }, 500);
+        
+        if (typeof window.refreshMenuBadges === 'function') {
+            setTimeout(() => window.refreshMenuBadges(), 500);
+        }
 
     } catch (err) {
         console.error("Erreur Feed:", err);
         const contentDiv = document.getElementById('care-feed-content');
         if (contentDiv) {
-            contentDiv.innerHTML = `<div class="flex justify-center py-20"><div class="text-center"><i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i><p class="text-sm font-bold text-rose-500">Erreur de chargement</p><p class="text-[10px] text-slate-400 mt-1">${err.message}</p></div></div>`;
+            contentDiv.innerHTML = `
+                <div class="flex justify-center py-20">
+                    <div class="text-center">
+                        <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                        <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                        <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+                    </div>
+                </div>
+            `;
         }
     }
 }
-
 // ============================================================
 // EXPORTS GLOBAUX
 // ============================================================
