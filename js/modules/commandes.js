@@ -1083,7 +1083,6 @@ window.deliverCommand = async (commandeId) => {
                 const files = Array.from(fileInput.files).slice(0, 5);
                 
                 for (const file of files) {
-                    // Vérifier la taille
                     if (file.size > 5 * 1024 * 1024) {
                         Swal.fire("Photo trop lourde", `${file.name} dépasse 5MB`, "warning");
                         continue;
@@ -1123,7 +1122,6 @@ window.deliverCommand = async (commandeId) => {
     
     if (!formData) return;
     
-    // Afficher le chargement
     Swal.fire({ 
         title: "Envoi en cours...", 
         text: "Upload des photos...",
@@ -1133,33 +1131,33 @@ window.deliverCommand = async (commandeId) => {
     
     try {
         const fd = new FormData();
-        
-        // ⚠️ IMPORTANT: Ne PAS ajouter commande_id dans le FormData
-        // L'ID est dans l'URL, pas dans le body
         fd.append("notes_livraison", formData.notes || "");
         
-        // Ajouter les photos avec le bon nom de champ "photos"
+        // ✅ COMPRESSION DES PHOTOS
         for (let i = 0; i < formData.photos.length; i++) {
-            fd.append("photos", formData.photos[i]);
+            let photo = formData.photos[i];
+            
+            if (photo.size > 1024 * 1024) { // plus de 1MB
+                try {
+                    photo = await compressImage(photo, 1024, 0.7);
+                    console.log(`📸 Photo livraison ${i+1} compressée`);
+                } catch (e) {
+                    console.warn("Erreur compression, envoi original");
+                }
+            }
+            fd.append("photos", photo);
         }
         
         console.log(`📤 Envoi de ${formData.photos.length} photo(s) pour la commande ${commandeId}`);
-        
-        // Afficher le contenu du FormData pour déboguer
-        for (let pair of fd.entries()) {
-            console.log(pair[0], pair[1]);
-        }
         
         const response = await fetch(`${CONFIG.API_URL}/commandes/${commandeId}/deliver`, {
             method: "POST",
             headers: { 
                 "Authorization": `Bearer ${localStorage.getItem("token")}`
-                // ⚠️ NE PAS mettre Content-Type - le navigateur le fait automatiquement avec FormData
             },
             body: fd
         });
         
-        // Vérifier le type de réponse
         const contentType = response.headers.get("content-type");
         
         if (!response.ok) {
@@ -1177,8 +1175,6 @@ window.deliverCommand = async (commandeId) => {
         
         const result = await response.json();
         
-        console.log("✅ Réponse serveur:", result);
-        
         Swal.fire({ 
             icon: "success", 
             title: "✅ Livré !", 
@@ -1190,7 +1186,7 @@ window.deliverCommand = async (commandeId) => {
         window.dispatchEvent(new CustomEvent('app-data-updated', {
             detail: { endpoint: '/commandes', method: 'POST', resourceType: 'commande_updated' }
         }));
-        // Recharger la liste des commandes
+        
         if (typeof loadCommandes === 'function') {
             loadCommandes();
         } else {
@@ -1207,5 +1203,4 @@ window.deliverCommand = async (commandeId) => {
         });
     }
 };
-
 window.openImageModal = openImageModal;
