@@ -10,6 +10,7 @@
 // IMPORTS DES MODULES
 // ============================================================
 import * as Maman from "./modules/maman.js";
+import * as Maman from "./modules/education.js";
 import { secureFetch } from "./core/api.js";
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
@@ -1513,6 +1514,7 @@ const menuItems = [
     { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', color: 'text-indigo-600', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
     { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE'] },
     { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
+    { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', color: 'text-purple-500', bg: 'bg-purple-50', roles: ['FAMILLE'] },
     { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
 ];
 
@@ -2349,6 +2351,9 @@ async function performViewSwitch(viewName) {
                     await loadMamanPlanning();
                 }
                 break;
+            case "education":
+                    await loadEducationPage();
+                    break;
                 
         }
         
@@ -2665,6 +2670,7 @@ window.verifyOTP = Auth.verifyOTP;
 window.openAddPatient = () => window.switchView('add-patient');
 window.openEndVisit = () => window.switchView('end-visit');
 window.submitAddAidant = Aidants.submitAddAidant;
+window.loadEducationPage = loadEducationPage;
 window.openLinkFamilyModal = (id, name) => {
     AppState.tempData = { patientId: id, patientName: name }; 
     window.switchView('link-family');
