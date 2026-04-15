@@ -901,21 +901,78 @@ function updateSeenStatus(data) {
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
         return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
     }
+
+
     /**
      * 📸 CARTE JOURNAL (Story) - MODIFIÉE pour ajouter le bouton "Répondre"
      * @param {Object} msg - Le message
      * @param {boolean} isReply - Si c'est une réponse (style indenté)
      */
 
+
+/**
+ * 📎 Déterminer le type de fichier et retourner l'icône appropriée
+ */
+function getFileInfo(url, filename) {
+    const extension = (filename || url).split('.').pop()?.toLowerCase();
+    
+    const fileTypes = {
+        pdf: { icon: 'fa-file-pdf', color: 'text-red-500', bg: 'bg-red-50', label: 'PDF' },
+        doc: { icon: 'fa-file-word', color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOC' },
+        docx: { icon: 'fa-file-word', color: 'text-blue-500', bg: 'bg-blue-50', label: 'DOCX' },
+        jpg: { icon: 'fa-file-image', color: 'text-green-500', bg: 'bg-green-50', label: 'IMAGE' },
+        jpeg: { icon: 'fa-file-image', color: 'text-green-500', bg: 'bg-green-50', label: 'IMAGE' },
+        png: { icon: 'fa-file-image', color: 'text-green-500', bg: 'bg-green-50', label: 'IMAGE' },
+        gif: { icon: 'fa-file-image', color: 'text-green-500', bg: 'bg-green-50', label: 'IMAGE' },
+        webp: { icon: 'fa-file-image', color: 'text-green-500', bg: 'bg-green-50', label: 'IMAGE' },
+        mp4: { icon: 'fa-file-video', color: 'text-purple-500', bg: 'bg-purple-50', label: 'VIDEO' },
+        mp3: { icon: 'fa-file-audio', color: 'text-amber-500', bg: 'bg-amber-50', label: 'AUDIO' }
+    };
+    
+    return fileTypes[extension] || { icon: 'fa-file', color: 'text-slate-500', bg: 'bg-slate-50', label: 'FICHIER' };
+}
+
+/**
+ * 📎 Afficher un document (non image)
+ */
+function renderDocumentCard(url, filename) {
+    const fileInfo = getFileInfo(url, filename);
+    const displayName = filename || url.split('/').pop() || 'Document';
+    // Limiter la longueur du nom affiché
+    const shortName = displayName.length > 30 ? displayName.substring(0, 27) + '...' : displayName;
+    
+    return `
+        <div class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white shadow-sm active:scale-98 transition-all cursor-pointer" 
+             onclick="window.open('${url}', '_blank')">
+            <div class="w-10 h-10 rounded-xl ${fileInfo.bg} flex items-center justify-center">
+                <i class="fa-solid ${fileInfo.icon} ${fileInfo.color} text-lg"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(shortName)}</p>
+                <p class="text-[9px] text-slate-400">${fileInfo.label} • Cliquer pour ouvrir</p>
+            </div>
+            <i class="fa-solid fa-download text-slate-300 text-xs"></i>
+        </div>
+    `;
+}
+
+/**
+ * 🖼️ Vérifier si une URL est une image
+ */
+function isImageUrl(url) {
+    if (!url) return false;
+    return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+}
+
 function renderStoryCard(msg, isReply = false) {
     const isPhoto = msg.is_photo || msg.photo_url;
     let content = msg.content || '';
     let humeurBadge = "";
     const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
     const themeLightBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
 
-    const imageUrl = msg.photo_url || (isPhoto ? msg.content : null);
+    const fileUrl = msg.photo_url || (isPhoto ? msg.content : null);
+    const isImage = fileUrl && isImageUrl(fileUrl);
     const currentUserId = localStorage.getItem("user_id");
     const isOwnMessage = String(msg.sender_id) === String(currentUserId);
     
@@ -957,10 +1014,9 @@ function renderStoryCard(msg, isReply = false) {
     const tempClass = isTemp ? 'opacity-70' : '';
 
     // ============================================================
-    // MESSAGE ENVOYÉ (À DROITE) - STYLE WHATSAPP MODERNE
+    // MESSAGE ENVOYÉ (À DROITE)
     // ============================================================
     if (isOwnMessage) {
-        // Statut du message
         let statusIcon = '';
         if (!isTemp) {
             if (msg.read) {
@@ -975,14 +1031,18 @@ function renderStoryCard(msg, isReply = false) {
         return `
             <div class="flex justify-end mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
                 <div class="max-w-[75%] sm:max-w-[65%]">
-                    ${imageUrl ? `
-                        <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')" loading="lazy">
-                    ` : ''}
+                    ${fileUrl ? (isImage ? `
+                        <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
+                             onclick="window.open('${fileUrl}')" loading="lazy"
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
+                    ` : renderDocumentCard(fileUrl, msg.titre_media)) : ''}
+                    
                     ${content ? `
                         <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px;">
                             <p class="text-white text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
                         </div>
                     ` : ''}
+                    
                     <div class="flex justify-end items-center gap-1 mt-0.5">
                         <span class="text-[9px] text-slate-400">${timeStr}</span>
                         <span class="message-status">${statusIcon}</span>
@@ -993,7 +1053,7 @@ function renderStoryCard(msg, isReply = false) {
     }
 
     // ============================================================
-    // MESSAGE REÇU (À GAUCHE) - STYLE WHATSAPP MODERNE
+    // MESSAGE REÇU (À GAUCHE)
     // ============================================================
     const isAidant = msg.sender_role === 'AIDANT';
     const isFamily = msg.sender_role === 'FAMILLE';
@@ -1039,9 +1099,16 @@ function renderStoryCard(msg, isReply = false) {
                 
                 ${parentMessageHtml}
                 
-                ${imageUrl ? `
-                    <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')" loading="lazy">
-                ` : ''}
+                ${fileUrl ? (isImage ? `
+                    <div class="relative rounded-xl overflow-hidden mb-1 max-w-[200px]">
+                        <img src="${fileUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" 
+                             onclick="window.open('${fileUrl}')" loading="lazy"
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
+                        <div class="absolute bottom-2 right-2 bg-black/50 backdrop-blur px-1.5 py-0.5 rounded-lg">
+                            <i class="fa-regular fa-image text-white text-[8px]"></i>
+                        </div>
+                    </div>
+                ` : renderDocumentCard(fileUrl, msg.titre_media)) : ''}
                 
                 ${content ? `
                     <div class="chat-message-received" style="background: #F1F5F9; border-bottom-left-radius: 4px;">
@@ -1079,7 +1146,7 @@ function renderStoryCard(msg, isReply = false) {
                     </div>
                 ` : ''}
                 
-                ${imageUrl && isAidant && !msg.is_temp ? `
+                ${fileUrl && isImage && isAidant && !msg.is_temp ? `
                     <div class="mt-0.5">
                         <span class="text-[7px] text-slate-400">
                             <i class="fa-regular fa-camera"></i> Photo
@@ -1088,8 +1155,10 @@ function renderStoryCard(msg, isReply = false) {
                 ` : ''}
             </div>
         </div>
-    `;
+    );
 }
+
+
 
     // ============================================
     // ✅ NOUVELLES FONCTIONS
