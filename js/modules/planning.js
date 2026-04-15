@@ -11,13 +11,16 @@ export async function loadPlanning() {
     if (!listContainer) return;
 
     const userRole = localStorage.getItem("user_role");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
 
     try {
         const data = await secureFetch("/planning");
 
         if (!data?.length) {
             listContainer.innerHTML = `
-                <div class="text-center py-20 opacity-50">
+                <div class="text-center py-20">
                     <i class="fa-solid fa-calendar-xmark text-4xl text-slate-300 mb-3"></i>
                     <p class="text-xs font-black uppercase text-slate-400">Agenda vide</p>
                 </div>`;
@@ -26,11 +29,21 @@ export async function loadPlanning() {
 
         listContainer.innerHTML = data.map(item => {
             const isTerminated = item.statut === 'Terminé';
-            const borderColor = isTerminated ? 'border-emerald-500' : 'border-blue-500';
-            const statusColor = isTerminated ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700';
+            const isPlanned = item.statut === 'Planifié';
+            
+            // Couleurs dynamiques selon le rôle
+            const statusColor = isTerminated ? 'bg-emerald-100 text-emerald-700' : 
+                               (isPlanned ? `${isMaman ? 'bg-pink-100 text-pink-700' : 'bg-emerald-100 text-emerald-700'}` : 
+                               'bg-blue-100 text-blue-700');
+            
+            const borderColor = isTerminated ? 'border-emerald-500' : 
+                               (isPlanned ? `${isMaman ? 'border-pink-500' : 'border-emerald-500'}` : 
+                               'border-blue-500');
+            
+            const buttonBg = isMaman ? 'bg-pink-600 hover:bg-pink-700' : 'bg-emerald-600 hover:bg-emerald-700';
             
             return `
-                <div class="bg-white p-5 rounded-xl border-l-4 ${borderColor} shadow-sm animate-fadeIn mb-4">
+                <div class="bg-white p-5 rounded-xl border-l-4 ${borderColor} shadow-sm animate-fadeIn mb-4 hover:shadow-md transition-all">
                     <div class="flex justify-between items-start">
                         <div>
                             <span class="text-xl font-black text-slate-800">${item.heure_prevue?.substring(0, 5) || '--:--'}</span>
@@ -44,22 +57,23 @@ export async function loadPlanning() {
                     </div>
                     
                     <div class="mt-4">
-                        <h4 class="font-black text-slate-800 text-sm uppercase">${item.patient?.nom_complet || 'Patient inconnu'}</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5">
-                            <i class="fa-solid fa-map-pin mr-1"></i> ${item.patient?.adresse || 'Adresse non renseignée'}
+                        <h4 class="font-black text-slate-800 text-sm">${escapeHtml(item.patient?.nom_complet || 'Patient inconnu')}</h4>
+                        <p class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1">
+                            <i class="fa-solid fa-map-pin text-xs"></i>
+                            <span>${escapeHtml(item.patient?.adresse || 'Adresse non renseignée')}</span>
                         </p>
                     </div>
 
                     ${item.notes_coordinateur ? `
-                        <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <p class="text-[9px] text-slate-400 font-black uppercase tracking-wider mb-1">📋 Consignes :</p>
+                        <div class="mt-3 p-3 rounded-xl" style="background: ${primaryLight};">
+                            <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color: ${primaryColor};">📋 Consignes :</p>
                             <p class="text-xs italic text-slate-600">"${escapeHtml(item.notes_coordinateur)}"</p>
                         </div>
                     ` : ''}
                     
                     ${userRole === "AIDANT" && item.statut !== 'Terminé' ? `
                         <button onclick="window.openMissionBriefing('${item.patient_id}', '${item.id}')" 
-                                class="w-full mt-4 py-3 bg-slate-800 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
+                                class="w-full mt-4 py-3 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all ${buttonBg}">
                             📋 Ouvrir le Briefing
                         </button>
                     ` : ''}
@@ -69,7 +83,12 @@ export async function loadPlanning() {
 
     } catch (err) {
         console.error("Erreur chargement planning:", err);
-        listContainer.innerHTML = `<p class="text-rose-500 text-center p-10">Erreur : ${err.message}</p>`;
+        listContainer.innerHTML = `
+            <div class="text-center py-20">
+                <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
+                <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                <p class="text-[10px] text-slate-400 mt-1">${err.message}</p>
+            </div>`;
     }
 }
 
