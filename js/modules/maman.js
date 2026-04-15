@@ -110,7 +110,7 @@ export async function loadMamanDashboard() {
 
             <!-- MÉTRIQUES BÉBÉ (4 cartes cliquables) -->
             <div class="grid grid-cols-2 gap-3 mb-5">
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('feeding')">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all">
                     <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-baby-bottle text-pink-500 text-base"></i>
                     </div>
@@ -120,7 +120,7 @@ export async function loadMamanDashboard() {
                     <span class="text-[7px] text-pink-400">${feedingTrend}</span>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('sleep')">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" >
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-moon text-blue-500 text-base"></i>
                     </div>
@@ -130,7 +130,7 @@ export async function loadMamanDashboard() {
                     <span class="text-[7px] text-pink-400">${sleepTrend}</span>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('diapers')">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all">
                     <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-droplet text-amber-500 text-base"></i>
                     </div>
@@ -139,7 +139,7 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] text-slate-400">changées aujourd'hui</p>
                 </div>
                 
-                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('weight')">
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all">
                     <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
                         <i class="fa-solid fa-chart-line text-emerald-500 text-base"></i>
                     </div>
@@ -164,7 +164,7 @@ export async function loadMamanDashboard() {
             <div class="bg-white rounded-2xl p-5 mb-5 shadow-sm border border-pink-100 text-center">
                 <i class="fa-solid fa-chart-line text-3xl text-slate-300 mb-2"></i>
                 <p class="text-xs text-slate-400">Ajoutez des mesures de poids pour voir la courbe d'évolution</p>
-                <button onclick="window.openAddMetricModal('weight')" class="mt-3 text-pink-500 text-[10px] font-bold">+ Ajouter un poids</button>
+                <button  class="mt-3 text-pink-500 text-[10px] font-bold">+ Ajouter un poids</button>
             </div>
             `}
 
@@ -513,73 +513,7 @@ function getTrendMessage(data, type) {
 // MÉTRIQUES BÉBÉ (MODALE + SAUVEGARDE)
 // ============================================================
 
-window.openAddMetricModal = (metricType) => {
-    const titles = {
-        feeding: 'Dernière tétée',
-        sleep: 'Heures de sommeil',
-        diapers: 'Nombre de couches',
-        weight: 'Poids (g)'
-    };
-    
-    const units = {
-        feeding: 'heures',
-        sleep: 'heures',
-        diapers: 'couches',
-        weight: 'grammes'
-    };
-    
-    Swal.fire({
-        title: `📝 ${titles[metricType]}`,
-        html: `
-            <div class="text-left">
-                <label class="text-[10px] font-bold text-slate-500 block mb-2">Valeur (en ${units[metricType]})</label>
-                <input type="number" id="metric-value" class="w-full p-3 bg-slate-50 rounded-xl" placeholder="Saisir la valeur" step="${metricType === 'weight' ? '10' : '0.5'}">
-                ${metricType === 'weight' ? '<p class="text-[9px] text-slate-400 mt-1">Exemple: 3500 pour 3.5 kg</p>' : ''}
-            </div>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '✅ Enregistrer',
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#E11D48',
-        preConfirm: () => {
-            const value = document.getElementById('metric-value').value;
-            if (!value) {
-                Swal.showValidationMessage('Veuillez saisir une valeur');
-                return false;
-            }
-            return { value: parseFloat(value) };
-        }
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            await saveBabyMetric(metricType, result.value.value);
-            Swal.fire('✅ Enregistré', `${titles[metricType]} mise à jour`, 'success');
-            loadMamanDashboard();
-        }
-    });
-};
 
-async function saveBabyMetric(metricType, value) {
-    try {
-        let patients = await secureFetch("/patients");
-        if (!Array.isArray(patients)) patients = patients?.data || [];
-        const patientId = patients[0]?.id;
-        
-        if (!patientId) return;
-        
-        await secureFetch('/educational/baby-metric', {
-            method: 'POST',
-            body: JSON.stringify({
-                patient_id: patientId,
-                metric_type: metricType,
-                value: value,
-                unit: metricType === 'weight' ? 'g' : 'h'
-            })
-        });
-    } catch (err) {
-        console.error("Erreur sauvegarde métrique:", err);
-        UI.error("Impossible d'enregistrer la métrique");
-    }
-}
 
 // ============================================================
 // GESTION DE L'HUMEUR
