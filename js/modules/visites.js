@@ -598,26 +598,35 @@ export function resumeTrackingIfActive() {
 //-----------------------------------------------------------------------------
 //------------------------------------------------------------------------
 
+let refreshAttempts = 0;
+const MAX_REFRESH_ATTEMPTS = 20;
+
 export function refreshAidantUI(patientId) {
-    // ✅ Attendre que le DOM soit prêt
     const tryRefresh = () => {
         const container = document.getElementById("aidant-active-area");
+        
         if (!container) {
-            console.log("⏳ En attente de l'élément aidant-active-area...");
-            setTimeout(tryRefresh, 200);
+            refreshAttempts++;
+            if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+                console.log(`⏳ En attente de l'élément... (${refreshAttempts}/${MAX_REFRESH_ATTEMPTS})`);
+                setTimeout(tryRefresh, 300);
+            } else {
+                console.warn("⚠️ Élément non trouvé, abandon");
+                refreshAttempts = 0;
+            }
             return;
         }
         
-        const activeVisitId = localStorage.getItem("active_visit_id");
+        // Réinitialiser le compteur
+        refreshAttempts = 0;
         
-        console.log("🔄 refreshAidantUI - activeVisitId:", activeVisitId);
-        console.log("🔄 refreshAidantUI - patientId:", patientId);
+        const activeVisitId = localStorage.getItem("active_visit_id");
         
         if (!activeVisitId) {
             container.innerHTML = `
                 <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                     <button onclick="window.startVisit('${patientId}')" 
-                            class="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                            class="w-full py-5 bg-emerald-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
                         <i class="fa-solid fa-play"></i> Démarrer la visite
                     </button>
                 </div>
@@ -626,7 +635,7 @@ export function refreshAidantUI(patientId) {
             container.innerHTML = `
                 <div class="fixed bottom-0 left-0 w-full p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-40">
                     <button onclick="window.openEndVisit()" 
-                            class="w-full py-5 bg-rose-500 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-rose-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                            class="w-full py-5 bg-rose-500 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
                         <i class="fa-solid fa-camera"></i> Clôturer la visite
                     </button>
                 </div>
