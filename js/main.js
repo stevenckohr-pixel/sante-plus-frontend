@@ -1799,17 +1799,6 @@ window.refreshMenuBadges = () => {
 };
 
 
-function updateBottomNav(viewName) {
-    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
-        const btnView = btn.getAttribute('onclick')?.match(/switchView\('([^']+)'\)/)?.[1];
-        if (btnView === viewName) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-}
-
 // Appeler dans performViewSwitch après avoir changé de vue
 updateBottomNav(viewName);
 
