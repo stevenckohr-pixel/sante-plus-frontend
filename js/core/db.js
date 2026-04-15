@@ -1,4 +1,5 @@
-// js/core/db.js
+// Créer le contenu du fichier db.js
+const dbContent = `// js/core/db.js
 // ============================================================
 // INDEXEDDB - STOCKAGE OFFLINE
 // ============================================================
@@ -50,7 +51,6 @@ class Database {
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
                 
-                // Store Messages
                 if (!db.objectStoreNames.contains(STORES.MESSAGES)) {
                     const messagesStore = db.createObjectStore(STORES.MESSAGES, { keyPath: 'id' });
                     messagesStore.createIndex('patient_id', 'patient_id', { unique: false });
@@ -59,7 +59,6 @@ class Database {
                     console.log("✅ Store MESSAGES créé");
                 }
                 
-                // Store Visites
                 if (!db.objectStoreNames.contains(STORES.VISITES)) {
                     const visitesStore = db.createObjectStore(STORES.VISITES, { keyPath: 'id' });
                     visitesStore.createIndex('patient_id', 'patient_id', { unique: false });
@@ -68,7 +67,6 @@ class Database {
                     console.log("✅ Store VISITES créé");
                 }
                 
-                // Store Commandes
                 if (!db.objectStoreNames.contains(STORES.COMMANDES)) {
                     const commandesStore = db.createObjectStore(STORES.COMMANDES, { keyPath: 'id' });
                     commandesStore.createIndex('patient_id', 'patient_id', { unique: false });
@@ -76,7 +74,6 @@ class Database {
                     console.log("✅ Store COMMANDES créé");
                 }
                 
-                // Store Notifications
                 if (!db.objectStoreNames.contains(STORES.NOTIFICATIONS)) {
                     const notifsStore = db.createObjectStore(STORES.NOTIFICATIONS, { keyPath: 'id' });
                     notifsStore.createIndex('user_id', 'user_id', { unique: false });
@@ -85,14 +82,12 @@ class Database {
                     console.log("✅ Store NOTIFICATIONS créé");
                 }
                 
-                // Store Patients
                 if (!db.objectStoreNames.contains(STORES.PATIENTS)) {
                     const patientsStore = db.createObjectStore(STORES.PATIENTS, { keyPath: 'id' });
                     patientsStore.createIndex('famille_user_id', 'famille_user_id', { unique: false });
                     console.log("✅ Store PATIENTS créé");
                 }
                 
-                // Store Cache API
                 if (!db.objectStoreNames.contains(STORES.CACHE)) {
                     const cacheStore = db.createObjectStore(STORES.CACHE, { keyPath: 'key' });
                     cacheStore.createIndex('expires_at', 'expires_at', { unique: false });
@@ -102,10 +97,6 @@ class Database {
         });
     }
 
-    // ============================================================
-    // MÉTHODES GÉNÉRIQUES
-    // ============================================================
-    
     async _getStore(storeName, mode = 'readonly') {
         if (!this.isReady || !this.db) {
             await this.init();
@@ -219,10 +210,6 @@ class Database {
         }
     }
 
-    // ============================================================
-    // MÉTHODES SPÉCIFIQUES
-    // ============================================================
-    
     async getMessages(patientId, limit = 50) {
         try {
             const store = await this._getStore(STORES.MESSAGES);
@@ -246,7 +233,6 @@ class Database {
 
     async saveMessages(patientId, messages) {
         await this.bulkPut(STORES.MESSAGES, messages);
-        // Nettoyer les anciens messages (> 30 jours)
         await this.cleanOldMessages(30);
     }
 
@@ -278,7 +264,6 @@ class Database {
         await this.bulkPut(STORES.PATIENTS, patients);
     }
 
-    // Cache API avec expiration
     async cacheApiResponse(key, data, ttlMinutes = 10) {
         const expires_at = Date.now() + (ttlMinutes * 60 * 1000);
         await this.put(STORES.CACHE, { key, data, expires_at });
@@ -295,7 +280,6 @@ class Database {
         return null;
     }
 
-    // Nettoyage du cache expiré
     async cleanExpiredCache() {
         const store = await this._getStore(STORES.CACHE, 'readwrite');
         if (!store) return;
@@ -311,7 +295,6 @@ class Database {
         };
     }
 
-    // Statistiques
     async getStats() {
         const stats = {};
         for (const [name, storeName] of Object.entries(STORES)) {
@@ -321,7 +304,6 @@ class Database {
         return stats;
     }
 
-    // Nettoyage complet
     async clearAll() {
         for (const storeName of Object.values(STORES)) {
             await this.clear(storeName);
@@ -330,9 +312,10 @@ class Database {
     }
 }
 
-// Instance unique
 const db = new Database();
-
-// Exporter pour utilisation
 export default db;
-export { STORES };
+export { STORES };`;
+
+// Créer un Blob et le sauvegarder (simulation)
+console.log("📝 Contenu du fichier db.js prêt à être créé");
+console.log("📏 Taille:", dbContent.length, "caractères");
