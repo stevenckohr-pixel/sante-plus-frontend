@@ -314,11 +314,19 @@ function formatVisitDate(dateStr) {
 /**
  * 📊 CALCULER LA PROGRESSION
  */
-function calculateProgress() {
-    // À connecter avec les vraies données
-    return 70;
+async function calculateProgress() {
+    try {
+        const patients = await secureFetch("/patients");
+        const patient = patients?.[0];
+        if (!patient) return 0;
+        
+        const progress = await secureFetch(`/visites/progress/${patient.id}`);
+        return progress.progress || 0;
+    } catch (err) {
+        console.error("Erreur progression:", err);
+        return 0;
+    }
 }
-
 /**
  * 🍼 FORMATER L'HEURE DE LA DERNIÈRE TÉTÉE
  */
