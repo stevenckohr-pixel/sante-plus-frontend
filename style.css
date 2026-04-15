@@ -1878,3 +1878,139 @@ input[type="range"] {
     align-items: center;
     gap: 5px;
 }
+
+
+
+/* ============================================
+   EFFETS TACTILES POUR MOBILE
+   ============================================ */
+
+/* Animation au clic pour toutes les cartes */
+.card-hover, .patient-card, .menu-tile, .visit-card, .commande-card, .planning-card {
+    transition: all 0.15s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Effet au clic (mobile et desktop) */
+.card-hover:active, .patient-card:active, .menu-tile:active, 
+.visit-card:active, .commande-card:active, .planning-card:active {
+    transform: scale(0.97);
+    transition: transform 0.05s ease;
+}
+
+/* Pour desktop uniquement - effet hover */
+@media (min-width: 768px) {
+    .card-hover:hover, .patient-card:hover, .menu-tile:hover,
+    .visit-card:hover, .commande-card:hover, .planning-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--role-primary);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+}
+
+/* Animation d'apparition des cartes */
+.card-appear {
+    animation: cardSlideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+    opacity: 0;
+}
+
+@keyframes cardSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Feedback visuel au clic (onde) */
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-effect:active::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 0.4s ease-out;
+}
+
+@keyframes ripple {
+    to {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+
+
+
+
+
+
+/* ============================================
+   ANIMATIONS D'APPARITION POUR LISTES
+   ============================================ */
+
+/* Animation d'entrée pour les éléments de liste */
+.list-item {
+    animation: fadeInScale 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Animation de chargement des cartes (décalées) */
+.list-item-delay-1 { animation-delay: 0.05s; }
+.list-item-delay-2 { animation-delay: 0.1s; }
+.list-item-delay-3 { animation-delay: 0.15s; }
+.list-item-delay-4 { animation-delay: 0.2s; }
+
+/* Animation de transition entre les vues */
+.view-transition {
+    animation: viewFade 0.2s ease-out forwards;
+}
+
+@keyframes viewFade {
+    0% {
+        opacity: 0;
+        transform: translateX(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Animation de pulsation pour les éléments importants */
+@keyframes softPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.animate-pulse-soft {
+    animation: softPulse 1.5s ease-in-out infinite;
+}
