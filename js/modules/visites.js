@@ -191,7 +191,9 @@ export function renderVisits() {
     const container = document.getElementById("visits-list");
     if (!container) return;
 
+    const userRole = localStorage.getItem("user_role");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isCoordinateur = userRole === "COORDINATEUR";
     const themeColor = isMaman ? 'pink' : 'emerald';
     const primaryColor = isMaman ? '#E11D48' : '#059669';
     const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
@@ -217,7 +219,7 @@ export function renderVisits() {
             const status = statusConfig[v.statut] || statusConfig['En attente'];
 
             return `
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-all hover:border-${themeColor}-200" 
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-all" 
                      style="animation: fadeInUp 0.25s ease ${index * 0.05}s forwards; opacity: 0;">
                     
                     <!-- En-tête coloré selon le statut -->
@@ -250,7 +252,7 @@ export function renderVisits() {
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Activités réalisées</p>
                                 <div class="flex flex-wrap gap-1">
                                     ${v.activites_faites.map(act => `
-                                        <span class="text-[9px] px-2 py-1 rounded-full" style="background: ${primaryLight}; color: ${primaryColor};">✓ ${act}</span>
+                                        <span class="text-[9px] px-2 py-1 rounded-full" style="background: ${primaryLight}; color: ${primaryColor};">✓ ${escapeHtml(act)}</span>
                                     `).join('')}
                                 </div>
                             </div>
@@ -277,7 +279,8 @@ export function renderVisits() {
                                     <p class="text-[9px] text-slate-400">Intervenant</p>
                                 </div>
                             </div>
-                            ${v.statut === "En attente" ? `
+                            <!-- 🔒 BOUTON VALIDER : UNIQUEMENT POUR LE COORDINATEUR -->
+                            ${isCoordinateur && v.statut === "En attente" ? `
                                 <button onclick="window.quickValidate('${v.id}', 'Validé')" 
                                         class="px-3 py-1.5 rounded-lg text-[9px] font-bold text-white transition-all active:scale-95"
                                         style="background: ${primaryColor};">
@@ -291,6 +294,7 @@ export function renderVisits() {
         })
         .join("");
 }
+
 
 function escapeHtml(str) {
     if (!str) return '';
