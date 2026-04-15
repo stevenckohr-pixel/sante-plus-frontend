@@ -1652,3 +1652,122 @@ header {
 
 /* Ombres douces */
 .shadow-sm, .shadow-md, .shadow-lg { --tw-shadow-color: rgba(0, 0, 0, 0.03); }
+
+
+
+
+
+
+
+
+
+/* ============================================
+   DYNAMISME GLOBAL - COULEURS VIVES
+   ============================================ */
+
+/* Boutons primaires */
+.btn-primary, button[type="submit"], .bg-slate-900, 
+.planning-list .bg-slate-800, 
+.commandes-list .bg-slate-800 {
+    background: var(--role-primary) !important;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover, button[type="submit"]:hover {
+    background: var(--role-primary-dark) !important;
+    transform: scale(1.02);
+}
+
+/* Focus des inputs */
+input:focus, textarea:focus, select:focus {
+    border-color: var(--role-primary) !important;
+    box-shadow: 0 0 0 3px var(--role-primary-light) !important;
+    outline: none;
+}
+
+/* Cartes avec hover coloré */
+.bg-white.rounded-xl, .bg-white.rounded-2xl,
+.patient-card, .visit-card, .commande-card, .planning-card {
+    transition: all 0.2s ease;
+    border: 1px solid #E2E8F0;
+}
+
+.bg-white.rounded-xl:hover, .bg-white.rounded-2xl:hover,
+.patient-card:hover, .visit-card:hover, .commande-card:hover, .planning-card:hover {
+    border-color: var(--role-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Badges colorés */
+.badge-primary {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+/* Liens et textes colorés */
+a, .text-link, .text-emerald-600, .text-pink-600 {
+    color: var(--role-primary) !important;
+}
+
+/* Séparateurs colorés */
+.border-t, .border-b, .border-l, .border-r {
+    border-color: #E2E8F0;
+}
+
+/* En-têtes de section */
+.section-header {
+    border-left: 3px solid var(--role-primary);
+    padding-left: 12px;
+    margin-bottom: 16px;
+}
+
+/* Progress bars */
+.progress-bar {
+    background: var(--role-primary-light);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    background: var(--role-primary);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+/* Tags et filtres actifs */
+.tag-active {
+    background: var(--role-primary);
+    color: white;
+}
+
+.tag-inactive {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+}
+
+
+
+/* Formulaires dynamiques */
+.form-input:focus, .app-input:focus {
+    border-color: var(--role-primary) !important;
+    box-shadow: 0 0 0 3px var(--role-primary-light) !important;
+}
+
+select:focus {
+    border-color: var(--role-primary) !important;
+}
+
+/* Checkboxes et radios */
+input[type="checkbox"]:checked, input[type="radio"]:checked {
+    accent-color: var(--role-primary);
+}
+
+/* Sliders */
+input[type="range"] {
+    accent-color: var(--role-primary);
+}
