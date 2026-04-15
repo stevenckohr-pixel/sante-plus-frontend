@@ -37,7 +37,6 @@ export async function loadPatients() {
 /**
  * 🎨 2. RENDU DE LA LISTE
  */
-
 export function renderPatients() {
     const container = document.getElementById("patients-list");
     const userRole = localStorage.getItem("user_role");
@@ -68,7 +67,7 @@ export function renderPatients() {
         // Couleurs dynamiques selon le thème
         const bgColor = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
         const textColor = isMaman ? 'text-pink-600' : 'text-emerald-600';
-        const borderHoverColor = isMaman ? 'pink-300' : 'emerald-300';
+        const borderHoverColor = isMaman ? 'pink-200' : 'emerald-200';
         
         return `
             <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-slate-100 transition-all patient-item relative hover:border-${borderHoverColor} hover:shadow-md" 
@@ -82,18 +81,17 @@ export function renderPatients() {
                     <div class="flex items-center gap-3 flex-1">
                         <div class="relative">
                             <div class="w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center font-bold text-base ${textColor}">
-                                ${initials}
+                                ${escapeHtml(initials)}
                             </div>
                             ${hasGps ? `<div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border border-white"></div>` : ''}
                         </div>
                         <div class="flex-1">
-                            <div class="flex items-center gap-1">
+                            <div class="flex items-center gap-1 flex-wrap">
                                 <p class="font-semibold text-slate-800 text-sm">${escapeHtml(p.nom_complet || 'Inconnu')}</p>
                                 ${isPremium ? '<i class="fa-solid fa-crown text-[9px] text-amber-500"></i>' : ''}
-                                    <!-- ✅ BADGE DYNAMIQUE AJOUTÉ -->
-                                    <span class="badge-dynamic" style="font-size: 8px; padding: 2px 8px;">
-                                        <i class="fa-regular fa-clock"></i> ${p.formule || 'Standard'}
-                                    </span>
+                                <span class="badge-dynamic" style="font-size: 8px; padding: 2px 8px;">
+                                    <i class="fa-regular fa-clock"></i> ${escapeHtml(p.formule || 'Standard')}
+                                </span>
                             </div>
                             <p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(p.adresse?.split(',')[0] || 'Adresse non renseignée')}</p>
                         </div>
@@ -122,7 +120,7 @@ export function renderPatients() {
                         <span class="text-[9px] text-slate-400">ID: ${p.id?.substring(0, 6)}</span>
                     </div>
                     ${userRole === 'COORDINATEUR' && !p.famille_user_id ? `
-                        <button onclick="window.openLinkFamilyModal('${p.id}', '${escapeHtml(p.nom_complet || '').replace(/'/g, "\\'")}')" 
+                        <button onclick="event.stopPropagation(); window.openLinkFamilyModal('${p.id}', '${escapeHtml(p.nom_complet || '').replace(/'/g, "\\'")}')" 
                                 class="text-[9px] font-medium text-blue-500 hover:text-blue-600 transition">
                             Lier
                         </button>
