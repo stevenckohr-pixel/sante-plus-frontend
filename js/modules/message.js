@@ -732,16 +732,28 @@ window.sendQuickMessage = async () => {
             scrollToBottom();
         }
         
-        // Afficher l'indicateur d'envoi
-        const tempMessageEl = document.querySelector('[data-message-id="' + tempId + '"]');
-        if (tempMessageEl) {
-            tempMessageEl.classList.add('opacity-50');
-            const sendingIndicator = document.createElement('div');
-            sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
-            sendingIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
-            const targetEl = tempMessageEl.querySelector('.flex-1') || tempMessageEl.querySelector('.max-w-[75%]');
-            if (targetEl) targetEl.appendChild(sendingIndicator);
-        }
+            // Afficher l'indicateur d'envoi
+            const tempMessageEl = document.querySelector('[data-message-id="' + tempId + '"]');
+            if (tempMessageEl) {
+                tempMessageEl.classList.add('opacity-50');
+                const sendingIndicator = document.createElement('div');
+                sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
+                sendingIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
+                
+                // 🔥 RECHERCHE ROBUSTE (sans sélecteur problématique)
+                let targetEl = tempMessageEl.querySelector('.flex-1');
+                if (!targetEl) {
+                    targetEl = tempMessageEl.querySelector('.message-bubble');
+                }
+                if (!targetEl) {
+                    targetEl = tempMessageEl.querySelector('.chat-message-sent');
+                }
+                if (!targetEl) {
+                    targetEl = tempMessageEl;
+                }
+                
+                if (targetEl) targetEl.appendChild(sendingIndicator);
+            }
         
         // Réinitialiser l'input
         input.value = '';
