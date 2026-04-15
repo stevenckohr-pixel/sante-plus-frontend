@@ -1537,39 +1537,43 @@ function renderMobileHub() {
     }
     
     // Menu items avec séparation stricte des rôles
-    const menuItems = [
-        // Accueil / Dashboard
-        { id: isMaman ? 'dashboard-maman' : (isCoordinateur ? 'dashboard' : 'patients'), 
-          label: isMaman ? 'Accueil' : (isCoordinateur ? 'Dashboard' : (isAidant ? 'Patients' : 'Mon suivi')), 
-          desc: isMaman ? 'Suivi quotidien' : (isCoordinateur ? 'Statistiques' : 'Mes dossiers'), 
-          icon: isMaman ? 'fa-home' : (isCoordinateur ? 'fa-chart-pie' : 'fa-folder-open'), 
-          roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        // Fonctions communes
-        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        // Facturation (Famille + Coordinateur)
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
-        
-        // Planning (Aidant + Coordinateur)
-        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
-        
-        // RH (Coordinateur uniquement)
-        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
-        
-        // Éducation (Famille uniquement)
-        { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', roles: ['FAMILLE'] },
-        
-        // Profil (tous)
-        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
-    ];
-
+   const menuItems = [
+    // 📊 Dashboard (Coordinateur uniquement)
+    { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', roles: ['COORDINATEUR'] },
+    
+    // 🏠 Accueil (Maman uniquement)
+    { id: 'dashboard-maman', label: 'Accueil', desc: 'Suivi quotidien', icon: 'fa-home', roles: ['FAMILLE'] },
+    
+    // 📁 Dossiers / Patients (Coordinateur + Aidant + Famille)
+    { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), 
+      desc: isMaman ? 'Carnet de santé' : 'Gestion des dossiers', 
+      icon: 'fa-folder-open', 
+      roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    
+    // 🗺️ Fonctions communes
+    { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+    { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'feed', label: 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    
+    // 💰 Facturation (Famille + Coordinateur)
+    { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
+    { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
+    
+    // 📅 Planning (Aidant + Coordinateur)
+    { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
+    { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
+    
+    // 👥 RH (Coordinateur uniquement)
+    { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
+    { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
+    
+    // 📚 Éducation (Famille uniquement)
+    { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', roles: ['FAMILLE'] },
+    
+    // 👤 Profil (tous)
+    { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+];
     
         const filteredMenu = menuItems.filter(item => {
             // Filtrer par rôle
