@@ -1245,7 +1245,7 @@ function renderStoryCard(msg, isReply = false) {
             }
             
             if (currentReplyToName) {
-                formData.append('caption', `Réponse à ${currentReplyToName}`);
+                formData.append('caption', "Réponse à " + currentReplyToName);
             }
             
             // ✅ AFFICHER LE CONTENU DU FormData POUR DEBUG
