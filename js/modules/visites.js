@@ -208,28 +208,29 @@ export function renderVisits() {
 
     container.innerHTML = AppState.visites
         .map((v, index) => {
-            const statusColor = v.statut === "Validé" ? "text-emerald-600" :
-                               v.statut === "Rejeté" ? "text-rose-500" :
-                               "text-amber-600";
-            
-            const statusBg = v.statut === "Validé" ? "bg-emerald-50" :
-                            v.statut === "Rejeté" ? "bg-rose-50" :
-                            "bg-amber-50";
+            // Statut avec badge dynamique
+            const statusConfig = {
+                'Validé': { icon: 'fa-circle-check', text: 'Validé', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                'Rejeté': { icon: 'fa-circle-xmark', text: 'Rejeté', color: 'text-rose-500', bg: 'bg-rose-50' },
+                'En attente': { icon: 'fa-clock', text: 'En attente', color: 'text-amber-600', bg: 'bg-amber-50' }
+            };
+            const status = statusConfig[v.statut] || statusConfig['En attente'];
 
             return `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-3 overflow-hidden hover:shadow-md transition-all hover:border-${themeColor}-200" 
                      style="animation: fadeInUp 0.25s ease ${index * 0.05}s forwards; opacity: 0;">
                     
                     <!-- En-tête coloré selon le statut -->
-                    <div class="px-4 py-3 ${statusBg} border-b border-slate-100 flex justify-between items-center">
+                    <div class="px-4 py-3 ${status.bg} border-b border-slate-100 flex justify-between items-center">
                         <div>
                             <h4 class="font-black text-slate-800 text-sm">${v.patient?.nom_complet || 'Patient inconnu'}</h4>
                             <p class="text-[10px] text-slate-500 mt-0.5">
                                 <i class="fa-regular fa-calendar mr-1"></i>${UI.formatDate(v.heure_debut)}
                             </p>
                         </div>
-                        <span class="text-[9px] font-black uppercase ${statusColor} px-2 py-1 rounded-full ${statusBg}">
-                            ${v.statut === "Validé" ? '✓ Validé' : v.statut === "Rejeté" ? '✗ Rejeté' : '⏳ En attente'}
+                        <span class="badge-dynamic ${status.bg} ${status.color}">
+                            <i class="fa-regular ${status.icon} mr-1"></i>
+                            ${status.text}
                         </span>
                     </div>
                     
@@ -258,7 +259,7 @@ export function renderVisits() {
                         ${v.notes ? `
                             <div class="mb-3 p-3 bg-slate-50 rounded-xl">
                                 <p class="text-[9px] font-bold text-slate-400 mb-1">📝 Note de l'aidant</p>
-                                <p class="text-xs text-slate-600 italic">"${v.notes}"</p>
+                                <p class="text-xs text-slate-600 italic">"${escapeHtml(v.notes)}"</p>
                             </div>
                         ` : ''}
                         
@@ -272,7 +273,7 @@ export function renderVisits() {
                                     }
                                 </div>
                                 <div>
-                                    <p class="text-[11px] font-bold text-slate-700">${v.aidant?.nom || 'Aidant'}</p>
+                                    <p class="text-[11px] font-bold text-slate-700">${escapeHtml(v.aidant?.nom || 'Aidant')}</p>
                                     <p class="text-[9px] text-slate-400">Intervenant</p>
                                 </div>
                             </div>
@@ -291,6 +292,15 @@ export function renderVisits() {
         .join("");
 }
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 
 
