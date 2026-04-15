@@ -1,6 +1,6 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
-
+toLocaleString()}
 
 
 // Fonction pour charger FedaPay
@@ -347,35 +347,60 @@ export async function renderSubscriptionPage() {
 /**
  * 💳 SÉLECTION D'UN PACK ET PAIEMENT
  */
+/**
+ * 💳 SÉLECTION D'UN PACK ET PAIEMENT
+ */
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
+    // Trouver le pack sélectionné pour avoir ses infos
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const packs = isMaman ? [
+        { id: 'MENSUEL_ESSENTIEL', name: 'Essentiel', price: 50000, duration: 1 },
+        { id: 'MENSUEL_CONFORT', name: 'Confort', price: 85000, duration: 1 },
+        { id: 'MENSUEL_SERENITE', name: 'Sérénité', price: 150000, duration: 1 },
+        { id: 'TRIMESTRIEL_ESSENTIEL', name: 'Essentiel 3 mois', price: 142500, duration: 3 },
+        { id: 'TRIMESTRIEL_CONFORT', name: 'Confort 3 mois', price: 242250, duration: 3 },
+        { id: 'ANNUEL_ESSENTIEL', name: 'Essentiel 1 an', price: 510000, duration: 12 },
+        { id: 'ANNUEL_CONFORT', name: 'Confort 1 an', price: 867000, duration: 12 },
+        { id: 'MATERNITE', name: 'Spécial Maternité', price: 70000, duration: 0.5 }
+    ] : [
+        { id: 'MENSUEL_PONCTUEL', name: 'Ponctuel', price: 10000, duration: 1 },
+        { id: 'MENSUEL_REGULIER', name: 'Régulier', price: 60000, duration: 1 },
+        { id: 'MENSUEL_COMPLET', name: 'Complet', price: 150000, duration: 1 },
+        { id: 'TRIMESTRIEL_REGULIER', name: 'Régulier 3 mois', price: 171000, duration: 3 },
+        { id: 'ANNUEL_REGULIER', name: 'Régulier 1 an', price: 612000, duration: 12 },
+        { id: 'ANNUEL_COMPLET', name: 'Complet 1 an', price: 1530000, duration: 12 }
+    ];
+    
+    const selectedPack = packs.find(p => p.id === packId);
+    
+    // Demander confirmation avant paiement
     const result = await Swal.fire({
         title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
         html: `
             <div class="text-center">
-                <div class="w-16 h-16 mx-auto bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-clock text-amber-500 text-3xl"></i>
+                <div class="w-16 h-16 mx-auto bg-pink-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-credit-card text-pink-500 text-3xl"></i>
                 </div>
-                <p class="text-sm text-slate-600 mb-2">Le paiement en ligne arrive bientôt !</p>
-                <p class="text-xs text-slate-400">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
-                <p class="text-xs text-slate-400 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
+                <p class="text-sm font-bold text-slate-800 mb-2">${selectedPack?.name}</p>
+                <p class="text-xs text-slate-500">Montant: <span class="font-bold text-pink-600">${price.toLocaleString()} CFA</span></p>
+                <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[10px] text-slate-500">📱 Paiement Mobile Money disponible prochainement</p>
-                    <p class="text-[10px] text-slate-500 mt-1">💳 Carte bancaire à venir</p>
+                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par FedaPay</p>
+                    <p class="text-[10px] text-slate-500 mt-1">📱 Mobile Money • 💳 Carte bancaire</p>
                 </div>
             </div>
         `,
         icon: 'info',
         showCancelButton: true,
-        confirmButtonText: 'OK, j\'attends',
-        cancelButtonText: 'Fermer',
-        confirmButtonColor: '#10B981',
+        confirmButtonText: '💳 Payer maintenant',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#E11D48',
         cancelButtonColor: '#94A3B8',
         customClass: { popup: 'rounded-2xl p-6' }
     });
     
     if (result.isConfirmed) {
-        // Optionnel : rediriger vers la page de demande de rappel
-        showToast("Nous vous informerons dès que le paiement en ligne sera disponible !", "info");
+        await window.initiateFedaPayPayment(packId, durationMonths, price);
     }
 };
 
