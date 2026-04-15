@@ -1537,69 +1537,56 @@ function renderMobileHub() {
     }
     
     // Menu items avec séparation stricte des rôles
-    const menuItems = [
-        // 📊 Dashboard (Coordinateur uniquement)
-        { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', roles: ['COORDINATEUR'] },
-        
-        // 🏠 Accueil (Maman uniquement)
-        { id: 'dashboard-maman', label: 'Accueil', desc: 'Suivi quotidien', icon: 'fa-home', roles: ['FAMILLE'] },
-        
-        // 📁 Dossiers / Patients
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), 
-          desc: isMaman ? 'Carnet de santé' : 'Gestion des dossiers', 
-          icon: 'fa-folder-open', 
-          roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        // 🗺️ Fonctions communes
-        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        
-        // 💰 Facturation
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
-        
-        // 📅 Planning
-        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
-        
-        // 👥 RH (Coordinateur uniquement)
-        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
-        
-        // 📚 Éducation (Famille uniquement - filtré ensuite)
-        { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', roles: ['FAMILLE'] },
-        
-        // 👤 Profil
-        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
-    ];
+   const menuItems = [
+    // 📊 Dashboard (Coordinateur uniquement)
+    { id: 'dashboard', label: 'Dashboard', desc: 'Statistiques', icon: 'fa-chart-pie', roles: ['COORDINATEUR'] },
     
-    // Filtrer les menus par rôle
-    const filteredMenu = menuItems.filter(item => {
-        // Filtrer par rôle
-        if (!item.roles.includes(userRole)) return false;
-        
-        // 🔥 Pour l'onglet éducation, ne l'afficher que si c'est une maman
-        if (item.id === 'education') {
-            return isMaman;
-        }
-        
-        // 🔥 Pour l'onglet dashboard-maman, ne l'afficher que si c'est une maman
-        if (item.id === 'dashboard-maman') {
-            return isMaman;
-        }
-        
-        // 🔥 Pour l'onglet dashboard, ne l'afficher que si c'est un coordinateur
-        if (item.id === 'dashboard') {
-            return isCoordinateur;
-        }
-        
-        return true;
-    });
+    // 🏠 Accueil (Maman uniquement)
+    { id: 'dashboard-maman', label: 'Accueil', desc: 'Suivi quotidien', icon: 'fa-home', roles: ['FAMILLE'] },
     
-    // Debug (à supprimer en production)
-    console.log("🔍 Menu pour", userRole, ":", filteredMenu.map(m => m.id));
+    // 📁 Dossiers / Patients (Coordinateur + Aidant + Famille)
+    { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Dossiers'), 
+      desc: isMaman ? 'Carnet de santé' : 'Gestion des dossiers', 
+      icon: 'fa-folder-open', 
+      roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    
+    // 🗺️ Fonctions communes
+    { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+    { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'feed', label: 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    
+    // 💰 Facturation (Famille + Coordinateur)
+    { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
+    { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
+    
+    // 📅 Planning (Aidant + Coordinateur)
+    { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
+    { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', roles: ['FAMILLE'] },
+    
+    // 👥 RH (Coordinateur uniquement)
+    { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
+    { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', roles: ['COORDINATEUR'] },
+    
+    // 📚 Éducation (Famille uniquement)
+    { id: 'education', label: 'Éducation', desc: 'Vidéos & articles', icon: 'fa-graduation-cap', roles: ['FAMILLE'] },
+    
+    // 👤 Profil (tous)
+    { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+];
+    
+        const filteredMenu = menuItems.filter(item => {
+            // Filtrer par rôle
+            if (!item.roles.includes(userRole)) return false;
+            
+            // 🔥 Pour l'onglet éducation, ne l'afficher que si c'est une maman
+            if (item.id === 'education') {
+                return isMaman;
+            }
+            
+            return true;
+        });
+
 
     // Générer le HTML
     container.innerHTML = `
@@ -1653,7 +1640,7 @@ function renderMobileHub() {
                          ontouchend="this.style.transform='scale(1)'"
                          onmousedown="this.style.transform='scale(0.97)'"
                          onmouseup="this.style.transform='scale(1)'">
-                        <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-center; margin-bottom: 12px;">
+                        <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
                             <i class="fa-solid ${item.icon}" style="color: ${goldColor}; font-size: 22px;"></i>
                         </div>
                         <div>
@@ -1667,8 +1654,10 @@ function renderMobileHub() {
         </div>
     `;
     
-    // Initialiser les badges et la recherche
+    // Initialiser les badges
     initBadges();
+    
+    // Initialiser la recherche
     initSearch();
     
     // Fonctions internes
@@ -1789,6 +1778,7 @@ function renderMobileHub() {
         });
     }
 }
+
 // Fonction utilitaire
 function escapeHtml(str) {
     if (!str) return '';
