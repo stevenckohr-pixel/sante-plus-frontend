@@ -2145,3 +2145,61 @@ button[type="submit"]:active,
 .loader-color {
     border-top-color: var(--role-primary) !important;
 }
+
+
+/* ============================================
+   INDICATEURS DE CHARGEMENT DYNAMIQUES
+   ============================================ */
+
+/* Spinner principal */
+.spinner-primary {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--role-primary-light);
+    border-top-color: var(--role-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Spinner petit */
+.spinner-sm {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--role-primary-light);
+    border-top-color: var(--role-primary);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+/* Skeleton loader coloré */
+.skeleton-color {
+    background: linear-gradient(90deg, var(--role-primary-light) 25%, #E2E8F0 50%, var(--role-primary-light) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.2s ease-in-out infinite;
+}
+
+/* Barre de progression */
+.progress-bar-custom {
+    background: var(--role-primary-light);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill-custom {
+    background: var(--role-primary);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+/* Skeleton texte */
+.skeleton-text-custom {
+    height: 14px;
+    background: var(--role-primary-light);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text-custom:last-child {
+    margin-bottom: 0;
+}
