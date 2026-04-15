@@ -2277,3 +2277,73 @@ button[type="submit"]:active,
         transform: translateX(0);
     }
 }
+
+
+/* ============================================
+   BOUTONS DU FORMULAIRE D'INSCRIPTION
+   ============================================ */
+
+/* Bouton principal d'inscription */
+.auth-card .next-btn,
+.auth-card button[onclick*="nextAuthStep"],
+.auth-card button[onclick*="submitRegistration"] {
+    background: var(--role-primary) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 10px !important;
+    letter-spacing: 0.2em !important;
+    padding: 14px !important;
+    border-radius: 1.25rem !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.auth-card .next-btn:active,
+.auth-card button[onclick*="nextAuthStep"]:active,
+.auth-card button[onclick*="submitRegistration"]:active {
+    transform: scale(0.97) !important;
+    background: var(--role-primary-dark) !important;
+}
+
+/* Bouton précédent */
+.auth-card .prev-btn,
+.auth-card button[onclick*="prevAuthStep"] {
+    background: #F1F5F9 !important;
+    color: #64748B !important;
+    border: 1px solid #E2E8F0 !important;
+    font-weight: 800 !important;
+    font-size: 10px !important;
+    letter-spacing: 0.2em !important;
+    padding: 14px !important;
+    border-radius: 1.25rem !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.auth-card .prev-btn:active,
+.auth-card button[onclick*="prevAuthStep"]:active {
+    transform: scale(0.97) !important;
+    background: #E2E8F0 !important;
+}
+
+/* Bouton de connexion */
+.auth-card #btn-login {
+    background: var(--role-primary) !important;
+    color: white !important;
+    border: none !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    font-size: 10px !important;
+    letter-spacing: 0.2em !important;
+    padding: 14px !important;
+    border-radius: 1.5rem !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.auth-card #btn-login:active {
+    transform: scale(0.97) !important;
+    background: var(--role-primary-dark) !important;
+}
