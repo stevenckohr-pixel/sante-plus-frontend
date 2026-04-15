@@ -407,3 +407,45 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
+/**
+ * 💳 INITIER UN PAIEMENT FEDAPAY
+ */
+window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
+    const patientId = AppState.currentPatient;
+    
+    if (!patientId) {
+        UI.error("Patient non trouvé");
+        return;
+    }
+    
+    Swal.fire({
+        title: "Préparation du paiement...",
+        text: "Connexion à la passerelle sécurisée",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    try {
+        const response = await secureFetch("/billing/initiate-payment", {
+            method: "POST",
+            body: JSON.stringify({
+                pack_id: packId,
+                duration_months: duration_months,
+                patient_id: patientId
+            })
+        });
+        
+        Swal.close();
+        
+        // Rediriger vers FedaPay
+        window.location.href = response.payment_url;
+        
+    } catch (err) {
+        Swal.fire({
+            title: "Erreur",
+            text: err.message,
+            icon: "error",
+            confirmButtonColor: "#E11D48"
+        });
+    }
+};
