@@ -232,7 +232,7 @@ function renderCommandes(list) {
                 `;
 
                 return `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4 hover:border-${isMaman ? 'pink' : 'emerald'}-300 transition-all" style="animation-delay: ${index * 0.03}s">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4 card-hover" style="animation-delay: ${index * 0.03}s">                     
                         <!-- En-tête -->
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1">
