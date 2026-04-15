@@ -2135,7 +2135,6 @@ function getNavLinks(role, mode) {
         tabs = [
             { id: 'home', icon: 'fa-home', label: 'Accueil' },  
             { id: 'feed', icon: 'fa-newspaper', label: 'Journal bébé' },
-            { id: 'baby-stats', icon: 'fa-chart-line', label: 'Statistiques' },   
             { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },  
             { id: 'commandes', icon: 'fa-box', label: 'Commandes bébé' },
             { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation' },
@@ -2517,10 +2516,6 @@ async function performViewSwitch(viewName) {
                     return;
                 }
                 await loadEducationPage();
-                break;
-            case "baby-stats":
-                const statsModule = await import('./modules/babyStats.js');
-                await statsModule.loadBabyStats();
                 break;
                 
         }
