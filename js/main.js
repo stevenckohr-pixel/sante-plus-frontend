@@ -9,6 +9,7 @@
 // ============================================================
 // IMPORTS DES MODULES
 // ============================================================
+import * as Maman from "./modules/maman.js";
 import { secureFetch } from "./core/api.js";
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
@@ -1499,21 +1500,21 @@ function renderMobileHub() {
         bannerBg = "bg-gradient-to-r from-amber-50 to-amber-100 border-amber-200";
     }
     
-    // Menu items - pour Maman, rediriger vers dashboard-maman au lieu de dashboard
-    const menuItems = [
-        { id: isMaman ? 'dashboard-maman' : 'dashboard', label: isMaman ? 'Accueil' : 'Dashboard', desc: isMaman ? 'Suivi quotidien' : 'Statistiques', icon: 'fa-chart-pie', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
-        { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', color: 'text-blue-600', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'AIDANT'] },
-        { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', color: 'text-purple-600', bg: 'bg-purple-50', roles: ['COORDINATEUR'] },
-        { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', color: 'text-indigo-600', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE'] },
-        { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
-        { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
-    ];
+const menuItems = [
+    { id: isMaman ? 'dashboard-maman' : 'dashboard', label: isMaman ? 'Accueil' : 'Dashboard', desc: isMaman ? 'Suivi quotidien' : 'Statistiques', icon: 'fa-chart-pie', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+    { id: 'map', label: 'Radar', desc: 'Localisation GPS', icon: 'fa-location-dot', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
+    { id: 'patients', label: isMaman ? 'Mon suivi' : (isSenior ? 'Mon proche' : 'Patients'), desc: isMaman ? 'Carnet de santé' : 'Dossiers', icon: 'fa-folder-open', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'feed', label: isMaman ? 'Journal' : 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
+    { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', color: 'text-blue-600', bg: 'bg-blue-50', roles: ['COORDINATEUR', 'AIDANT'] },
+    { id: 'maman-planning', label: 'Planning', desc: 'Mes visites', icon: 'fa-calendar-alt', color: 'text-pink-500', bg: 'bg-pink-50', roles: ['FAMILLE'] },
+    { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', color: 'text-purple-600', bg: 'bg-purple-50', roles: ['COORDINATEUR'] },
+    { id: 'rh-dashboard', label: 'RH', desc: 'Ressources humaines', icon: 'fa-users', color: 'text-indigo-600', bg: 'bg-indigo-50', roles: ['COORDINATEUR'] },
+    { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['COORDINATEUR', 'FAMILLE'] },
+    { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', color: 'text-amber-600', bg: 'bg-amber-50', roles: ['FAMILLE'] },
+    { id: 'profile', label: 'Profil', desc: 'Mon compte', icon: 'fa-user-circle', color: isMaman ? 'text-pink-500' : 'text-emerald-500', bg: primaryBg, roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+];
 
     // Filtrer selon le rôle
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
@@ -2339,6 +2340,15 @@ async function performViewSwitch(viewName) {
             case "dashboard-maman":
                 await loadMamanDashboard();
                 break;
+            case "maman-planning":
+                if (typeof loadMamanPlanning === 'function') {
+                    await loadMamanPlanning();
+                } else {
+                    // Fallback si le module n'est pas chargé
+                    const { loadMamanPlanning } = await import("./modules/maman.js");
+                    await loadMamanPlanning();
+                }
+                break;
                 
         }
         
@@ -2689,6 +2699,7 @@ window.setPlan = (plan) => {
     renderAuthView('register', 4);
 };
 window.submitRegistration = submitRegistration;
+window.loadMamanPlanning = Maman.loadMamanPlanning;
 window.startOnboarding = startOnboarding;
 window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
