@@ -467,7 +467,14 @@ function renderPacks() {
  */
 async function updateMamanNotifications() {
     try {
-        const notifications = await secureFetch("/notifications", { noCache: true });
+        let notifications = await secureFetch("/notifications", { noCache: true });
+        
+        // ✅ S'assurer que notifications est un tableau
+        if (!Array.isArray(notifications)) {
+            console.warn("⚠️ La réponse notifications n'est pas un tableau, conversion");
+            notifications = notifications?.data || notifications?.results || [];
+        }
+        
         const unreadCount = notifications.filter(n => !n.read).length;
         
         const badge = document.getElementById('maman-notif-badge');
@@ -479,11 +486,22 @@ async function updateMamanNotifications() {
                 badge.classList.add('hidden');
             }
         }
+        
+        // Mettre à jour aussi le badge général si nécessaire
+        const headerBadge = document.getElementById('notification-badge');
+        if (headerBadge) {
+            if (unreadCount > 0) {
+                headerBadge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                headerBadge.style.display = 'flex';
+            } else {
+                headerBadge.style.display = 'none';
+            }
+        }
+        
     } catch (err) {
         console.error("Erreur notifications:", err);
     }
 }
-
 /**
  * 🚨 DÉTECTION DES ALERTES
  */
