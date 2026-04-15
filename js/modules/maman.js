@@ -51,60 +51,60 @@ export async function loadMamanDashboard() {
             </div>
 
             <!-- Prochaine visite -->
-            <div class="dashboard-card" style="margin-bottom: 20px;">
+            <div class="dashboard-card" style="background: linear-gradient(135deg, var(--role-primary-light) 0%, white 100%); margin-bottom: 20px;">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <p class="dashboard-card-label" style="color: #E11D48;">Prochaine visite</p>
-                        <h3 class="text-lg font-black text-slate-800" style="margin-top: 4px;">${formatVisitDate(mamanData.nextVisit?.date)}</h3>
-                        <p class="text-xs text-slate-500" style="margin-top: 4px;">${mamanData.nextVisit?.time || 'Horaire non défini'} - ${mamanData.nextVisit?.location || 'À domicile'}</p>
+                        <p class="dashboard-card-label" style="color: var(--role-primary);">PROCHAINE VISITE</p>
+                        <h3 class="text-lg font-black text-slate-800 mt-1">${formatVisitDate(mamanData.nextVisit?.date)}</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">${mamanData.nextVisit?.time || 'Horaire non défini'} • ${mamanData.nextVisit?.location || 'À domicile'}</p>
                     </div>
-                    <div class="bg-emerald-100 px-3 py-1 rounded-full">
-                        <span class="text-[9px] font-bold text-emerald-600">${mamanData.nextVisit?.status || 'Planifié'}</span>
+                    <div style="background: var(--role-primary-light); padding: 6px 12px; border-radius: 20px;">
+                        <span class="text-[10px] font-bold" style="color: var(--role-primary);">${mamanData.nextVisit?.status || 'Planifié'}</span>
                     </div>
                 </div>
-                <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3">
-                    <div class="bg-pink-500 h-1.5 rounded-full transition-all" style="width: ${calculateProgress()}%"></div>
+                <div class="w-full bg-slate-100 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all" style="width: ${calculateProgress()}%; background: var(--role-primary);"></div>
                 </div>
             </div>
 
             <!-- Baby Metrics (4 cartes) -->
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <!-- Dernière tétée -->
-                <div class="dashboard-card" style="text-align: center; cursor: pointer;" onclick="window.switchView('feed')">
-                    <div class="dashboard-card-icon" style="margin: 0 auto 12px auto; background: #FFF1F2;">
-                        <i class="fa-solid fa-baby-bottle" style="color: #E11D48; font-size: 24px;"></i>
-                    </div>
-                    <p class="dashboard-card-label">Dernière tétée</p>
-                    <p class="dashboard-card-stat" style="font-size: 24px; color: #E11D48;">${formatFeedingTime(mamanData.babyMetrics.lastFeeding)}</p>
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
+                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-baby-bottle"></i>
                 </div>
-                
-                <!-- Sommeil -->
-                <div class="dashboard-card" style="text-align: center; cursor: pointer;" onclick="window.switchView('feed')">
-                    <div class="dashboard-card-icon" style="margin: 0 auto 12px auto; background: #EFF6FF;">
-                        <i class="fa-solid fa-moon" style="color: #3B82F6; font-size: 24px;"></i>
-                    </div>
-                    <p class="dashboard-card-label">Sommeil</p>
-                    <p class="dashboard-card-stat" style="font-size: 24px; color: #3B82F6;">${formatSleepHours(mamanData.babyMetrics.sleep)}</p>
-                </div>
-                
-                <!-- Couches -->
-                <div class="dashboard-card" style="text-align: center; cursor: pointer;" onclick="window.switchView('feed')">
-                    <div class="dashboard-card-icon" style="margin: 0 auto 12px auto; background: #FFFBEB;">
-                        <i class="fa-solid fa-droplet" style="color: #F59E0B; font-size: 24px;"></i>
-                    </div>
-                    <p class="dashboard-card-label">Couches</p>
-                    <p class="dashboard-card-stat" style="font-size: 24px; color: #F59E0B;">${mamanData.babyMetrics.diapers || '0'}</p>
-                </div>
-                
-                <!-- Croissance -->
-                <div class="dashboard-card" style="text-align: center; cursor: pointer;" onclick="window.switchView('feed')">
-                    <div class="dashboard-card-icon" style="margin: 0 auto 12px auto; background: #ECFDF5;">
-                        <i class="fa-solid fa-chart-line" style="color: #10B981; font-size: 24px;"></i>
-                    </div>
-                    <p class="dashboard-card-label">Croissance</p>
-                    <p class="dashboard-card-stat" style="font-size: 24px; color: #10B981;">${formatWeight(mamanData.babyMetrics.weight)}</p>
-                </div>
+                <p class="dashboard-card-label">Dernière tétée</p>
+                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${formatFeedingTime(mamanData.babyMetrics.lastFeeding)}</p>
+                <p class="text-[10px] text-slate-400 mt-1">depuis dernier repas</p>
             </div>
+            
+            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
+                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+                <p class="dashboard-card-label">Sommeil</p>
+                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${formatSleepHours(mamanData.babyMetrics.sleep)}</p>
+                <p class="text-[10px] text-slate-400 mt-1">aujourd'hui</p>
+            </div>
+            
+            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
+                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
+                <p class="dashboard-card-label">Couches</p>
+                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${mamanData.babyMetrics.diapers || '0'}</p>
+                <p class="text-[10px] text-slate-400 mt-1">changées</p>
+            </div>
+            
+            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
+                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <p class="dashboard-card-label">Croissance</p>
+                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${formatWeight(mamanData.babyMetrics.weight)}</p>
+                <p class="text-[10px] text-slate-400 mt-1">cette semaine</p>
+            </div>
+        </div>
 
             <!-- Tracker d'humeur -->
             <div class="dashboard-card" style="margin-bottom: 20px;">
