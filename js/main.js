@@ -10,7 +10,7 @@
 // IMPORTS DES MODULES
 // ============================================================
 import * as Maman from "./modules/maman.js";
-import * as Maman from "./modules/education.js";
+import * as Education from "./modules/education.js";
 import { secureFetch } from "./core/api.js";
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
@@ -2664,7 +2664,7 @@ window.verifyOTP = Auth.verifyOTP;
 window.openAddPatient = () => window.switchView('add-patient');
 window.openEndVisit = () => window.switchView('end-visit');
 window.submitAddAidant = Aidants.submitAddAidant;
-window.loadEducationPage = loadEducationPage;
+window.loadEducationPage = Education.loadEducationPage;
 window.openLinkFamilyModal = (id, name) => {
     AppState.tempData = { patientId: id, patientName: name }; 
     window.switchView('link-family');
