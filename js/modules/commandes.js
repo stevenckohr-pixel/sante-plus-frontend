@@ -70,7 +70,6 @@ window.openImageModal = (imageUrl, title = "📸 Image") => {
  * 🎨 AFFICHER LES COMMANDES (Version améliorée avec galeries horizontales)
  */
 
-
 function renderCommandes(list) {
     // Éviter les rendus multiples simultanés
     if (isRendering) {
@@ -96,6 +95,11 @@ function renderCommandes(list) {
             const isAidant = role === "AIDANT";
             const isCoordinateur = role === "COORDINATEUR";
             const currentUserId = localStorage.getItem("user_id");
+            
+            // Couleurs dynamiques
+            const primaryColor = isMaman ? '#E11D48' : '#059669';
+            const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
+            const primaryDark = isMaman ? '#BE123C' : '#047857';
 
             if (!list.length) {
                 let emptyMessage = "Aucune commande";
@@ -118,7 +122,7 @@ function renderCommandes(list) {
                 let statusIcon = "⏳";
                 
                 if (isValidated) {
-                    statusColor = "bg-emerald-100 text-emerald-700";
+                    statusColor = `${primaryLight} ${isMaman ? 'text-pink-700' : 'text-emerald-700'}`;
                     statusText = "Validée ✅";
                     statusIcon = "✅";
                 } else if (isDelivered) {
@@ -228,7 +232,7 @@ function renderCommandes(list) {
                 `;
 
                 return `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4" style="animation-delay: ${index * 0.03}s">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm animate-fadeIn list-item-animate mb-4 hover:border-${isMaman ? 'pink' : 'emerald'}-300 transition-all" style="animation-delay: ${index * 0.03}s">
                         <!-- En-tête -->
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex-1">
@@ -243,7 +247,7 @@ function renderCommandes(list) {
                         </div>
 
                         <!-- Description -->
-                        <div class="p-3 bg-slate-50 rounded-xl mb-3">
+                        <div class="p-3 ${primaryLight} rounded-xl mb-3">
                             <p class="text-xs font-medium text-slate-700 leading-relaxed">📦 "${escapeHtml(c.liste_medocs || 'Aucune description')}"</p>
                         </div>
                         
@@ -261,21 +265,24 @@ function renderCommandes(list) {
 
                         ${isAidant && isPending && (!c.aidant_id || c.aidant_id !== currentUserId) ? `
                             <button onclick="window.takeCommand('${c.id}')" 
-                                    class="w-full mt-4 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                                    class="w-full mt-4 py-3 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all"
+                                    style="background: ${primaryColor};">
                                 🚚 Prendre en charge cette commande
                             </button>
                         ` : ''}
                         
                         ${isAidant && isInProgress && c.aidant_id === currentUserId ? `
                             <button onclick="window.deliverCommand('${c.id}')" 
-                                    class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all">
+                                    class="w-full mt-4 py-3 text-white rounded-xl font-black text-[10px] uppercase shadow-lg active:scale-95 transition-all"
+                                    style="background: ${primaryColor};">
                                 📸 Confirmer la livraison (avec photos)
                             </button>
                         ` : ''}
 
                         ${isCoordinateur && isDelivered ? `
                             <button onclick="window.validateDelivery('${c.id}')" 
-                                    class="w-full mt-4 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all">
+                                    class="w-full mt-4 py-3 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all"
+                                    style="background: ${primaryColor};">
                                 ✅ Valider la livraison
                             </button>
                         ` : ''}
@@ -293,7 +300,8 @@ function renderCommandes(list) {
                                     <textarea id="notes-${c.id}" rows="2" class="w-full mt-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm" placeholder="Instructions pour l'aidant..."></textarea>
                                 </div>
                                 <button onclick="window.assignCommand('${c.id}')" 
-                                        class="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-md hover:bg-emerald-700 transition">
+                                        class="w-full py-3 text-white rounded-xl font-black text-[10px] uppercase shadow-md transition-all"
+                                        style="background: ${primaryColor};">
                                     📋 Assigner à l'aidant
                                 </button>
                             </div>
@@ -314,7 +322,8 @@ function renderCommandes(list) {
                     todayBtn.className = 'mb-4 flex justify-end';
                     todayBtn.innerHTML = `
                         <button onclick="window.validateAllDeliveriesWithoutReload()" 
-                                class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-md hover:bg-emerald-700 transition">
+                                class="px-4 py-2 text-white rounded-xl text-[10px] font-black uppercase shadow-md transition-all"
+                                style="background: ${primaryColor};">
                             📋 Faire le point du jour
                         </button>
                     `;
@@ -337,6 +346,7 @@ function renderCommandes(list) {
         }
     });
 }
+
 
 /**
  * 🚚 AIDANT - PRENDRE EN CHARGE UNE COMMANDE
