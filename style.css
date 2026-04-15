@@ -3527,3 +3527,263 @@ body.maman-mode .menu-badge.bg-rose-500 {
     transform: scale(0.92);
     transition: transform 0.05s ease;
 }
+
+
+
+/* ============================================
+   DESIGN SYSTÈME - VERSION PRO
+   ============================================ */
+
+/* --- Couleurs dynamiques (appliquées par JS) --- */
+:root {
+    --role-primary: #059669;
+    --role-primary-dark: #047857;
+    --role-primary-light: #ECFDF5;
+    --role-secondary: #10B981;
+    --role-text: #064E3B;
+}
+
+/* Mode Maman - appliqué par JS sur body */
+body.maman-mode {
+    --role-primary: #E11D48;
+    --role-primary-dark: #BE123C;
+    --role-primary-light: #FFF1F2;
+    --role-secondary: #F43F5E;
+    --role-text: #881337;
+}
+
+/* --- CARTES DASHBOARD MODERNES --- */
+.dashboard-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-card-stat {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--role-primary);
+    line-height: 1.2;
+}
+
+.dashboard-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748B;
+}
+
+.dashboard-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--role-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-card-icon i {
+    font-size: 24px;
+    color: var(--role-primary);
+}
+
+/* --- BOUTONS MODERNES --- */
+.btn-primary {
+    background: var(--role-primary);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-primary:hover {
+    background: var(--role-primary-dark);
+    transform: scale(1.02);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--role-primary);
+    color: var(--role-primary);
+    padding: 10px 18px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+    background: var(--role-primary-light);
+}
+
+/* --- BADGES NOTIFICATION --- */
+.badge-notification {
+    background: #EF4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+/* --- CHAT STYLE WHATSAPP AMÉLIORÉ --- */
+.chat-message-sent {
+    background: var(--role-primary);
+    color: white;
+    border-radius: 18px;
+    border-bottom-right-radius: 4px;
+    padding: 10px 14px;
+    max-width: 75%;
+    word-wrap: break-word;
+}
+
+.chat-message-received {
+    background: #F1F5F9;
+    color: #1E293B;
+    border-radius: 18px;
+    border-bottom-left-radius: 4px;
+    padding: 10px 14px;
+    max-width: 75%;
+    word-wrap: break-word;
+}
+
+.chat-time {
+    font-size: 9px;
+    color: #94A3B8;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* --- HEADER --- */
+.app-header {
+    background: white;
+    padding: 12px 16px;
+    border-bottom: 1px solid #E2E8F0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.app-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.app-header-subtitle {
+    font-size: 11px;
+    color: var(--role-primary);
+    font-weight: 600;
+}
+
+/* --- LISTE PATIENTS --- */
+.patient-card {
+    background: white;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s ease;
+}
+
+.patient-card:hover {
+    border-color: var(--role-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.patient-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--role-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--role-primary);
+}
+
+.patient-name {
+    font-weight: 700;
+    color: #1E293B;
+    font-size: 15px;
+}
+
+.patient-status {
+    font-size: 11px;
+    color: var(--role-primary);
+    font-weight: 600;
+}
+
+/* --- INPUT CHAT --- */
+.chat-input-container {
+    background: white;
+    border-top: 1px solid #E2E8F0;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-input {
+    flex: 1;
+    background: #F1F5F9;
+    border: none;
+    border-radius: 24px;
+    padding: 12px 16px;
+    font-size: 15px;
+    outline: none;
+}
+
+.chat-input:focus {
+    background: white;
+    box-shadow: 0 0 0 2px var(--role-primary-light);
+}
+
+.chat-send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--role-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chat-send-btn:active {
+    transform: scale(0.92);
+}
+
