@@ -1,5 +1,6 @@
 import { CONFIG } from "./config.js";
 import ErrorHandler from './errorHandler.js';
+import db from './db.js';
 
 const isCapacitor = typeof window !== 'undefined' && window.hasOwnProperty('Capacitor');
 
@@ -7,7 +8,8 @@ const apiCache = new Map();
 const CACHE_DURATION = 30 * 1000; // 30 secondes
 
 // Liste des endpoints à NE PAS mettre en cache
-const NO_CACHE_ENDPOINTS = ['/messages', '/visites/active', '/notifications'];
+const NO_CACHE_ENDPOINTS = ['/visites/active', '/notifications'];
+// Les messages sont maintenant gérés par IndexedDB
 
 export async function secureFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
@@ -22,6 +24,19 @@ export async function secureFetch(endpoint, options = {}) {
 
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  // Vérifier le cache IndexedDB pour les GET (sauf messages qui ont leur propre logique)
+  const isMessagesEndpoint = endpoint.includes('/messages');
+  const shouldUseIndexedDB = method === 'GET' && !options.noCache && 
+    !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern)) && !isMessagesEndpoint;
+  
+  if (shouldUseIndexedDB && db.isReady) {
+    const cached = await db.getCachedApiResponse(endpoint);
+    if (cached) {
+      console.log(`📦 [IDB Cache hit] ${endpoint}`);
+      return cached;
+    }
   }
 
   const executeRequest = async () => {
@@ -72,14 +87,19 @@ export async function secureFetch(endpoint, options = {}) {
       if (method === 'GET') {
         responseData = await response.json();
         
-        // 🔥 NE PAS CACHER LES MESSAGES POUR AVOIR UN RENDU INSTANTANÉ
-        const shouldCache = !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
+        // Cache mémoire pour les endpoints rapides
+        const shouldUseMemoryCache = !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
         
-        if (shouldCache) {
+        if (shouldUseMemoryCache) {
           apiCache.set(endpoint, {
             data: responseData,
             timestamp: Date.now()
           });
+        }
+        
+        // Cache IndexedDB pour les endpoints GET (sauf messages)
+        if (shouldUseIndexedDB && db.isReady && responseData) {
+          await db.cacheApiResponse(endpoint, responseData, 5); // 5 minutes de cache
         }
       } else {
         responseData = await response.json();
@@ -87,8 +107,13 @@ export async function secureFetch(endpoint, options = {}) {
 
       // Invalider le cache après les modifications
       if (method !== 'GET') {
-        // Invalider le cache pour cet endpoint spécifique
+        // Invalider le cache mémoire
         apiCache.delete(endpoint);
+        
+        // Invalider le cache IndexedDB
+        if (db.isReady) {
+          await db.delete('api_cache', endpoint);
+        }
         
         // Invalider le cache pour les endpoints liés
         if (endpoint.includes('/messages')) {
@@ -99,6 +124,16 @@ export async function secureFetch(endpoint, options = {}) {
         if (endpoint.includes('/visites')) {
           apiCache.forEach((_, key) => {
             if (key.includes('/visites')) apiCache.delete(key);
+          });
+        }
+        if (endpoint.includes('/commandes')) {
+          apiCache.forEach((_, key) => {
+            if (key.includes('/commandes')) apiCache.delete(key);
+          });
+        }
+        if (endpoint.includes('/patients')) {
+          apiCache.forEach((_, key) => {
+            if (key.includes('/patients')) apiCache.delete(key);
           });
         }
         
@@ -140,13 +175,13 @@ export async function secureFetch(endpoint, options = {}) {
   };
 
   try {
-    // 🔥 NE PAS UTILISER LE CACHE POUR LES MESSAGES
-    const shouldUseCache = method === 'GET' && !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
+    // Utiliser le cache mémoire pour les endpoints rapides
+    const shouldUseMemoryCache = method === 'GET' && !NO_CACHE_ENDPOINTS.some(pattern => endpoint.includes(pattern));
     
-    if (shouldUseCache) {
+    if (shouldUseMemoryCache) {
       const cached = apiCache.get(endpoint);
       if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        console.log(`📦 Cache hit: ${endpoint}`);
+        console.log(`📦 [Memory Cache hit] ${endpoint}`);
         return cached.data;
       }
     }
@@ -161,7 +196,16 @@ export async function secureFetch(endpoint, options = {}) {
 
 export function clearApiCache() {
   apiCache.clear();
-  console.log('🗑️ Cache API vidé');
+  console.log('🗑️ Cache mémoire vidé');
+  
+  // Nettoyer aussi IndexedDB
+  if (db.isReady) {
+    db.clear('api_cache').then(() => {
+      console.log('🗑️ Cache IndexedDB vidé');
+    }).catch(err => {
+      console.warn('⚠️ Erreur nettoyage IndexedDB:', err);
+    });
+  }
 }
 
 export async function retryQueuedRequests() {
