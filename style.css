@@ -1771,3 +1771,69 @@ input[type="checkbox"]:checked, input[type="radio"]:checked {
 input[type="range"] {
     accent-color: var(--role-primary);
 }
+
+
+/* ============================================
+   CLASSES DYNAMIQUES - ÉTAPE 1
+   ============================================ */
+
+/* Badge dynamique */
+.badge-dynamic {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Tag interactif */
+.tag-dynamic {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    border-radius: 16px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-dynamic.active {
+    background: var(--role-primary);
+    color: white;
+}
+
+.tag-dynamic:active {
+    transform: scale(0.95);
+}
+
+/* Carte avec effet hover */
+.card-hover {
+    transition: all 0.2s ease;
+    border: 1px solid #E2E8F0;
+}
+
+.card-hover:hover {
+    border-color: var(--role-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* En-tête de section */
+.section-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1E293B;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title i {
+    color: var(--role-primary);
+    font-size: 16px;
+}
