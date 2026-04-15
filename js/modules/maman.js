@@ -1,6 +1,7 @@
 import { secureFetch } from "../core/api.js";
 import { AppState } from "../core/state.js";
 import { UI } from "../core/utils.js";
+import supabase from "../core/supabaseClient.js";
 
 // Stockage des données Maman
 let mamanData = {
@@ -31,19 +32,80 @@ export async function loadMamanDashboard() {
         return;
     }
 
-    // Récupérer les données depuis la BDD
-    await fetchMamanDataFromDB();
+    // Récupérer l'ID du patient
+    let patientId = null;
+    try {
+        const { data: patients, error } = await supabase
+            .from("patients")
+            .select("id")
+            .eq("famille_user_id", localStorage.getItem("user_id"))
+            .maybeSingle();
+        
+        if (error) throw error;
+        patientId = patients?.id;
+        
+        if (!patientId) {
+            console.error("Aucun patient trouvé pour cette famille");
+            container.innerHTML = `<div class="text-center py-20"><p class="text-red-500">Aucun patient associé à votre compte</p></div>`;
+            return;
+        }
+    } catch (err) {
+        console.error("Erreur récupération patient:", err);
+        container.innerHTML = `<div class="text-center py-20"><p class="text-red-500">Erreur de chargement</p></div>`;
+        return;
+    }
 
+    // Charger toutes les données en parallèle
+    const [babyMetrics, nextVisit, progress, todayMood] = await Promise.all([
+        fetchBabyMetrics(patientId),
+        fetchNextVisit(patientId),
+        calculateProgress(patientId),
+        fetchTodayMood(patientId)
+    ]);
+
+    // Formater les données
+    const formattedMetrics = {
+        lastFeeding: babyMetrics.lastFeeding,
+        sleep: babyMetrics.sleep,
+        diapers: babyMetrics.diapers,
+        weight: babyMetrics.weight
+    };
+
+    // Fonctions de formatage
+    const formatFeedingTime = (hours) => {
+        if (!hours) return '--';
+        if (hours < 1) return `${Math.round(hours * 60)} min`;
+        return `${hours}h`;
+    };
+
+    const formatSleepHours = (hours) => {
+        if (!hours) return '--';
+        return `${hours}h`;
+    };
+
+    const formatWeight = (grams) => {
+        if (!grams) return '--';
+        if (grams < 1000) return `${grams}g`;
+        return `${(grams / 1000).toFixed(1)} kg`;
+    };
+
+    const formatVisitDate = (dateStr) => {
+        if (!dateStr) return 'À venir';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
+
+    // Rendu du HTML avec les vraies données
     container.innerHTML = `
         <div class="maman-dashboard-container">
-            <!-- Header avec gradient -->
+            <!-- Header -->
             <div class="dashboard-card" style="background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%); padding: 20px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <p style="color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 600; letter-spacing: 0.5px;">Bonjour</p>
+                        <p style="color: rgba(255,255,255,0.8); font-size: 11px; font-weight: 600;">Bonjour</p>
                         <h2 style="color: white; font-size: 24px; font-weight: 800; margin-top: 4px;">${escapeHtml(userName)}</h2>
                     </div>
-                    <div style="position: relative; background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 24px; display: flex; align-items: center; justify-content: center;">
                         <i class="fa-solid fa-bell" style="color: white; font-size: 20px;"></i>
                         <span id="maman-notif-badge" class="badge-notification" style="position: absolute; top: -5px; right: -5px; display: none;">0</span>
                     </div>
@@ -51,115 +113,142 @@ export async function loadMamanDashboard() {
             </div>
 
             <!-- Prochaine visite -->
-            <div class="dashboard-card" style="background: linear-gradient(135deg, var(--role-primary-light) 0%, white 100%); margin-bottom: 20px;">
+            <div class="dashboard-card" style="background: linear-gradient(135deg, #FFF1F2 0%, white 100%); margin-bottom: 20px;">
                 <div class="flex justify-between items-start mb-3">
                     <div>
-                        <p class="dashboard-card-label" style="color: var(--role-primary);">PROCHAINE VISITE</p>
-                        <h3 class="text-lg font-black text-slate-800 mt-1">${formatVisitDate(mamanData.nextVisit?.date)}</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">${mamanData.nextVisit?.time || 'Horaire non défini'} • ${mamanData.nextVisit?.location || 'À domicile'}</p>
+                        <p class="text-[10px] font-bold text-pink-600 uppercase tracking-wider">PROCHAINE VISITE</p>
+                        <h3 class="text-lg font-black text-slate-800 mt-1">${formatVisitDate(nextVisit?.date)}</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">${nextVisit?.time || 'Horaire non défini'} • ${nextVisit?.location || 'À domicile'}</p>
                     </div>
-                    <div style="background: var(--role-primary-light); padding: 6px 12px; border-radius: 20px;">
-                        <span class="text-[10px] font-bold" style="color: var(--role-primary);">${mamanData.nextVisit?.status || 'Planifié'}</span>
+                    <div style="background: #FFF1F2; padding: 6px 12px; border-radius: 20px;">
+                        <span class="text-[10px] font-bold text-pink-600">${nextVisit?.status || 'Planifié'}</span>
                     </div>
                 </div>
                 <div class="w-full bg-slate-100 rounded-full h-2">
-                    <div class="h-2 rounded-full transition-all" style="width: ${calculateProgress()}%; background: var(--role-primary);"></div>
+                    <div class="h-2 rounded-full bg-pink-500 transition-all" style="width: ${progress}%"></div>
                 </div>
             </div>
 
-            <!-- Baby Metrics (4 cartes) -->
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
-                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
-                    <i class="fa-solid fa-baby-bottle"></i>
+            <!-- Baby Metrics -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="dashboard-card" style="cursor: pointer;" onclick="window.switchView('feed')">
+                    <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center mb-2">
+                        <i class="fa-solid fa-baby-bottle text-pink-500 text-lg"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dernière tétée</p>
+                    <p class="text-2xl font-black text-slate-800 mt-1">${formatFeedingTime(formattedMetrics.lastFeeding)}</p>
+                    <p class="text-[10px] text-slate-400">depuis dernier repas</p>
                 </div>
-                <p class="dashboard-card-label">Dernière tétée</p>
-                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${formatFeedingTime(mamanData.babyMetrics.lastFeeding)}</p>
-                <p class="text-[10px] text-slate-400 mt-1">depuis dernier repas</p>
-            </div>
-            
-            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
-                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
-                    <i class="fa-solid fa-moon"></i>
+                
+                <div class="dashboard-card" style="cursor: pointer;" onclick="window.switchView('feed')">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center mb-2">
+                        <i class="fa-solid fa-moon text-blue-500 text-lg"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sommeil</p>
+                    <p class="text-2xl font-black text-slate-800 mt-1">${formatSleepHours(formattedMetrics.sleep)}</p>
+                    <p class="text-[10px] text-slate-400">aujourd'hui</p>
                 </div>
-                <p class="dashboard-card-label">Sommeil</p>
-                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${formatSleepHours(mamanData.babyMetrics.sleep)}</p>
-                <p class="text-[10px] text-slate-400 mt-1">aujourd'hui</p>
-            </div>
-            
-            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
-                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
-                    <i class="fa-solid fa-droplet"></i>
+                
+                <div class="dashboard-card" style="cursor: pointer;" onclick="window.switchView('feed')">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center mb-2">
+                        <i class="fa-solid fa-droplet text-amber-500 text-lg"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Couches</p>
+                    <p class="text-2xl font-black text-slate-800 mt-1">${formattedMetrics.diapers || '0'}</p>
+                    <p class="text-[10px] text-slate-400">changées aujourd'hui</p>
                 </div>
-                <p class="dashboard-card-label">Couches</p>
-                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${mamanData.babyMetrics.diapers || '0'}</p>
-                <p class="text-[10px] text-slate-400 mt-1">changées</p>
-            </div>
-            
-            <div class="dashboard-card" style="cursor: pointer; transition: all 0.2s ease;" onclick="window.switchView('feed')">
-                <div class="dashboard-card-icon" style="margin-bottom: 12px;">
-                    <i class="fa-solid fa-chart-line"></i>
+                
+                <div class="dashboard-card" style="cursor: pointer;" onclick="window.switchView('feed')">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center mb-2">
+                        <i class="fa-solid fa-chart-line text-emerald-500 text-lg"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Croissance</p>
+                    <p class="text-2xl font-black text-slate-800 mt-1">${formatWeight(formattedMetrics.weight)}</p>
+                    <p class="text-[10px] text-slate-400">cette semaine</p>
                 </div>
-                <p class="dashboard-card-label">Croissance</p>
-                <p class="dashboard-card-stat" style="font-size: 28px; margin-top: 4px;">${formatWeight(mamanData.babyMetrics.weight)}</p>
-                <p class="text-[10px] text-slate-400 mt-1">cette semaine</p>
             </div>
-        </div>
 
-            <!-- Tracker d'humeur -->
+            <!-- Humeur -->
             <div class="dashboard-card" style="margin-bottom: 20px;">
                 <div class="flex justify-between items-center mb-4">
                     <h4 class="font-bold text-slate-800 text-sm">Comment vous sentez-vous ?</h4>
                     <button onclick="window.showMoodHistoryFromDB()" class="text-[11px] font-semibold text-pink-500">Historique</button>
                 </div>
                 <div class="grid grid-cols-4 gap-2">
-                    <button onclick="window.saveMoodToDB('excellent')" class="mood-btn" data-mood="excellent">
+                    <button onclick="window.saveMoodToDB('excellent')" class="mood-btn">
                         <div class="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-2xl transition-all active:scale-95 mx-auto">😊</div>
                         <span class="text-[9px] text-slate-500 mt-1 block text-center">Excellent</span>
                     </button>
-                    <button onclick="window.saveMoodToDB('bien')" class="mood-btn" data-mood="bien">
+                    <button onclick="window.saveMoodToDB('bien')" class="mood-btn">
                         <div class="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-2xl transition-all active:scale-95 mx-auto">😐</div>
                         <span class="text-[9px] text-slate-500 mt-1 block text-center">Bien</span>
                     </button>
-                    <button onclick="window.saveMoodToDB('fatigue')" class="mood-btn" data-mood="fatigue">
+                    <button onclick="window.saveMoodToDB('fatigue')" class="mood-btn">
                         <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center text-2xl transition-all active:scale-95 mx-auto">😴</div>
                         <span class="text-[9px] text-slate-500 mt-1 block text-center">Fatiguée</span>
                     </button>
-                    <button onclick="window.saveMoodToDB('triste')" class="mood-btn" data-mood="triste">
+                    <button onclick="window.saveMoodToDB('triste')" class="mood-btn">
                         <div class="w-14 h-14 rounded-full bg-rose-100 flex items-center justify-center text-2xl transition-all active:scale-95 mx-auto">😔</div>
                         <span class="text-[9px] text-slate-500 mt-1 block text-center">Triste</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Section Forfaits -->
+            <!-- Forfaits -->
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-4">
                     <h4 class="font-bold text-slate-800 text-sm">Nos Forfaits</h4>
                     <button onclick="window.switchView('subscription')" class="text-[11px] font-semibold text-pink-500">Voir tout</button>
                 </div>
-                <div id="maman-packs-list" class="space-y-3">
-                    ${renderPacks()}
+                <div class="space-y-3">
+                    <div class="bg-white rounded-xl p-4 border border-slate-100" onclick="window.switchView('subscription')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-800">Essentiel</p>
+                                <p class="text-[9px] text-slate-400">2 visites / semaine</p>
+                            </div>
+                            <p class="font-black text-pink-600">45 000 F</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 border border-pink-200 bg-pink-50/30" onclick="window.switchView('subscription')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-800">Confort</p>
+                                <p class="text-[9px] text-slate-400">3-4 visites / semaine</p>
+                            </div>
+                            <p class="font-black text-pink-600">85 000 F</p>
+                        </div>
+                        <span class="text-[8px] font-bold text-pink-500 mt-1 block">⭐ Populaire</span>
+                    </div>
+                    <div class="bg-white rounded-xl p-4 border border-slate-100" onclick="window.switchView('subscription')">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-slate-800">Sérénité</p>
+                                <p class="text-[9px] text-slate-400">6-7 visites / semaine</p>
+                            </div>
+                            <p class="font-black text-pink-600">150 000 F</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Navigation rapide -->
+            <!-- Navigation -->
             <div class="grid grid-cols-4 gap-2 mt-4">
-                <button onclick="window.switchView('feed')" class="maman-nav-btn">
-                    <i class="fa-regular fa-message text-pink-500 text-lg"></i>
-                    <span>Messages</span>
+                <button onclick="window.switchView('feed')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
+                    <i class="fa-regular fa-message text-lg"></i>
+                    <span class="text-[9px] font-bold">Messages</span>
                 </button>
-                <button onclick="window.switchView('maman-planning')" class="maman-nav-btn">
-                    <i class="fa-regular fa-calendar text-pink-500 text-lg"></i>
-                    <span>Planning</span>
+                <button onclick="window.switchView('planning')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
+                    <i class="fa-regular fa-calendar text-lg"></i>
+                    <span class="text-[9px] font-bold">Planning</span>
                 </button>
-                <button onclick="window.switchView('commandes')" class="maman-nav-btn">
-                    <i class="fa-solid fa-box text-pink-500 text-lg"></i>
-                    <span>Commandes</span>
+                <button onclick="window.switchView('commandes')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
+                    <i class="fa-solid fa-box text-lg"></i>
+                    <span class="text-[9px] font-bold">Commandes</span>
                 </button>
-                <button onclick="window.switchView('profile')" class="maman-nav-btn">
-                    <i class="fa-regular fa-user text-pink-500 text-lg"></i>
-                    <span>Profil</span>
+                <button onclick="window.switchView('profile')" class="flex flex-col items-center gap-1 py-3 bg-white rounded-xl border border-pink-100 text-pink-500 active:scale-95 transition-all">
+                    <i class="fa-regular fa-user text-lg"></i>
+                    <span class="text-[9px] font-bold">Profil</span>
                 </button>
             </div>
         </div>
@@ -168,7 +257,6 @@ export async function loadMamanDashboard() {
     // Mettre à jour le badge des notifications
     await updateMamanNotifications();
 }
-
 /**
  * 📥 RÉCUPÉRER LES DONNÉES MAMAN DEPUIS LA BDD
  */
@@ -475,5 +563,121 @@ function escapeHtml(str) {
     });
 }
 
+
+
+/**
+ * 📥 RÉCUPÉRER LES MÉTRIQUES BÉBÉ DEPUIS LA BDD
+ */
+async function fetchBabyMetrics(patientId) {
+    try {
+        const { data, error } = await supabase
+            .from("baby_metrics")
+            .select("metric_type, value, unit, recorded_at")
+            .eq("patient_id", patientId)
+            .order("recorded_at", { ascending: false });
+        
+        if (error) throw error;
+        
+        const metrics = {
+            lastFeeding: null,
+            sleep: null,
+            diapers: null,
+            weight: null
+        };
+        
+        // Prendre la dernière valeur pour chaque type
+        const latestByType = {};
+        for (const item of data || []) {
+            if (!latestByType[item.metric_type]) {
+                latestByType[item.metric_type] = item;
+            }
+        }
+        
+        if (latestByType.feeding) metrics.lastFeeding = latestByType.feeding.value;
+        if (latestByType.sleep) metrics.sleep = latestByType.sleep.value;
+        if (latestByType.diapers) metrics.diapers = latestByType.diapers.value;
+        if (latestByType.weight) metrics.weight = latestByType.weight.value;
+        
+        return metrics;
+    } catch (err) {
+        console.error("Erreur fetch baby metrics:", err);
+        return { lastFeeding: null, sleep: null, diapers: null, weight: null };
+    }
+}
+
+/**
+ * 📥 RÉCUPÉRER LA PROCHAINE VISITE
+ */
+async function fetchNextVisit(patientId) {
+    try {
+        const { data, error } = await supabase
+            .from("planning")
+            .select("date_prevue, heure_prevue, patient:patients(adresse)")
+            .eq("patient_id", patientId)
+            .eq("est_actif", true)
+            .gte("date_prevue", new Date().toISOString().split('T')[0])
+            .order("date_prevue", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+        
+        if (error) throw error;
+        
+        if (data) {
+            return {
+                date: data.date_prevue,
+                time: data.heure_prevue,
+                location: data.patient?.adresse || "À domicile",
+                status: "Planifié"
+            };
+        }
+        return null;
+    } catch (err) {
+        console.error("Erreur fetch next visit:", err);
+        return null;
+    }
+}
+
+/**
+ * 📥 RÉCUPÉRER L'HUMEUR DU JOUR
+ */
+async function fetchTodayMood(patientId) {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabase
+            .from("mama_moods")
+            .select("mood")
+            .eq("patient_id", patientId)
+            .gte("recorded_at", `${today}T00:00:00`)
+            .lte("recorded_at", `${today}T23:59:59`)
+            .maybeSingle();
+        
+        if (error) throw error;
+        return data?.mood || null;
+    } catch (err) {
+        console.error("Erreur fetch mood:", err);
+        return null;
+    }
+}
+
+/**
+ * 📊 CALCULER LA PROGRESSION (visites validées / total visites)
+ */
+async function calculateProgress(patientId) {
+    try {
+        const { data, error } = await supabase
+            .from("visites")
+            .select("statut")
+            .eq("patient_id", patientId);
+        
+        if (error) throw error;
+        
+        const total = data?.length || 0;
+        const completed = data?.filter(v => v.statut === "Validé").length || 0;
+        return total > 0 ? Math.round((completed / total) * 100) : 0;
+    } catch (err) {
+        console.error("Erreur calcul progression:", err);
+        return 0;
+    }
+}
 // Export
 export {updateMamanNotifications};
