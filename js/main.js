@@ -1838,7 +1838,7 @@ function renderLayout() {
                     </div>
                 </header>
 
-                <!-- Menu latéral mobile (drawer) - VERSION AMÉLIORÉE -->
+                <!-- Menu latéral mobile (drawer) - VERSION ACCORDÉON -->
                 <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
                     <div class="absolute inset-0 bg-black/50" id="drawer-overlay"></div>
                     <div class="absolute top-0 left-0 bottom-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 flex flex-col">
@@ -1858,7 +1858,7 @@ function renderLayout() {
                             </button>
                         </div>
                         
-                        <!-- Navigation - sans scroll interne (flex-1 avec overflow-y-auto si nécessaire) -->
+                        <!-- Navigation avec accordéon -->
                         <nav class="flex-1 overflow-y-auto" id="drawer-menu"></nav>
                         
                         <!-- Bouton déconnexion en bas -->
@@ -1883,7 +1883,7 @@ function renderLayout() {
     `;
 
     // ============================================================
-    // MENU LATÉRAL MOBILE - CONTENU DYNAMIQUE & COLORÉ
+    // MENU LATÉRAL MOBILE - VERSION ACCORDÉON
     // ============================================================
     const drawerMenu = document.getElementById('drawer-menu');
     if (drawerMenu) {
@@ -1891,8 +1891,11 @@ function renderLayout() {
         const primaryBgLight = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
         const primaryText = isMaman ? 'text-pink-600' : 'text-emerald-600';
         
-        // Navigation principale
-        const mainNav = [
+        // Définition des sections avec leurs items
+        const sections = [];
+        
+        // Section PRINCIPAL
+        const mainItems = [
             { id: 'home', icon: 'fa-home', label: 'Accueil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'map', icon: 'fa-location-dot', label: 'Radar', roles: ['COORDINATEUR', 'AIDANT', 'FAMILLE'] },
             { id: 'patients', icon: 'fa-folder-open', label: isMaman ? 'Mon suivi' : 'Dossiers', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
@@ -1900,98 +1903,129 @@ function renderLayout() {
             { id: 'visits', icon: 'fa-calendar-check', label: 'Visites', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'commandes', icon: 'fa-box', label: isMaman ? 'Commandes bébé' : 'Commandes', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
             { id: 'planning', icon: 'fa-calendar-days', label: 'Planning', roles: ['COORDINATEUR', 'AIDANT'] },
-        ];
+        ].filter(item => item.roles.includes(userRole));
         
-        // Services (selon rôle)
-        const serviceNav = [];
+        if (mainItems.length > 0) {
+            sections.push({ title: 'PRINCIPAL', icon: 'fa-compass', items: mainItems, defaultOpen: true });
+        }
+        
+        // Section SERVICES
+        const serviceItems = [];
         if (userRole === 'COORDINATEUR') {
-            serviceNav.push(
+            serviceItems.push(
                 { id: 'dashboard', icon: 'fa-chart-pie', label: 'Dashboard', roles: ['COORDINATEUR'] },
                 { id: 'aidants', icon: 'fa-user-nurse', label: 'Équipe', roles: ['COORDINATEUR'] },
                 { id: 'rh-dashboard', icon: 'fa-users', label: 'RH & Assignations', roles: ['COORDINATEUR'] }
             );
         }
         if (userRole === 'FAMILLE') {
-            serviceNav.push(
+            serviceItems.push(
                 { id: 'billing', icon: 'fa-receipt', label: 'Factures', roles: ['FAMILLE'] },
                 { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] }
             );
             if (isMaman) {
-                serviceNav.push({ id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] });
+                serviceItems.push({ id: 'education', icon: 'fa-graduation-cap', label: 'Éducation', roles: ['FAMILLE'] });
             }
         }
         
-        const filteredMainNav = mainNav.filter(item => item.roles.includes(userRole));
-        const filteredServiceNav = serviceNav.filter(item => item.roles.includes(userRole));
+        if (serviceItems.length > 0) {
+            sections.push({ title: 'SERVICES', icon: 'fa-briefcase', items: serviceItems, defaultOpen: false });
+        }
         
-        // Compter les notifications pour les badges
+        // Section COMPTE
+        const accountItems = [
+            { id: 'profile', icon: 'fa-user-circle', label: 'Mon profil', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] }
+        ].filter(item => item.roles.includes(userRole));
+        
+        if (accountItems.length > 0) {
+            sections.push({ title: 'COMPTE', icon: 'fa-user-circle', items: accountItems, defaultOpen: false });
+        }
+        
+        // Stocker l'état d'ouverture des sections dans localStorage
+        const getSectionState = (sectionTitle) => {
+            const saved = localStorage.getItem(`drawer_section_${sectionTitle}`);
+            if (saved !== null) return saved === 'true';
+            // Valeur par défaut
+            if (sectionTitle === 'PRINCIPAL') return true;
+            return false;
+        };
+        
+        const saveSectionState = (sectionTitle, isOpen) => {
+            localStorage.setItem(`drawer_section_${sectionTitle}`, isOpen);
+        };
+        
+        // Compter les notifications
         const unreadMessages = Object.values(AppState.unreadByPatient || {}).reduce((a, b) => a + b, 0);
         const pendingVisits = (AppState.visites || []).filter(v => v.statut === "En attente").length;
         
+        // Générer le HTML des sections avec accordéon
         drawerMenu.innerHTML = `
-            <div class="flex flex-col h-full">
-                <!-- Navigation principale -->
-                <div class="flex-1 px-3 py-4">
-                    <p class="text-[9px] font-black uppercase tracking-wider ${primaryText} px-3 mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-compass text-[10px]"></i> PRINCIPAL
-                    </p>
-                    <div class="space-y-0.5">
-                        ${filteredMainNav.map(link => `
-                            <button onclick="window.switchView('${link.id}'); window.closeDrawerMobile?.()" 
-                                    class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
-                                <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center">
-                                    <i class="fa-solid ${link.icon} ${primaryText} text-sm"></i>
+            <div class="flex flex-col h-full px-3 py-4">
+                ${sections.map(section => {
+                    const isOpen = getSectionState(section.title);
+                    return `
+                        <div class="mb-2">
+                            <!-- En-tête de section (cliquable) -->
+                            <button class="section-header w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all active:scale-98" 
+                                    data-section="${section.title}">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid ${section.icon} ${primaryText} text-xs"></i>
+                                    <span class="text-[9px] font-black uppercase tracking-wider ${primaryText}">${section.title}</span>
                                 </div>
-                                <span class="font-medium text-sm text-slate-700 flex-1 text-left">${link.label}</span>
-                                ${link.id === 'feed' && unreadMessages > 0 ? `
-                                    <span class="min-w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center px-1">${unreadMessages > 9 ? '9+' : unreadMessages}</span>
-                                ` : ''}
-                                ${link.id === 'visits' && pendingVisits > 0 && userRole === 'COORDINATEUR' ? `
-                                    <span class="min-w-[18px] h-[18px] rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center px-1">${pendingVisits}</span>
-                                ` : ''}
+                                <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200 ${isOpen ? 'rotate-0' : '-rotate-90'}"></i>
                             </button>
-                        `).join('')}
-                    </div>
-                    
-                    ${filteredServiceNav.length > 0 ? `
-                        <p class="text-[9px] font-black uppercase tracking-wider ${primaryText} px-3 mt-6 mb-2 flex items-center gap-2">
-                            <i class="fa-solid fa-briefcase text-[10px]"></i> SERVICES
-                        </p>
-                        <div class="space-y-0.5">
-                            ${filteredServiceNav.map(link => `
-                                <button onclick="window.switchView('${link.id}'); window.closeDrawerMobile?.()" 
-                                        class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
-                                    <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center">
-                                        <i class="fa-solid ${link.icon} ${primaryText} text-sm"></i>
-                                    </div>
-                                    <span class="font-medium text-sm text-slate-700 flex-1 text-left">${link.label}</span>
-                                </button>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    
-                    <!-- Section Profil -->
-                    <p class="text-[9px] font-black uppercase tracking-wider ${primaryText} px-3 mt-6 mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-user-circle text-[10px]"></i> COMPTE
-                    </p>
-                    <div class="space-y-0.5">
-                        <button onclick="window.switchView('profile'); window.closeDrawerMobile?.()" 
-                                class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
-                            <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center overflow-hidden">
-                                ${userPhoto ? 
-                                    `<img src="${userPhoto}" class="w-full h-full object-cover">` : 
-                                    `<i class="fa-regular fa-user-circle ${primaryText} text-sm"></i>`
-                                }
+                            
+                            <!-- Corps de section (repliable) -->
+                            <div class="section-content ml-2 mt-1 space-y-0.5 ${isOpen ? '' : 'hidden'}">
+                                ${section.items.map(item => `
+                                    <button onclick="window.switchView('${item.id}'); window.closeDrawerMobile?.()" 
+                                            class="drawer-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all active:scale-98">
+                                        <div class="w-8 h-8 rounded-lg ${primaryBgLight} flex items-center justify-center">
+                                            <i class="fa-solid ${item.icon} ${primaryText} text-sm"></i>
+                                        </div>
+                                        <span class="font-medium text-sm text-slate-700 flex-1 text-left">${item.label}</span>
+                                        ${item.id === 'feed' && unreadMessages > 0 ? `
+                                            <span class="min-w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center px-1">${unreadMessages > 9 ? '9+' : unreadMessages}</span>
+                                        ` : ''}
+                                        ${item.id === 'visits' && pendingVisits > 0 && userRole === 'COORDINATEUR' ? `
+                                            <span class="min-w-[18px] h-[18px] rounded-full bg-amber-500 text-white text-[9px] font-bold flex items-center justify-center px-1">${pendingVisits}</span>
+                                        ` : ''}
+                                    </button>
+                                `).join('')}
                             </div>
-                            <span class="font-medium text-sm text-slate-700 flex-1 text-left">Mon profil</span>
-                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
-                        </button>
-                    </div>
-                </div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         `;
         
-        // Ajouter les styles dynamiques pour le drawer
+        // Ajouter les écouteurs d'événements pour l'accordéon
+        document.querySelectorAll('.section-header').forEach(header => {
+            header.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const sectionTitle = header.dataset.section;
+                const content = header.nextElementSibling;
+                const chevron = header.querySelector('.fa-chevron-down');
+                const isOpen = !content.classList.contains('hidden');
+                
+                if (isOpen) {
+                    content.classList.add('hidden');
+                    chevron.classList.add('-rotate-90');
+                    chevron.classList.remove('rotate-0');
+                    saveSectionState(sectionTitle, false);
+                } else {
+                    content.classList.remove('hidden');
+                    chevron.classList.remove('-rotate-90');
+                    chevron.classList.add('rotate-0');
+                    saveSectionState(sectionTitle, true);
+                }
+                
+                // Feedback haptique
+                if (window.UI?.vibrate) window.UI.vibrate('light');
+            });
+        });
+        
+        // Ajouter les styles dynamiques
         const styleId = 'drawer-dynamic-styles';
         if (!document.getElementById(styleId)) {
             const style = document.createElement('style');
@@ -2010,6 +2044,10 @@ function renderLayout() {
                 .drawer-nav-item.active span {
                     color: ${primaryColor};
                 }
+                .section-header:active {
+                    background: ${primaryBgLight};
+                    transform: scale(0.98);
+                }
             `;
             document.head.appendChild(style);
         }
@@ -2024,7 +2062,7 @@ function renderLayout() {
         const overlay = document.getElementById('drawer-overlay');
         const closeBtn = document.getElementById('close-drawer');
         
-        // Fonction globale pour fermer le drawer (utilisée par les boutons)
+        // Fonction globale pour fermer le drawer
         window.closeDrawerMobile = () => {
             if (drawer) {
                 drawer.classList.remove('show');
