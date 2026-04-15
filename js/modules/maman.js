@@ -1,10 +1,10 @@
-// js/modules/maman.js
+ // js/modules/maman.js
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
 import supabase from "../core/supabaseClient.js";
 
 /**
- * 📱 DASHBOARD MAMAN COMPLET (Accueil unique)
+ * 📱 DASHBOARD MAMAN COMPLET AVEC GRAPHIQUES
  */
 export async function loadMamanDashboard() {
     const container = document.getElementById("view-container");
@@ -34,8 +34,11 @@ export async function loadMamanDashboard() {
     }
 
     // Charger toutes les données
-    const [babyMetrics, nextVisit, progress] = await Promise.all([
+    const [babyMetrics, weightHistory, feedingHistory, sleepHistory, nextVisit, progress] = await Promise.all([
         fetchBabyMetrics(patientId),
+        fetchMetrics(patientId, 'weight'),
+        fetchMetrics(patientId, 'feeding'),
+        fetchMetrics(patientId, 'sleep'),
         fetchNextVisit(patientId),
         calculateProgress(patientId)
     ]);
@@ -63,6 +66,11 @@ export async function loadMamanDashboard() {
         const date = new Date(dateStr);
         return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
     };
+
+    // Badges de progression
+    const weightProgress = getProgressMessage(weightHistory);
+    const feedingTrend = getTrendMessage(feedingHistory, 'feeding');
+    const sleepTrend = getTrendMessage(sleepHistory, 'sleep');
 
     container.innerHTML = `
         <div class="maman-dashboard-container animate-fadeIn pb-24">
@@ -109,6 +117,7 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] font-bold text-slate-400 uppercase">Dernière tétée</p>
                     <p class="text-xl font-black text-slate-800">${formatFeedingTime(babyMetrics?.lastFeeding)}</p>
                     <p class="text-[9px] text-slate-400">depuis dernier repas</p>
+                    <span class="text-[7px] text-pink-400">${feedingTrend}</span>
                 </div>
                 
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('sleep')">
@@ -118,6 +127,7 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] font-bold text-slate-400 uppercase">Sommeil</p>
                     <p class="text-xl font-black text-slate-800">${formatSleepHours(babyMetrics?.sleep)}</p>
                     <p class="text-[9px] text-slate-400">aujourd'hui</p>
+                    <span class="text-[7px] text-pink-400">${sleepTrend}</span>
                 </div>
                 
                 <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 active:scale-95 transition-all" onclick="window.openAddMetricModal('diapers')">
@@ -136,8 +146,38 @@ export async function loadMamanDashboard() {
                     <p class="text-[9px] font-bold text-slate-400 uppercase">Croissance</p>
                     <p class="text-xl font-black text-slate-800">${formatWeight(babyMetrics?.weight)}</p>
                     <p class="text-[9px] text-slate-400">cette semaine</p>
+                    <span class="text-[7px] text-pink-400">${weightProgress}</span>
                 </div>
             </div>
+
+            <!-- GRAPHIQUE DE POIDS -->
+            ${weightHistory.length > 1 ? `
+            <div class="bg-white rounded-2xl p-4 mb-5 shadow-sm border border-pink-100">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-slate-800 text-sm">📈 Courbe de poids</h4>
+                    <span class="text-[9px] text-pink-500 font-bold">${getProgressMessage(weightHistory)}</span>
+                </div>
+                <canvas id="weight-chart" height="160" style="max-height: 160px;"></canvas>
+                <p class="text-[8px] text-slate-400 text-center mt-2">👆 Cliquez sur la carte Croissance pour ajouter une mesure</p>
+            </div>
+            ` : `
+            <div class="bg-white rounded-2xl p-5 mb-5 shadow-sm border border-pink-100 text-center">
+                <i class="fa-solid fa-chart-line text-3xl text-slate-300 mb-2"></i>
+                <p class="text-xs text-slate-400">Ajoutez des mesures de poids pour voir la courbe d'évolution</p>
+                <button onclick="window.openAddMetricModal('weight')" class="mt-3 text-pink-500 text-[10px] font-bold">+ Ajouter un poids</button>
+            </div>
+            `}
+
+            <!-- PETIT GRAPHIQUE TÉTÉES VS SOMMEIL -->
+            ${(feedingHistory.length > 1 || sleepHistory.length > 1) ? `
+            <div class="bg-white rounded-2xl p-4 mb-5 shadow-sm border border-pink-100">
+                <h4 class="font-bold text-slate-800 text-sm mb-3">🍼 Tétées vs 😴 Sommeil (7 derniers jours)</h4>
+                <canvas id="feeding-sleep-chart" height="140" style="max-height: 140px;"></canvas>
+            </div>
+            ` : ''}
+
+            <!-- BADGES DE PROGRESSION (Félicitations) -->
+            ${generateBadgesHTML(weightHistory, feedingHistory, sleepHistory)}
 
             <!-- TRACKER D'HUMEUR -->
             <div class="bg-white rounded-xl p-4 mb-5 shadow-sm border border-pink-100">
@@ -225,16 +265,154 @@ export async function loadMamanDashboard() {
         </div>
     `;
 
+    // Dessiner les graphiques après le rendu
+    setTimeout(() => {
+        if (weightHistory.length > 1) drawWeightChart(weightHistory);
+        if (feedingHistory.length > 1 || sleepHistory.length > 1) drawMiniCharts(feedingHistory, sleepHistory);
+    }, 100);
+
     await updateMamanNotifications();
+}
+
+// ============================================================
+// FONCTIONS DE GRAPHIQUES
+// ============================================================
+
+function drawWeightChart(data) {
+    const ctx = document.getElementById('weight-chart')?.getContext('2d');
+    if (!ctx) return;
+    
+    const labels = data.map(d => new Date(d.recorded_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+    const values = data.map(d => d.value / 1000);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Poids (kg)',
+                data: values,
+                borderColor: '#E11D48',
+                backgroundColor: 'rgba(225, 29, 72, 0.05)',
+                fill: true,
+                tension: 0.3,
+                pointBackgroundColor: '#E11D48',
+                pointBorderColor: 'white',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.raw} kg` } }
+            },
+            scales: { y: { beginAtZero: false, grid: { display: false }, title: { display: true, text: 'kg', font: { size: 9 } } } }
+        }
+    });
+}
+
+function drawMiniCharts(feedingData, sleepData) {
+    const ctx = document.getElementById('feeding-sleep-chart')?.getContext('2d');
+    if (!ctx) return;
+    
+    const maxLength = Math.max(feedingData.length, sleepData.length);
+    const labels = [];
+    const feedingValues = [];
+    const sleepValues = [];
+    
+    // Prendre les 7 derniers jours
+    for (let i = Math.max(0, maxLength - 7); i < maxLength; i++) {
+        if (feedingData[i]) {
+            feedingValues.push(feedingData[i].value);
+            labels.push(new Date(feedingData[i].recorded_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+        } else if (sleepData[i]) {
+            sleepValues.push(sleepData[i].value);
+            if (!labels[i]) labels.push(new Date(sleepData[i].recorded_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+        }
+    }
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels.slice(-7),
+            datasets: [
+                { label: '🍼 Tétées (h)', data: feedingValues.slice(-7), borderColor: '#F472B6', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+                { label: '😴 Sommeil (h)', data: sleepValues.slice(-7), borderColor: '#60A5FA', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { position: 'top', labels: { font: { size: 9 } } } }
+        }
+    });
+}
+
+// ============================================================
+// BADGES DE PROGRESSION
+// ============================================================
+
+function generateBadgesHTML(weightData, feedingData, sleepData) {
+    const badges = [];
+    
+    // Badge poids
+    if (weightData.length > 1) {
+        const firstWeight = weightData[0].value / 1000;
+        const lastWeight = weightData[weightData.length - 1].value / 1000;
+        const gain = lastWeight - firstWeight;
+        if (gain > 0.5) badges.push({ emoji: '🏆', text: `${gain.toFixed(1)} kg pris !`, color: 'bg-emerald-100 text-emerald-700' });
+        else if (gain > 0) badges.push({ emoji: '📈', text: `+${gain.toFixed(1)} kg`, color: 'bg-blue-100 text-blue-700' });
+    }
+    
+    // Badge tétées
+    if (feedingData.length > 0) {
+        const avgFeeding = feedingData.reduce((a,b) => a + b.value, 0) / feedingData.length;
+        if (avgFeeding >= 2) badges.push({ emoji: '🍼', text: `${avgFeeding.toFixed(1)}h de tétées en moyenne`, color: 'bg-pink-100 text-pink-700' });
+    }
+    
+    // Badge sommeil
+    if (sleepData.length > 0) {
+        const avgSleep = sleepData.reduce((a,b) => a + b.value, 0) / sleepData.length;
+        if (avgSleep >= 8) badges.push({ emoji: '😴', text: 'Bébé dort bien !', color: 'bg-indigo-100 text-indigo-700' });
+        else if (avgSleep >= 6) badges.push({ emoji: '🌙', text: 'Nuits paisibles', color: 'bg-purple-100 text-purple-700' });
+    }
+    
+    if (badges.length === 0) return '';
+    
+    return `
+        <div class="bg-gradient-to-r from-pink-50 to-pink-100 rounded-2xl p-4 mb-5">
+            <div class="flex flex-wrap justify-center gap-2">
+                ${badges.map(b => `<span class="px-3 py-1.5 rounded-full text-[9px] font-bold ${b.color}"><span class="mr-1">${b.emoji}</span>${b.text}</span>`).join('')}
+            </div>
+        </div>
+    `;
 }
 
 // ============================================================
 // FONCTIONS DE RÉCUPÉRATION DES DONNÉES
 // ============================================================
 
-/**
- * 📥 RÉCUPÉRER LES MÉTRIQUES BÉBÉ
- */
+async function fetchMetrics(patientId, metricType) {
+    try {
+        const { data, error } = await supabase
+            .from("baby_metrics")
+            .select("value, recorded_at")
+            .eq("patient_id", patientId)
+            .eq("metric_type", metricType)
+            .order("recorded_at", { ascending: true })
+            .limit(30);
+        
+        if (error) throw error;
+        return data || [];
+    } catch (err) {
+        console.error(`Erreur fetch ${metricType}:`, err);
+        return [];
+    }
+}
+
 async function fetchBabyMetrics(patientId) {
     try {
         const { data, error } = await supabase
@@ -264,9 +442,6 @@ async function fetchBabyMetrics(patientId) {
     }
 }
 
-/**
- * 📥 RÉCUPÉRER LA PROCHAINE VISITE
- */
 async function fetchNextVisit(patientId) {
     try {
         const { data, error } = await supabase
@@ -296,9 +471,6 @@ async function fetchNextVisit(patientId) {
     }
 }
 
-/**
- * 📊 CALCULER LA PROGRESSION
- */
 async function calculateProgress(patientId) {
     try {
         const { data, error } = await supabase
@@ -317,13 +489,30 @@ async function calculateProgress(patientId) {
     }
 }
 
+function getProgressMessage(data) {
+    if (data.length < 2) return '📊 Commencez à suivre';
+    const first = data[0].value / 1000;
+    const last = data[data.length - 1].value / 1000;
+    const diff = last - first;
+    if (diff > 0.3) return `🎉 +${diff.toFixed(1)} kg !`;
+    if (diff > 0) return `✅ +${diff.toFixed(1)} kg`;
+    if (diff < 0) return `📉 -${Math.abs(diff).toFixed(1)} kg`;
+    return '➡️ Stable';
+}
+
+function getTrendMessage(data, type) {
+    if (data.length < 2) return '📊 Commencez à suivre';
+    const recent = data.slice(-3);
+    const avg = recent.reduce((a,b) => a + b.value, 0) / recent.length;
+    if (type === 'feeding') return avg > 2 ? '📈 Tétées fréquentes' : (avg < 1.5 ? '⚠️ Tétées espacées' : '✅ Rythme normal');
+    if (type === 'sleep') return avg > 8 ? '😴 Bébé bien reposé' : (avg < 6 ? '⚠️ Sommeil léger' : '✅ Sommeil correct');
+    return '📊 Suivi en cours';
+}
+
 // ============================================================
 // MÉTRIQUES BÉBÉ (MODALE + SAUVEGARDE)
 // ============================================================
 
-/**
- * 🍼 OUVRIRE LA MODALE POUR AJOUTER UNE MÉTRIQUE
- */
 window.openAddMetricModal = (metricType) => {
     const titles = {
         feeding: 'Dernière tétée',
@@ -369,9 +558,6 @@ window.openAddMetricModal = (metricType) => {
     });
 };
 
-/**
- * 💾 SAUVEGARDER UNE MÉTRIQUE BÉBÉ
- */
 async function saveBabyMetric(metricType, value) {
     try {
         let patients = await secureFetch("/patients");
@@ -399,9 +585,6 @@ async function saveBabyMetric(metricType, value) {
 // GESTION DE L'HUMEUR
 // ============================================================
 
-/**
- * 😊 SAUVEGARDER L'HUMEUR
- */
 window.saveMoodToDB = async (mood) => {
     try {
         let patients = await secureFetch("/patients");
@@ -431,9 +614,6 @@ window.saveMoodToDB = async (mood) => {
     }
 };
 
-/**
- * 📊 AFFICHER L'HISTORIQUE DES HUMEURS
- */
 window.showMoodHistoryFromDB = async () => {
     try {
         let patients = await secureFetch("/patients");
