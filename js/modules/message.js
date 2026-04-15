@@ -957,7 +957,7 @@ function renderStoryCard(msg, isReply = false) {
     const tempClass = isTemp ? 'opacity-70' : '';
 
     // ============================================================
-    // MESSAGE ENVOYÉ (À DROITE) - STYLE WHATSAPP
+    // MESSAGE ENVOYÉ (À DROITE) - STYLE WHATSAPP MODERNE
     // ============================================================
     if (isOwnMessage) {
         // Statut du message
@@ -979,7 +979,7 @@ function renderStoryCard(msg, isReply = false) {
                         <img src="${imageUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" onclick="window.open('${imageUrl}')" loading="lazy">
                     ` : ''}
                     ${content ? `
-                        <div class="${themeBgClass} rounded-2xl rounded-tr-sm px-3 py-2">
+                        <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px;">
                             <p class="text-white text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
                         </div>
                     ` : ''}
@@ -993,7 +993,7 @@ function renderStoryCard(msg, isReply = false) {
     }
 
     // ============================================================
-    // MESSAGE REÇU (À GAUCHE) - STYLE WHATSAPP
+    // MESSAGE REÇU (À GAUCHE) - STYLE WHATSAPP MODERNE
     // ============================================================
     const isAidant = msg.sender_role === 'AIDANT';
     const isFamily = msg.sender_role === 'FAMILLE';
@@ -1044,7 +1044,7 @@ function renderStoryCard(msg, isReply = false) {
                 ` : ''}
                 
                 ${content ? `
-                    <div class="bg-white rounded-2xl rounded-tl-sm px-3 py-2 shadow-sm border border-slate-100">
+                    <div class="chat-message-received" style="background: #F1F5F9; border-bottom-left-radius: 4px;">
                         <p class="text-slate-700 text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
                     </div>
                 ` : ''}
@@ -1071,9 +1071,9 @@ function renderStoryCard(msg, isReply = false) {
                     <div class="flex gap-1 mt-1">
                         ${Object.entries(msg.reactions || {}).map(([emoji, count]) => `
                             <button onclick="window.sendReaction('${msg.id}', '${emoji}')" 
-                                    class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 rounded-full text-xs transition">
+                                    class="flex items-center gap-0.5 px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 rounded-full text-xs transition">
                                 <span class="text-sm">${emoji}</span>
-                                <span class="text-[9px] text-slate-500">${count}</span>
+                                <span class="text-[9px] font-medium text-slate-500">${count}</span>
                             </button>
                         `).join('')}
                     </div>
