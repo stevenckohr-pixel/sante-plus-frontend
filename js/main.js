@@ -2135,7 +2135,7 @@ function getNavLinks(role, mode) {
         tabs = [
             { id: 'home', icon: 'fa-home', label: 'Accueil' },  
             { id: 'feed', icon: 'fa-newspaper', label: 'Journal bébé' },
-            { id: 'planning', icon: 'fa-calendar-days', label: 'Planning' },
+            { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },  
             { id: 'commandes', icon: 'fa-box', label: 'Commandes bébé' },
             { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation' },
             { id: 'billing', icon: 'fa-receipt', label: 'Factures' },
