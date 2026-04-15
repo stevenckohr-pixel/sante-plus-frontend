@@ -90,6 +90,10 @@ export function renderPatients() {
                             <div class="flex items-center gap-1">
                                 <p class="font-semibold text-slate-800 text-sm">${escapeHtml(p.nom_complet || 'Inconnu')}</p>
                                 ${isPremium ? '<i class="fa-solid fa-crown text-[9px] text-amber-500"></i>' : ''}
+                                    <!-- ✅ BADGE DYNAMIQUE AJOUTÉ -->
+                                    <span class="badge-dynamic" style="font-size: 8px; padding: 2px 8px;">
+                                        <i class="fa-regular fa-clock"></i> ${p.formule || 'Standard'}
+                                    </span>
                             </div>
                             <p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(p.adresse?.split(',')[0] || 'Adresse non renseignée')}</p>
                         </div>
