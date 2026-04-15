@@ -42,6 +42,9 @@ export function renderPatients() {
     const container = document.getElementById("patients-list");
     const userRole = localStorage.getItem("user_role");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
+    const primaryText = isMaman ? '#881337' : '#064E3B';
     
     if (!container) return;
 
@@ -62,22 +65,21 @@ export function renderPatients() {
         const hasGps = p.lat && p.lng;
         const canManageGps = (userRole === 'COORDINATEUR' || userRole === 'AIDANT');
         
-        // Couleurs selon le type
+        // Couleurs dynamiques selon le thème
         const bgColor = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
         const textColor = isMaman ? 'text-pink-600' : 'text-emerald-600';
-        const borderColor = isMaman ? 'border-pink-100' : 'border-emerald-100';
+        const borderHoverColor = isMaman ? 'pink-300' : 'emerald-300';
         
         return `
-                <div 
-                    class="bg-white rounded-xl p-4 mb-3 shadow-sm border ${borderColor} active:scale-98 transition-all patient-item relative"
-                    data-patient-id="${p.id}"
-                    style="animation: fadeInUp 0.25s ease ${index * 0.03}s forwards; opacity: 0;"
-                >
-                <!-- 🔴 BADGE -->
-                <span class="patient-badge hidden absolute top-2 right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow z-10"></span>
+            <div class="bg-white rounded-xl p-4 mb-3 shadow-sm border border-slate-100 transition-all patient-item relative hover:border-${borderHoverColor} hover:shadow-md" 
+                 data-patient-id="${p.id}"
+                 style="animation: fadeInUp 0.25s ease ${index * 0.03}s forwards; opacity: 0;">
+                
+                <!-- Badge de notification -->
+                <span class="patient-badge hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 shadow-md border-2 border-white z-10"></span>
+                
                 <div class="flex items-center justify-between">
-
-                        <div class="flex items-center gap-3 flex-1">
+                    <div class="flex items-center gap-3 flex-1">
                         <div class="relative">
                             <div class="w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center font-bold text-base ${textColor}">
                                 ${initials}
@@ -86,38 +88,38 @@ export function renderPatients() {
                         </div>
                         <div class="flex-1">
                             <div class="flex items-center gap-1">
-                                <p class="font-semibold text-slate-800 text-sm">${p.nom_complet || 'Inconnu'}</p>
+                                <p class="font-semibold text-slate-800 text-sm">${escapeHtml(p.nom_complet || 'Inconnu')}</p>
                                 ${isPremium ? '<i class="fa-solid fa-crown text-[9px] text-amber-500"></i>' : ''}
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-0.5">${p.adresse?.split(',')[0] || 'Adresse non renseignée'}</p>
+                            <p class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(p.adresse?.split(',')[0] || 'Adresse non renseignée')}</p>
                         </div>
                     </div>
                     
                     <div class="flex items-center gap-1">
                         ${canManageGps && !hasGps ? `
                             <button onclick="window.setPatientHomeDirect('${p.id}')" 
-                                    class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center active:bg-slate-100 transition-all"
+                                    class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-all active:scale-95"
                                     title="Fixer le domicile">
                                 <i class="fa-solid fa-location-dot text-slate-400 text-xs"></i>
                             </button>
                         ` : ''}
                         <button onclick="window.viewPatientFeed('${p.id}')" 
-                                class="w-8 h-8 rounded-lg ${textColor} bg-opacity-10 ${bgColor} flex items-center justify-center active:scale-95 transition-all">
+                                class="w-8 h-8 rounded-lg ${bgColor} ${textColor} flex items-center justify-center transition-all active:scale-95 hover:opacity-80">
                             <i class="fa-solid fa-chevron-right text-xs"></i>
                         </button>
                     </div>
                 </div>
                 
-                <!-- Ligne info rapide (optionnelle, plus discrète) -->
-                <div class="flex items-center justify-between mt-3 pt-2 border-t ${borderColor}">
+                <!-- Ligne info rapide -->
+                <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
                     <div class="flex items-center gap-2">
-                        <span class="text-[9px] font-medium ${textColor}">${p.formule || 'Standard'}</span>
+                        <span class="text-[9px] font-medium ${textColor}">${escapeHtml(p.formule || 'Standard')}</span>
                         <span class="w-1 h-1 rounded-full bg-slate-200"></span>
                         <span class="text-[9px] text-slate-400">ID: ${p.id?.substring(0, 6)}</span>
                     </div>
                     ${userRole === 'COORDINATEUR' && !p.famille_user_id ? `
-                        <button onclick="window.openLinkFamilyModal('${p.id}', '${(p.nom_complet || '').replace(/'/g, "\\'")}')" 
-                                class="text-[9px] font-medium text-blue-500">
+                        <button onclick="window.openLinkFamilyModal('${p.id}', '${escapeHtml(p.nom_complet || '').replace(/'/g, "\\'")}')" 
+                                class="text-[9px] font-medium text-blue-500 hover:text-blue-600 transition">
                             Lier
                         </button>
                     ` : ''}
@@ -127,9 +129,21 @@ export function renderPatients() {
     }).join("");
 
     setTimeout(() => {
-    updatePatientBadges();
-}, 50);
+        updatePatientBadges();
+    }, 50);
 }
+
+// Fonction escapeHtml pour la sécurité
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 /**
  * 📄 VUE : PAGE D'AJOUT D'UN PATIENT
  */
