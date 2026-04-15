@@ -434,12 +434,30 @@ function escapeHtml(str) {
 /**
  * 💳 INITIER UN PAIEMENT FEDAPAY
  */
+/**
+ * 💳 INITIER UN PAIEMENT FEDAPAY
+ */
 window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
-    const patientId = AppState.currentPatient;
+    // Récupérer le patient depuis l'API si AppState.currentPatient est null
+    let patientId = AppState.currentPatient;
     
     if (!patientId) {
-        UI.error("Patient non trouvé");
-        return;
+        try {
+            const patients = await secureFetch("/patients");
+            if (patients && patients.length > 0) {
+                patientId = patients[0].id;
+                AppState.currentPatient = patientId;
+                localStorage.setItem("current_patient_id", patientId);
+                console.log("✅ Patient récupéré depuis l'API:", patientId);
+            } else {
+                UI.error("Aucun patient trouvé pour ce compte");
+                return;
+            }
+        } catch (err) {
+            console.error("Erreur récupération patient:", err);
+            UI.error("Impossible de récupérer les informations du patient");
+            return;
+        }
     }
     
     Swal.fire({
@@ -454,8 +472,9 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
             method: "POST",
             body: JSON.stringify({
                 pack_id: packId,
-                duration_months: duration_months,
-                patient_id: patientId
+                duration_months: durationMonths,
+                patient_id: patientId,
+                amount: price
             })
         });
         
