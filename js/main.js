@@ -221,10 +221,7 @@ async function initPushNotifications() {
 
 
 
-console.log("🔍 [main.js] Imports vérifiés:");
-console.log("🔍 Visites module:", Visites);
-console.log("🔍 Visites.startVisit:", Visites?.startVisit);
-console.log("🔍 Visites.submitEndVisit:", Visites?.submitEndVisit);
+console.log("🔍 [main.js] Lazy loading activé - modules chargés à la demande");
 const { updateNotificationBadge } = Notifications;
 
 let realtimeSubscribed = false;
@@ -587,19 +584,24 @@ if (window.Realtime && window.Realtime.subscribeToCommandes) {
             
             renderLayout();
             
-            // ✅ Vérifier les visites actives
-            await Visites.checkActiveVisitOnStart();
-            Visites.resumeTrackingIfActive();
+            // ✅ Vérifier les visites actives (lazy loading)
+            const visitesModule = await lazyLoadModule('visites');
+            if (visitesModule) {
+                await visitesModule.checkActiveVisitOnStart();
+                visitesModule.resumeTrackingIfActive();
+            }
             checkActiveVisit();
-
-
-                        // ✅ FORCER la mise à jour de l'UI de l'aidant
+            
+            // ✅ FORCER la mise à jour de l'UI de l'aidant
             const userRole = localStorage.getItem("user_role");
             if (userRole === "AIDANT") {
                 const activePatientId = localStorage.getItem("active_patient_id");
                 if (activePatientId) {
-                    setTimeout(() => {
-                        Visites.refreshAidantUI(activePatientId);
+                    setTimeout(async () => {
+                        const module = await lazyLoadModule('visites');
+                        if (module?.refreshAidantUI) {
+                            module.refreshAidantUI(activePatientId);
+                        }
                     }, 500);
                 }
             }
@@ -618,11 +620,7 @@ if (window.Realtime && window.Realtime.subscribeToCommandes) {
         }, 1000);
 
             // ✅ ASSIGNATION DES FONCTIONS GLOBALES APRÈS LE CHARGEMENT
-            console.log("🔍 Vérification des modules après chargement:");
-            console.log("🔍 Type de Visites.startVisit:", typeof Visites.startVisit);
-            console.log("🔍 Type de Visites.submitEndVisit:", typeof Visites.submitEndVisit);
-            console.log("🔍 Type de Commandes.confirmCommand:", typeof Commandes.confirmCommand);
-            console.log("🔍 Type de Commandes.markAsDelivered:", typeof Commandes.markAsDelivered);
+
 
             // ✅ Assignation des fonctions Visites
             if (Visites && typeof Visites.startVisit === 'function') {
