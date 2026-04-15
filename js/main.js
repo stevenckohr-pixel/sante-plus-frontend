@@ -5,27 +5,12 @@
 // Description: Application de coordination de soins à domicile
 // Auteur: Santé Plus Services
 // ============================================================
-
 // ============================================================
-// IMPORTS DES MODULES
+// IMPORTS INITIAUX (CHARGE AU DÉMARRAGE)
 // ============================================================
-import * as Maman from "./modules/maman.js";
-import * as Education from "./modules/education.js";
 import { secureFetch } from "./core/api.js";
 import { CONFIG } from "./core/config.js";
 import { AppState } from "./core/state.js";
-import * as Auth from "./modules/auth.js";
-import * as Patients from "./modules/patients.js";
-import * as Billing from "./modules/billing.js";
-import * as Dashboard from "./modules/dashboard.js";
-import * as Aidants from "./modules/aidants.js";
-import * as Commandes from "./modules/commandes.js";
-import * as Visites from "./modules/visites.js";
-import * as Messages from "./modules/message.js";
-import * as MapModule from "./modules/map.js";
-import * as Planning from "./modules/planning.js";
-import { quickValidate } from "./modules/dashboard.js";
-import * as Admin from "./modules/admin.js";
 import { 
     UI, showToast, showSuccessToast, showErrorToast, 
     showWarningToast, showInfoToast, openModernSelector, 
@@ -33,13 +18,172 @@ import {
     refreshMicroInteractions, playSound, showLocalLoader, 
     hideLocalLoader, initLazyLoading, secureFetchWithCache 
 } from "./core/utils.js";
-import * as Subscription from "./modules/subscription.js";
 import { syncService } from "./core/syncService.js";
-import * as Profile from "./modules/profile.js";
 import ErrorHandler from './core/errorHandler.js';
 import { startKeepAlive } from './core/keepAlive.js';
+
+// Modules essentiels au démarrage
+import * as Auth from "./modules/auth.js";
 import * as Notifications from "./modules/notifications.js";
 
+// ============================================================
+// LAZY LOADING DES AUTRES MODULES (dans performViewSwitch)
+// ============================================================
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+
+
+const moduleCache = {};
+
+async function lazyLoadModule(moduleName, viewName) {
+  // Si déjà chargé, utiliser le cache
+  if (moduleCache[moduleName]) {
+    console.log(`📦 [Lazy] Module ${moduleName} déjà en cache`);
+    return moduleCache[moduleName];
+  }
+  
+  console.log(`⏳ [Lazy] Chargement du module ${moduleName}...`);
+  
+  try {
+    // Afficher un indicateur de chargement léger
+    const container = document.getElementById("view-container");
+    if (container && !container.querySelector('.lazy-loading')) {
+      const loader = document.createElement('div');
+      loader.className = 'lazy-loading fixed inset-0 bg-white/80 z-50 flex items-center justify-center';
+      loader.innerHTML = `
+        <div class="text-center">
+          <div class="relative w-10 h-10 mx-auto mb-3">
+            <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+            <img src="${localStorage.getItem('user_is_maman') === 'true' ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4">
+          </div>
+          <p class="text-[9px] font-black text-slate-400">Chargement...</p>
+        </div>
+      `;
+      document.body.appendChild(loader);
+      setTimeout(() => loader.remove(), 500);
+    }
+    
+    // Charger le module dynamiquement
+    let module;
+    switch(moduleName) {
+      case 'visites':
+        module = await import('./modules/visites.js');
+        break;
+      case 'commandes':
+        module = await import('./modules/commandes.js');
+        break;
+      case 'messages':
+        module = await import('./modules/message.js');
+        break;
+      case 'patients':
+        module = await import('./modules/patients.js');
+        break;
+      case 'billing':
+        module = await import('./modules/billing.js');
+        break;
+      case 'dashboard':
+        module = await import('./modules/dashboard.js');
+        break;
+      case 'admin':
+        module = await import('./modules/admin.js');
+        break;
+      case 'planning':
+        module = await import('./modules/planning.js');
+        break;
+      case 'map':
+        module = await import('./modules/map.js');
+        break;
+      case 'education':
+        module = await import('./modules/education.js');
+        break;
+      case 'maman':
+        module = await import('./modules/maman.js');
+        break;
+      case 'aidants':
+        module = await import('./modules/aidants.js');
+        break;
+      case 'profile':
+        module = await import('./modules/profile.js');
+        break;
+      case 'notifications':
+        module = await import('./modules/notifications.js');
+        break;
+      case 'subscription':
+        module = await import('./modules/subscription.js');
+        break;
+      default:
+        console.warn(`Module ${moduleName} non reconnu`);
+        return null;
+    }
+    
+    moduleCache[moduleName] = module;
+    console.log(`✅ [Lazy] Module ${moduleName} chargé avec succès`);
+    
+    // Déclencher un événement pour que la vue s'affiche
+    window.dispatchEvent(new CustomEvent('module-loaded', { detail: { moduleName, viewName } }));
+    
+    return module;
+    
+  } catch (err) {
+    console.error(`❌ [Lazy] Erreur chargement ${moduleName}:`, err);
+    return null;
+  }
+}
+
+// Attendre le chargement du module puis afficher la vue
+window.addEventListener('module-loaded', async (e) => {
+  const { moduleName, viewName } = e.detail;
+  
+  switch(viewName) {
+    case 'visits':
+      if (moduleCache.visites?.loadVisits) await moduleCache.visites.loadVisits();
+      break;
+    case 'feed':
+      if (moduleCache.messages?.loadFeed) await moduleCache.messages.loadFeed();
+      break;
+    case 'commandes':
+      if (moduleCache.commandes?.loadCommandes) await moduleCache.commandes.loadCommandes();
+      break;
+    case 'patients':
+      if (moduleCache.patients?.loadPatients) await moduleCache.patients.loadPatients();
+      break;
+    case 'billing':
+      if (moduleCache.billing?.loadBilling) await moduleCache.billing.loadBilling();
+      break;
+    case 'dashboard':
+      if (moduleCache.dashboard?.loadAdminDashboard) await moduleCache.dashboard.loadAdminDashboard();
+      break;
+    case 'planning':
+      if (moduleCache.planning?.loadPlanning) await moduleCache.planning.loadPlanning();
+      break;
+    case 'map':
+      if (moduleCache.map?.initLiveMap) await moduleCache.map.initLiveMap();
+      break;
+    case 'education':
+      if (moduleCache.education?.loadEducationPage) await moduleCache.education.loadEducationPage();
+      break;
+    case 'dashboard-maman':
+      if (moduleCache.maman?.loadMamanDashboard) await moduleCache.maman.loadMamanDashboard();
+      break;
+    case 'aidants':
+      if (moduleCache.aidants?.loadAidants) await moduleCache.aidants.loadAidants();
+      break;
+    case 'profile':
+      if (moduleCache.profile?.renderProfilePage) await moduleCache.profile.renderProfilePage();
+      break;
+    case 'notifications':
+      if (moduleCache.notifications?.renderNotificationsPage) await moduleCache.notifications.renderNotificationsPage();
+      break;
+    case 'subscription':
+      if (moduleCache.subscription?.renderSubscriptionPage) await moduleCache.subscription.renderSubscriptionPage();
+      break;
+  }
+});
+
+
+//-----------------------------------------------------
+//---------------------------------------------------------------------
 const messaging = window.messaging;
 
 async function initPushNotifications() {
@@ -2270,7 +2414,6 @@ async function performViewSwitch(viewName) {
         return;
     }
 
-    
     const paymentStatus = localStorage.getItem("payment_status");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isFamily = userRole === "FAMILLE";
@@ -2351,18 +2494,13 @@ async function performViewSwitch(viewName) {
     localStorage.setItem("last_view", viewName);
     AppState.currentView = viewName;
 
-    try {
-        switch (viewName) {
-            case "dashboard": 
-                container.innerHTML = document.getElementById("template-dashboard").innerHTML;
-                await Dashboard.loadAdminDashboard(); 
-                break;
-            case "map": 
-                await MapModule.initLiveMap(); 
-                break;
-            case "patients": 
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+    // ============================================================
+    // 🚀 TEMPLATES DE BASE (affichage immédiat)
+    // ============================================================
+    const templates = {
+        dashboard: '<div class="animate-fadeIn"><div id="dashboard-content" class="space-y-6"></div></div>',
+        map: '<div class="animate-fadeIn h-full" id="map-container"><div id="map" class="h-full w-full rounded-2xl"></div></div>',
+        patients: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">${patientsTitle}</h3>
@@ -2371,57 +2509,21 @@ async function performViewSwitch(viewName) {
                             ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
                         </div>
                         <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    </div>`;
-                await Patients.loadPatients();
-                refreshMicroInteractions();
-                break;
-            case "visits": 
-                container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
-                await Visites.loadVisits(); 
-                break;
-           case "feed":
-                    // Nettoyer l'ancienne souscription Realtime
-                    if (window.cleanupRealtime) window.cleanupRealtime();
-                    
-                    if (!AppState.currentPatient && userRole === "FAMILLE") {
-                        window.switchView("patients");
-                        return;
-                    }
-                    
-                    // 🔥 S'assurer que le patient est bien défini
-                    if (!AppState.currentPatient) {
-                        const patients = await secureFetch("/patients");
-                        if (patients && patients.length > 0) {
-                            AppState.currentPatient = patients[0].id;
-                            localStorage.setItem("current_patient_id", AppState.currentPatient);
-                        }
-                    }
-                    
-                    console.log("🔄 [switchView] Ouverture du feed pour patient:", AppState.currentPatient);
-                    
-                    await window.loadFeed();
-                    break;
-            case "billing": 
-                container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
-                await Billing.loadBilling(); 
-                break;
-            case "aidants": 
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+                    </div>`,
+        visits: '<div class="animate-slideIn pb-32"><div id="visits-list" class="space-y-4"></div></div>',
+        feed: '<div class="animate-fadeIn h-full" id="feed-container"></div>',
+        billing: '<div class="animate-slideIn pb-32"><div id="billing-content"></div></div>',
+        commandes: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${commandesTitle}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${commandesDesc}</p>
                             </div>
-                            ${userRole === 'COORDINATEUR' ? `<button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center"><i class="fa-solid fa-user-plus text-lg"></i></button>` : ''}
+                            ${userRole === "FAMILLE" ? `<button onclick="window.openOrderModal()" class="w-12 h-12 bg-${commandesBtnColor} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center"><i class="fa-solid fa-plus text-xl"></i></button>` : ""}
                         </div>
-                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    </div>`;
-                await Aidants.loadAidants(); 
-                break;
-            case "planning":
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+                        <div id="commandes-list" class="space-y-4"></div>
+                    </div>`,
+        planning: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
@@ -2430,43 +2532,138 @@ async function performViewSwitch(viewName) {
                             ${userRole === "COORDINATEUR" ? `<button onclick="window.openAssignPage()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-calendar-plus"></i></button>` : ""}
                         </div>
                         <div id="planning-list" class="space-y-4"></div>
-                    </div>`;
-                await Planning.loadPlanning();
-                break;
-            case "commandes":
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+                    </div>`,
+        home: '<div class="animate-fadeIn" id="home-content"></div>',
+        profile: '<div class="animate-fadeIn" id="profile-content"></div>',
+        notifications: '<div class="animate-fadeIn" id="notifications-content"></div>',
+        subscription: '<div class="animate-fadeIn" id="subscription-content"></div>',
+        education: '<div class="animate-fadeIn" id="education-content"></div>',
+        "dashboard-maman": '<div class="animate-fadeIn" id="maman-dashboard-content"></div>',
+        aidants: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${commandesTitle}</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${commandesDesc}</p>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
                             </div>
-                            ${userRole === "FAMILLE" ? `
-                                <button onclick="window.openOrderModal()" 
-                                        class="w-12 h-12 bg-${commandesBtnColor} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center">
-                                    <i class="fa-solid fa-plus text-xl"></i>
-                                </button>
-                            ` : ""}
+                            ${userRole === 'COORDINATEUR' ? `<button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center"><i class="fa-solid fa-user-plus text-lg"></i></button>` : ''}
                         </div>
-                        <div id="commandes-list" class="space-y-4"></div>
-                    </div>`;
-                await Commandes.loadCommandes(); 
+                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    </div>`,
+        "rh-dashboard": '<div class="animate-fadeIn" id="rh-content"></div>',
+        "add-patient": '<div class="animate-fadeIn" id="add-patient-content"></div>',
+        "link-family": '<div class="animate-fadeIn" id="link-family-content"></div>',
+        "add-aidant": '<div class="animate-fadeIn" id="add-aidant-content"></div>',
+        "end-visit": '<div class="animate-fadeIn" id="end-visit-content"></div>',
+        "start-visit": '<div class="animate-fadeIn" id="start-visit-content"></div>'
+    };
+
+    // Afficher le template immédiatement
+    container.innerHTML = templates[viewName] || `<div class="animate-fadeIn"><div id="${viewName}-content"></div></div>`;
+
+    // Animation d'entrée
+    container.style.opacity = "0";
+    container.style.transform = "translateY(8px)";
+    container.style.transition = "opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
+    setTimeout(() => {
+        container.style.opacity = "1";
+        container.style.transform = "translateY(0)";
+        updateActiveNavButtons(viewName);
+        updateBottomNav(viewName);
+        setTimeout(() => {
+            if (container) container.style.transition = "";
+        }, 150);
+    }, 10);
+
+    // ============================================================
+    // 🚀 LAZY LOADING DES MODULES
+    // ============================================================
+    try {
+        switch (viewName) {
+            case "dashboard": {
+                const module = await lazyLoadModule('dashboard');
+                if (module?.loadAdminDashboard) await module.loadAdminDashboard();
                 break;
-            case "add-patient": 
-                await Patients.renderAddPatientView(); 
+            }
+            case "map": {
+                const module = await lazyLoadModule('map');
+                if (module?.initLiveMap) await module.initLiveMap();
                 break;
-            case "link-family": 
-                await Patients.renderLinkFamilyView(); 
+            }
+            case "patients": {
+                const module = await lazyLoadModule('patients');
+                if (module?.loadPatients) await module.loadPatients();
+                refreshMicroInteractions();
                 break;
-            case "add-aidant": 
-                await Aidants.renderAddAidantView(); 
+            }
+            case "visits": {
+                const module = await lazyLoadModule('visites');
+                if (module?.loadVisits) await module.loadVisits();
                 break;
-            case "end-visit": 
-                await Visites.renderEndVisitView(); 
-                break;
-            case "start-visit":
+            }
+            case "feed": {
+                if (window.cleanupRealtime) window.cleanupRealtime();
+                
+                if (!AppState.currentPatient && userRole === "FAMILLE") {
+                    window.switchView("patients");
+                    return;
+                }
+                
                 if (!AppState.currentPatient) {
-                    // Récupérer le premier patient si aucun n'est sélectionné
+                    const patients = await secureFetch("/patients");
+                    if (patients && patients.length > 0) {
+                        AppState.currentPatient = patients[0].id;
+                        localStorage.setItem("current_patient_id", AppState.currentPatient);
+                    }
+                }
+                
+                console.log("🔄 [switchView] Ouverture du feed pour patient:", AppState.currentPatient);
+                
+                const module = await lazyLoadModule('messages');
+                if (module?.loadFeed) await module.loadFeed();
+                break;
+            }
+            case "billing": {
+                const module = await lazyLoadModule('billing');
+                if (module?.loadBilling) await module.loadBilling();
+                break;
+            }
+            case "aidants": {
+                const module = await lazyLoadModule('aidants');
+                if (module?.loadAidants) await module.loadAidants();
+                break;
+            }
+            case "planning": {
+                const module = await lazyLoadModule('planning');
+                if (module?.loadPlanning) await module.loadPlanning();
+                break;
+            }
+            case "commandes": {
+                const module = await lazyLoadModule('commandes');
+                if (module?.loadCommandes) await module.loadCommandes();
+                break;
+            }
+            case "add-patient": {
+                const module = await lazyLoadModule('patients');
+                if (module?.renderAddPatientView) await module.renderAddPatientView();
+                break;
+            }
+            case "link-family": {
+                const module = await lazyLoadModule('patients');
+                if (module?.renderLinkFamilyView) await module.renderLinkFamilyView();
+                break;
+            }
+            case "add-aidant": {
+                const module = await lazyLoadModule('aidants');
+                if (module?.renderAddAidantView) await module.renderAddAidantView();
+                break;
+            }
+            case "end-visit": {
+                const module = await lazyLoadModule('visites');
+                if (module?.renderEndVisitView) await module.renderEndVisitView();
+                break;
+            }
+            case "start-visit": {
+                if (!AppState.currentPatient) {
                     const patients = await secureFetch("/patients");
                     if (patients && patients.length > 0) {
                         AppState.currentPatient = patients[0].id;
@@ -2476,71 +2673,73 @@ async function performViewSwitch(viewName) {
                         return;
                     }
                 }
-                await Visites.renderStartVisitView(AppState.currentPatient);
+                const module = await lazyLoadModule('visites');
+                if (module?.renderStartVisitView) await module.renderStartVisitView(AppState.currentPatient);
                 break;
-            case "home": 
-                container.innerHTML = document.getElementById("template-home").innerHTML;
-                renderMobileHub(); 
+            }
+            case "home": {
+                renderMobileHub();
                 break;
-            case "subscription":
-                await Subscription.renderSubscriptionPage();
+            }
+            case "subscription": {
+                const module = await lazyLoadModule('subscription');
+                if (module?.renderSubscriptionPage) await module.renderSubscriptionPage();
                 break;
-            case "rh-dashboard":
-                await Admin.renderRHDashboard();
+            }
+            case "rh-dashboard": {
+                const module = await lazyLoadModule('admin');
+                if (module?.renderRHDashboard) await module.renderRHDashboard();
                 break;
-            case "profile":
-                await Profile.renderProfilePage();
+            }
+            case "profile": {
+                const module = await lazyLoadModule('profile');
+                if (module?.renderProfilePage) await module.renderProfilePage();
                 break;
-            case "notifications":
-                await Notifications.renderNotificationsPage();
+            }
+            case "notifications": {
+                const module = await lazyLoadModule('notifications');
+                if (module?.renderNotificationsPage) await module.renderNotificationsPage();
                 break;
-            case "dashboard-maman":
-                await loadMamanDashboard();
+            }
+            case "dashboard-maman": {
+                const module = await lazyLoadModule('maman');
+                if (module?.loadMamanDashboard) await module.loadMamanDashboard();
                 break;
-            case "maman-planning":
-                if (typeof loadMamanPlanning === 'function') {
-                    await loadMamanPlanning();
+            }
+            case "maman-planning": {
+                const module = await lazyLoadModule('maman');
+                if (module?.loadMamanPlanning) {
+                    await module.loadMamanPlanning();
                 } else {
-                    // Fallback si le module n'est pas chargé
                     const { loadMamanPlanning } = await import("./modules/maman.js");
                     await loadMamanPlanning();
                 }
                 break;
-            case "education":
-                // 🔥 Si ce n'est pas une maman, rediriger vers l'accueil
+            }
+            case "education": {
                 if (!isMaman) {
                     UI.warning("Cette section est réservée aux mamans");
                     window.switchView("home");
                     return;
                 }
-                await loadEducationPage();
+                const module = await lazyLoadModule('education');
+                if (module?.loadEducationPage) await module.loadEducationPage();
                 break;
-                
+            }
         }
-        
-        // Animation d'entrée
-        container.style.opacity = "0";
-        container.style.transform = "translateY(8px)";
-        container.style.transition = "opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
-        setTimeout(() => {
-            container.style.opacity = "1";
-            container.style.transform = "translateY(0)";
-            updateActiveNavButtons(viewName);
-            updateBottomNav(viewName);  // ← ICI
-            setTimeout(() => {
-                if (container) container.style.transition = "";
-            }, 150);
-        }, 10);
 
-                    // Forcer la mise à jour de l'UI aidant si nécessaire
-            if (viewName === 'patients' && localStorage.getItem("user_role") === "AIDANT") {
-                const activePatientId = localStorage.getItem("active_patient_id");
-                if (activePatientId && typeof Visites.refreshAidantUI === 'function') {
+        // Forcer la mise à jour de l'UI aidant si nécessaire
+        if (viewName === 'patients' && localStorage.getItem("user_role") === "AIDANT") {
+            const activePatientId = localStorage.getItem("active_patient_id");
+            if (activePatientId) {
+                const module = await lazyLoadModule('visites');
+                if (module?.refreshAidantUI) {
                     setTimeout(() => {
-                        Visites.refreshAidantUI(activePatientId);
+                        module.refreshAidantUI(activePatientId);
                     }, 100);
                 }
             }
+        }
 
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
@@ -2837,119 +3036,251 @@ window.finishOnboarding = () => {
 };
 
 // ============================================================
-// ÉVÉNEMENTS GLOBAUX
+// ÉVÉNEMENTS GLOBAUX (Version Lazy Loading Compatible)
 // ============================================================
-// ============================================================
-// ÉVÉNEMENTS GLOBAUX
-// ============================================================
+
 window.CONFIG = CONFIG;
 window.AppState = AppState;
 window.login = Auth.handleLogin;
 window.logout = Auth.handleLogout;
-window.refreshAidantUI = Visites.refreshAidantUI;
-window.renderFeed = Messages.renderFeed;
-window.loadPatients = Patients.loadPatients;
-window.loadVisits = Visites.loadVisits;
 window.verifyOTP = Auth.verifyOTP;
+
+// ============================================================
+// FONCTIONS LAZY (chargement dynamique)
+// ============================================================
+
+window.refreshAidantUI = async (patientId) => {
+    const module = await lazyLoadModule('visites');
+    if (module?.refreshAidantUI) module.refreshAidantUI(patientId);
+};
+
+window.renderFeed = async () => {
+    const module = await lazyLoadModule('messages');
+    if (module?.loadFeed) await module.loadFeed();
+};
+
+window.loadPatients = async () => {
+    const module = await lazyLoadModule('patients');
+    if (module?.loadPatients) await module.loadPatients();
+};
+
+window.loadVisits = async () => {
+    const module = await lazyLoadModule('visites');
+    if (module?.loadVisits) await module.loadVisits();
+};
+
+window.loadEducationPage = async () => {
+    const module = await lazyLoadModule('education');
+    if (module?.loadEducationPage) await module.loadEducationPage();
+};
+
+window.loadMamanPlanning = async () => {
+    const module = await lazyLoadModule('maman');
+    if (module?.loadMamanPlanning) await module.loadMamanPlanning();
+};
+
+window.submitAddAidant = async () => {
+    const module = await lazyLoadModule('aidants');
+    if (module?.submitAddAidant) await module.submitAddAidant();
+};
+
+window.openAddAidantModal = async () => {
+    const module = await lazyLoadModule('aidants');
+    if (module?.openAddAidantModal) module.openAddAidantModal();
+};
+
+window.markAsDelivered = async (commandeId) => {
+    const module = await lazyLoadModule('commandes');
+    if (module?.markAsDelivered) await module.markAsDelivered(commandeId);
+};
+
 window.openAddPatient = () => window.switchView('add-patient');
 window.openEndVisit = () => window.switchView('end-visit');
-window.submitAddAidant = Aidants.submitAddAidant;
-window.loadEducationPage = Education.loadEducationPage;
+
 window.openLinkFamilyModal = (id, name) => {
     AppState.tempData = { patientId: id, patientName: name }; 
     window.switchView('link-family');
 };
-window.openAddAidantModal = Aidants.openAddAidantModal;
-
-if (Commandes && typeof Commandes.markAsDelivered === 'function') {
-    window.markAsDelivered = Commandes.markAsDelivered.bind(Commandes);
-    console.log("✅ window.markAsDelivered assignée");
-} else {
-    console.error("❌ Commandes.markAsDelivered n'est pas une fonction");
-}
-
 
 window.viewPatientFeed = async (patientId) => {
     const userRole = localStorage.getItem("user_role");
     const titleElement = document.getElementById("view-title");
     
-    // 🔥 METTRE À JOUR LE PATIENT COURANT
     localStorage.setItem("current_patient_id", patientId);
     AppState.currentPatient = patientId;
     
     console.log("🔄 [viewPatientFeed] Changement de patient vers:", patientId);
     
-    // 🔥 VIDER LE CACHE DES MESSAGES
-    if (window.clearApiCache) {
-        window.clearApiCache();
-    }
-    
-    // 🔥 NETTOYER L'ANCIEN ABONNEMENT REALTIME
-    if (window.cleanupRealtime) {
-        window.cleanupRealtime();
-    }
-    
-    // 🔥 RÉINITIALISER LES MESSAGES
+    if (window.clearApiCache) window.clearApiCache();
+    if (window.cleanupRealtime) window.cleanupRealtime();
     AppState.messages = [];
     
     if (userRole === 'AIDANT') {
         UI.vibrate();
         if (titleElement) titleElement.innerText = "Briefing Patient";
-        await Patients.renderPatientDetailsView(patientId);
+        const module = await lazyLoadModule('patients');
+        if (module?.renderPatientDetailsView) await module.renderPatientDetailsView(patientId);
     } else {
-        // 🔥 FORCER LE REHAVCHARGEMENT COMPLET DU FEED
         await window.switchView("feed");
     }
 };
 
+window.viewPatientDetails = async (patientId) => {
+    const module = await lazyLoadModule('patients');
+    if (module?.renderPatientDetailsView) await module.renderPatientDetailsView(patientId);
+};
 
-
-window.viewPatientDetails = Patients.renderPatientDetailsView;
 window.renderAuthView = renderAuthView;
 window.nextAuthStep = nextAuthStep;
 window.prevAuthStep = prevAuthStep;
+
 window.setPlan = (plan) => {
     registrationData.formule = plan;
     renderAuthView('register', 4);
 };
+
 window.submitRegistration = submitRegistration;
-window.loadMamanPlanning = Maman.loadMamanPlanning;
 window.startOnboarding = startOnboarding;
 window.finishOnboarding = finishOnboarding;
 window.nextOnboarding = nextOnboarding;
-window.setPatientHomeDirect = Patients.setPatientHomeDirect;
-window.openAssignModal = Planning.openAssignModal;
-window.openAssignPage = Planning.openAssignPage;
-window.openOrderModal = Commandes.openOrderModal;
-window.loadPlanning = Planning.loadPlanning;
-window.loadCommandes = Commandes.loadCommandes;
-window.openMissionBriefing = Planning.openMissionBriefing;
-console.log("✅ openMissionBriefing assignée depuis Planning:", typeof window.openMissionBriefing);
-window.loadRegistrations = Admin.loadRegistrations;
-window.confirmActivation = Admin.confirmActivation;
-window.fetchStats = Dashboard.fetchStats;
-window.openActivationPage = Admin.openActivationPage;
-window.confirmCommand = Commandes.confirmCommand;
-window.processValidation = Admin.processValidation;
 
+window.setPatientHomeDirect = async (patientId) => {
+    const module = await lazyLoadModule('patients');
+    if (module?.setPatientHomeDirect) await module.setPatientHomeDirect(patientId);
+};
+
+window.openAssignModal = async () => {
+    const module = await lazyLoadModule('planning');
+    if (module?.openAssignModal) await module.openAssignModal();
+};
+
+window.openAssignPage = async () => {
+    const module = await lazyLoadModule('planning');
+    if (module?.openAssignPage) await module.openAssignPage();
+};
+
+window.openOrderModal = async () => {
+    const module = await lazyLoadModule('commandes');
+    if (module?.openOrderModal) await module.openOrderModal();
+};
+
+window.loadPlanning = async () => {
+    const module = await lazyLoadModule('planning');
+    if (module?.loadPlanning) await module.loadPlanning();
+};
+
+window.loadCommandes = async () => {
+    const module = await lazyLoadModule('commandes');
+    if (module?.loadCommandes) await module.loadCommandes();
+};
+
+window.openMissionBriefing = (patientId, planningId) => {
+    if (typeof window.switchView === 'function') {
+        localStorage.setItem("active_planning_id", planningId);
+        window.viewPatientFeed(patientId);
+    }
+};
+
+window.loadRegistrations = async () => {
+    const module = await lazyLoadModule('admin');
+    if (module?.loadRegistrations) await module.loadRegistrations();
+};
+
+window.confirmActivation = (id, email, nom, role) => {
+    window.openActivationPage(id, email, nom, role);
+};
+
+window.fetchStats = async () => {
+    const module = await lazyLoadModule('dashboard');
+    if (module?.fetchStats) await module.fetchStats();
+};
+
+window.openActivationPage = async (id, email, nom, role) => {
+    const module = await lazyLoadModule('admin');
+    if (module?.openActivationPage) await module.openActivationPage(id, email, nom, role);
+};
+
+window.confirmCommand = async (commandeId) => {
+    const module = await lazyLoadModule('commandes');
+    if (module?.confirmCommand) await module.confirmCommand(commandeId);
+};
+
+window.processValidation = async (id, email, nom, role) => {
+    console.log("🔵 Activation déclenchée pour:", { id, email, nom, role });
+    
+    const notes = document.getElementById('val-notes')?.value || '';
+    
+    Swal.fire({ 
+        title: 'Activation en cours...', 
+        didOpen: () => Swal.showLoading(), 
+        allowOutsideClick: false 
+    });
+
+    try {
+        const result = await secureFetch('/admin/validate-member', {
+            method: 'POST',
+            body: JSON.stringify({ 
+                user_id: id, 
+                email: email, 
+                nom: nom, 
+                role: role, 
+                notes: notes 
+            })
+        });
+        
+        console.log("✅ Réponse serveur:", result);
+        
+        Swal.fire({
+            icon: "success",
+            title: "✅ Activation réussie !",
+            text: `Le compte de ${nom} a été activé.`,
+            confirmButtonColor: "#10B981",
+            timer: 2000,
+            showConfirmButton: false
+        });
+        
+        setTimeout(() => {
+            window.switchView('dashboard');
+        }, 500);
+        
+    } catch(error) {
+        console.error("❌ Erreur activation:", error);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: error.message,
+            confirmButtonColor: "#F43F5E"
+        });
+    }
+};
+
+// quickValidate (gestion dynamique)
 if (typeof quickValidate === 'function') {
     window.quickValidate = quickValidate;
-    console.log("✅ window.quickValidate assignée");
+    console.log("✅ window.quickValidate assignée (statique)");
 } else {
-    console.error("❌ quickValidate n'est pas une fonction");
+    window.quickValidate = async (visiteId, statut) => {
+        const module = await lazyLoadModule('dashboard');
+        if (module?.quickValidate) await module.quickValidate(visiteId, statut);
+    };
+    console.log("✅ window.quickValidate assignée (lazy)");
 }
+
+window.renderRHDashboard = async () => {
+    const module = await lazyLoadModule('admin');
+    if (module?.renderRHDashboard) await module.renderRHDashboard();
+};
+
 window.setThemeColor = setThemeColor;
 window.openModernSelector = openModernSelector;
 window.showToast = showToast;
 window.UI = UI;
 window.playSound = playSound;
-window.renderRHDashboard = Admin.renderRHDashboard;
-window.openAssignModal = Planning.openAssignPage;
+window.syncService = syncService;
 
-
-
-
+// ============================================================
 // Événements pour la page d'assignation (dropdowns)
+// ============================================================
 document.addEventListener('click', (e) => {
     const aidantItem = e.target.closest('.aidant-item');
     if (aidantItem) {
@@ -3009,9 +3340,9 @@ document.addEventListener('click', (e) => {
     }
 });
 
-
-
+// ============================================================
 // Met à jour la couleur des icônes du menu du bas
+// ============================================================
 function updateActiveNavButtons(viewName) {
     document.querySelectorAll('.nav-btn').forEach(btn => {
         const btnView = btn.getAttribute('data-view');
@@ -3022,60 +3353,17 @@ function updateActiveNavButtons(viewName) {
         }
     });
 }
-// ============================================================
-// VALIDATION D'ACTIVATION DE COMPTE
-// ============================================================
-window.processValidation = async (id, email, nom, role) => {
-    console.log("🔵 Activation déclenchée pour:", { id, email, nom, role });
-    
-    const notes = document.getElementById('val-notes')?.value || '';
-    
-    Swal.fire({ 
-        title: 'Activation en cours...', 
-        didOpen: () => Swal.showLoading(), 
-        allowOutsideClick: false 
+
+function updateBottomNav(viewName) {
+    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        const btnView = btn.getAttribute('onclick')?.match(/switchView\('([^']+)'\)/)?.[1];
+        if (btnView === viewName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
     });
-
-    try {
-        // ✅ secureFetch est maintenant importé
-        const result = await secureFetch('/admin/validate-member', {
-            method: 'POST',
-            body: JSON.stringify({ 
-                user_id: id, 
-                email: email, 
-                nom: nom, 
-                role: role, 
-                notes: notes 
-            })
-        });
-        
-        console.log("✅ Réponse serveur:", result);
-        
-        Swal.fire({
-            icon: "success",
-            title: "✅ Activation réussie !",
-            text: `Le compte de ${nom} a été activé.`,
-            confirmButtonColor: "#10B981",
-            timer: 2000,
-            showConfirmButton: false
-        });
-        
-        setTimeout(() => {
-            window.switchView('dashboard');
-        }, 500);
-        
-    } catch(error) {
-        console.error("❌ Erreur activation:", error);
-        Swal.fire({
-            icon: "error",
-            title: "Erreur",
-            text: error.message,
-            confirmButtonColor: "#F43F5E"
-        });
-    }
-};
-
-
+}
 
 // ============================================================
 // GESTION DE L'INSTALLATION PWA
@@ -3085,34 +3373,25 @@ let deferredPrompt = null;
 let installPromptShown = false;
 let installReminderShown = false;
 
-// Stocker si l'utilisateur a déjà refusé
 const INSTALL_DECLINED_KEY = 'pwa_install_declined';
 const INSTALL_REMINDER_COUNT = 'pwa_reminder_count';
 
-// Vérifier si l'utilisateur a déjà refusé
 function hasDeclinedInstall() {
     return localStorage.getItem(INSTALL_DECLINED_KEY) === 'true';
 }
 
-// Marquer que l'utilisateur a refusé
 function setDeclinedInstall() {
     localStorage.setItem(INSTALL_DECLINED_KEY, 'true');
 }
 
-// Incrémenter le compteur de rappels
 function incrementReminderCount() {
     const count = parseInt(localStorage.getItem(INSTALL_REMINDER_COUNT) || '0');
     localStorage.setItem(INSTALL_REMINDER_COUNT, count + 1);
     return count + 1;
 }
 
-// Afficher la bannière d'installation
-// Afficher la bannière d'installation (version élégante)
 function showInstallBanner(message, isReminder = false) {
-    // Ne pas montrer si déjà refusé
     if (hasDeclinedInstall()) return;
-    
-    // Ne pas montrer si déjà installé
     if (isAppInstalled()) return;
     
     const banner = document.createElement('div');
@@ -3152,20 +3431,13 @@ function showInstallBanner(message, isReminder = false) {
     
     document.body.appendChild(banner);
     
-    // Ajouter l'animation CSS
     if (!document.getElementById('banner-animation-style')) {
         const style = document.createElement('style');
         style.id = 'banner-animation-style';
         style.textContent = `
             @keyframes slideUpBanner {
-                from {
-                    opacity: 0;
-                    transform: translateY(100px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
+                from { opacity: 0; transform: translateY(100px); }
+                to { opacity: 1; transform: translateY(0); }
             }
         `;
         document.head.appendChild(style);
@@ -3194,48 +3466,31 @@ function showInstallBanner(message, isReminder = false) {
     
     document.getElementById('install-banner-close').onclick = () => {
         banner.remove();
-        if (!isReminder) {
-            setDeclinedInstall();
-        }
+        if (!isReminder) setDeclinedInstall();
     };
     
     installPromptShown = true;
     
-    // Auto-fermeture après 8 secondes
     setTimeout(() => {
-        if (document.getElementById('pwa-install-banner')) {
-            banner.remove();
-        }
+        if (document.getElementById('pwa-install-banner')) banner.remove();
     }, 8000);
 }
-// Vérifier si l'application est déjà installée
+
 function isAppInstalled() {
-    // Sur mobile, vérifier si en mode standalone
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-        return true;
-    }
-    // Sur iOS
-    if (window.navigator.standalone === true) {
-        return true;
-    }
+    if (window.matchMedia('(display-mode: standalone)').matches) return true;
+    if (window.navigator.standalone === true) return true;
     return false;
 }
 
-// Écouter l'événement d'installation
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    
-    // Ne pas montrer si déjà installé
     if (isAppInstalled()) return;
-    
-    // Montrer la bannière après un court délai
     setTimeout(() => {
         showInstallBanner("Installez l'application pour un accès rapide", false);
     }, 2000);
 });
 
-// Rappel après 3 visites si non installé
 function checkReminderForInstall() {
     if (isAppInstalled()) return;
     if (hasDeclinedInstall()) return;
@@ -3243,7 +3498,6 @@ function checkReminderForInstall() {
     
     const reminderCount = parseInt(localStorage.getItem(INSTALL_REMINDER_COUNT) || '0');
     
-    // Rappel après la 3ème visite
     if (reminderCount >= 2 && reminderCount < 5) {
         setTimeout(() => {
             showInstallBanner("Pensez à installer l'application pour y accéder plus facilement !", true);
@@ -3251,16 +3505,11 @@ function checkReminderForInstall() {
         }, 3000);
     }
     
-    // Incrémenter le compteur de visites
     incrementReminderCount();
 }
 
-// Exécuter le rappel au chargement
-setTimeout(() => {
-    checkReminderForInstall();
-}, 5000);
+setTimeout(() => { checkReminderForInstall(); }, 5000);
 
-// Détecter si l'app a été installée (sur iOS)
 window.addEventListener('appinstalled', () => {
     console.log('✅ PWA installée avec succès');
     localStorage.setItem(INSTALL_DECLINED_KEY, 'false');
@@ -3269,18 +3518,9 @@ window.addEventListener('appinstalled', () => {
     showToast("Merci d'avoir installé l'application !", "success");
 });
 
-
-
-
-
-window.syncService = syncService;
-
-
-
-
-/**
- * 📱 PULL TO REFRESH (Mobile)
- */
+// ============================================================
+// 📱 PULL TO REFRESH (Mobile)
+// ============================================================
 function initPullToRefresh() {
     let touchStartY = 0;
     let isRefreshing = false;
@@ -3288,7 +3528,6 @@ function initPullToRefresh() {
     
     if (!mainContent) return;
     
-    // Créer l'indicateur
     let indicator = document.getElementById('pull-to-refresh');
     if (!indicator) {
         indicator = document.createElement('div');
@@ -3323,7 +3562,6 @@ function initPullToRefresh() {
             isRefreshing = true;
             indicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Actualisation...';
             
-            // Rafraîchir la vue courante
             const currentView = AppState.currentView;
             if (currentView && window.switchView) {
                 await window.switchView(currentView);
@@ -3339,18 +3577,10 @@ function initPullToRefresh() {
     });
 }
 
-function updateBottomNav(viewName) {
-    document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
-        const btnView = btn.getAttribute('onclick')?.match(/switchView\('([^']+)'\)/)?.[1];
-        if (btnView === viewName) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-}
-
 // Appeler dans initApp()
 initPullToRefresh();
 
+// ============================================================
+// DÉMARRAGE DE L'APPLICATION
+// ============================================================
 initApp();
