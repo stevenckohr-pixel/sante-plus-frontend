@@ -1534,28 +1534,10 @@ function renderMobileHub() {
     const isAidant = userRole === "AIDANT";
     const isCoordinateur = userRole === "COORDINATEUR";
     
-    // 🔥 COULEURS DYNAMIQUES - OR pour Admin et Aidant
-    let primaryColor = '#059669'; // vert par défaut (Senior)
-    let primaryLight = '#ECFDF5'; // vert clair par défaut
-    let goldColor = '#FFD700';
-    let tileBgGradient = ''; // fond dégradé pour les tuiles
-    
-    if (isMaman) {
-        primaryColor = '#E11D48';
-        primaryLight = '#FFF1F2';
-        tileBgGradient = 'linear-gradient(135deg, #E11D48 0%, #BE185D 100%)';
-    } else if (isCoordinateur) {
-        primaryColor = '#D4AF37';  // OR pour Admin
-        primaryLight = '#FEF9E6';  // Beige clair
-        tileBgGradient = 'linear-gradient(135deg, #D4AF37 0%, #B8942E 100%)'; // Dégradé OR
-    } else if (isAidant) {
-        primaryColor = '#C9A84C';  // OR doux pour Aidant
-        primaryLight = '#FEF9E6';  // Beige clair
-        tileBgGradient = 'linear-gradient(135deg, #C9A84C 0%, #B8942E 100%)'; // Dégradé OR doux
-    } else {
-        // Senior : fond vert dégradé
-        tileBgGradient = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
-    }
+    // Couleurs dynamiques
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
+    const goldColor = '#FFD700';
     
     // Configuration de la bannière
     let bannerIcon = 'fa-chart-pie';
@@ -1599,9 +1581,9 @@ function renderMobileHub() {
 
     // Générer le HTML de l'accueil
     container.innerHTML = `
-        <div class="animate-fadeIn hub-container" style="background: #F8FAFC; padding-bottom: 20px;">
+        <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 20px;">
             <!-- Bannière de bienvenue -->
-            <div class="welcome-banner" style="background: ${tileBgGradient}; border-radius: 24px; padding: 24px; margin-bottom: 20px;">
+            <div style="background: ${primaryColor}; border-radius: 24px; padding: 24px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
@@ -1621,7 +1603,7 @@ function renderMobileHub() {
             </div>
             
             <!-- Section info rapide -->
-            <div class="info-card" style="background: white; border-radius: 20px; padding: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+            <div style="background: white; border-radius: 20px; padding: 14px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <p style="font-size: 10px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">${isMaman ? 'Dernière activité' : (isAidant ? 'Prochaine mission' : 'Prochaine intervention')}</p>
@@ -1635,26 +1617,25 @@ function renderMobileHub() {
             
             <!-- Titre menu -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h4 class="menu-title" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${primaryColor};">MENU PRINCIPAL</h4>
+                <h4 style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${primaryColor};">MENU PRINCIPAL</h4>
                 <span style="font-size: 9px; color: #94A3B8;">${filteredMenu.length} services</span>
             </div>
             
-            <!-- Grille des tuiles - AVEC FOND DÉGRADÉ -->
-            <div class="menu-grid" id="menu-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <!-- Grille des tuiles -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
                 ${filteredMenu.map((item, index) => `
                     <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
-                         class="menu-tile"
-                         style="background: ${tileBgGradient}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
+                         style="background: ${primaryColor}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
                          ontouchstart="this.style.transform='scale(0.97)'"
                          ontouchend="this.style.transform='scale(1)'"
                          onmousedown="this.style.transform='scale(0.97)'"
                          onmouseup="this.style.transform='scale(1)'">
-                        <div class="menu-tile-icon" style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                            <i class="fa-solid ${item.icon}" style="color: white; font-size: 22px;"></i>
+                        <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                            <i class="fa-solid ${item.icon}" style="color: ${goldColor}; font-size: 22px;"></i>
                         </div>
                         <div>
-                            <p class="tile-label" style="font-weight: 700; color: white; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
-                            <p class="tile-desc" style="font-size: 10px; color: rgba(255,255,255,0.8);">${item.desc}</p>
+                            <p style="font-weight: 700; color: white; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
+                            <p style="font-size: 10px; color: rgba(255,255,255,0.7);">${item.desc}</p>
                         </div>
                         <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
                     </div>
@@ -1666,7 +1647,7 @@ function renderMobileHub() {
     // Initialiser les badges
     initHomeBadges();
     
-    // Fonctions internes (inchangées)
+    // Fonctions internes
     function initHomeBadges() {
         refreshBadges();
         
@@ -1764,6 +1745,7 @@ function renderMobileHub() {
         }
     }
 }
+
 
 // Fonction utilitaire
 function escapeHtml(str) {
