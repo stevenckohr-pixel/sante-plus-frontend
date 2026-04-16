@@ -1,18 +1,16 @@
+// js/modules/admin.js - VERSION COMPLÈTE ET PROPRE
 import { secureFetch } from "../core/api.js";
 import { UI, openModernSelector } from "../core/utils.js";
-
-
-// ✅ Forcer l'export global immédiatement
-window.openAssignModal = null;
-window.openAssignModalWithAidant = null;
-window.openAssignModalWithPatient = null;
-
+import { CONFIG } from "../core/config.js";
 
 // Variables globales pour le dashboard RH
 let rhData = null;
 let currentRHTab = 'aidants';
 
-// Ajoute cette fonction au début du fichier admin.js
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
+
 function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -23,11 +21,9 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Fonction sécurisée pour formater les dates
 function formatDateSafe(dateString) {
     if (!dateString) return 'Date inconnue';
     try {
-        // Si c'est déjà un objet Date
         if (dateString instanceof Date) {
             if (isNaN(dateString.getTime())) return 'Date inconnue';
             return dateString.toLocaleDateString('fr-FR', {
@@ -36,8 +32,6 @@ function formatDateSafe(dateString) {
                 year: 'numeric'
             });
         }
-        
-        // Si c'est une chaîne
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return 'Date inconnue';
         return date.toLocaleDateString('fr-FR', {
@@ -51,9 +45,10 @@ function formatDateSafe(dateString) {
     }
 }
 
-/**
- * 📥 CHARGER LES INSCRIPTIONS EN ATTENTE (Coordinateur)
- */
+// ============================================================
+// INSCRIPTIONS EN ATTENTE
+// ============================================================
+
 export async function loadRegistrations() {
     const tableBody = document.getElementById('pending-table-body');
     const mobileList = document.getElementById('pending-mobile-list');
@@ -61,7 +56,6 @@ export async function loadRegistrations() {
     if (!tableBody && !mobileList) return;
 
     try {
-        // ✅ CORRECTION : secureFetch retourne déjà les données
         const pending = await secureFetch('/admin/pending-registrations');
 
         if (pending.length === 0) {
@@ -74,7 +68,7 @@ export async function loadRegistrations() {
             return;
         }
 
-        // VERSION DESKTOP (TABLEAU)
+        // Version Desktop
         if (tableBody) {
             tableBody.innerHTML = pending.map(req => {
                 const patient = req.patients && req.patients[0];
@@ -116,7 +110,7 @@ export async function loadRegistrations() {
             }).join('');
         }
 
-        // VERSION MOBILE (CARTES)
+        // Version Mobile
         if (mobileList) {
             mobileList.innerHTML = pending.map(req => {
                 const patient = req.patients && req.patients[0];
@@ -129,7 +123,6 @@ export async function loadRegistrations() {
                             </div>
                             <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">${req.role || 'FAMILLE'}</span>
                         </div>
-                        
                         ${patient ? `
                             <div class="bg-slate-50 p-3 rounded-xl mb-4 border border-slate-100">
                                 <div class="flex justify-between items-center">
@@ -143,11 +136,9 @@ export async function loadRegistrations() {
                                 </div>
                             </div>
                         ` : '<div class="bg-slate-50 p-3 rounded-xl mb-4 text-center text-slate-400 text-xs">Aucun patient lié</div>'}
-
                         <div class="flex items-center justify-between text-[10px] text-slate-400 mb-4">
                             <span><i class="fa-regular fa-calendar mr-1"></i> ${formatDateSafe(req.created_at)}</span>
                         </div>
-
                         <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
                                 class="w-full bg-emerald-500 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-sm active:scale-95 transition-all">
                             ✅ Activer le dossier
@@ -159,18 +150,19 @@ export async function loadRegistrations() {
 
     } catch (e) { 
         console.error("Erreur chargement admin:", e);
-        
         if (tableBody) {
-            tableBody.innerHTML = '<td><td colspan="5" class="p-10 text-center text-rose-500">Erreur de chargement</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-rose-500">Erreur de chargement</td></tr>';
         }
         if (mobileList) {
             mobileList.innerHTML = '<div class="p-6 text-center text-rose-500 bg-white rounded-2xl border border-rose-100">Erreur de chargement</div>';
         }
     }
 }
-/**
- * 📄 PAGE D'ACTIVATION D'UN COMPTE
- */
+
+// ============================================================
+// PAGE D'ACTIVATION
+// ============================================================
+
 export async function openActivationPage(id, email, nom, role) {
     const container = document.getElementById("view-container");
     
@@ -193,7 +185,6 @@ export async function openActivationPage(id, email, nom, role) {
                     <p class="text-xs text-blue-600 font-bold">${email} • ${role}</p>
                 </div>
 
-                <!-- Option 1: Activation directe -->
                 <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
                     <div class="flex items-center justify-between">
                         <div>
@@ -207,15 +198,12 @@ export async function openActivationPage(id, email, nom, role) {
                     </div>
                 </div>
 
-                <!-- Option 2: Message personnalisé -->
                 <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
                     <p class="text-[11px] font-black text-amber-700 mb-2">✏️ Activation avec message personnalisé</p>
                     <p class="text-[9px] text-amber-600 mb-3">Le message ci-dessous sera AJOUTÉ dans l'email de bienvenue</p>
-                    
                     <textarea id="val-notes" rows="4" 
                               class="w-full p-3 bg-white border border-amber-200 rounded-xl text-sm font-medium outline-none focus:border-emerald-300"
-                              placeholder="Écrivez votre message personnalisé ici...&#10;&#10;Exemple:&#10;Bienvenue dans notre service !&#10;Votre compte est maintenant actif.&#10;N'hésitez pas à nous contacter pour toute question."></textarea>
-                    
+                              placeholder="Écrivez votre message personnalisé ici..."></textarea>
                     <button onclick="window.activateWithCustomEmail('${id}', '${email}', '${nom}', '${role}')" 
                             class="w-full mt-4 py-3 rounded-xl bg-amber-600 text-white font-black text-[10px] uppercase shadow-lg">
                         Activer avec message personnalisé
@@ -225,19 +213,15 @@ export async function openActivationPage(id, email, nom, role) {
         </div>
     `;
 }
-/**
- * ✅ TRAITER LA VALIDATION D'UN COMPTE
- */
 
-
-// Alias pour compatibilité
 window.confirmActivation = (id, email, nom, role) => {
     openActivationPage(id, email, nom, role);
 };
 
-/**
- * 📊 PAGE : TABLEAU DE BORD RH (Coordinateur)
- */
+// ============================================================
+// DASHBOARD RH
+// ============================================================
+
 export async function renderRHDashboard() {
     const container = document.getElementById("view-container");
     
@@ -303,9 +287,6 @@ export async function renderRHDashboard() {
     document.getElementById("tab-patients").onclick = () => showRHTab('patients');
 }
 
-/**
- * 📥 CHARGER LES DONNÉES DU DASHBOARD RH
- */
 async function loadRHDashboardData() {
     const contentDiv = document.getElementById("rh-content");
     contentDiv.innerHTML = `
@@ -319,15 +300,12 @@ async function loadRHDashboardData() {
     `;
 
     try {
-        // ✅ CORRECTION : secureFetch retourne déjà les données
         rhData = await secureFetch("/assignments/full-dashboard");
         
-        // ✅ Vérifier que rhData n'est pas null
         if (!rhData) {
             throw new Error("Aucune donnée reçue du serveur");
         }
         
-        // Maintenant on peut accéder aux propriétés
         document.getElementById("stat-aidants").innerText = rhData.total_aidants || 0;
         document.getElementById("stat-patients").innerText = rhData.total_patients || 0;
         document.getElementById("stat-assignments").innerText = rhData.total_assignments || 0;
@@ -348,9 +326,6 @@ async function loadRHDashboardData() {
     }
 }
 
-/**
- * 🔄 AFFICHER L'ONGLET AIDANTS OU PATIENTS
- */
 function showRHTab(tab) {
     currentRHTab = tab;
     
@@ -372,9 +347,6 @@ function showRHTab(tab) {
     }
 }
 
-/**
- * 📋 AFFICHER LA LISTE DES AIDANTS
- */
 function renderAidantsList() {
     const container = document.getElementById("rh-content");
     
@@ -462,9 +434,6 @@ function renderAidantsList() {
     `;
 }
 
-/**
- * 📋 AFFICHER LA LISTE DES PATIENTS
- */
 function renderPatientsList() {
     const container = document.getElementById("rh-content");
     
@@ -479,17 +448,12 @@ function renderPatientsList() {
         return;
     }
 
-    // 🔧 Créer un map des assignations par patient_id en utilisant rhData.assignments
     const assignmentMap = {};
-    
-    // Méthode 1: Si rhData a un tableau assignments
     if (rhData.assignments && rhData.assignments.length) {
         rhData.assignments.forEach(assign => {
             assignmentMap[assign.patient_id] = assign.id;
         });
-    }
-    // Méthode 2: Sinon, parcourir les aidants
-    else if (rhData.aidants) {
+    } else if (rhData.aidants) {
         rhData.aidants.forEach(aidant => {
             if (aidant.patients_assignes) {
                 aidant.patients_assignes.forEach(assign => {
@@ -498,18 +462,11 @@ function renderPatientsList() {
             }
         });
     }
-    
-    console.log("📋 assignmentMap créé:", assignmentMap);
 
     container.innerHTML = `
         <div class="space-y-4">
             ${rhData.patients.map(patient => {
-                // 🔧 Récupérer l'ID d'assignation
                 const assignmentId = assignmentMap[patient.id];
-                
-                // 🔧 Pour debug
-                console.log(`Patient: ${patient.nom_complet}, ID: ${patient.id}, Assignment: ${assignmentId}`);
-                
                 return `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                     <div class="px-5 py-4 ${patient.aidant_assigne ? 'bg-gradient-to-r from-emerald-700 to-emerald-800' : 'bg-gradient-to-r from-slate-600 to-slate-700'}">
@@ -549,16 +506,10 @@ function renderPatientsList() {
                                 <p class="text-[10px] text-slate-500">📞 ${patient.aidant_assigne.telephone || 'Non renseigné'}</p>
                             </div>
                         </div>
-                                <button onclick="window.unassignPatientFromPatient('${assignmentId}', '${patient.nom_complet}', '${patient.aidant_assigne.nom}')" 
-                                        class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
-                                    <i class="fa-solid fa-link-slash"></i> Délier
-                                </button>
-                    </div>
-                ` : patient.aidant_assigne && !assignmentId ? `
-                    <div class="text-center py-6 bg-amber-50 rounded-xl border border-amber-100">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-500 text-2xl mb-2"></i>
-                        <p class="text-xs text-amber-600">Erreur de liaison - ID manquant</p>
-                        <p class="text-[9px] text-amber-500">Veuillez contacter le support</p>
+                        <button onclick="window.unassignPatientFromPatient('${assignmentId}', '${patient.nom_complet}', '${patient.aidant_assigne.nom}')" 
+                                class="px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors text-xs font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-link-slash"></i> Délier
+                        </button>
                     </div>
                 ` : `
                     <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
@@ -570,7 +521,6 @@ function renderPatientsList() {
                         </button>
                     </div>
                 `}
-                        
                         ${patient.famille ? `
                             <div class="mt-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100">
                                 <div class="flex items-center gap-2 mb-2">
@@ -587,19 +537,14 @@ function renderPatientsList() {
         </div>
     `;
 }
-// ============================================
-// ASSIGNATIONS - MODALE ET FONCTIONS
-// ============================================
 
-/**
- * 🔓 OUVERTURE DE LA MODALE D'ASSIGNATION
- */
-window.openAssignModal = async () => {
-    const [aidantsRes, patientsRes] = await Promise.all([
-        secureFetch("/assignments/available-aidants"),
-        secureFetch("/assignments/unassigned-patients")
-    ]);
-    
+// ============================================================
+// ASSIGNATIONS - FONCTIONS PRINCIPALES
+// ============================================================
+
+async function openAssignModal() {
+    const aidants = await secureFetch("/assignments/available-aidants");
+    const patients = await secureFetch("/assignments/unassigned-patients");
     
     const preSelectedAidant = localStorage.getItem("pre_selected_aidant");
     const preSelectedPatient = localStorage.getItem("pre_selected_patient");
@@ -743,28 +688,19 @@ window.openAssignModal = async () => {
             Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
         }
     }
-};
+}
 
-/**
- * 🔓 OUVERTURE DE LA MODALE D'ASSIGNATION AVEC AIDANT PRÉ-SÉLECTIONNÉ
- */
-window.openAssignModalWithAidant = (aidantId) => {
+function openAssignModalWithAidant(aidantId) {
     localStorage.setItem("pre_selected_aidant", aidantId);
-    window.openAssignModal();
-};
+    openAssignModal();
+}
 
-/**
- * 🔓 OUVERTURE DE LA MODALE D'ASSIGNATION AVEC PATIENT PRÉ-SÉLECTIONNÉ
- */
-window.openAssignModalWithPatient = (patientId, patientNom) => {
+function openAssignModalWithPatient(patientId, patientNom) {
     localStorage.setItem("pre_selected_patient", patientId);
-    window.openAssignModal();
-};
+    openAssignModal();
+}
 
-/**
- * ❌ DÉLIER UN PATIENT D'UN AIDANT
- */
-window.unassignPatient = async (assignmentId, aidantNom, patientNom) => {
+async function unassignPatient(assignmentId, aidantNom, patientNom) {
     const { value: raison } = await Swal.fire({
         title: "Délier le patient",
         text: `Retirer ${patientNom} de ${aidantNom} ?`,
@@ -788,14 +724,9 @@ window.unassignPatient = async (assignmentId, aidantNom, patientNom) => {
             Swal.fire("Erreur", err.message, "error");
         }
     }
-};
+}
 
-/**
- * ❌ DÉLIER UN PATIENT DEPUIS LA VUE PATIENT
- */
-window.unassignPatientFromPatient = async (assignmentId, patientName, aidantName) => {
-    console.log("🔍 Suppression appelée avec ID:", assignmentId);
-    
+async function unassignPatientFromPatient(assignmentId, patientName, aidantName) {
     if (!assignmentId) {
         Swal.fire("Erreur", "ID d'assignation manquant", "error");
         return;
@@ -830,8 +761,6 @@ window.unassignPatientFromPatient = async (assignmentId, patientName, aidantName
         }
         
         Swal.fire({ icon: "success", title: "Assignation supprimée", timer: 1500, showConfirmButton: false });
-        
-        // Recharger la vue
         renderRHDashboard();
         
     } catch (err) {
@@ -839,13 +768,11 @@ window.unassignPatientFromPatient = async (assignmentId, patientName, aidantName
         console.error("❌ Erreur:", err);
         Swal.fire("Erreur", err.message, "error");
     }
-};
+}
 
-// Activation avec email par défaut
-window.activateWithDefaultEmail = async (id, email, nom, role) => {
+async function activateWithDefaultEmail(id, email, nom, role) {
     Swal.fire({ 
         title: 'Activation...', 
-        text: 'Envoi de l\'email automatique',
         didOpen: () => Swal.showLoading(), 
         allowOutsideClick: false 
     });
@@ -872,10 +799,8 @@ window.activateWithDefaultEmail = async (id, email, nom, role) => {
             showConfirmButton: false
         });
         
-        // ✅ FORCER LE RECHARGEMENT DE LA LISTE DES INSCRIPTIONS
         await refreshPendingRegistrations();
         
-        // Rester sur la même page mais rafraîchir les données
         setTimeout(() => {
             window.switchView('dashboard');
         }, 500);
@@ -888,10 +813,9 @@ window.activateWithDefaultEmail = async (id, email, nom, role) => {
             confirmButtonColor: "#F43F5E"
         });
     }
-};
+}
 
-// Activation avec message personnalisé
-window.activateWithCustomEmail = async (id, email, nom, role) => {
+async function activateWithCustomEmail(id, email, nom, role) {
     const notes = document.getElementById('val-notes')?.value;
     
     if (!notes || notes.trim() === '') {
@@ -906,7 +830,6 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
     
     Swal.fire({ 
         title: 'Activation...', 
-        text: 'Envoi de l\'email avec votre message',
         didOpen: () => Swal.showLoading(), 
         allowOutsideClick: false 
     });
@@ -933,7 +856,6 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
             showConfirmButton: false
         });
         
-        // ✅ FORCER LE RECHARGEMENT DE LA LISTE DES INSCRIPTIONS
         await refreshPendingRegistrations();
         
         setTimeout(() => {
@@ -948,15 +870,12 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
             confirmButtonColor: "#F43F5E"
         });
     }
-};
+}
 
-// ✅ NOUVELLE FONCTION : Rafraîchir la liste des inscriptions
 async function refreshPendingRegistrations() {
     try {
-        // Recharger les données depuis le serveur
         const pending = await secureFetch('/admin/pending-registrations');
         
-        // Mettre à jour l'affichage desktop
         const tableBody = document.getElementById('pending-table-body');
         if (tableBody) {
             if (pending.length === 0) {
@@ -990,20 +909,19 @@ async function refreshPendingRegistrations() {
                             </td>
                             <td class="p-4 text-[11px] text-slate-400">
                                 ${formatDateSafe(req.created_at)}
-                            </td>
+                             </td>
                             <td class="p-4 text-right">
                                 <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
                                         class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase shadow-sm active:scale-95 transition-all">
                                     Activer
                                 </button>
                              </td>
-                         </tr>
+                          </tr>
                     `;
                 }).join('');
             }
         }
         
-        // Mettre à jour l'affichage mobile
         const mobileList = document.getElementById('pending-mobile-list');
         if (mobileList) {
             if (pending.length === 0) {
@@ -1020,7 +938,6 @@ async function refreshPendingRegistrations() {
                                 </div>
                                 <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[9px] font-bold uppercase">${req.role || 'FAMILLE'}</span>
                             </div>
-                            
                             ${patient ? `
                                 <div class="bg-slate-50 p-3 rounded-xl mb-4 border border-slate-100">
                                     <div class="flex justify-between items-center">
@@ -1034,11 +951,9 @@ async function refreshPendingRegistrations() {
                                     </div>
                                 </div>
                             ` : '<div class="bg-slate-50 p-3 rounded-xl mb-4 text-center text-slate-400 text-xs">Aucun patient lié</div>'}
-
                             <div class="flex items-center justify-between text-[10px] text-slate-400 mb-4">
                                 <span><i class="fa-regular fa-calendar mr-1"></i> ${formatDateSafe(req.created_at)}</span>
                             </div>
-
                             <button onclick="window.openActivationPage('${req.id}', '${req.email}', '${req.nom}', '${req.role}')" 
                                     class="w-full bg-emerald-500 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-sm active:scale-95 transition-all">
                                 ✅ Activer le dossier
@@ -1049,7 +964,6 @@ async function refreshPendingRegistrations() {
             }
         }
         
-        // ✅ AUSSI RAFRAÎCHIR LES STATISTIQUES DU DASHBOARD
         if (typeof window.fetchStats === 'function') {
             await window.fetchStats();
         }
@@ -1059,62 +973,20 @@ async function refreshPendingRegistrations() {
     }
 }
 
+// ============================================================
+// ✅ EXPOSITION GLOBALE (GARDE TOUT FONCTIONNEL)
+// ============================================================
 
+window.openAssignModal = openAssignModal;
+window.openAssignModalWithAidant = openAssignModalWithAidant;
+window.openAssignModalWithPatient = openAssignModalWithPatient;
+window.unassignPatient = unassignPatient;
+window.unassignPatientFromPatient = unassignPatientFromPatient;
+window.activateWithDefaultEmail = activateWithDefaultEmail;
+window.activateWithCustomEmail = activateWithCustomEmail;
+window.openActivationPage = openActivationPage;
 
-
-// ============================================
-// ✅ EXPOSITION GLOBALE UNIFIÉE (À LA FIN DU FICHIER)
-// ============================================
-
-// Fonction de vérification et d'export
-function exposeAdminFunctions() {
-    console.log("🔧 Exposition des fonctions admin...");
-    
-    // Vérifier que openAssignModal existe dans le scope
-    if (typeof openAssignModal !== 'undefined') {
-        window.openAssignModal = openAssignModal;
-        console.log("✅ window.openAssignModal exposée");
-    } else {
-        console.error("❌ openAssignModal non trouvée dans le scope");
-    }
-    
-    if (typeof openAssignModalWithAidant !== 'undefined') {
-        window.openAssignModalWithAidant = openAssignModalWithAidant;
-    }
-    
-    if (typeof openAssignModalWithPatient !== 'undefined') {
-        window.openAssignModalWithPatient = openAssignModalWithPatient;
-    }
-    
-    if (typeof unassignPatient !== 'undefined') {
-        window.unassignPatient = unassignPatient;
-    }
-    
-    if (typeof unassignPatientFromPatient !== 'undefined') {
-        window.unassignPatientFromPatient = unassignPatientFromPatient;
-    }
-    
-    if (typeof activateWithDefaultEmail !== 'undefined') {
-        window.activateWithDefaultEmail = activateWithDefaultEmail;
-    }
-    
-    if (typeof activateWithCustomEmail !== 'undefined') {
-        window.activateWithCustomEmail = activateWithCustomEmail;
-    }
-    
-    // Vérification finale
-    console.log("📊 Vérification finale:");
-    console.log("  - openAssignModal:", typeof window.openAssignModal);
-    console.log("  - openAssignModalWithPatient:", typeof window.openAssignModalWithPatient);
-}
-
-// Exécuter l'exposition
-exposeAdminFunctions();
-
-// Backup: réexposer après un court délai (au cas où)
-setTimeout(() => {
-    if (typeof window.openAssignModal !== 'function') {
-        console.warn("⚠️ Réexposition des fonctions admin après délai");
-        exposeAdminFunctions();
-    }
-}, 100);
+console.log("✅ Admin exports chargés:", {
+    openAssignModal: typeof window.openAssignModal,
+    openAssignModalWithPatient: typeof window.openAssignModalWithPatient
+});
