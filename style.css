@@ -3380,3 +3380,139 @@ body.aidant-mode *:focus-visible {
     outline-color: #C9A84C !important;
 }
 
+
+
+
+
+
+
+/* ============================================
+   TUILES DU MENU PRINCIPAL (ACCUEIL) - COORDINATEUR
+   ============================================ */
+
+body.coordinateur-mode .menu-tile {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+    border-top: 3px solid #D4AF37 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.coordinateur-mode .menu-tile:hover {
+    border-top: 3px solid #E5C65C !important;
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.12) !important;
+    transform: translateY(-3px);
+}
+
+body.coordinateur-mode .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+}
+
+body.coordinateur-mode .menu-tile .font-black {
+    color: #1E293B !important;
+}
+
+body.coordinateur-mode .menu-tile .text-slate-400 {
+    color: #64748B !important;
+}
+
+/* ============================================
+   GRILLE DES TUILES (HOME/HUB)
+   ============================================ */
+
+body.coordinateur-mode #menu-grid .menu-tile,
+body.coordinateur-mode .menu-grid .menu-tile {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+    border-top: 3px solid #D4AF37 !important;
+}
+
+body.coordinateur-mode #menu-grid .menu-tile i,
+body.coordinateur-mode .menu-grid .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+}
+
+body.coordinateur-mode #menu-grid .menu-tile .font-black,
+body.coordinateur-mode .menu-grid .menu-tile .font-black {
+    color: #1E293B !important;
+}
+
+/* ============================================
+   BANNIÈRE DE BIENVENUE - COORDINATEUR
+   ============================================ */
+
+body.coordinateur-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
+}
+
+body.coordinateur-mode .bg-gradient-to-r h2,
+body.coordinateur-mode .bg-gradient-to-r p {
+    color: #0F172A !important;
+}
+
+/* ============================================
+   BOUTON DE NAVIGATION (BOTTOM BAR)
+   ============================================ */
+
+body.coordinateur-mode .nav-btn.active {
+    color: #D4AF37 !important;
+}
+
+body.coordinateur-mode .nav-btn.active i {
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.4)) !important;
+}
+
+/* ============================================
+   SECTION "MENU PRINCIPAL" TITRE
+   ============================================ */
+
+body.coordinateur-mode .section-title i,
+body.coordinateur-mode h4.text-\[11px\].font-black,
+body.coordinateur-mode .text-\[9px\].font-black.text-slate-400.uppercase {
+    color: #D4AF37 !important;
+}
+
+
+
+/* ============================================
+   TUILES DU MENU PRINCIPAL (ACCUEIL) - AIDANT
+   ============================================ */
+
+body.aidant-mode .menu-tile {
+    background: white !important;
+    border: 1px solid #E8E2D4 !important;
+    border-top: 3px solid #C9A84C !important;
+}
+
+body.aidant-mode .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .menu-tile:hover {
+    border-top: 3px solid #D4AF37 !important;
+    transform: translateY(-3px);
+}
+
+body.aidant-mode #menu-grid .menu-tile,
+body.aidant-mode .menu-grid .menu-tile {
+    background: white !important;
+    border: 1px solid #E8E2D4 !important;
+    border-top: 3px solid #C9A84C !important;
+}
+
+body.aidant-mode #menu-grid .menu-tile i,
+body.aidant-mode .menu-grid .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .nav-btn.active {
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
