@@ -17,6 +17,7 @@ let currentReplyTo = null;
 let currentReplyToName = null;
 let currentEmojiMessageId = null;
 let emojiPickerVisible = false;
+let currentVisibility = 'all';
 
 if (!AppState.unreadByPatient) {
     AppState.unreadByPatient = {};
@@ -120,6 +121,24 @@ function renderDocumentCard(url, filename) {
 function isImageUrl(url) {
     if (!url) return false;
     return /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+}
+
+
+
+function setVisibility(visibility) {
+    currentVisibility = visibility;
+    
+    // Mettre à jour l'apparence des boutons
+    document.querySelectorAll('.visibility-btn').forEach(btn => {
+        const btnVisibility = btn.dataset.visibility;
+        if (btnVisibility === visibility) {
+            btn.style.background = '#25D366';
+            btn.style.color = 'white';
+        } else {
+            btn.style.background = '#2a3942';
+            btn.style.color = '#aebac1';
+        }
+    });
 }
 
 // ============================================================
@@ -252,6 +271,12 @@ function renderStoryCard(msg, isReply = false) {
                             <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
                         </div>
                     ` : ''}
+                    ${msg.visibility && msg.visibility !== 'all' ? `
+                        <div class="flex items-center gap-1 mt-1">
+                            <i class="fa-solid ${getVisibilityIcon(msg.visibility)} text-[8px] text-slate-400"></i>
+                            <span class="text-[7px] text-slate-400">${getVisibilityLabel(msg.visibility)}</span>
+                        </div>
+                    ` : ''}
                     <div class="flex justify-end items-center gap-1 mt-0.5">
                         <span class="text-[9px] text-slate-400">${timeStr}</span>
                         <span class="message-status">${statusIcon}</span>
@@ -322,7 +347,12 @@ function renderStoryCard(msg, isReply = false) {
                         <span style="color: #1E293B; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
                     </div>
                 ` : ''}
-                
+                ${msg.visibility && msg.visibility !== 'all' ? `
+                        <div class="flex items-center gap-1 mt-1">
+                            <i class="fa-solid ${getVisibilityIcon(msg.visibility)} text-[8px] text-slate-400"></i>
+                            <span class="text-[7px] text-slate-400">${getVisibilityLabel(msg.visibility)}</span>
+                        </div>
+                    ` : ''}
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[9px] text-slate-400">${timeStr}</span>
                     <button onclick="window.replyToMessage('${msg.id}', '${escapeHtml(msg.sender_name || "l'utilisateur")}')" 
@@ -478,6 +508,8 @@ async function sendPhotoMessage() {
         const formData = new FormData();
         formData.append('patient_id', AppState.currentPatient);
         formData.append('photo', fileToSend, fileToSend.name || 'photo.jpg');
+        formData.append('visibility', currentVisibility);
+
         
         if (currentReplyTo) {
             formData.append('reply_to_id', currentReplyTo);
@@ -762,7 +794,8 @@ window.sendQuickMessage = async () => {
             patient_id: AppState.currentPatient,
             content: content,
             is_photo: false,
-            type_media: 'STORY'
+            type_media: 'STORY',
+            visibility: currentVisibility 
         };
         
         if (currentReplyTo) {
@@ -1636,6 +1669,17 @@ async function loadFeed() {
         sendBtn.onclick = () => window.sendQuickMessage();
     }
 
+
+    const btnAll = document.getElementById('visibility-all');
+    const btnFamily = document.getElementById('visibility-family');
+    const btnAidant = document.getElementById('visibility-aidant');
+    const btnCoordinateur = document.getElementById('visibility-coordinateur');
+    
+    if (btnAll) btnAll.addEventListener('click', () => setVisibility('all'));
+    if (btnFamily) btnFamily.addEventListener('click', () => setVisibility('family'));
+    if (btnAidant) btnAidant.addEventListener('click', () => setVisibility('aidant'));
+    if (btnCoordinateur) btnCoordinateur.addEventListener('click', () => setVisibility('coordinateur'));
+        
     cleanupRealtime();
 
     // ============================================================
@@ -1790,6 +1834,28 @@ async function loadFeed() {
             `;
         }
     }
+}
+
+
+
+
+// Fonctions pour l'affichage de la portée
+function getVisibilityIcon(visibility) {
+    const icons = {
+        'family': 'fa-users',
+        'aidant': 'fa-user-nurse',
+        'coordinateur': 'fa-user-tie'
+    };
+    return icons[visibility] || 'fa-globe';
+}
+
+function getVisibilityLabel(visibility) {
+    const labels = {
+        'family': 'Famille uniquement',
+        'aidant': 'Aidant uniquement',
+        'coordinateur': 'Coordinateur uniquement'
+    };
+    return labels[visibility] || 'Public';
 }
 // ============================================================
 // EXPORTS GLOBAUX
