@@ -2276,9 +2276,9 @@ async function performViewSwitch(viewName) {
         return;
     }
     
-    // 🔒 VUES RÉSERVÉES AUX AIDANTS
-    const aidantOnlyViews = ["planning", "start-visit", "end-visit"];
-    if (aidantOnlyViews.includes(viewName) && userRole !== "AIDANT") {
+    // 🔒 VUES RÉSERVÉES AUX AIDANTS ET COORDINATEURS
+    const restrictedViews = ["planning", "start-visit", "end-visit"];
+    if (restrictedViews.includes(viewName) && userRole !== "AIDANT" && userRole !== "COORDINATEUR") {
         UI.error("Accès non autorisé");
         window.switchView("home");
         return;
