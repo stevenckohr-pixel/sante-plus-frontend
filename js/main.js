@@ -1821,6 +1821,8 @@ function renderLayout() {
     const userPhoto = localStorage.getItem("user_photo");
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const isFamily = userRole === "FAMILLE";
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
 
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
