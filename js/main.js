@@ -653,19 +653,48 @@ function applyUserTheme() {
     // Appliquer la classe selon le rôle
     if (isMaman || (userRole === "FAMILLE" && localStorage.getItem("user_categorie") === "MAMAN_BEBE")) {
         document.body.classList.add('maman-mode');
-        console.log("🎨 Thème Maman appliqué");
-    } else if (userRole === "FAMILLE") {
+        console.log("🎨 Thème Maman appliqué (rose)");
+    } 
+    else if (userRole === "FAMILLE") {
         document.body.classList.add('senior-mode');
-        console.log("🎨 Thème Senior appliqué");
-    } else if (userRole === "AIDANT") {
+        console.log("🎨 Thème Senior appliqué (vert)");
+    } 
+    else if (userRole === "AIDANT") {
         document.body.classList.add('aidant-mode');
-        console.log("🎨 Thème Aidant appliqué");
-    } else if (userRole === "COORDINATEUR") {
+        console.log("🎨 Thème Aidant appliqué (or + beige)");
+    } 
+    else if (userRole === "COORDINATEUR") {
         document.body.classList.add('coordinateur-mode');
-        console.log("🎨 Thème Coordinateur appliqué");
+        console.log("🎨 Thème Coordinateur appliqué (gris + or)");
     }
+    
+    // Mettre à jour la couleur de la barre d'état
+    updateThemeColor();
 }
 
+function updateThemeColor() {
+    const userRole = localStorage.getItem("user_role");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    let color = "#0F172A"; // défaut
+    
+    if (isMaman || (userRole === "FAMILLE" && localStorage.getItem("user_categorie") === "MAMAN_BEBE")) {
+        color = "#E11D48"; // rose maman
+    } 
+    else if (userRole === "FAMILLE") {
+        color = "#059669"; // vert senior
+    } 
+    else if (userRole === "AIDANT") {
+        color = "#C9A84C"; // or aidant
+    } 
+    else if (userRole === "COORDINATEUR") {
+        color = "#1E293B"; // gris admin
+    }
+    
+    const metaTheme = document.getElementById('theme-color');
+    if (metaTheme) {
+        metaTheme.setAttribute('content', color);
+    }
+}
 /**
  * Cache le loader global
  */
