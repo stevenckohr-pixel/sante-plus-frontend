@@ -166,82 +166,43 @@ function renderKpis(totalPaid, totalLate) {
 // ============================================================
 // PAIEMENT FEDAPAY
 // ============================================================
+// js/modules/billing.js - Remplacer window.payWithFeda
 
 window.payWithFeda = async (abonnementId, montant) => {
-  try {
-    UI.vibrate();
-
-    const result = await Swal.fire({
-      title: '<i class="fa-solid fa-shield-halved fa-beat text-emerald-500 mb-3 text-4xl"></i><br><span class="text-xl font-black">Paiement sécurisé</span>',
-      html: `
-        <div class="text-center">
-          <p class="text-xs text-slate-400 uppercase tracking-widest font-bold mb-4">Connexion aux passerelles sécurisées</p>
-          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
-            <span class="text-[10px] font-black text-slate-400 uppercase">Montant :</span>
-            <span class="text-sm font-black text-slate-900">${UI.formatMoney(montant)}</span>
-          </div>
-          <div class="mt-4 flex justify-center gap-4">
-            <i class="fa-brands fa-cc-visa text-slate-400 text-xl"></i>
-            <i class="fa-brands fa-cc-mastercard text-slate-400 text-xl"></i>
-            <i class="fa-solid fa-mobile-alt text-slate-400 text-xl"></i>
-          </div>
-        </div>`,
-      showCancelButton: true,
-      confirmButtonText: "💰 Payer maintenant",
-      cancelButtonText: "Annuler",
-      confirmButtonColor: "#10B981",
-      cancelButtonColor: "#94A3B8",
-      customClass: { 
-        popup: 'rounded-2xl p-6',
-        confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
-        cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
-      }
-    });
-
-    if (!result.isConfirmed) return;
-
+    // 🔥 Afficher le message "Disponible prochainement"
     Swal.fire({
-      title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500 text-3xl mb-3"></i><br><span class="text-base font-black">Préparation du paiement...</span>',
-      allowOutsideClick: false,
-      showConfirmButton: false,
-      customClass: { popup: 'rounded-2xl p-6' }
+        title: '<i class="fa-solid fa-credit-card text-3xl text-emerald-500 mb-3"></i><br><span class="text-xl font-black">Paiement en ligne</span>',
+        html: `
+            <div class="text-center">
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
+                    <i class="fa-solid fa-tools text-2xl text-amber-500 mb-2"></i>
+                    <p class="text-sm font-bold text-amber-700">Fonctionnalité à venir</p>
+                    <p class="text-xs text-amber-600 mt-1">Le paiement en ligne sera bientôt disponible</p>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <span class="text-[10px] font-black text-slate-400 uppercase">Montant à payer :</span>
+                    <span class="text-lg font-black text-slate-800">${UI.formatMoney(montant)}</span>
+                </div>
+                <div class="mt-4 flex justify-center gap-3 text-slate-400">
+                    <i class="fa-brands fa-cc-visa text-2xl"></i>
+                    <i class="fa-brands fa-cc-mastercard text-2xl"></i>
+                    <i class="fa-solid fa-mobile-alt text-2xl"></i>
+                </div>
+                <div class="mt-4 p-3 bg-emerald-50 rounded-xl">
+                    <p class="text-[9px] text-emerald-600 font-medium">💡 Paiement possible par :</p>
+                    <p class="text-[8px] text-emerald-500 mt-1">Mobile Money • Carte bancaire • Virement</p>
+                </div>
+            </div>
+        `,
+        confirmButtonText: "OK, j'ai compris",
+        confirmButtonColor: "#10B981",
+        showCancelButton: false,
+        customClass: {
+            popup: 'rounded-2xl p-6',
+            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
+        }
     });
-
-    const data = await secureFetch("/billing/generate-payment", {
-      method: "POST",
-      body: JSON.stringify({
-        abonnement_id: abonnementId,
-        montant: montant,
-        email_client: localStorage.getItem("user_email") || "client@santeplus.bj",
-      }),
-    });
-
-    Swal.fire({
-      title: "Redirection...",
-      text: "Vous allez être redirigé vers la page de paiement sécurisée",
-      icon: "info",
-      timer: 1500,
-      showConfirmButton: false,
-      customClass: { popup: 'rounded-2xl' }
-    });
-
-    setTimeout(() => {
-      window.location.href = data.url;
-    }, 1500);
-
-  } catch (err) {
-    console.error("❌ Erreur paiement:", err);
-    UI.error("Erreur de paiement");
-    Swal.fire({
-      title: "Erreur de paiement",
-      text: err.message || "La passerelle de paiement est temporairement indisponible.",
-      icon: "error",
-      confirmButtonColor: "#0F172A",
-      customClass: { popup: 'rounded-2xl' }
-    });
-  }
 };
-
 // ============================================================
 // VALIDATION MANUELLE (Coordinateur)
 // ============================================================
