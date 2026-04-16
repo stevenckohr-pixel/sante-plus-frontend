@@ -568,7 +568,7 @@ function setupAssignTypeHandlers() {
  */
  
 
-export const openMissionBriefing = (patientId, planningId) => { 
+ export const openMissionBriefing = (patientId, planningId) => { 
     console.log("📋 openMissionBriefing appelée avec:", patientId, planningId);
     
     if (typeof UI !== 'undefined' && UI.vibrate) {
