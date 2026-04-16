@@ -65,27 +65,6 @@ export function renderPatients() {
     
     if (!container) return;
 
-      // 🔒 Sécurité : filtrer à nouveau avant affichage
-    let patientsToShow = AppState.patients || [];
-    
-    if (userRole === "FAMILLE") {
-        patientsToShow = patientsToShow.filter(p => p.famille_user_id === userId);
-    }
-
-    if (!patientsToShow.length) {
-        container.innerHTML = `
-            <div class="flex flex-col items-center justify-center py-16">
-                <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                    <i class="fa-solid fa-users-slash text-slate-300 text-xl"></i>
-                </div>
-                <p class="text-slate-400 text-sm font-medium">Aucun dossier</p>
-                ${userRole === "FAMILLE" ? '<p class="text-[10px] text-slate-300 mt-1">Aucun patient lié à votre compte</p>' : ''}
-            </div>`;
-        return;
-    }
-
-
-    
     if (!AppState.patients?.length) {
         container.innerHTML = `
             <div class="flex flex-col items-center justify-center py-16">
@@ -583,5 +562,4 @@ function updatePatientBadges() {
         }
     });
 }
-
 
