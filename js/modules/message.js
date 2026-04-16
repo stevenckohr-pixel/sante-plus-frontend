@@ -410,6 +410,7 @@ function renderStoryCard(msg, isReply = false) {
 
 
 
+// js/modules/message.js - Modifier renderFeed()
 
 function renderFeed() {
     const content = document.getElementById('care-feed-content');
@@ -433,9 +434,16 @@ function renderFeed() {
         inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
     }
 
+    // 🔥 CORRECTION : Filtrer correctement
     let filtered = (AppState.messages || []).filter(m => {
-        if (activeTab === 'DOCUMENT') return m.type_media === 'DOCUMENT';
-        return m.type_media !== 'DOCUMENT';
+        if (activeTab === 'DOCUMENT') {
+            // Dans l'onglet DOCUMENTS : afficher les DOCUMENT
+            return m.type_media === 'DOCUMENT';
+        } else {
+            // Dans l'onglet STORY : afficher les messages texte ET les photos
+            // Les photos ont is_photo = true ou type_media = 'STORY'
+            return m.type_media !== 'DOCUMENT';
+        }
     });
     
     if (activeTab === 'STORY') {
@@ -451,13 +459,18 @@ function renderFeed() {
                 <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
                 <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
             </div>`;
+    } else if (filtered.length === 0 && activeTab === 'DOCUMENT') {
+        content.innerHTML = `
+            <div class="text-center py-20 opacity-50">
+                <i class="fa-solid fa-file-pdf text-4xl mb-4 text-slate-300"></i>
+                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun document</p>
+            </div>`;
     }
 
     setTimeout(() => {
         content.classList.remove('updating');
     }, 50);
 }
-
 // ============================================================
 // RÉPONSES AUX MESSAGES
 // ============================================================
