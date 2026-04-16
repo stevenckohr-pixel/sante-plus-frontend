@@ -617,6 +617,8 @@ async function sendDocumentMessage() {
         formData.append('patient_id', AppState.currentPatient);
         formData.append('document', file);
         formData.append('type_media', 'DOCUMENT');
+        formData.append('visibility', currentVisibility);
+
         
         if (currentReplyTo) {
             formData.append('reply_to_id', currentReplyTo);
