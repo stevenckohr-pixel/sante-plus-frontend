@@ -3341,3 +3341,157 @@ body.aidant-mode .nav-btn.active {
 body.aidant-mode .planning-card {
     border-left: 4px solid #C9A84C !important;
 }
+
+
+
+/* ============================================
+   THÈME MAMAN (ROSE ÉLÉGANT - SANS SURCHARGE)
+   ============================================ */
+
+body.maman-mode {
+    --role-primary: #E11D48;
+    --role-primary-dark: #BE123C;
+    --role-primary-light: #FFF1F2;
+    --role-secondary: #F43F5E;
+    --role-text: #881337;
+}
+
+/* ============================================
+   1. BOUTONS (rose vif)
+   ============================================ */
+
+body.maman-mode .btn-primary,
+body.maman-mode button[type="submit"],
+body.maman-mode .next-btn,
+body.maman-mode #btn-login,
+body.maman-mode .chat-input-send,
+body.maman-mode .bg-emerald-500,
+body.maman-mode .bg-emerald-600 {
+    background: #E11D48 !important;
+    color: white !important;
+}
+
+body.maman-mode .btn-primary:hover {
+    background: #BE123C !important;
+}
+
+/* ============================================
+   2. STATISTIQUES (chiffres en rose)
+   ============================================ */
+
+body.maman-mode .dashboard-card-stat,
+body.maman-mode .stat-number {
+    color: #E11D48 !important;
+}
+
+/* ============================================
+   3. BANNIÈRE DASHBOARD MAMAN (dégradé rose)
+   ============================================ */
+
+body.maman-mode .maman-header {
+    background: linear-gradient(135deg, #E11D48 0%, #BE123C 100%) !important;
+}
+
+/* ============================================
+   4. CARTES MÉTRIQUES (bordure rose subtile)
+   ============================================ */
+
+body.maman-mode .maman-metric-card {
+    border-top: 3px solid #E11D48 !important;
+    background: white !important;
+}
+
+body.maman-mode .maman-metric-card i {
+    color: #E11D48 !important;
+}
+
+/* ============================================
+   5. BADGES (rose sur fond clair)
+   ============================================ */
+
+body.maman-mode .badge-dynamic,
+body.maman-mode .badge-primary {
+    background: #FFF1F2 !important;
+    color: #E11D48 !important;
+    border: 1px solid #FCE7F3 !important;
+}
+
+/* ============================================
+   6. PROCHAINE VISITE (carte avec accent rose)
+   ============================================ */
+
+body.maman-mode .maman-next-visit {
+    border-left: 4px solid #E11D48 !important;
+}
+
+body.maman-mode .maman-next-visit .text-pink-600 {
+    color: #E11D48 !important;
+}
+
+/* ============================================
+   7. PACKS (bordure rose sur le populaire)
+   ============================================ */
+
+body.maman-mode .maman-pack-card {
+    border: 1px solid #FCE7F3 !important;
+}
+
+body.maman-mode .maman-pack-card.border-pink-200 {
+    border-color: #F43F5E !important;
+    background: #FFF1F2 !important;
+}
+
+/* ============================================
+   8. NAVIGATION RAPIDE (icônes roses)
+   ============================================ */
+
+body.maman-mode .maman-nav-btn i {
+    color: #E11D48 !important;
+}
+
+body.maman-mode .maman-nav-btn:active {
+    background: #FFF1F2 !important;
+}
+
+/* ============================================
+   9. CHAT MAMAN (messages envoyés roses)
+   ============================================ */
+
+body.maman-mode .chat-message-sent {
+    background: #E11D48 !important;
+    color: white !important;
+}
+
+body.maman-mode .chat-message-received {
+    border-left: 3px solid #E11D48 !important;
+}
+
+/* ============================================
+   10. SIDEBAR ACTIF (rose)
+   ============================================ */
+
+body.maman-mode .sidebar-link.active {
+    background: #E11D48 !important;
+    color: white !important;
+}
+
+body.maman-mode .nav-btn.active {
+    color: #E11D48 !important;
+}
+
+/* ============================================
+   11. PROGRESS BAR (rose)
+   ============================================ */
+
+body.maman-mode .progress-bar-fill {
+    background: #E11D48 !important;
+}
+
+/* ============================================
+   12. CHECKBOX & RADIO (rose)
+   ============================================ */
+
+body.maman-mode input[type="checkbox"]:checked,
+body.maman-mode input[type="radio"]:checked {
+    accent-color: #E11D48 !important;
+}
