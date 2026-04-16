@@ -644,160 +644,6 @@ async function refreshPendingRegistrations() {
     }
 }
 
-// ============================================================
-// FONCTIONS GLOBALES (EXPOSÉES)
-// ============================================================
-
-window.openAssignModal = async () => {
-    console.log("🔵 [ASSIGN] Ouverture modale d'assignation");
-    const aidants = await secureFetch("/assignments/available-aidants");
-    const patients = await secureFetch("/assignments/unassigned-patients");
-    
-    const preSelectedAidant = localStorage.getItem("pre_selected_aidant");
-    const preSelectedPatient = localStorage.getItem("pre_selected_patient");
-    
-    if (preSelectedAidant) localStorage.removeItem("pre_selected_aidant");
-    if (preSelectedPatient) localStorage.removeItem("pre_selected_patient");
-    
-    let selectedAidant = preSelectedAidant ? aidants.find(a => a.id === preSelectedAidant) : null;
-    let selectedPatient = preSelectedPatient ? patients.find(p => p.id === preSelectedPatient) : null;
-    
-    const renderModal = () => `
-        <div class="space-y-5">
-            <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                    <i class="fa-solid fa-user-nurse mr-1"></i> Aidant
-                </label>
-                <div onclick="window.showAidantSelector()" 
-                     class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer active:bg-slate-100 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                            <i class="fa-solid fa-user-nurse text-emerald-600 text-sm"></i>
-                        </div>
-                        <div>
-                            <p id="selected-aidant-name" class="font-bold text-slate-800 text-sm">${selectedAidant ? selectedAidant.nom : 'Choisir un aidant'}</p>
-                            <p id="selected-aidant-email" class="text-[10px] text-slate-400">${selectedAidant?.email || ''}</p>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-chevron-down text-slate-300 text-xs"></i>
-                </div>
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                    <i class="fa-solid fa-hospital-user mr-1"></i> Patient
-                </label>
-                <div onclick="window.showPatientSelector()" 
-                     class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer active:bg-slate-100 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                            <i class="fa-solid fa-user text-blue-600 text-sm"></i>
-                        </div>
-                        <div>
-                            <p id="selected-patient-name" class="font-bold text-slate-800 text-sm">${selectedPatient ? selectedPatient.nom_complet : 'Choisir un patient'}</p>
-                            <p id="selected-patient-formule" class="text-[10px] text-slate-400">${selectedPatient?.formule || ''}</p>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-chevron-down text-slate-300 text-xs"></i>
-                </div>
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                    <i class="fa-solid fa-pen mr-1"></i> Instructions (optionnel)
-                </label>
-                <textarea id="assign-notes" rows="2" 
-                          class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-emerald-300 transition"
-                          placeholder="Notes pour l'aidant..."></textarea>
-            </div>
-            <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-2">
-                    <i class="fa-regular fa-calendar mr-1"></i> Date de début (optionnel)
-                </label>
-                <input type="date" id="assign-date" 
-                       class="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none focus:border-emerald-300 transition"
-                       value="${new Date().toISOString().split('T')[0]}">
-            </div>
-        </div>
-    `;
-    
-    window._assignModalData = { aidants, patients, selectedAidant, selectedPatient };
-    
- 
-window.showAidantSelector = async () => {
-    const result = await openModernSelector(
-        window._assignModalData.aidants.map(a => ({ id: a.id, name: a.nom, extra: a.email })),
-        "Sélectionner un aidant",
-        "Rechercher un aidant..."
-    );
-    if (result) {
-        window._assignModalData.selectedAidant = result;
-        const nameEl = document.getElementById("selected-aidant-name");
-        const emailEl = document.getElementById("selected-aidant-email");
-        if (nameEl) nameEl.innerText = result.name;
-        if (emailEl) emailEl.innerText = result.extra || '';
-    }
-};
-
-window.showPatientSelector = async () => {
-    const result = await openModernSelector(
-        window._assignModalData.patients.map(p => ({ id: p.id, name: p.nom_complet, extra: p.formule })),
-        "Sélectionner un patient",
-        "Rechercher un patient..."
-    );
-    if (result) {
-        window._assignModalData.selectedPatient = result;
-        const nameEl = document.getElementById("selected-patient-name");
-        const formuleEl = document.getElementById("selected-patient-formule");
-        if (nameEl) nameEl.innerText = result.name;
-        if (formuleEl) formuleEl.innerText = result.extra || '';
-    }
-};
-    
-    const result = await Swal.fire({
-        title: '<span class="text-base font-black text-slate-800">➕ Nouvelle assignation</span>',
-        html: renderModal(),
-        showCancelButton: true,
-        confirmButtonText: "Assigner",
-        confirmButtonColor: "#10B981",
-        cancelButtonText: "Annuler",
-        cancelButtonColor: "#94A3B8",
-        customClass: {
-            popup: 'rounded-2xl p-6',
-            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider',
-            cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
-        },
-        preConfirm: () => {
-            const data = window._assignModalData;
-            if (!data.selectedAidant) {
-                Swal.showValidationMessage("Veuillez sélectionner un aidant");
-                return false;
-            }
-            if (!data.selectedPatient) {
-                Swal.showValidationMessage("Veuillez sélectionner un patient");
-                return false;
-            }
-            return {
-                aidant_id: data.selectedAidant.id,
-                patient_id: data.selectedPatient.id,
-                notes: document.getElementById("assign-notes")?.value || "",
-                date_prevue: document.getElementById("assign-date")?.value || null
-            };
-        }
-    });
-    
-    if (result.isConfirmed && result.value) {
-        Swal.fire({ title: "Assignation...", didOpen: () => Swal.showLoading(), allowOutsideClick: false });
-        try {
-            await secureFetch("/assignments/assign", {
-                method: "POST",
-                body: JSON.stringify(result.value)
-            });
-            Swal.fire({ icon: "success", title: "Succès", text: "Patient assigné avec succès", timer: 2000, showConfirmButton: false });
-            renderRHDashboard();
-        } catch (err) {
-            Swal.fire({ title: "Erreur", text: err.message, icon: "error", customClass: { popup: 'rounded-2xl' } });
-        }
-    }
-};
 
 // admin.js - Remplacer ces deux fonctions
 
@@ -1071,5 +917,15 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
     }
 };
 
-console.log("✅ Module admin chargé - window.openAssignModal:", typeof window.openAssignModal);
+
+// Expositions globales
 window.openAssignModal = openAssignModalFunction;
+window.openAssignModalWithAidant = openAssignModalWithAidant;
+window.openAssignModalWithPatient = openAssignModalWithPatient;
+window.unassignPatient = unassignPatient;
+window.unassignPatientFromPatient = unassignPatientFromPatient;
+window.activateWithDefaultEmail = activateWithDefaultEmail;
+window.activateWithCustomEmail = activateWithCustomEmail;
+
+console.log("✅ Module admin chargé - window.openAssignModal:", typeof window.openAssignModal);
+console.log("✅ window.openAssignModalWithPatient:", typeof window.openAssignModalWithPatient);
