@@ -582,7 +582,8 @@ async function sendDocumentMessage() {
         return;
     }
     
-    Swal.fire({
+    // Afficher un indicateur de chargement
+    const loadingToast = Swal.fire({
         title: "Envoi du document...",
         text: "Veuillez patienter",
         allowOutsideClick: false,
@@ -611,20 +612,50 @@ async function sendDocumentMessage() {
             throw new Error(error.error || "Erreur d'envoi");
         }
         
+        const result = await response.json();
+        
         docInput.value = '';
         window.cancelReply();
         
-        Swal.fire({ icon: "success", title: "Document envoyé", timer: 1500, showConfirmButton: false });
-        await loadFeed();
+        Swal.close();
+        UI.success("Document envoyé !");
+        
+        // 🔥 NE PAS APPELER loadFeed() ici !
+        // À la place, ajouter le message directement dans le feed
+        if (result && result.document_url) {
+            // Créer un message temporaire pour l'afficher immédiatement
+            const tempMessage = {
+                id: 'temp_' + Date.now(),
+                patient_id: AppState.currentPatient,
+                sender_id: localStorage.getItem("user_id"),
+                sender_name: localStorage.getItem("user_name"),
+                sender_role: localStorage.getItem("user_role"),
+                content: result.document_url,
+                titre_media: result.filename,
+                type_media: 'DOCUMENT',
+                created_at: new Date().toISOString(),
+                is_temp: true,
+                reactions: {}
+            };
+            
+            // Ajouter au state et au DOM
+            AppState.messages.push(tempMessage);
+            
+            if (activeTab === 'DOCUMENT') {
+                const container = document.getElementById('care-feed-content');
+                const tempHtml = renderDocCard(tempMessage);
+                container.insertAdjacentHTML('beforeend', tempHtml);
+                scrollToBottom();
+            }
+        }
         
     } catch (err) {
-        console.error("❌ Erreur:", err);
         Swal.close();
+        console.error("❌ Erreur:", err);
         UI.error(err.message);
         docInput.value = '';
     }
 }
-
 // ============================================================
 // AFFICHAGE DES RÉPONSES (THREADS)
 // ============================================================
