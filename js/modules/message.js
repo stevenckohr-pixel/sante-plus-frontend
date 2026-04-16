@@ -221,11 +221,11 @@ function renderStoryCard(msg, isReply = false) {
                                      onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
                             ` : ''}
                             ${fileUrl && isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
-                            ${hasTextContent ? `
-                                <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
-                                    <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
-                                </div>
-                            ` : ''}
+                                {!isPhotoMessage && !isDocument && content && content.trim() !== '' ? `
+                                    <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
+                                        <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                                    </div>
+                                ` : ''}
                             <div class="flex justify-end items-center gap-1 mt-0.5">
                                 <span class="text-[9px] text-slate-400">${timeStr}</span>
                                 <span class="message-status">${statusIcon}</span>
@@ -296,11 +296,11 @@ function renderStoryCard(msg, isReply = false) {
                 ` : ''}
                 ${fileUrl && isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
                 
-                ${hasTextContent ? `
-                    <div class="chat-message-received" style="background: white; border-bottom-left-radius: 4px; padding: 6px 12px;">
-                        <span style="color: #1E293B; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
-                    </div>
-                ` : ''}
+            {!isPhotoMessage && !isDocument && content && content.trim() !== '' ? `
+                <div class="chat-message-received" style="background: white; border-bottom-left-radius: 4px; padding: 6px 12px;">
+                    <span style="color: #1E293B; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                </div>
+            ` : ''}
                 
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[9px] text-slate-400">${timeStr}</span>
