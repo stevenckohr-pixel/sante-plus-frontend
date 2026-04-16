@@ -3323,3 +3323,185 @@ body.aidant-mode header {
 body.aidant-mode input[type="checkbox"]:checked {
     accent-color: #C9A84C !important;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   TUILES DE L'ACCUEIL (MENU PRINCIPAL) - COORDINATEUR
+   ============================================ */
+
+/* Fonds des tuiles - remplacer le vert par l'or */
+body.coordinateur-mode .menu-tile {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+    transition: all 0.2s ease;
+}
+
+/* Icônes des tuiles - couleur or */
+body.coordinateur-mode .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+}
+
+/* Texte des tuiles */
+body.coordinateur-mode .menu-tile .font-black {
+    color: #1E293B !important;
+}
+
+body.coordinateur-mode .menu-tile .text-slate-400 {
+    color: #64748B !important;
+}
+
+/* Effet au survol */
+body.coordinateur-mode .menu-tile:hover {
+    border-color: #D4AF37 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.12) !important;
+}
+
+/* ============================================
+   GRILLE DES TUILES (HOME/HUB) - COORDINATEUR
+   ============================================ */
+
+body.coordinateur-mode #menu-grid .menu-tile,
+body.coordinateur-mode .menu-grid .menu-tile {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+}
+
+body.coordinateur-mode #menu-grid .menu-tile i,
+body.coordinateur-mode .menu-grid .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+}
+
+/* ============================================
+   CARTES PATIENTS ET AUTRES CARTES
+   ============================================ */
+
+body.coordinateur-mode .patient-card-modern,
+body.coordinateur-mode .bg-white.rounded-xl,
+body.coordinateur-mode .bg-white.rounded-2xl,
+body.coordinateur-mode .dashboard-card,
+body.coordinateur-mode .bento-card {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+}
+
+/* Éléments avec fond vert clair qui doivent devenir beige */
+body.coordinateur-mode .bg-emerald-50,
+body.coordinateur-mode .bg-green-50,
+body.coordinateur-mode .bg-emerald-100 {
+    background: #FEF9E6 !important;
+}
+
+/* ============================================
+   BOUTONS FLOTTANTS (FAB)
+   ============================================ */
+
+body.coordinateur-mode .fab-button {
+    background: #D4AF37 !important;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
+}
+
+body.coordinateur-mode .fab-button:active {
+    background: #B8942E !important;
+}
+
+/* ============================================
+   BANNIÈRE DE BIENVENUE (ACCUEIL MOBILE)
+   ============================================ */
+
+body.coordinateur-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
+
+/* ============================================
+   SECTION TITRES
+   ============================================ */
+
+body.coordinateur-mode .section-title i,
+body.coordinateur-mode .section-title span {
+    color: #D4AF37 !important;
+}
+
+/* ============================================
+   BADGE DE NOTIFICATION
+   ============================================ */
+
+body.coordinateur-mode #notification-badge,
+body.coordinateur-mode .menu-badge,
+body.coordinateur-mode .patient-badge {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   TUILES DE L'ACCUEIL - AIDANT
+   ============================================ */
+
+body.aidant-mode .menu-tile {
+    background: white !important;
+    border: 1px solid #E8E2D4 !important;
+}
+
+body.aidant-mode .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .menu-tile:hover {
+    border-color: #C9A84C !important;
+}
+
+body.aidant-mode .bg-emerald-50,
+body.aidant-mode .bg-green-50 {
+    background: #FEF9E6 !important;
+}
+
+body.aidant-mode .fab-button {
+    background: #C9A84C !important;
+}
+
+body.aidant-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .section-title i,
+body.aidant-mode .section-title span {
+    color: #C9A84C !important;
+}
+
+body.aidant-mode #notification-badge,
+body.aidant-mode .menu-badge {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
