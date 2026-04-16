@@ -2899,35 +2899,40 @@ window.viewPatientFeed = async (patientId) => {
     const userRole = localStorage.getItem("user_role");
     const titleElement = document.getElementById("view-title");
     
-    // 🔥 METTRE À JOUR LE PATIENT COURANT
+    // Mettre à jour le patient courant
     localStorage.setItem("current_patient_id", patientId);
     AppState.currentPatient = patientId;
     
     console.log("🔄 [viewPatientFeed] Changement de patient vers:", patientId);
     
-    // 🔥 VIDER LE CACHE DES MESSAGES
-    if (window.clearApiCache) {
-        window.clearApiCache();
-    }
-    
-    // 🔥 NETTOYER L'ANCIEN ABONNEMENT REALTIME
-    if (window.cleanupRealtime) {
-        window.cleanupRealtime();
-    }
-    
-    // 🔥 RÉINITIALISER LES MESSAGES
+    // Vider le cache
+    if (window.clearApiCache) window.clearApiCache();
+    if (window.cleanupRealtime) window.cleanupRealtime();
     AppState.messages = [];
     
     if (userRole === 'AIDANT') {
         UI.vibrate();
         if (titleElement) titleElement.innerText = "Briefing Patient";
-        await Patients.renderPatientDetailsView(patientId);
+        
+        // ✅ CHARGER LES INFOS DU PATIENT AVANT D'AFFICHER
+        try {
+            const patient = await secureFetch(`/patients/${patientId}`);
+            console.log("📋 Patient chargé:", patient);
+            
+            // Mettre à jour le titre avec le nom du patient
+            if (titleElement && patient?.nom_complet) {
+                titleElement.innerText = `Briefing : ${patient.nom_complet}`;
+            }
+            
+            await Patients.renderPatientDetailsView(patientId);
+        } catch (err) {
+            console.error("Erreur chargement patient:", err);
+            UI.error("Impossible de charger les infos du patient");
+        }
     } else {
-        // 🔥 FORCER LE REHAVCHARGEMENT COMPLET DU FEED
         await window.switchView("feed");
     }
 };
-
 
 
 window.viewPatientDetails = Patients.renderPatientDetailsView;
