@@ -563,6 +563,7 @@ async function sendPhotoMessage() {
 // ENVOI DE DOCUMENT
 // ============================================================
 
+ 
 async function sendDocumentMessage() {
     const docInput = document.getElementById('document-input');
     const file = docInput?.files?.[0];
@@ -583,7 +584,7 @@ async function sendDocumentMessage() {
     }
     
     // Afficher un indicateur de chargement
-    const loadingToast = Swal.fire({
+    Swal.fire({
         title: "Envoi du document...",
         text: "Veuillez patienter",
         allowOutsideClick: false,
@@ -618,36 +619,11 @@ async function sendDocumentMessage() {
         window.cancelReply();
         
         Swal.close();
+        
+        // ✅ NE PAS APPELER loadFeed() - juste afficher un succès
         UI.success("Document envoyé !");
         
-        // 🔥 NE PAS APPELER loadFeed() ici !
-        // À la place, ajouter le message directement dans le feed
-        if (result && result.document_url) {
-            // Créer un message temporaire pour l'afficher immédiatement
-            const tempMessage = {
-                id: 'temp_' + Date.now(),
-                patient_id: AppState.currentPatient,
-                sender_id: localStorage.getItem("user_id"),
-                sender_name: localStorage.getItem("user_name"),
-                sender_role: localStorage.getItem("user_role"),
-                content: result.document_url,
-                titre_media: result.filename,
-                type_media: 'DOCUMENT',
-                created_at: new Date().toISOString(),
-                is_temp: true,
-                reactions: {}
-            };
-            
-            // Ajouter au state et au DOM
-            AppState.messages.push(tempMessage);
-            
-            if (activeTab === 'DOCUMENT') {
-                const container = document.getElementById('care-feed-content');
-                const tempHtml = renderDocCard(tempMessage);
-                container.insertAdjacentHTML('beforeend', tempHtml);
-                scrollToBottom();
-            }
-        }
+        // Le message arrivera via Realtime, pas besoin de recharger
         
     } catch (err) {
         Swal.close();
