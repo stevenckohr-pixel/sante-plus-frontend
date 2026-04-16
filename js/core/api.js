@@ -1,4 +1,4 @@
- import { CONFIG } from "./config.js";
+import { CONFIG } from "./config.js";
 import ErrorHandler from './errorHandler.js';
 import db from './db.js';
 
@@ -9,7 +9,6 @@ const CACHE_DURATION = 30 * 1000; // 30 secondes
 
 // Liste des endpoints à NE PAS mettre en cache
 const NO_CACHE_ENDPOINTS = ['/visites/active', '/notifications'];
-// Les messages sont maintenant gérés par IndexedDB
 
 // ============================================================
 // UTILITAIRE : FORCER LE FORMAT TABLEAU
@@ -68,11 +67,19 @@ export async function secureFetch(endpoint, options = {}) {
       const url = `${CONFIG.API_URL}${endpoint}`;
       console.log(`🌐 Requête vers: ${url}`);
       
-      const response = await fetch(url, {
-        ...options,
-        headers,
+      // 🔧 SUPPRIMER cache-control pour éviter l'erreur CORS
+      const fetchOptions = {
+        method: options.method,
+        headers: headers,
         signal: controller.signal
-      });
+      };
+      
+      // Ajouter le body si présent
+      if (options.body) {
+        fetchOptions.body = options.body;
+      }
+      
+      const response = await fetch(url, fetchOptions);
 
       clearTimeout(timeoutId);
       
@@ -108,7 +115,7 @@ export async function secureFetch(endpoint, options = {}) {
       if (method === 'GET') {
         responseData = await response.json();
         
-        // ✅ FORCER LE FORMAT TABLEAU POUR CERTAINS ENDPOINTS
+        // FORCER LE FORMAT TABLEAU POUR CERTAINS ENDPOINTS
         const arrayEndpoints = ['/visites', '/commandes', '/notifications', '/messages', '/patients', '/planning', '/aidants', '/baby_metrics', '/mama_moods'];
         const shouldBeArray = arrayEndpoints.some(e => endpoint.includes(e));
         
