@@ -1524,7 +1524,6 @@ function renderAuthView(mode = 'login', stepSource = 1) {
 // ============================================================
 // HUB DE NAVIGATION MOBILE
 // ============================================================
-
 function renderMobileHub() {
     const userRole = localStorage.getItem("user_role");
     const userName = localStorage.getItem("user_name");
@@ -1535,41 +1534,38 @@ function renderMobileHub() {
     const isCoordinateur = userRole === "COORDINATEUR";
     
     // ============================================================
-    // 🔥 COULEURS DYNAMIQUES SELON LE RÔLE
+    // 🔥 COULEURS DYNAMIQUES SELON LE RÔLE (OR FONCÉ ÉLÉGANT)
     // ============================================================
     
-    let primaryColor, primaryLight, goldColor, bannerIcon, bannerDesc, tileBgColor, tileIconColor, tileTextColor;
+    let primaryColor, primaryLight, bannerIcon, bannerDesc, tileBgGradient, tileIconColor, tileTextColor;
     
     if (isCoordinateur) {
-        // ADMIN - OR BRILLANT
+        // ADMIN - OR PROFOND (dégradé élégant)
         primaryColor = '#D4AF37';
         primaryLight = '#FEF9E6';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-chart-pie';
         bannerDesc = "Gestion complète de la plateforme";
-        tileBgColor = '#D4AF37';
+        tileBgGradient = 'linear-gradient(135deg, #B8942E 0%, #8B6914 100%)';
         tileIconColor = '#FFFFFF';
-        tileTextColor = '#0F172A';
+        tileTextColor = '#FFFFFF';
     } 
     else if (isAidant) {
-        // AIDANT - OR DOUX
+        // AIDANT - OR DOUX FONCÉ
         primaryColor = '#C9A84C';
         primaryLight = '#FEF9E6';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-user-nurse';
         bannerDesc = "Gestion de vos interventions";
-        tileBgColor = '#C9A84C';
+        tileBgGradient = 'linear-gradient(135deg, #A67C1E 0%, #7A5A10 100%)';
         tileIconColor = '#FFFFFF';
-        tileTextColor = '#0F172A';
+        tileTextColor = '#FFFFFF';
     }
     else if (isMaman) {
         // MAMAN - ROSE (inchangé)
         primaryColor = '#E11D48';
         primaryLight = '#FFF1F2';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-baby-carriage';
         bannerDesc = "Soutien et bien-être pour maman et bébé";
-        tileBgColor = '#E11D48';
+        tileBgGradient = 'linear-gradient(135deg, #E11D48 0%, #BE123C 100%)';
         tileIconColor = '#FFFFFF';
         tileTextColor = '#FFFFFF';
     }
@@ -1577,10 +1573,9 @@ function renderMobileHub() {
         // SENIOR - VERT (inchangé)
         primaryColor = '#059669';
         primaryLight = '#ECFDF5';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-crown';
         bannerDesc = "Maintien à domicile et soins au quotidien";
-        tileBgColor = '#059669';
+        tileBgGradient = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
         tileIconColor = '#FFFFFF';
         tileTextColor = '#FFFFFF';
     }
@@ -1588,10 +1583,9 @@ function renderMobileHub() {
         // DÉFAUT
         primaryColor = '#059669';
         primaryLight = '#ECFDF5';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-chart-pie';
         bannerDesc = "Gestion complète de la plateforme";
-        tileBgColor = '#059669';
+        tileBgGradient = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
         tileIconColor = '#FFFFFF';
         tileTextColor = '#FFFFFF';
     }
@@ -1619,20 +1613,20 @@ function renderMobileHub() {
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     // ============================================================
-    // 🔥 GÉNÉRATION DU HTML AVEC COULEURS DYNAMIQUES
+    // 🔥 GÉNÉRATION DU HTML AVEC DÉGRADÉS ÉLÉGANTS
     // ============================================================
     
     container.innerHTML = `
         <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 20px;">
-            <!-- Bannière de bienvenue -->
-            <div style="background: ${primaryColor}; border-radius: 24px; padding: 24px; margin-bottom: 20px;">
+            <!-- Bannière de bienvenue avec dégradé -->
+            <div style="background: ${tileBgGradient}; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                             <div style="background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fa-solid ${bannerIcon}" style="color: white; font-size: 14px;"></i>
                             </div>
-                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.8);">BIENVENUE</span>
+                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.9);">BIENVENUE</span>
                         </div>
                         <h2 style="font-size: 28px; font-weight: 800; color: white; margin-bottom: 4px;">${userName?.split(' ')[0] || 'Utilisateur'}</h2>
                         <p style="font-size: 12px; color: rgba(255,255,255,0.9);">${bannerDesc}</p>
@@ -1663,11 +1657,11 @@ function renderMobileHub() {
                 <span style="font-size: 9px; color: #94A3B8;">${filteredMenu.length} services</span>
             </div>
             
-            <!-- Grille des tuiles -->
+            <!-- Grille des tuiles avec dégradé -->
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
                 ${filteredMenu.map((item, index) => `
                     <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
-                         style="background: ${tileBgColor}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
+                         style="background: ${tileBgGradient}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
                          ontouchstart="this.style.transform='scale(0.97)'"
                          ontouchend="this.style.transform='scale(1)'"
                          onmousedown="this.style.transform='scale(0.97)'"
@@ -1677,7 +1671,7 @@ function renderMobileHub() {
                         </div>
                         <div>
                             <p style="font-weight: 700; color: ${tileTextColor}; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
-                            <p style="font-size: 10px; color: ${isCoordinateur || isAidant ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255,255,255,0.7)'};">${item.desc}</p>
+                            <p style="font-size: 10px; color: rgba(255,255,255,0.8);">${item.desc}</p>
                         </div>
                         <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
                     </div>
@@ -1689,7 +1683,7 @@ function renderMobileHub() {
     // Initialiser les badges
     initHomeBadges();
     
-    // Fonctions internes
+    // Fonctions internes (inchangées)
     function initHomeBadges() {
         refreshBadges();
         
@@ -1787,7 +1781,6 @@ function renderMobileHub() {
         }
     }
 }
-
 
 // Fonction utilitaire
 function escapeHtml(str) {
