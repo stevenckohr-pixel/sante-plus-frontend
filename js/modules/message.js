@@ -127,18 +127,51 @@ function isImageUrl(url) {
 // ============================================================
 
 
+
+
+
 function renderStoryCard(msg, isReply = false) {
-    const isPhoto = msg.is_photo || msg.photo_url;
     let content = msg.content || '';
     let humeurBadge = "";
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const themeLightBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
 
-    // 🔥 Déterminer le type de contenu
-    const fileUrl = msg.photo_url || (isPhoto ? msg.content : null);
-    const isImage = fileUrl && isImageUrl(fileUrl);
-    const isDocument = msg.type_media === 'DOCUMENT' || (fileUrl && !isImage && !isPhoto);
-    const isTextMessage = !isPhoto && !isImage && !isDocument && content && content.trim() !== '';
+    // 🔥 CORRECTION : Récupérer correctement l'URL du fichier
+    let fileUrl = null;
+    let isImage = false;
+    let isDocument = false;
+    
+    // Cas 1: photo_url existe
+    if (msg.photo_url) {
+        fileUrl = msg.photo_url;
+        isImage = isImageUrl(fileUrl);
+        isDocument = !isImage && msg.type_media === 'DOCUMENT';
+    }
+    // Cas 2: message photo avec content
+    else if (msg.is_photo && msg.content) {
+        fileUrl = msg.content;
+        isImage = isImageUrl(fileUrl);
+    }
+    // Cas 3: document
+    else if (msg.type_media === 'DOCUMENT' && msg.content) {
+        fileUrl = msg.content;
+        isDocument = true;
+        isImage = false;
+    }
+    // Cas 4: URL dans content
+    else if (msg.content && (msg.content.startsWith('http') || msg.content.startsWith('/'))) {
+        fileUrl = msg.content;
+        isImage = isImageUrl(fileUrl);
+        isDocument = !isImage;
+    }
+    
+    // Déterminer si c'est un message texte pur
+    const isTextMessage = !isImage && !isDocument && content && content.trim() !== '' && !msg.is_photo;
+    
+    // Pour les images et documents, on ne veut pas afficher le contenu texte
+    if (isImage || isDocument) {
+        content = '';
+    }
     
     const currentUserId = localStorage.getItem("user_id");
     const currentUserName = localStorage.getItem("user_name");
@@ -154,7 +187,7 @@ function renderStoryCard(msg, isReply = false) {
     }
     
     // Décodage de l'humeur
-    if (!isPhoto && content && content.includes('|')) {
+    if (!msg.is_photo && content && content.includes('|')) {
         const parts = content.split('|');
         const humeur = parts[0];
         const notes = parts.slice(1).join('|');
@@ -208,12 +241,12 @@ function renderStoryCard(msg, isReply = false) {
         return `
             <div class="flex justify-end mb-1 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
                 <div class="max-w-[75%] sm:max-w-[65%]">
-                    ${isImage ? `
+                    ${isImage && fileUrl ? `
                         <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
                              onclick="window.open('${fileUrl}')" loading="lazy"
                              onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
                     ` : ''}
-                    ${isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
+                    ${isDocument && fileUrl ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
                     ${isTextMessage ? `
                         <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
                             <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
@@ -271,7 +304,7 @@ function renderStoryCard(msg, isReply = false) {
                 
                 ${parentMessageHtml}
                 
-                ${isImage ? `
+                ${isImage && fileUrl ? `
                     <div class="relative rounded-xl overflow-hidden mb-1 max-w-[200px]">
                         <img src="${fileUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" 
                              onclick="window.open('${fileUrl}')" loading="lazy"
@@ -282,7 +315,7 @@ function renderStoryCard(msg, isReply = false) {
                     </div>
                 ` : ''}
                 
-                ${isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
+                ${isDocument && fileUrl ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
                 
                 ${isTextMessage ? `
                     <div class="chat-message-received" style="background: white; border-bottom-left-radius: 4px; padding: 6px 12px;">
@@ -317,6 +350,7 @@ function renderStoryCard(msg, isReply = false) {
         </div>
     `;
 }
+
 
 function renderFeed() {
     const content = document.getElementById('care-feed-content');
