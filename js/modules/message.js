@@ -1083,14 +1083,12 @@ function initRealtimeForCurrentPatient() {
             const isCurrentPatient = fullMessage.patient_id === AppState.currentPatient;
             const isInFeed = AppState.currentView === "feed";
             
-            // 🔥 Chercher un message temporaire avec le même contenu et même expéditeur
+            // 🔥 Remplacer le message temporaire SANS FLASH
             const tempIndex = AppState.messages.findIndex(m => 
                 m.is_temp === true && 
                 m.content === fullMessage.content && 
                 m.sender_id === fullMessage.sender_id
             );
-            
-            console.log("🔍 Recherche temporaire:", { tempIndex, fullMessageContent: fullMessage.content });
             
             if (tempIndex !== -1) {
                 const tempId = AppState.messages[tempIndex].id;
@@ -1099,19 +1097,20 @@ function initRealtimeForCurrentPatient() {
                 // Remplacer dans le state
                 AppState.messages[tempIndex] = fullMessage;
                 
-                // Supprimer l'élément DOM temporaire
+                // 🔥 METTRE À JOUR LE DOM EXISTANT (sans suppression/ajout)
                 const tempEl = document.querySelector(`[data-message-id="${tempId}"]`);
                 if (tempEl) {
-                    tempEl.remove();
-                }
-                
-                // Ajouter le vrai message
-                if (isCurrentPatient && isInFeed) {
-                    const container = document.getElementById('care-feed-content');
-                    if (container) {
-                        const newMessageHtml = renderStoryCard(fullMessage, false);
-                        container.insertAdjacentHTML('beforeend', newMessageHtml);
-                        if (isUserAtBottom) scrollToBottom();
+                    // Remplacer l'attribut data-message-id
+                    tempEl.setAttribute('data-message-id', fullMessage.id);
+                    
+                    // Remplacer le contenu HTML
+                    const newHtml = renderStoryCard(fullMessage, false);
+                    tempEl.outerHTML = newHtml;
+                    
+                    // Mettre à jour les références
+                    const newEl = document.querySelector(`[data-message-id="${fullMessage.id}"]`);
+                    if (newEl && isUserAtBottom) {
+                        setTimeout(() => scrollToBottom(), 50);
                     }
                 }
                 
@@ -1120,7 +1119,7 @@ function initRealtimeForCurrentPatient() {
                 return;
             }
             
-            // Message normal (non temporaire)
+            // Gestion des non-lus
             if (!isOwnMessage && (!isCurrentPatient || !isInFeed)) {
                 AppState.unreadByPatient = AppState.unreadByPatient || {};
                 AppState.unreadByPatient[fullMessage.patient_id] = (AppState.unreadByPatient[fullMessage.patient_id] || 0) + 1;
@@ -1128,19 +1127,22 @@ function initRealtimeForCurrentPatient() {
                 window.refreshMenuBadges?.();
             }
 
+            // Ajouter le message s'il n'existe pas
             if (!AppState.messages.some(m => m.id === fullMessage.id)) {
                 AppState.messages.push(fullMessage);
             }
 
+            // Afficher dans le feed
             if (isCurrentPatient && isInFeed && !isOwnMessage) {
                 const container = document.getElementById('care-feed-content');
                 if (container) {
                     const newMessageHtml = renderStoryCard(fullMessage, false);
                     container.insertAdjacentHTML('beforeend', newMessageHtml);
-                    if (isUserAtBottom) scrollToBottom();
+                    if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
                 }
             }
 
+            // Notifications
             if (!isOwnMessage) {
                 try { playNotificationBeep(); } catch(e) {}
             }
