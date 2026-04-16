@@ -1207,64 +1207,93 @@ async function loadFeed() {
     // ============================================================
     // HTML DU CHAT - STYLE WHATSAPP
     // ============================================================
-    container.innerHTML = `
-        <div class="chat-whatsapp-container">
-            <!-- HEADER FIXE -->
-            <div class="chat-whatsapp-header">
-                <div class="chat-whatsapp-back" onclick="window.switchView('patients')">
-                    <i class="fa-solid fa-arrow-left"></i>
-                </div>
-                <div class="chat-whatsapp-avatar">
-                    ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
-                </div>
-                <div class="chat-whatsapp-info">
-                    <div class="chat-whatsapp-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
-                    <div class="chat-whatsapp-status" id="chat-status">
-                        <span class="online-dot"></span> En ligne
+
+        container.innerHTML = `
+            <div class="chat-whatsapp-container">
+                <!-- HEADER FIXE -->
+                <div class="chat-whatsapp-header">
+                    <div class="chat-whatsapp-back" onclick="window.switchView('patients')">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </div>
+                    <div class="chat-whatsapp-avatar">
+                        ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
+                    </div>
+                    <div class="chat-whatsapp-info">
+                        <div class="chat-whatsapp-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
+                        <div class="chat-whatsapp-status" id="chat-status">
+                            <span class="online-dot"></span> En ligne
+                        </div>
+                    </div>
+                    <div class="chat-whatsapp-actions">
+                        <button id="attach-doc-btn" title="Pièce jointe">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="chat-whatsapp-actions">
-                    <button id="attach-doc-btn" title="Pièce jointe">
-                        <i class="fa-solid fa-paperclip"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- ZONE DES MESSAGES (SCROLLABLE) -->
-            <div id="care-feed-content" class="chat-whatsapp-messages">
-                <div class="flex justify-center py-10">
-                    <div class="relative w-8 h-8">
-                        <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+        
+                <!-- 🔥 NOUVEAU : SÉLECTEUR DE PORTÉE DES MESSAGES -->
+                <div class="chat-visibility-bar">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-slate-400 text-xs"></i>
+                        <span class="text-[10px] text-slate-400 font-medium">Envoyer à :</span>
+                        <div class="flex gap-1 ml-2">
+                            <button id="visibility-all" class="visibility-btn active px-2 py-1 rounded-lg text-[9px] font-medium transition-all" 
+                                    data-visibility="all" style="background: #25D366; color: white;">
+                                <i class="fa-solid fa-globe text-[8px]"></i> Tous
+                            </button>
+                            <button id="visibility-family" class="visibility-btn px-2 py-1 rounded-lg text-[9px] font-medium transition-all" 
+                                    data-visibility="family" style="background: #2a3942; color: #aebac1;">
+                                <i class="fa-solid fa-users text-[8px]"></i> Famille
+                            </button>
+                            <button id="visibility-aidant" class="visibility-btn px-2 py-1 rounded-lg text-[9px] font-medium transition-all" 
+                                    data-visibility="aidant" style="background: #2a3942; color: #aebac1;">
+                                <i class="fa-solid fa-user-nurse text-[8px]"></i> Aidant
+                            </button>
+                            ${localStorage.getItem("user_role") === "COORDINATEUR" ? `
+                                <button id="visibility-coordinateur" class="visibility-btn px-2 py-1 rounded-lg text-[9px] font-medium transition-all" 
+                                        data-visibility="coordinateur" style="background: #2a3942; color: #aebac1;">
+                                    <i class="fa-solid fa-user-tie text-[8px]"></i> Coordinateur
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- INDICATEUR DE TYPING -->
-            <div id="typing-indicator" class="chat-whatsapp-typing hidden">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <span class="typing-text">quelqu'un écrit...</span>
-            </div>
-
-            <!-- BARRE DE SAISIE FIXE EN BAS -->
-            <div class="chat-whatsapp-input">
-                <button class="chat-whatsapp-attach" id="attach-photo-btn" title="Photo">
-                    <i class="fa-solid fa-camera"></i>
-                </button>
-                <div class="chat-whatsapp-input-wrapper">
-                    <input type="text" id="quick-msg" class="chat-whatsapp-input-field" placeholder="Message" autocomplete="off">
-                    <button class="chat-whatsapp-send" id="send-btn">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
+        
+                <!-- ZONE DES MESSAGES (SCROLLABLE) -->
+                <div id="care-feed-content" class="chat-whatsapp-messages">
+                    <div class="flex justify-center py-10">
+                        <div class="relative w-8 h-8">
+                            <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
+                        </div>
+                    </div>
                 </div>
+        
+                <!-- INDICATEUR DE TYPING -->
+                <div id="typing-indicator" class="chat-whatsapp-typing hidden">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <span class="typing-text">quelqu'un écrit...</span>
+                </div>
+        
+                <!-- BARRE DE SAISIE FIXE EN BAS -->
+                <div class="chat-whatsapp-input">
+                    <button class="chat-whatsapp-attach" id="attach-photo-btn" title="Photo">
+                        <i class="fa-solid fa-camera"></i>
+                    </button>
+                    <div class="chat-whatsapp-input-wrapper">
+                        <input type="text" id="quick-msg" class="chat-whatsapp-input-field" placeholder="Message" autocomplete="off">
+                        <button class="chat-whatsapp-send" id="send-btn">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+        
+                <!-- INPUTS CACHÉS -->
+                <input type="file" id="photo-input" accept="image/*" class="hidden">
+                <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
             </div>
-
-            <!-- INPUTS CACHÉS -->
-            <input type="file" id="photo-input" accept="image/*" class="hidden">
-            <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
-        </div>
-    `;
+        `;
 
     // ============================================================
     // STYLES CSS DYNAMIQUES (WHATSAPP STYLE)
