@@ -2993,3 +2993,25 @@ body:has(.chat-whatsapp-container) header {
 .flex.items-start {
     justify-content: flex-start !important;
 }
+
+
+
+/* ============================================
+   BARRE DE SÉLECTION DE VISIBILITÉ
+   ============================================ */
+
+.chat-visibility-bar {
+    background: #202c33;
+    padding: 8px 16px;
+    border-bottom: 1px solid #2a3942;
+    flex-shrink: 0;
+}
+
+.visibility-btn {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.visibility-btn:active {
+    transform: scale(0.95);
+}
