@@ -999,17 +999,8 @@ window.appendMessagesToFeed = (newMessages) => {
     const mainContent = document.querySelector('main');
     const wasAtBottom = mainContent ? mainContent.scrollHeight - mainContent.scrollTop <= mainContent.clientHeight + 100 : false;
     
-    // Filtrer les messages qui ne sont pas déjà dans le DOM
-    const existingIds = new Set();
-    document.querySelectorAll('[data-message-id]').forEach(el => {
-        existingIds.add(el.dataset.messageId);
-    });
-    
-    const messagesToAdd = newMessages.filter(msg => !existingIds.has(msg.id));
-    
-    if (messagesToAdd.length === 0) return;
-    
-    const newMessagesHtml = messagesToAdd.map(msg => {
+    // 🔥 NE PAS FILTRER - ajouter tous les nouveaux messages
+    const newMessagesHtml = newMessages.map(msg => {
         if (activeTab === 'DOCUMENT') return renderDocCard(msg);
         return renderStoryCard(msg, false);
     }).join('');
@@ -1017,7 +1008,7 @@ window.appendMessagesToFeed = (newMessages) => {
     container.insertAdjacentHTML('beforeend', newMessagesHtml);
     if (wasAtBottom) scrollToBottom();
     playNotificationBeep();
-    console.log(`✅ ${messagesToAdd.length} nouveau(x) message(s) ajouté(s) sans flash`);
+    console.log(`✅ ${newMessages.length} message(s) ajouté(s) au feed`);
 };
 // ============================================================
 // BADGE NOUVEAU MESSAGE
@@ -1100,7 +1091,6 @@ function initRealtimeForCurrentPatient() {
         const currentUserId = localStorage.getItem("user_id");
         const isOwnMessage = String(newMessage.sender_id) === String(currentUserId);
         
-        // Éviter les doublons
         if (AppState.messages.some(m => m.id === newMessage.id)) return;
 
         try {
@@ -1120,11 +1110,18 @@ function initRealtimeForCurrentPatient() {
                 const tempId = AppState.messages[tempIndex].id;
                 AppState.messages[tempIndex] = fullMessage;
                 
-                document.querySelector(`[data-message-id="${tempId}"]`)?.remove();
+                // Supprimer le temporaire du DOM
+                const tempEl = document.querySelector(`[data-message-id="${tempId}"]`);
+                if (tempEl?.remove) tempEl.remove();
                 
+                // Ajouter le vrai message directement
                 if (isCurrentPatient && isInFeed && !isOwnMessage) {
-                    window.appendMessagesToFeed?.([fullMessage]);
-                    if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
+                    const container = document.getElementById('care-feed-content');
+                    if (container) {
+                        const newMessageHtml = renderStoryCard(fullMessage, false);
+                        container.insertAdjacentHTML('beforeend', newMessageHtml);
+                        if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
+                    }
                 }
                 
                 updatePatientBadges();
@@ -1147,8 +1144,12 @@ function initRealtimeForCurrentPatient() {
 
             // Afficher dans le feed
             if (isCurrentPatient && isInFeed && !isOwnMessage) {
-                window.appendMessagesToFeed?.([fullMessage]);
-                if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
+                const container = document.getElementById('care-feed-content');
+                if (container) {
+                    const newMessageHtml = renderStoryCard(fullMessage, false);
+                    container.insertAdjacentHTML('beforeend', newMessageHtml);
+                    if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
+                }
             }
 
             // Notifications
