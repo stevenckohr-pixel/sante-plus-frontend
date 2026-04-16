@@ -350,61 +350,118 @@ async function openFormuleSelector() {
  */
 export async function renderPatientDetailsView(patientId) {
     const container = document.getElementById("view-container");
-    const p = await secureFetch(`/patients/${patientId}`);  
-
-    const isMaman = p.categorie_service === 'MAMAN_BEBE';
-    const isPremium = p.formule === 'Premium' || p.type_pack === 'Premium';
-    const initials = p.nom_complet?.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || '??';
-
-    container.innerHTML = `
-        <div class="animate-fadeIn max-w-lg mx-auto pb-32">
-            <div class="flex flex-col items-center text-center mb-6">
-                <div class="relative">
-                    <div class="w-24 h-24 bg-white rounded-2xl flex items-center justify-center text-3xl font-black text-slate-300 shadow-xl border-4 border-white mb-4">${initials}</div>
-                    ${isPremium ? `<div class="absolute -top-2 -right-2 bg-gold-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md"><i class="fa-solid fa-crown text-xs text-white"></i></div>` : ''}
-                </div>
-                <h3 class="text-xl font-black text-slate-800">${p.nom_complet}</h3>
-                <div class="flex flex-wrap gap-2 mt-2">
-                    ${isMaman ? `<span class="badge-pink px-3 py-1 rounded-full text-[10px] font-bold"><i class="fa-solid fa-baby-carriage mr-1"></i> Maman & Bébé</span>` : `<span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold"><i class="fa-solid fa-user-plus mr-1"></i> Dossier Sénior</span>`}
-                    ${isPremium ? `<span class="badge-gold px-3 py-1 rounded-full text-[10px] font-bold"><i class="fa-solid fa-crown mr-1"></i> Premium</span>` : ''}
-                </div>
-            </div>
-
-            <div class="${isMaman ? 'maman-banner' : 'premium-banner'} p-4 rounded-xl mb-6 text-center">
-                <p class="text-[10px] font-black uppercase tracking-wider">${isMaman ? '👶 Programme Maman & Bébé' : '⭐ Programme Premium'}</p>
-                <p class="text-sm font-bold mt-1 ${isMaman ? 'text-rose-primary' : 'text-slate-800'}">${isMaman ? 'Accompagnement personnalisé post-maternité' : 'Accès prioritaire et services exclusifs'}</p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <div class="bg-white p-4 rounded-xl border border-slate-100">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-phone mr-1"></i> Urgence</p>
-                    <p class="text-xs font-semibold text-slate-700 mt-1">${p.contact_urgence || 'Non renseigné'}</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-slate-100">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-box mr-1"></i> Pack</p>
-                    <p class="text-xs font-semibold text-slate-700 mt-1">${p.type_pack || 'Standard'}</p>
-                </div>
-                <div class="col-span-2 ${isMaman ? 'bg-pink-50 border-pink-100' : 'bg-amber-50 border-amber-100'} p-4 rounded-xl border">
-                    <p class="text-[9px] font-black ${isMaman ? 'text-pink-500' : 'text-amber-600'} uppercase tracking-wider"><i class="fa-solid fa-heartbeat mr-1"></i> Points d'attention</p>
-                    <p class="text-sm text-slate-700 mt-1">"${p.notes_medicales || 'Aucune consigne'}"</p>
-                </div>
-            </div>
-
-            <div id="aidant-active-area" class="mt-4"></div>
-
-            <button onclick="window.switchView('patients')" class="w-full mt-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-arrow-left text-xs"></i> Retour
-            </button>
-        </div>
-    `;
-
-    AppState.currentPatient = p.id;
     
-    // ✅ Attendre que le DOM soit mis à jour avant d'appeler refreshAidantUI
-    setTimeout(() => {
-        Visites.refreshAidantUI(p.id);
-    }, 100);
+    if (!patientId) {
+        console.error("❌ renderPatientDetailsView: patientId manquant");
+        container.innerHTML = `
+            <div class="text-center py-20">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-3"></i>
+                <p class="text-sm font-bold text-rose-500">Patient non spécifié</p>
+                <button onclick="window.switchView('planning')" class="mt-4 px-4 py-2 bg-slate-800 text-white rounded-xl">Retour</button>
+            </div>
+        `;
+        return;
+    }
+    
+    try {
+        const p = await secureFetch(`/patients/${patientId}`);
+        
+        // Vérifier que le patient existe
+        if (!p || !p.id) {
+            console.error("❌ Patient introuvable:", patientId);
+            container.innerHTML = `
+                <div class="text-center py-20">
+                    <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-3"></i>
+                    <p class="text-sm font-bold text-rose-500">Patient introuvable</p>
+                    <button onclick="window.switchView('planning')" class="mt-4 px-4 py-2 bg-slate-800 text-white rounded-xl">Retour</button>
+                </div>
+            `;
+            return;
+        }
+        
+        console.log("📋 Patient chargé:", p.nom_complet, "ID:", p.id);
+        
+        const isMaman = p.categorie_service === 'MAMAN_BEBE';
+        const isPremium = p.formule === 'Premium' || p.type_pack === 'Premium';
+        const initials = p.nom_complet?.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || '??';
+        
+        // Déterminer les classes de thème
+        const themeBgClass = isMaman ? 'bg-pink-50 border-pink-100' : 'bg-amber-50 border-amber-100';
+        const themeTextClass = isMaman ? 'text-pink-500' : 'text-amber-600';
+        const bannerClass = isMaman ? 'maman-banner' : 'premium-banner';
+        const bannerText = isMaman ? 'Accompagnement personnalisé post-maternité' : 'Accès prioritaire et services exclusifs';
+        
+        container.innerHTML = `
+            <div class="animate-fadeIn max-w-lg mx-auto pb-32">
+                <div class="flex flex-col items-center text-center mb-6">
+                    <div class="relative">
+                        <div class="w-24 h-24 bg-white rounded-2xl flex items-center justify-center text-3xl font-black text-slate-300 shadow-xl border-4 border-white mb-4">
+                            ${escapeHtml(initials)}
+                        </div>
+                        ${isPremium ? `<div class="absolute -top-2 -right-2 bg-gold-primary w-8 h-8 rounded-full flex items-center justify-center shadow-md"><i class="fa-solid fa-crown text-xs text-white"></i></div>` : ''}
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800">${escapeHtml(p.nom_complet)}</h3>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        ${isMaman ? 
+                            `<span class="badge-pink px-3 py-1 rounded-full text-[10px] font-bold"><i class="fa-solid fa-baby-carriage mr-1"></i> Maman & Bébé</span>` : 
+                            `<span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-bold"><i class="fa-solid fa-user-plus mr-1"></i> Dossier Sénior</span>`
+                        }
+                        ${isPremium ? `<span class="badge-gold px-3 py-1 rounded-full text-[10px] font-bold"><i class="fa-solid fa-crown mr-1"></i> Premium</span>` : ''}
+                    </div>
+                </div>
+
+                <div class="${bannerClass} p-4 rounded-xl mb-6 text-center">
+                    <p class="text-[10px] font-black uppercase tracking-wider">${isMaman ? '👶 Programme Maman & Bébé' : '⭐ Programme Premium'}</p>
+                    <p class="text-sm font-bold mt-1 ${isMaman ? 'text-pink-600' : 'text-slate-800'}">${bannerText}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-white p-4 rounded-xl border border-slate-100">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-phone mr-1"></i> Urgence</p>
+                        <p class="text-xs font-semibold text-slate-700 mt-1">${escapeHtml(p.contact_urgence || 'Non renseigné')}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-100">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-box mr-1"></i> Pack</p>
+                        <p class="text-xs font-semibold text-slate-700 mt-1">${escapeHtml(p.type_pack || 'Standard')}</p>
+                    </div>
+                    <div class="col-span-2 ${themeBgClass} p-4 rounded-xl border">
+                        <p class="text-[9px] font-black ${themeTextClass} uppercase tracking-wider"><i class="fa-solid fa-heartbeat mr-1"></i> Points d'attention</p>
+                        <p class="text-sm text-slate-700 mt-1">"${escapeHtml(p.notes_medicales || 'Aucune consigne')}"</p>
+                    </div>
+                </div>
+
+                <div id="aidant-active-area" class="mt-4"></div>
+
+                <button onclick="window.switchView('planning')" class="w-full mt-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-slate-600 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrow-left text-xs"></i> Retour
+                </button>
+            </div>
+        `;
+
+        AppState.currentPatient = p.id;
+        
+        // Attendre que le DOM soit mis à jour
+        setTimeout(() => {
+            if (typeof Visites !== 'undefined' && Visites.refreshAidantUI) {
+                Visites.refreshAidantUI(p.id);
+            } else {
+                console.warn("⚠️ Visites.refreshAidantUI non disponible");
+            }
+        }, 100);
+        
+    } catch (err) {
+        console.error("❌ Erreur renderPatientDetailsView:", err);
+        container.innerHTML = `
+            <div class="text-center py-20">
+                <i class="fa-solid fa-circle-exclamation text-rose-500 text-3xl mb-3"></i>
+                <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
+                <p class="text-xs text-slate-400 mt-1">${err.message}</p>
+                <button onclick="window.switchView('planning')" class="mt-4 px-4 py-2 bg-slate-800 text-white rounded-xl">Retour</button>
+            </div>
+        `;
+    }
 }
+
 
 /**
  * 📄 VUE : LIAISON FAMILLE
