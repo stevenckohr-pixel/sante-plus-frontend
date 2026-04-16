@@ -3033,15 +3033,12 @@ body:has(.chat-whatsapp-container) header {
     transform: scale(0.95);
 }
 
-
-
-/* Fallback pour les icônes FontAwesome */
-.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular {
-    font-family: "Font Awesome 6 Free", "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+/* Force l'affichage des émojis */
+body, .maman-dashboard-container, .chat-whatsapp-messages {
+    font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
 }
 
-/* Style par défaut si l'icône ne charge pas */
-i.fa-solid, i.fa-regular, i.fa-brands {
-    min-width: 1em;
-    text-align: center;
+/* Style pour les icônes FontAwesome */
+.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular {
+    font-family: "Font Awesome 6 Free" !important;
 }
