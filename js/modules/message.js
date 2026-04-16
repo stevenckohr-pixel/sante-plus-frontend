@@ -134,29 +134,22 @@ function renderStoryCard(msg, isReply = false) {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const themeLightBg = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
 
+    // 🔥 Déterminer le type de contenu
     const fileUrl = msg.photo_url || (isPhoto ? msg.content : null);
     const isImage = fileUrl && isImageUrl(fileUrl);
-    const isDocument = msg.type_media === 'DOCUMENT' && fileUrl && !isImage;   
+    const isDocument = msg.type_media === 'DOCUMENT' || (fileUrl && !isImage && !isPhoto);
+    const isTextMessage = !isPhoto && !isImage && !isDocument && content && content.trim() !== '';
+    
     const currentUserId = localStorage.getItem("user_id");
     const currentUserName = localStorage.getItem("user_name");
 
-    // ✅ DÉCLARATION UNIQUE AU DÉBUT (pour toute la fonction)
-    const isPhotoMessage = msg.is_photo === true || (fileUrl && isImage);
-    const hasTextContent = content && content.trim() !== '' && !isPhotoMessage && !isDocument;
-
-    // 🔥 DÉTECTION ROBUSTE DU MESSAGE PROPRE
+    // Détection du propriétaire du message
     let isOwnMessage = false;
-    
-    // Vérifier par sender_id (priorité)
     if (msg.sender_id && String(msg.sender_id) === String(currentUserId)) {
         isOwnMessage = true;
-    }
-    // Vérifier par sender_name (fallback)
-    else if (msg.sender_name && msg.sender_name === currentUserName) {
+    } else if (msg.sender_name && msg.sender_name === currentUserName) {
         isOwnMessage = true;
-    }
-    // Vérifier si c'est un message temporaire
-    else if (msg.is_temp === true) {
+    } else if (msg.is_temp === true) {
         isOwnMessage = true;
     }
     
@@ -198,77 +191,71 @@ function renderStoryCard(msg, isReply = false) {
     const tempClass = isTemp ? 'opacity-70' : '';
 
     // ============================================================
-    // MESSAGE ENVOYÉ (À DROITE - VERT/ROSE)
+    // MESSAGE ENVOYÉ (À DROITE)
     // ============================================================
-                if (isOwnMessage) {
-                let statusIcon = '';
-                if (!isTemp) {
-                    if (msg.read) {
-                        statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
-                    } else {
-                        statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
-                    }
-                } else {
-                    statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
-                }
-                
-                return `
-                    <div class="flex justify-end mb-1 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
-                        <div class="max-w-[75%] sm:max-w-[65%]">
-                            ${fileUrl && isImage ? `
-                                <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
-                                     onclick="window.open('${fileUrl}')" loading="lazy"
-                                     onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
-                            ` : ''}
-                            ${fileUrl && isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
-                                ${!isPhotoMessage && !isDocument && content && content.trim() !== '' ? `
-                                    <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
-                                        <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
-                                    </div>
-                                ` : ''}
-                            <div class="flex justify-end items-center gap-1 mt-0.5">
-                                <span class="text-[9px] text-slate-400">${timeStr}</span>
-                                <span class="message-status">${statusIcon}</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
+    if (isOwnMessage) {
+        let statusIcon = '';
+        if (!isTemp) {
+            if (msg.read) {
+                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
+            } else {
+                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
             }
+        } else {
+            statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
+        }
         
-
+        return `
+            <div class="flex justify-end mb-1 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
+                <div class="max-w-[75%] sm:max-w-[65%]">
+                    ${isImage ? `
+                        <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
+                             onclick="window.open('${fileUrl}')" loading="lazy"
+                             onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
+                    ` : ''}
+                    ${isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
+                    ${isTextMessage ? `
+                        <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
+                            <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                        </div>
+                    ` : ''}
+                    <div class="flex justify-end items-center gap-1 mt-0.5">
+                        <span class="text-[9px] text-slate-400">${timeStr}</span>
+                        <span class="message-status">${statusIcon}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     // ============================================================
-    // MESSAGE REÇU (À GAUCHE - BLANC)
+    // MESSAGE REÇU (À GAUCHE)
     // ============================================================
     const isAidant = msg.sender_role === 'AIDANT';
     const isFamily = msg.sender_role === 'FAMILLE';
     const isCoordinator = msg.sender_role === 'COORDINATEUR';
     
     let avatarBg = 'bg-slate-100';
-    let roleIcon = 'fa-user';
     let roleColor = 'text-slate-500';
     let roleInitial = '';
     let roleBadge = '';
     
     if (isAidant) {
         avatarBg = themeLightBg;
-        roleIcon = 'fa-user-nurse';
         roleColor = isMaman ? 'text-pink-600' : 'text-emerald-600';
         roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'A';
         roleBadge = `<span class="text-[8px] font-medium ${roleColor} ml-1"><i class="fa-solid fa-shield-check"></i></span>`;
     } else if (isFamily) {
         avatarBg = 'bg-blue-100';
-        roleIcon = 'fa-user';
         roleColor = 'text-blue-600';
         roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'F';
     } else if (isCoordinator) {
         avatarBg = 'bg-purple-100';
-        roleIcon = 'fa-user-tie';
         roleColor = 'text-purple-600';
         roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'C';
     }
 
-      return `
+    return `
         <div class="flex items-start gap-2 mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
             <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center flex-shrink-0">
                 ${msg.sender_photo ? 
@@ -284,7 +271,7 @@ function renderStoryCard(msg, isReply = false) {
                 
                 ${parentMessageHtml}
                 
-                ${fileUrl && isImage ? `
+                ${isImage ? `
                     <div class="relative rounded-xl overflow-hidden mb-1 max-w-[200px]">
                         <img src="${fileUrl}" class="rounded-xl max-h-48 object-cover cursor-pointer w-full" 
                              onclick="window.open('${fileUrl}')" loading="lazy"
@@ -294,13 +281,14 @@ function renderStoryCard(msg, isReply = false) {
                         </div>
                     </div>
                 ` : ''}
-                ${fileUrl && isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
                 
-            ${!isPhotoMessage && !isDocument && content && content.trim() !== '' ? `
-                <div class="chat-message-received" style="background: white; border-bottom-left-radius: 4px; padding: 6px 12px;">
-                    <span style="color: #1E293B; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
-                </div>
-            ` : ''}
+                ${isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
+                
+                ${isTextMessage ? `
+                    <div class="chat-message-received" style="background: white; border-bottom-left-radius: 4px; padding: 6px 12px;">
+                        <span style="color: #1E293B; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                    </div>
+                ` : ''}
                 
                 <div class="flex items-center gap-2 mt-0.5">
                     <span class="text-[9px] text-slate-400">${timeStr}</span>
