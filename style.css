@@ -3044,132 +3044,6 @@ body, .maman-dashboard-container, .chat-whatsapp-messages {
 }
 
 
-/* ============================================
-   THÈME AIDANT (OR DOUX)
-   ============================================ */
-
-body.aidant-mode {
-    --role-primary: #C9A84C;
-    --role-primary-dark: #B8942E;
-    --role-primary-light: #FEF9E6;
-}
-
-/* 1. BOUTONS */
-body.aidant-mode .btn-primary,
-body.aidant-mode button[type="submit"],
-body.aidant-mode #btn-login,
-body.aidant-mode .chat-input-send,
-body.aidant-mode .bg-emerald-500,
-body.aidant-mode .bg-emerald-600 {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .btn-primary:hover {
-    background: #D4AF37 !important;
-}
-
-body.aidant-mode .fab-button {
-    background: #C9A84C !important;
-    box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3) !important;
-}
-
-/* 2. FONDS */
-body.aidant-mode .bg-emerald-50,
-body.aidant-mode .bg-green-50 {
-    background: #FEF9E6 !important;
-}
-
-body.aidant-mode .bg-gradient-to-r {
-    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode #notification-badge,
-body.aidant-mode .menu-badge {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-/* 3. TEXTES */
-body.aidant-mode .text-emerald-600,
-body.aidant-mode .dashboard-card-stat {
-    color: #C9A84C !important;
-}
-
-body.aidant-mode a:not(.no-style) {
-    color: #C9A84C !important;
-}
-
-/* 4. BORDURES */
-body.aidant-mode .border-emerald-500 {
-    border-color: #C9A84C !important;
-}
-
-body.aidant-mode input:focus {
-    border-color: #C9A84C !important;
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15) !important;
-}
-
-/* 5. SIDEBAR & NAVIGATION */
-body.aidant-mode .sidebar-link.active {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .nav-btn.active {
-    color: #C9A84C !important;
-}
-
-/* 6. CARTES & TUILES */
-body.aidant-mode .menu-tile i {
-    background: #FEF9E6 !important;
-    color: #C9A84C !important;
-}
-
-body.aidant-mode .badge-dynamic {
-    background: #FEF9E6 !important;
-    color: #C9A84C !important;
-    border: 1px solid #C9A84C !important;
-}
-
-/* 7. CHAT */
-body.aidant-mode .chat-message-sent {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .chat-message-received {
-    border-left: 3px solid #C9A84C !important;
-}
-
-/* 8. FORMULAIRES */
-body.aidant-mode input[type="checkbox"]:checked {
-    accent-color: #C9A84C !important;
-}
-
-/* 9. PROGRESS BARS */
-body.aidant-mode .progress-bar-fill {
-    background: #C9A84C !important;
-}
-
-/* 10. HEADER */
-body.aidant-mode header {
-    border-bottom: 2px solid #C9A84C !important;
-}
-
-/* 11. SECTION TITLES */
-body.aidant-mode .section-title i {
-    color: #C9A84C !important;
-}
-
-
-
-
-
-
-
-
 
 /* ============================================
    THÈME COORDINATEUR (OR COMPLET)
@@ -3453,17 +3327,121 @@ body.coordinateur-mode *:focus-visible {
     outline-color: #D4AF37 !important;
 }
 
+/* ============================================
+   THÈME AIDANT (OR DOUX)
+   ============================================ */
 
+body.aidant-mode {
+    --role-primary: #C9A84C;
+    --role-primary-dark: #B8942E;
+    --role-primary-light: #FEF9E6;
+}
 
+/* 1. BOUTONS */
+body.aidant-mode .btn-primary,
+body.aidant-mode button[type="submit"],
+body.aidant-mode #btn-login,
+body.aidant-mode .chat-input-send,
+body.aidant-mode .bg-emerald-500,
+body.aidant-mode .bg-emerald-600 {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
 
+body.aidant-mode .btn-primary:hover {
+    background: #D4AF37 !important;
+}
 
+body.aidant-mode .fab-button {
+    background: #C9A84C !important;
+    box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3) !important;
+}
 
+/* 2. FONDS */
+body.aidant-mode .bg-emerald-50,
+body.aidant-mode .bg-green-50 {
+    background: #FEF9E6 !important;
+}
 
+body.aidant-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
 
+body.aidant-mode #notification-badge,
+body.aidant-mode .menu-badge {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
 
+/* 3. TEXTES */
+body.aidant-mode .text-emerald-600,
+body.aidant-mode .dashboard-card-stat {
+    color: #C9A84C !important;
+}
 
+body.aidant-mode a:not(.no-style) {
+    color: #C9A84C !important;
+}
 
+/* 4. BORDURES */
+body.aidant-mode .border-emerald-500 {
+    border-color: #C9A84C !important;
+}
 
+body.aidant-mode input:focus {
+    border-color: #C9A84C !important;
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15) !important;
+}
 
+/* 5. SIDEBAR & NAVIGATION */
+body.aidant-mode .sidebar-link.active {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
 
+body.aidant-mode .nav-btn.active {
+    color: #C9A84C !important;
+}
 
+/* 6. CARTES & TUILES */
+body.aidant-mode .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .badge-dynamic {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+    border: 1px solid #C9A84C !important;
+}
+
+/* 7. CHAT */
+body.aidant-mode .chat-message-sent {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .chat-message-received {
+    border-left: 3px solid #C9A84C !important;
+}
+
+/* 8. FORMULAIRES */
+body.aidant-mode input[type="checkbox"]:checked {
+    accent-color: #C9A84C !important;
+}
+
+/* 9. PROGRESS BARS */
+body.aidant-mode .progress-bar-fill {
+    background: #C9A84C !important;
+}
+
+/* 10. HEADER */
+body.aidant-mode header {
+    border-bottom: 2px solid #C9A84C !important;
+}
+
+/* 11. SECTION TITLES */
+body.aidant-mode .section-title i {
+    color: #C9A84C !important;
+}
