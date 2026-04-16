@@ -2515,3 +2515,216 @@ body.coordinateur-mode .dashboard-card {
     background: white;
     border-radius: 20px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   THÈME AIDANT (OR + BEIGE)
+   ============================================ */
+
+body.aidant-mode {
+    --role-primary: #C9A84C;
+    --role-primary-dark: #B8942E;
+    --role-primary-light: #FEF9E6;
+    --role-secondary: #D4AF37;
+    --role-accent: #A3C9A8;
+    --role-text: #4A5D4E;
+}
+
+/* Boutons */
+body.aidant-mode .btn-primary,
+body.aidant-mode button[type="submit"],
+body.aidant-mode .bg-emerald-500,
+body.aidant-mode .bg-emerald-600,
+body.aidant-mode .next-btn,
+body.aidant-mode #btn-login,
+body.aidant-mode .chat-input-send {
+    background: var(--role-primary) !important;
+}
+body.aidant-mode .btn-primary:hover,
+body.aidant-mode button[type="submit"]:hover {
+    background: var(--role-primary-dark) !important;
+}
+
+/* Liens et textes cliquables */
+body.aidant-mode a:not(.no-style),
+body.aidant-mode .text-link,
+body.aidant-mode .sidebar-link.active {
+    color: var(--role-primary) !important;
+}
+
+/* Bordures actives / focus */
+body.aidant-mode input:focus,
+body.aidant-mode textarea:focus,
+body.aidant-mode select:focus {
+    border-color: var(--role-primary) !important;
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1) !important;
+}
+
+/* Badges */
+body.aidant-mode .badge-dynamic,
+body.aidant-mode .badge-notification {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    border: 1px solid var(--role-primary);
+}
+
+/* Indicateur online */
+body.aidant-mode .online-dot {
+    background: var(--role-primary);
+}
+
+/* Onglet actif */
+body.aidant-mode .tab-active,
+body.aidant-mode .nav-btn.active {
+    color: var(--role-primary) !important;
+    border-bottom-color: var(--role-primary) !important;
+}
+
+/* Messages chat - envoyés */
+body.aidant-mode .chat-message-sent {
+    background: var(--role-primary);
+    color: white;
+}
+
+/* Messages chat - reçus */
+body.aidant-mode .chat-message-received {
+    border-left: 3px solid var(--role-primary);
+}
+
+/* Checkbox / radio checked */
+body.aidant-mode input[type="checkbox"]:checked,
+body.aidant-mode input[type="radio"]:checked {
+    accent-color: var(--role-primary);
+}
+
+/* Toggle / switch actif */
+body.aidant-mode .peer-checked {
+    background-color: var(--role-primary) !important;
+}
+
+/* Pagination active */
+body.aidant-mode .pagination .active {
+    background: var(--role-primary);
+    color: white;
+}
+
+/* Focus outline */
+body.aidant-mode *:focus-visible {
+    outline-color: var(--role-primary);
+}
+
+/* ============================================
+   THÈME ADMIN (GRIS + OR)
+   ============================================ */
+
+body.coordinateur-mode {
+    --role-primary: #1E293B;
+    --role-primary-dark: #0F172A;
+    --role-primary-light: #E2E8F0;
+    --role-secondary: #C9A84C;
+    --role-accent: #A3C9A8;
+    --role-text: #334155;
+}
+
+/* Boutons */
+body.coordinateur-mode .btn-primary,
+body.coordinateur-mode button[type="submit"],
+body.coordinateur-mode .bg-emerald-500,
+body.coordinateur-mode .bg-emerald-600,
+body.coordinateur-mode .next-btn,
+body.coordinateur-mode #btn-login,
+body.coordinateur-mode .chat-input-send {
+    background: var(--role-primary) !important;
+}
+body.coordinateur-mode .btn-primary:hover,
+body.coordinateur-mode button[type="submit"]:hover {
+    background: var(--role-primary-dark) !important;
+}
+
+/* Boutons secondaires (or) */
+body.coordinateur-mode .btn-secondary {
+    background: var(--role-secondary);
+    color: #1E293B;
+}
+
+/* Liens et textes cliquables - OR */
+body.coordinateur-mode a:not(.no-style),
+body.coordinateur-mode .text-link,
+body.coordinateur-mode .sidebar-link.active {
+    color: var(--role-secondary) !important;
+}
+
+/* Bordures actives / focus - OR */
+body.coordinateur-mode input:focus,
+body.coordinateur-mode textarea:focus,
+body.coordinateur-mode select:focus {
+    border-color: var(--role-secondary) !important;
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1) !important;
+}
+
+/* Badges */
+body.coordinateur-mode .badge-dynamic {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+}
+
+/* Indicateur online - OR */
+body.coordinateur-mode .online-dot {
+    background: var(--role-secondary);
+}
+
+/* Onglet actif - OR */
+body.coordinateur-mode .tab-active,
+body.coordinateur-mode .nav-btn.active {
+    color: var(--role-secondary) !important;
+    border-bottom-color: var(--role-secondary) !important;
+}
+
+/* Messages chat - envoyés (gris) */
+body.coordinateur-mode .chat-message-sent {
+    background: var(--role-primary);
+    color: white;
+}
+
+/* Messages chat - reçus (bordure or) */
+body.coordinateur-mode .chat-message-received {
+    border-left: 3px solid var(--role-secondary);
+}
+
+/* Checkbox / radio checked - OR */
+body.coordinateur-mode input[type="checkbox"]:checked,
+body.coordinateur-mode input[type="radio"]:checked {
+    accent-color: var(--role-secondary);
+}
+
+/* Toggle / switch actif - OR */
+body.coordinateur-mode .peer-checked {
+    background-color: var(--role-secondary) !important;
+}
+
+/* Pagination active - OR */
+body.coordinateur-mode .pagination .active {
+    background: var(--role-secondary);
+    color: #1E293B;
+}
+
+/* Focus outline - OR */
+body.coordinateur-mode *:focus-visible {
+    outline-color: var(--role-secondary);
+}
+
+/* Header navigation active */
+body.coordinateur-mode .sidebar-link.active {
+    background: var(--role-secondary) !important;
+    color: #1E293B !important;
+}
