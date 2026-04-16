@@ -651,25 +651,36 @@ function applyUserTheme() {
     document.body.classList.remove('maman-mode', 'senior-mode', 'aidant-mode', 'coordinateur-mode');
     
     // Appliquer la classe selon le rôle
-    if (isMaman || (userRole === "FAMILLE" && localStorage.getItem("user_categorie") === "MAMAN_BEBE")) {
-        document.body.classList.add('maman-mode');
-        console.log("🎨 Thème Maman appliqué (rose)");
-    } 
-    else if (userRole === "FAMILLE") {
-        document.body.classList.add('senior-mode');
-        console.log("🎨 Thème Senior appliqué (vert)");
+    if (userRole === "COORDINATEUR") {
+        document.body.classList.add('coordinateur-mode');
+        console.log("🎨 Thème Coordinateur appliqué (OR ÉLÉGANT)");
+        setThemeColor("#D4AF37"); // Or pour la barre d'état
     } 
     else if (userRole === "AIDANT") {
         document.body.classList.add('aidant-mode');
-        console.log("🎨 Thème Aidant appliqué (or + beige)");
-    } 
-    else if (userRole === "COORDINATEUR") {
-        document.body.classList.add('coordinateur-mode');
-        console.log("🎨 Thème Coordinateur appliqué (gris + or)");
+        console.log("🎨 Thème Aidant appliqué (OR DOUX)");
+        setThemeColor("#C9A84C");
+    }
+    else if (userRole === "FAMILLE" && isMaman) {
+        document.body.classList.add('maman-mode');
+        console.log("🎨 Thème Maman appliqué (ROSE)");
+        setThemeColor("#E11D48");
+    }
+    else if (userRole === "FAMILLE") {
+        document.body.classList.add('senior-mode');
+        console.log("🎨 Thème Senior appliqué (VERT)");
+        setThemeColor("#059669");
     }
     
     // Mettre à jour la couleur de la barre d'état
     updateThemeColor();
+}
+
+function setThemeColor(color) {
+    const metaTheme = document.getElementById('theme-color');
+    if (metaTheme) {
+        metaTheme.setAttribute('content', color);
+    }
 }
 
 function updateThemeColor() {
@@ -753,20 +764,6 @@ window.showAppAlert = (title, text, icon = 'success') => {
  * Point d'entrée principal de l'application
  * Vérifie le token, l'onboarding et charge la bonne vue
  */
-
-
-
-
-// ============================================================
-// GESTION DE LA COULEUR DE LA BARRE D'ÉTAT (THEME COLOR)
-// ============================================================
-function setThemeColor(color) {
-    const metaTheme = document.getElementById('theme-color');
-    if (metaTheme) {
-        metaTheme.setAttribute('content', color);
-    }
-}
-
 
 
 
