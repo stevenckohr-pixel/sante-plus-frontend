@@ -15,19 +15,37 @@ export async function loadPatients() {
     showSkeleton(container, 'patient-card');
 
     try {
-        // ✅ Correction : secureFetch retourne déjà les données JSON
+        // Récupérer les patients depuis le backend
         const patients = await secureFetch("/patients");
-        AppState.patients = patients;
         
-        // ✅ AJOUT - Pour la famille, définir automatiquement le patient
+        // Sécuriser les données : s'assurer que c'est un tableau
+        let allPatients = Array.isArray(patients) ? patients : (patients?.data || []);
+        
+        // 🔒 FILTRAGE CÔTÉ FRONTEND (SÉCURITÉ SUPPLÉMENTAIRE)
         const userRole = localStorage.getItem("user_role");
-        if (userRole === "FAMILLE" && patients && patients.length > 0) {
-            AppState.currentPatient = patients[0].id;
-            localStorage.setItem("current_patient_id", patients[0].id);
+        const userId = localStorage.getItem("user_id");
+        
+        let filteredPatients = allPatients;
+        
+        // Si c'est une famille, ne garder que SES patients
+        if (userRole === "FAMILLE") {
+            filteredPatients = allPatients.filter(patient => patient.famille_user_id === userId);
+            console.log(`👨‍👩‍👧 Famille ${userId}: ${filteredPatients.length} patient(s) visible(s) sur ${allPatients.length} total`);
+        }
+        
+        // Stocker les patients filtrés dans l'état global
+        AppState.patients = filteredPatients;
+        
+        // Pour la famille, définir automatiquement le premier patient comme courant
+        if (userRole === "FAMILLE" && filteredPatients && filteredPatients.length > 0) {
+            AppState.currentPatient = filteredPatients[0].id;
+            localStorage.setItem("current_patient_id", filteredPatients[0].id);
             console.log("✅ Patient famille chargé:", AppState.currentPatient);
         }
         
+        // Afficher la liste des patients
         renderPatients();
+        
     } catch (err) {
         console.error("Erreur loadPatients:", err);
         container.innerHTML = `<p class="text-rose-500 text-center p-10 font-bold">Erreur: ${err.message}</p>`;
