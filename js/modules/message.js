@@ -774,6 +774,21 @@ window.sendQuickMessage = async () => {
     // Référence à l'élément DOM
     const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
     
+    // Ajouter un indicateur d'envoi
+    if (tempMessageEl) {
+        tempMessageEl.classList.add('opacity-50');
+        const sendingIndicator = document.createElement('div');
+        sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
+        sendingIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
+        
+        let targetEl = tempMessageEl.querySelector('.flex-1');
+        if (!targetEl) targetEl = tempMessageEl.querySelector('.message-bubble');
+        if (!targetEl) targetEl = tempMessageEl.querySelector('.chat-message-sent');
+        if (!targetEl) targetEl = tempMessageEl;
+        
+        if (targetEl) targetEl.appendChild(sendingIndicator);
+    }
+    
     try {
         UI.vibrate();
         window.cancelReply();
@@ -791,37 +806,23 @@ window.sendQuickMessage = async () => {
             body.reply_to_id = currentReplyTo;
         }
         
-        const result = await secureFetch('/messages/send', { 
+        await secureFetch('/messages/send', { 
             method: 'POST', 
             body: JSON.stringify(body) 
         });
         
-        // Supprimer le message temporaire du DOM
-        if (tempMessageEl && tempMessageEl.remove) {
-            // Animation de fade out avant suppression
-            tempMessageEl.style.transition = 'opacity 0.2s ease';
-            tempMessageEl.style.opacity = '0';
-            setTimeout(() => {
-                if (tempMessageEl && tempMessageEl.remove) {
-                    tempMessageEl.remove();
-                }
-            }, 200);
-        }
+        // ✅ NE PAS SUPPRIMER LE MESSAGE TEMPORAIRE
+        // On attend que Realtime nous envoie le vrai message
         
-        // Supprimer du state
-        const tempIndex = AppState.messages.findIndex(m => m.id === tempId);
-        if (tempIndex !== -1) {
-            AppState.messages.splice(tempIndex, 1);
-        }
-        
-        // Le vrai message arrivera via Realtime, pas besoin de l'ajouter manuellement
-        
-        // Vérifier les alertes pour Maman
-        if (localStorage.getItem("user_is_maman") === "true") {
-            if (typeof checkForAlerts === 'function') {
-                checkForAlerts(messageContent);
+        // Timeout de sécurité (10 secondes)
+        setTimeout(() => {
+            // Vérifier si le message temporaire existe encore
+            const tempStillExists = document.querySelector(`[data-message-id="${tempId}"]`);
+            if (tempStillExists) {
+                console.log("🔄 Timeout: rechargement forcé des messages");
+                loadFeed();
             }
-        }
+        }, 10000);
         
     } catch (err) {
         console.error("Erreur sendQuickMessage:", err);
@@ -832,7 +833,6 @@ window.sendQuickMessage = async () => {
             tempMessageEl.classList.remove('opacity-50');
             tempMessageEl.classList.add('border-rose-200', 'bg-rose-50');
             
-            // Remplacer l'indicateur d'envoi par une erreur
             const indicator = tempMessageEl.querySelector('.sending-indicator');
             if (indicator) {
                 indicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i> Échec';
@@ -847,9 +847,8 @@ window.sendQuickMessage = async () => {
                 e.stopPropagation();
                 retryBtn.remove();
                 
-                // Réessayer l'envoi
                 try {
-                    const retryResult = await secureFetch('/messages/send', {
+                    await secureFetch('/messages/send', {
                         method: 'POST',
                         body: JSON.stringify({
                             patient_id: AppState.currentPatient,
@@ -860,7 +859,6 @@ window.sendQuickMessage = async () => {
                         })
                     });
                     
-                    // Supprimer le message échoué
                     if (tempMessageEl && tempMessageEl.remove) {
                         tempMessageEl.remove();
                     }
