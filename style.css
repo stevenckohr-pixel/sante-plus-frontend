@@ -2387,3 +2387,131 @@ button[type="submit"]:active,
 .bottom-nav-btn:active {
     transform: scale(0.92);
 }
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   THÈME AIDANT (OR + BEIGE + VERT FADÉ)
+   ============================================ */
+
+body.aidant-mode {
+    --role-primary: #C9A84C;
+    --role-primary-dark: #B8942E;
+    --role-primary-light: #FEF9E6;
+    --role-secondary: #D4AF37;
+    --role-accent: #A3C9A8;
+    --role-text: #4A5D4E;
+    --role-bg-card: #FFFFFF;
+    --role-bg-page: #F8F7F4;
+    --role-border: #E8E2D4;
+}
+
+/* Boutons aidant */
+body.aidant-mode .btn-primary,
+body.aidant-mode button[type="submit"],
+body.aidant-mode .bg-emerald-500,
+body.aidant-mode .bg-emerald-600 {
+    background: var(--role-primary) !important;
+}
+body.aidant-mode .btn-primary:hover,
+body.aidant-mode button[type="submit"]:hover {
+    background: var(--role-primary-dark) !important;
+}
+
+/* Badges aidant */
+body.aidant-mode .badge-dynamic {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+    border: 1px solid var(--role-primary);
+}
+
+/* Messages aidant (chat) */
+body.aidant-mode .chat-message-sent {
+    background: var(--role-primary);
+    color: white;
+}
+body.aidant-mode .chat-message-received {
+    background: #F1F5F9;
+    color: #1E293B;
+    border-left: 3px solid var(--role-primary);
+}
+
+/* Cartes dashboard aidant */
+body.aidant-mode .dashboard-card {
+    border-left: 4px solid var(--role-primary);
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+/* Section headers aidant */
+body.aidant-mode .section-title {
+    color: var(--role-primary);
+    border-left: 3px solid var(--role-primary);
+}
+
+/* ============================================
+   THÈME ADMIN (GRIS + OR + VERT FADÉ)
+   ============================================ */
+
+body.coordinateur-mode {
+    --role-primary: #1E293B;
+    --role-primary-dark: #0F172A;
+    --role-primary-light: #E2E8F0;
+    --role-secondary: #C9A84C;
+    --role-accent: #A3C9A8;
+    --role-text: #334155;
+    --role-bg-card: #FFFFFF;
+    --role-bg-page: #F1F5F9;
+    --role-border: #CBD5E1;
+}
+
+/* Boutons admin */
+body.coordinateur-mode .btn-primary,
+body.coordinateur-mode button[type="submit"],
+body.coordinateur-mode .bg-emerald-500,
+body.coordinateur-mode .bg-emerald-600 {
+    background: var(--role-primary) !important;
+}
+body.coordinateur-mode .btn-primary:hover,
+body.coordinateur-mode button[type="submit"]:hover {
+    background: var(--role-primary-dark) !important;
+}
+
+/* Boutons secondaires admin (or) */
+body.coordinateur-mode .btn-secondary {
+    background: var(--role-secondary);
+    color: #1E293B;
+}
+
+/* Badges admin */
+body.coordinateur-mode .badge-dynamic {
+    background: var(--role-primary-light);
+    color: var(--role-primary);
+}
+
+/* Messages admin (chat) */
+body.coordinateur-mode .chat-message-sent {
+    background: var(--role-primary);
+    color: white;
+}
+body.coordinateur-mode .chat-message-received {
+    background: white;
+    color: #1E293B;
+    border-left: 3px solid var(--role-secondary);
+}
+
+/* Cartes dashboard admin */
+body.coordinateur-mode .dashboard-card {
+    border-top: 4px solid var(--role-secondary);
+    background: white;
+    border-radius: 20px;
+}
