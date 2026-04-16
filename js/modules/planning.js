@@ -3,9 +3,87 @@ import { UI } from "../core/utils.js";
 import { CONFIG } from "../core/config.js"; 
 
 
+
+
 /**
- * 📥 CHARGER LE PLANNING (Vue liste)
+ * 🏷️ Formater l'affichage du créneau selon le type d'assignation
+ * @param {Object} item - L'assignation
+ * @returns {string} HTML formaté pour l'affichage du créneau
  */
+function formatScheduleDisplay(item) {
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
+    
+    // CAS 1: Assignation ponctuelle avec heure définie
+    if (item.type_assignation === 'ponctuelle' && item.heure_prevue) {
+        const hour = item.heure_prevue.substring(0, 5);
+        return `
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <i class="fa-regular fa-clock text-emerald-600 text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-xl font-black text-slate-800">${hour}</p>
+                    <p class="text-[9px] text-slate-400">Heure prévue</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    // CAS 2: Assignation temporelle (période définie)
+    if (item.type_assignation === 'temporelle') {
+        const startDate = new Date(item.date_prevue);
+        const endDate = item.date_fin ? new Date(item.date_fin) : null;
+        
+        const startFormatted = startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        const endFormatted = endDate ? endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '...';
+        
+        // Calculer la durée en jours
+        let durationText = '';
+        if (endDate) {
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays <= 7) {
+                durationText = `${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+            } else if (diffDays <= 30) {
+                const weeks = Math.floor(diffDays / 7);
+                durationText = `${weeks} semaine${weeks > 1 ? 's' : ''}`;
+            } else {
+                const months = Math.floor(diffDays / 30);
+                durationText = `${months} mois`;
+            }
+        }
+        
+        return `
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fa-solid fa-calendar-week text-blue-600 text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-black text-slate-800">${startFormatted} → ${endFormatted}</p>
+                    ${durationText ? `<p class="text-[9px] text-slate-400">Durée: ${durationText}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    // CAS 3: Assignation permanente (DEFAULT)
+    return `
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
+                <i class="fa-solid fa-infinity ${isMaman ? 'text-pink-600' : 'text-emerald-600'} text-sm"></i>
+            </div>
+            <div>
+                <p class="text-sm font-black ${isMaman ? 'text-pink-600' : 'text-emerald-600'} uppercase tracking-wider">Permanent</p>
+                <p class="text-[9px] text-slate-400">Intervention régulière</p>
+            </div>
+        </div>
+    `;
+}
+
+
+
+
 export async function loadPlanning() {
     const listContainer = document.getElementById("planning-list");
     if (!listContainer) return;
@@ -28,42 +106,70 @@ export async function loadPlanning() {
         }
 
         listContainer.innerHTML = data.map(item => {
-            const isTerminated = item.statut === 'Terminé';
-            const isPlanned = item.statut === 'Planifié';
+            // 🔥 Utiliser la nouvelle fonction pour l'affichage du créneau
+            const scheduleDisplay = formatScheduleDisplay(item);
             
-            // Couleurs dynamiques selon le rôle
-            const statusColor = isTerminated ? 'bg-emerald-100 text-emerald-700' : 
-                               (isPlanned ? `${isMaman ? 'bg-pink-100 text-pink-700' : 'bg-emerald-100 text-emerald-700'}` : 
-                               'bg-blue-100 text-blue-700');
+            // 🔥 Utiliser la nouvelle fonction pour le statut
+            const statusInfo = getStatusInfo(item.statut, item.type_assignation, isMaman);
             
-            const borderColor = isTerminated ? 'border-emerald-500' : 
-                               (isPlanned ? `${isMaman ? 'border-pink-500' : 'border-emerald-500'}` : 
-                               'border-blue-500');
+            const borderColor = item.statut === 'Terminé' ? 'border-emerald-500' : 
+                               (item.type_assignation === 'ponctuelle' ? 
+                                (isMaman ? 'border-pink-500' : 'border-amber-500') : 
+                                (isMaman ? 'border-pink-500' : 'border-emerald-500'));
             
             const buttonBg = isMaman ? 'bg-pink-600 hover:bg-pink-700' : 'bg-emerald-600 hover:bg-emerald-700';
             
+            // Badge du type d'assignation (petit rappel visuel)
+            let typeBadge = '';
+            if (item.type_assignation === 'permanente') {
+                typeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${isMaman ? 'bg-pink-50 text-pink-600' : 'bg-emerald-50 text-emerald-600'}">
+                    <i class="fa-solid fa-infinity text-[8px]"></i> Permanent
+                </span>`;
+            } else if (item.type_assignation === 'temporelle') {
+                typeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-blue-50 text-blue-600">
+                    <i class="fa-solid fa-calendar-week text-[8px]"></i> Temporaire
+                </span>`;
+            } else if (item.type_assignation === 'ponctuelle') {
+                typeBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase ${isMaman ? 'bg-pink-50 text-pink-600' : 'bg-amber-50 text-amber-600'}">
+                    <i class="fa-solid fa-calendar-day text-[8px]"></i> Ponctuelle
+                </span>`;
+            }
+            
             return `
                 <div class="bg-white p-5 rounded-xl border-l-4 ${borderColor} shadow-sm animate-fadeIn mb-4 hover:shadow-md transition-all">
+                    <!-- En-tête avec créneau et statut -->
                     <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-xl font-black text-slate-800">${item.heure_prevue?.substring(0, 5) || '--:--'}</span>
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-0.5">
-                                ${new Date(item.date_prevue).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
-                            </p>
+                        ${scheduleDisplay}
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase ${statusInfo.bg} ${statusInfo.color}">
+                                <i class="fa-solid ${statusInfo.icon} mr-1"></i>
+                                ${statusInfo.text}
+                            </span>
+                            ${typeBadge}
                         </div>
-                        <span class="px-2 py-1 rounded-lg text-[9px] font-black uppercase ${statusColor}">
-                            ${item.statut || 'Planifié'}
-                        </span>
                     </div>
                     
+                    <!-- Date complète -->
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-wider mt-3">
+                        📅 ${new Date(item.date_prevue).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                    
+                    <!-- Infos patient -->
                     <div class="mt-4">
-                        <h4 class="font-black text-slate-800 text-sm">${escapeHtml(item.patient?.nom_complet || 'Patient inconnu')}</h4>
-                        <p class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1">
-                            <i class="fa-solid fa-map-pin text-xs"></i>
+                        <h4 class="font-black text-slate-800 text-base">${escapeHtml(item.patient?.nom_complet || 'Patient inconnu')}</h4>
+                        <p class="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-location-dot text-xs"></i>
                             <span>${escapeHtml(item.patient?.adresse || 'Adresse non renseignée')}</span>
                         </p>
+                        ${item.patient?.telephone ? `
+                            <p class="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                                <i class="fa-solid fa-phone text-xs"></i>
+                                <span>${escapeHtml(item.patient.telephone)}</span>
+                            </p>
+                        ` : ''}
                     </div>
 
+                    <!-- Consignes -->
                     ${item.notes_coordinateur ? `
                         <div class="mt-3 p-3 rounded-xl" style="background: ${primaryLight};">
                             <p class="text-[9px] font-black uppercase tracking-wider mb-1" style="color: ${primaryColor};">📋 Consignes :</p>
@@ -71,6 +177,7 @@ export async function loadPlanning() {
                         </div>
                     ` : ''}
                     
+                    <!-- Bouton d'action -->
                     ${userRole === "AIDANT" && item.statut !== 'Terminé' ? `
                         <button onclick="window.openMissionBriefing('${item.patient_id}', '${item.id}')" 
                                 class="w-full mt-4 py-3 text-white rounded-xl font-black text-[10px] uppercase shadow-md active:scale-95 transition-all ${buttonBg}">
@@ -92,6 +199,32 @@ export async function loadPlanning() {
     }
 }
 
+
+
+
+/**
+ * 🏷️ Obtenir le texte du statut avec la bonne couleur
+ */
+function getStatusInfo(statut, typeAssignation, isMaman) {
+    const statusMap = {
+        'Terminé': { icon: 'fa-circle-check', text: 'Terminé', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        'Planifié': { icon: 'fa-calendar-check', text: 'Planifié', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50' },
+        'En cours': { icon: 'fa-spinner fa-pulse', text: 'En cours', color: 'text-blue-600', bg: 'bg-blue-50' },
+        'Annulé': { icon: 'fa-circle-xmark', text: 'Annulé', color: 'text-rose-600', bg: 'bg-rose-50' }
+    };
+    
+    // Pour les assignations permanentes, on peut personnaliser l'affichage
+    if (typeAssignation === 'permanente' && statut === 'Planifié') {
+        return {
+            icon: 'fa-infinity',
+            text: 'Actif',
+            color: isMaman ? 'text-pink-600' : 'text-emerald-600',
+            bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50'
+        };
+    }
+    
+    return statusMap[statut] || statusMap['Planifié'];
+}
 
 /**
  * 🗓️ PAGE D'ASSIGNATION INDÉPENDANTE (Remplace la modale)
