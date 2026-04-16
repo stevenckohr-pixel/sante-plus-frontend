@@ -217,6 +217,8 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
 // INITIATION PAIEMENT FEDAPAY
 // ============================================================
 
+// js/modules/subscription.js - Remplacer window.initiateFedaPayPayment
+
 window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
     let patientId = AppState.currentPatient;
     
@@ -227,7 +229,6 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
                 patientId = patients[0].id;
                 AppState.currentPatient = patientId;
                 localStorage.setItem("current_patient_id", patientId);
-                console.log("✅ Patient récupéré depuis l'API:", patientId);
             } else {
                 UI.error("Aucun patient trouvé pour ce compte");
                 return;
@@ -239,33 +240,46 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
         }
     }
     
-    Swal.fire({
-        title: "Préparation du paiement...",
-        text: "Connexion à la passerelle sécurisée",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-    });
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const themeColor = isMaman ? 'pink' : 'emerald';
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
     
-    try {
-        const response = await secureFetch("/billing/initiate-payment", {
-            method: "POST",
-            body: JSON.stringify({
-                pack_id: packId,
-                duration_months: durationMonths,
-                patient_id: patientId,
-                amount: price
-            })
-        });
-        
-        Swal.close();
-        window.location.href = response.payment_url;
-        
-    } catch (err) {
-        Swal.fire({
-            title: "Erreur",
-            text: err.message,
-            icon: "error",
-            confirmButtonColor: "#E11D48"
-        });
-    }
+    // 🔥 Afficher le message "Disponible prochainement"
+    Swal.fire({
+        title: '<i class="fa-solid fa-credit-card text-3xl mb-3" style="color: ' + primaryColor + '"></i><br><span class="text-xl font-black">💳 Paiement sécurisé</span>',
+        html: `
+            <div class="text-center">
+                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
+                    <i class="fa-solid fa-tools text-2xl text-amber-500 mb-2"></i>
+                    <p class="text-sm font-bold text-amber-700">🚧 Paiement en ligne bientôt disponible</p>
+                    <p class="text-xs text-amber-600 mt-1">Nous travaillons à intégrer cette fonctionnalité</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Récapitulatif</p>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-slate-600">Pack sélectionné :</span>
+                        <span class="font-bold text-slate-800">${packId.replace('_', ' ')}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-slate-600">Montant :</span>
+                        <span class="text-xl font-black" style="color: ${primaryColor}">${price.toLocaleString()} CFA</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-slate-100">
+                        <span class="text-sm text-slate-600">Durée :</span>
+                        <span class="font-bold text-slate-800">${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</span>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-slate-50 rounded-xl">
+                    <p class="text-[9px] text-slate-500">🔒 Paiement sécurisé • 📱 Mobile Money • 💳 Carte bancaire</p>
+                </div>
+            </div>
+        `,
+        confirmButtonText: "✅ J'ai compris",
+        confirmButtonColor: primaryColor,
+        showCancelButton: false,
+        customClass: {
+            popup: 'rounded-2xl p-6',
+            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
+        }
+    });
 };
