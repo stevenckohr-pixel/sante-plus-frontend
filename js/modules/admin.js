@@ -1056,10 +1056,10 @@ async function refreshPendingRegistrations() {
 
 
 // ✅ Exposer les fonctions globalement
-window.openAssignModal = openAssignModal;
 window.openAssignModalWithAidant = openAssignModalWithAidant;
 window.openAssignModalWithPatient = openAssignModalWithPatient;
 window.unassignPatient = unassignPatient;
 window.unassignPatientFromPatient = unassignPatientFromPatient;
 window.activateWithDefaultEmail = activateWithDefaultEmail;
 window.activateWithCustomEmail = activateWithCustomEmail;
+window.openAssignModal = openAssignModal;
