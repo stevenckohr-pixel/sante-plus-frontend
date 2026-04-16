@@ -517,10 +517,10 @@ function renderPatientsList() {
                             <div class="text-center py-6 bg-slate-50 rounded-xl border border-slate-100">
                                 <i class="fa-solid fa-user-plus text-slate-300 text-2xl mb-2"></i>
                                 <p class="text-xs text-slate-400 mb-3">Aucun aidant assigné</p>
-                                <button onclick="window.openAssignModalWithPatient('${patient.id}', '${patient.nom_complet.replace(/'/g, "\\'")}')" 
-                                        class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition">
-                                    + Assigner un aidant
-                                </button>
+                            <button onclick="window.redirectToAssignPageWithPatient('${patient.id}', '${patient.nom_complet.replace(/'/g, "\\'")}')" 
+                                    class="bg-emerald-500 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase shadow-md active:scale-95 transition">
+                                + Assigner un aidant
+                            </button>
                             </div>
                         `}
                         ${patient.famille ? `
@@ -540,6 +540,35 @@ function renderPatientsList() {
     `;
 }
 
+
+
+
+
+window.redirectToAssignPageWithPatient = (patientId, patientNom) => {
+    console.log("🔵 Redirection vers page d'assignation pour:", patientNom);
+    
+    // Stocker l'ID du patient pré-sélectionné
+    localStorage.setItem("pre_selected_patient", patientId);
+    localStorage.setItem("pre_selected_patient_name", patientNom);
+    
+    // Rediriger vers la page d'assignation
+    window.switchView('rh-dashboard');
+    
+    // Attendre que la vue soit chargée puis ouvrir la modale d'assignation
+    setTimeout(() => {
+        if (typeof window.openAssignPage === 'function') {
+            window.openAssignPage();
+        } else {
+            console.error("❌ openAssignPage non trouvée, import depuis planning");
+            // Fallback: importer dynamiquement
+            import('./planning.js').then(module => {
+                if (module.openAssignPage) {
+                    module.openAssignPage();
+                }
+            });
+        }
+    }, 300);
+};
 // ============================================================
 // ASSIGNATIONS
 // ============================================================
