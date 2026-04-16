@@ -731,17 +731,17 @@ window.sendQuickMessage = async () => {
     const content = input?.value?.trim();
     if (!content) return;
 
-    // Sauvegarder le contenu et réinitialiser l'input
+    // Sauvegarder et réinitialiser
     const messageContent = content;
     input.value = '';
     
-    // Générer un ID temporaire unique
+    // ID temporaire unique
     const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(7);
     const currentUserId = localStorage.getItem("user_id");
     const currentUserName = localStorage.getItem("user_name");
     const currentUserRole = localStorage.getItem("user_role");
     
-    // Créer le message temporaire
+    // Message temporaire
     const tempMessage = {
         id: tempId,
         patient_id: AppState.currentPatient,
@@ -771,19 +771,14 @@ window.sendQuickMessage = async () => {
         }
     }
     
-    // Ajouter un indicateur d'envoi
+    // Indicateur d'envoi
     const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
     if (tempMessageEl) {
         tempMessageEl.classList.add('opacity-50');
         const sendingIndicator = document.createElement('div');
         sendingIndicator.className = 'sending-indicator text-[8px] text-slate-400 mt-1';
         sendingIndicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Envoi...';
-        
-        let targetEl = tempMessageEl.querySelector('.flex-1');
-        if (!targetEl) targetEl = tempMessageEl.querySelector('.message-bubble');
-        if (!targetEl) targetEl = tempMessageEl.querySelector('.chat-message-sent');
-        if (!targetEl) targetEl = tempMessageEl;
-        
+        const targetEl = tempMessageEl.querySelector('.flex-1') || tempMessageEl.querySelector('.message-bubble') || tempMessageEl;
         if (targetEl) targetEl.appendChild(sendingIndicator);
     }
     
@@ -791,7 +786,7 @@ window.sendQuickMessage = async () => {
         UI.vibrate();
         window.cancelReply();
         
-        // Envoyer le vrai message
+        // Envoi du vrai message
         const body = {
             patient_id: AppState.currentPatient,
             content: messageContent,
@@ -799,20 +794,13 @@ window.sendQuickMessage = async () => {
             type_media: 'STORY',
             visibility: currentVisibility 
         };
+        if (currentReplyTo) body.reply_to_id = currentReplyTo;
         
-        if (currentReplyTo) {
-            body.reply_to_id = currentReplyTo;
-        }
+        await secureFetch('/messages/send', { method: 'POST', body: JSON.stringify(body) });
         
-        await secureFetch('/messages/send', { 
-            method: 'POST', 
-            body: JSON.stringify(body) 
-        });
-        
-        // Timeout de sécurité (10 secondes)
+        // Timeout de sécurité (10s)
         setTimeout(() => {
-            const tempStillExists = document.querySelector(`[data-message-id="${tempId}"]`);
-            if (tempStillExists) {
+            if (document.querySelector(`[data-message-id="${tempId}"]`)) {
                 console.log("🔄 Timeout: rechargement forcé");
                 loadFeed();
             }
@@ -825,11 +813,9 @@ window.sendQuickMessage = async () => {
         if (tempMessageEl) {
             tempMessageEl.classList.remove('opacity-50');
             tempMessageEl.classList.add('border-rose-200', 'bg-rose-50');
-            
             const indicator = tempMessageEl.querySelector('.sending-indicator');
             if (indicator) {
                 indicator.innerHTML = '<i class="fa-solid fa-circle-exclamation text-rose-500"></i> Échec';
-                indicator.classList.add('text-rose-500');
             }
             
             // Bouton réessayer
@@ -839,7 +825,6 @@ window.sendQuickMessage = async () => {
             retryBtn.onclick = async (e) => {
                 e.stopPropagation();
                 retryBtn.remove();
-                
                 try {
                     await secureFetch('/messages/send', {
                         method: 'POST',
@@ -851,17 +836,14 @@ window.sendQuickMessage = async () => {
                             visibility: currentVisibility
                         })
                     });
-                    
-                    if (tempMessageEl?.remove) tempMessageEl.remove();
-                    const index = AppState.messages.findIndex(m => m.id === tempId);
-                    if (index !== -1) AppState.messages.splice(index, 1);
-                    
+                    tempMessageEl?.remove();
+                    const idx = AppState.messages.findIndex(m => m.id === tempId);
+                    if (idx !== -1) AppState.messages.splice(idx, 1);
                     UI.success("Message envoyé !");
                 } catch {
                     UI.error("Échec de l'envoi");
                 }
             };
-            
             const targetEl = tempMessageEl.querySelector('.max-w-[75%]') || tempMessageEl;
             targetEl.appendChild(retryBtn);
         }
@@ -1101,26 +1083,35 @@ function initRealtimeForCurrentPatient() {
             const isCurrentPatient = fullMessage.patient_id === AppState.currentPatient;
             const isInFeed = AppState.currentView === "feed";
             
-            // 🔥 Remplacer le message temporaire
+            // 🔥 Chercher un message temporaire avec le même contenu et même expéditeur
             const tempIndex = AppState.messages.findIndex(m => 
-                m.is_temp && m.content === fullMessage.content && m.sender_id === fullMessage.sender_id
+                m.is_temp === true && 
+                m.content === fullMessage.content && 
+                m.sender_id === fullMessage.sender_id
             );
+            
+            console.log("🔍 Recherche temporaire:", { tempIndex, fullMessageContent: fullMessage.content });
             
             if (tempIndex !== -1) {
                 const tempId = AppState.messages[tempIndex].id;
+                console.log(`🔄 Remplacement du temporaire ${tempId} par ${fullMessage.id}`);
+                
+                // Remplacer dans le state
                 AppState.messages[tempIndex] = fullMessage;
                 
-                // Supprimer le temporaire du DOM
+                // Supprimer l'élément DOM temporaire
                 const tempEl = document.querySelector(`[data-message-id="${tempId}"]`);
-                if (tempEl?.remove) tempEl.remove();
+                if (tempEl) {
+                    tempEl.remove();
+                }
                 
-                // Ajouter le vrai message directement
-                if (isCurrentPatient && isInFeed && !isOwnMessage) {
+                // Ajouter le vrai message
+                if (isCurrentPatient && isInFeed) {
                     const container = document.getElementById('care-feed-content');
                     if (container) {
                         const newMessageHtml = renderStoryCard(fullMessage, false);
                         container.insertAdjacentHTML('beforeend', newMessageHtml);
-                        if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
+                        if (isUserAtBottom) scrollToBottom();
                     }
                 }
                 
@@ -1129,7 +1120,7 @@ function initRealtimeForCurrentPatient() {
                 return;
             }
             
-            // Gestion des non-lus
+            // Message normal (non temporaire)
             if (!isOwnMessage && (!isCurrentPatient || !isInFeed)) {
                 AppState.unreadByPatient = AppState.unreadByPatient || {};
                 AppState.unreadByPatient[fullMessage.patient_id] = (AppState.unreadByPatient[fullMessage.patient_id] || 0) + 1;
@@ -1137,25 +1128,21 @@ function initRealtimeForCurrentPatient() {
                 window.refreshMenuBadges?.();
             }
 
-            // Ajouter le message
             if (!AppState.messages.some(m => m.id === fullMessage.id)) {
                 AppState.messages.push(fullMessage);
             }
 
-            // Afficher dans le feed
             if (isCurrentPatient && isInFeed && !isOwnMessage) {
                 const container = document.getElementById('care-feed-content');
                 if (container) {
                     const newMessageHtml = renderStoryCard(fullMessage, false);
                     container.insertAdjacentHTML('beforeend', newMessageHtml);
-                    if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
+                    if (isUserAtBottom) scrollToBottom();
                 }
             }
 
-            // Notifications
             if (!isOwnMessage) {
                 try { playNotificationBeep(); } catch(e) {}
-                try { navigator.vibrate?.(50); } catch(e) {}
             }
 
         } catch (err) {
