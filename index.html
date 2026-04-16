@@ -11,32 +11,29 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SPS Elite">
 
-        <!-- Emoji Mart CSS et JS -->
+    <!-- Font Awesome (chargement prioritaire) -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Emoji Mart CSS et JS -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js"></script>
     <script src="./firebase.js"></script>
     
     <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.6.0/dist/browser.js"></script>
-    <!-- Chart.js pour les graphiques -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <link rel="icon" id="favicon" href="/sante-plus-frontend/assets/images/logo-general-icon.png">
     <link rel="apple-touch-icon" id="apple-touch-icon" href="/sante-plus-frontend/assets/images/logo-general-icon.png">
     <meta name="theme-color" id="theme-color" content="#0F172A">    
-        <!-- Modules -->
+    
+    <!-- Modules -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/core/realtime.js"></script>
     <script type="module" src="js/main.js"></script>
 
     <!-- Stylesheets -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
 
@@ -47,14 +44,12 @@
     <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden h-screen w-full" style="font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;">
-      <!-- ============================================ -->
-    <!-- SCRIPT PRINCIPAL -->
+    
     <!-- ============================================ -->
-    <script type="module" src="js/main.js"></script>
-
-        <script>
+    <!-- APPLIQUER LE THÈME IMMÉDIATEMENT (avant tout rendu) -->
+    <!-- ============================================ -->
+    <script>
         (function() {
-            // Appliquer le thème avant tout rendu visible
             const token = localStorage.getItem("token");
             const userRole = localStorage.getItem("user_role");
             const isMaman = localStorage.getItem("user_is_maman") === "true";
@@ -71,21 +66,16 @@
                 }
             }
         })();
+    </script>
 
-    <script>
-    setTimeout(function() {
-        if (!document.querySelector('link[href*="fontawesome"]')) {
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://use.fontawesome.com/releases/v6.4.0/css/all.css';
-            document.head.appendChild(link);
-        }
-    }, 1000);
-</script>
+    <!-- ============================================ -->
+    <!-- SCRIPT PRINCIPAL -->
+    <!-- ============================================ -->
+    <script type="module" src="js/main.js"></script>
+
     <!-- ============================================ -->
     <!-- SERVICE WORKER -->
     <!-- ============================================ -->
-
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -94,95 +84,83 @@
                     .catch(err => console.log('❌ Échec SW', err));
             });
         }
-    </script>  
-<!-- LOADER MINIMALISTE -->
-<!-- LOADER - CERCLE ROTATIF + LOGO PULSANT -->
-<div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
-    
-    <!-- Conteneur du cercle + logo -->
-    <div class="relative">
-        <!-- Cercle rotatif -->
-        <div class="w-20 h-20 rounded-full border-3 border-slate-100 border-t-emerald-500 border-r-emerald-300 animate-spin-slow"></div>
-        
-        <!-- Logo central pulsant -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <img id="loader-logo-img" class="w-10 h-10 object-contain animate-pulse-soft" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+    </script>
+
+    <!-- ============================================ -->
+    <!-- LOADER INITIAL -->
+    <!-- ============================================ -->
+    <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
+        <div class="relative">
+            <div class="w-20 h-20 rounded-full border-3 border-slate-100 border-t-emerald-500 border-r-emerald-300 animate-spin-slow"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <img id="loader-logo-img" class="w-10 h-10 object-contain animate-pulse-soft" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+            </div>
+        </div>
+        <div class="text-center mt-6">
+            <span id="loader-sante" class="text-sm font-black">Santé</span>
+            <span class="text-sm font-black text-gold-primary">Plus</span>
+            <span id="loader-service" class="text-sm font-black text-slate-400"> Service</span>
         </div>
     </div>
-    
-    <!-- Texte en dessous -->
-    <div class="text-center mt-6">
-        <span id="loader-sante" class="text-sm font-black">Santé</span>
-        <span class="text-sm font-black text-gold-primary">Plus</span>
-        <span id="loader-service" class="text-sm font-black text-slate-400"> Service</span>
-    </div>
-</div>
 
-<style>
-/* Cercle qui tourne */
-@keyframes spin-slow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-.animate-spin-slow {
-    animation: spin-slow 1s linear infinite;
-}
+    <style>
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-slow 1s linear infinite;
+        }
+        @keyframes pulse-soft {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.92); opacity: 0.8; }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 1s ease-in-out infinite;
+        }
+        .border-3 {
+            border-width: 3px;
+        }
+        #initial-loader.maman .border-t-emerald-500 {
+            border-top-color: #DB2777 !important;
+        }
+        #initial-loader.maman .border-r-emerald-300 {
+            border-right-color: #F472B6 !important;
+        }
+        .text-gold-primary {
+            color: #D4AF37 !important;
+        }
+    </style>
 
-/* Logo qui pulse */
-@keyframes pulse-soft {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(0.92); opacity: 0.8; }
-}
-.animate-pulse-soft {
-    animation: pulse-soft 1s ease-in-out infinite;
-}
+    <script>
+        (function() {
+            setTimeout(function() {
+                try {
+                    const isMaman = localStorage.getItem('user_is_maman') === 'true';
+                    const loaderImg = document.getElementById('loader-logo-img');
+                    const santeEl = document.getElementById('loader-sante');
+                    const loaderContainer = document.getElementById('initial-loader');
+                    
+                    if (loaderImg) {
+                        loaderImg.src = isMaman 
+                            ? '/sante-plus-frontend/assets/images/logo-maman-icon.png'
+                            : '/sante-plus-frontend/assets/images/logo-general-icon.png';
+                    }
+                    
+                    if (santeEl) {
+                        santeEl.style.color = isMaman ? '#DB2777' : '#10B981';
+                    }
+                    
+                    if (loaderContainer && isMaman) {
+                        loaderContainer.classList.add('maman');
+                    }
+                    
+                } catch(e) {}
+            }, 10);
+        })();
+    </script>
 
-/* Bordure pour le cercle */
-.border-3 {
-    border-width: 3px;
-}
-
-/* Version Maman */
-#initial-loader.maman .border-t-emerald-500 {
-    border-top-color: #DB2777 !important;
-}
-#initial-loader.maman .border-r-emerald-300 {
-    border-right-color: #F472B6 !important;
-}
-
-.text-gold-primary {
-    color: #D4AF37 !important;
-}
-</style>
-
-<script>
-(function() {
-    setTimeout(function() {
-        try {
-            const isMaman = localStorage.getItem('user_is_maman') === 'true';
-            const loaderImg = document.getElementById('loader-logo-img');
-            const santeEl = document.getElementById('loader-sante');
-            const loaderContainer = document.getElementById('initial-loader');
-            
-            if (loaderImg) {
-                loaderImg.src = isMaman 
-                    ? '/sante-plus-frontend/assets/images/logo-maman-icon.png'
-                    : '/sante-plus-frontend/assets/images/logo-general-icon.png';
-            }
-            
-            if (santeEl) {
-                santeEl.style.color = isMaman ? '#DB2777' : '#10B981';
-            }
-            
-            if (loaderContainer && isMaman) {
-                loaderContainer.classList.add('maman');
-            }
-            
-        } catch(e) {}
-    }, 10);
-})();
-</script>
-     <!-- ============================================ -->
+    <!-- ============================================ -->
     <!-- CONTENEUR PRINCIPAL -->
     <!-- ============================================ -->
     <div id="app" class="h-full w-full"></div>
@@ -193,64 +171,51 @@
     <div id="view-templates" class="hidden">
 
         <!-- VUE : DASHBOARD (Coordinateur) -->
-     <section id="template-dashboard">
-    <!-- KPIs -->
-    <div class="grid grid-cols-2 gap-4 mb-8">
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
-            <h3 id="stat-patients" class="text-2xl font-black text-slate-800">0</h3>
-        </div>
-        <div class="bg-green-50 p-5 rounded-2xl border border-green-100">
-            <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Visites Jour</p>
-            <h3 id="stat-visits" class="text-2xl font-black text-green-700">0</h3>
-        </div>
-        <div class="bg-orange-50 p-5 rounded-2xl border border-orange-100">
-            <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">À Valider</p>
-            <h3 id="stat-pending" class="text-2xl font-black text-orange-700">0</h3>
-        </div>
-        <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
-            <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Retards</p>
-            <h3 id="stat-late" class="text-2xl font-black text-red-700">0</h3>
-        </div>
-    </div>
+        <section id="template-dashboard">
+            <div class="grid grid-cols-2 gap-4 mb-8">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Patients</p>
+                    <h3 id="stat-patients" class="text-2xl font-black text-slate-800">0</h3>
+                </div>
+                <div class="bg-green-50 p-5 rounded-2xl border border-green-100">
+                    <p class="text-[9px] font-black text-green-600 uppercase tracking-widest">Visites Jour</p>
+                    <h3 id="stat-visits" class="text-2xl font-black text-green-700">0</h3>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-2xl border border-orange-100">
+                    <p class="text-[9px] font-black text-orange-600 uppercase tracking-widest">À Valider</p>
+                    <h3 id="stat-pending" class="text-2xl font-black text-orange-700">0</h3>
+                </div>
+                <div class="bg-red-50 p-5 rounded-2xl border border-red-100">
+                    <p class="text-[9px] font-black text-red-600 uppercase tracking-widest">Retards</p>
+                    <h3 id="stat-late" class="text-2xl font-black text-red-700">0</h3>
+                </div>
+            </div>
 
-    <!-- ============================================ -->
-    <!-- INSCRIPTIONS EN ATTENTE - VERSION RESPONSIVE -->
-    <!-- ============================================ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-8">
-        <div class="p-6 border-b border-slate-50">
-            <h3 class="text-lg font-black text-slate-800">Inscriptions en attente</h3>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Validation des accès & Activation Duo Pack</p>
-        </div>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mt-8">
+                <div class="p-6 border-b border-slate-50">
+                    <h3 class="text-lg font-black text-slate-800">Inscriptions en attente</h3>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Validation des accès & Activation Duo Pack</p>
+                </div>
+                <div class="hidden lg:block overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            <tr>
+                                <th class="px-6 py-4">Responsable</th>
+                                <th class="px-6 py-4">Type</th>
+                                <th class="px-6 py-4">Parent au Bénin</th>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-table-body" class="divide-y divide-slate-50"></tbody>
+                    </table>
+                </div>
+                <div id="pending-mobile-list" class="lg:hidden divide-y divide-slate-100"></div>
+            </div>
 
-        <!-- VERSION DESKTOP (TABLEAU) - Visible uniquement sur PC -->
-        <div class="hidden lg:block overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    <tr>
-                        <th class="px-6 py-4">Responsable</th>
-                        <th class="px-6 py-4">Type</th>
-                        <th class="px-6 py-4">Parent au Bénin</th>
-                        <th class="px-6 py-4">Date</th>
-                        <th class="px-6 py-4 text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="pending-table-body" class="divide-y divide-slate-50"></tbody>
-            </table>
-        </div>
-
-        <!-- VERSION MOBILE (CARTES) - Visible uniquement sur mobile -->
-        <div id="pending-mobile-list" class="lg:hidden divide-y divide-slate-100">
-            <!-- Les inscriptions seront injectées ici sous forme de cartes -->
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- INTERVENTIONS À CONTRÔLER -->
-    <!-- ============================================ -->
-    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1 mt-8">Interventions à contrôler</h4>
-    <div id="pending-actions-list" class="space-y-3"></div>
-</section>
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-1 mt-8">Interventions à contrôler</h4>
+            <div id="pending-actions-list" class="space-y-3"></div>
+        </section>
 
         <!-- VUE : PATIENTS (Liste) -->
         <section id="template-patients">
@@ -355,11 +320,9 @@
             <div id="visits-list" class="space-y-4 pb-24"></div>
         </section>
 
-
-                <!-- VUE : DASHBOARD MAMAN -->
+        <!-- VUE : DASHBOARD MAMAN -->
         <section id="template-dashboard-maman">
             <div class="maman-dashboard-container">
-                <!-- Header avec salutation -->
                 <div class="maman-header">
                     <div>
                         <p class="text-[10px] font-bold text-pink-300 uppercase tracking-wider">Bonjour</p>
@@ -370,8 +333,6 @@
                         <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 rounded-full text-[8px] text-white flex items-center justify-center">3</span>
                     </div>
                 </div>
-        
-                <!-- Prochaine visite -->
                 <div class="maman-next-visit">
                     <div class="flex justify-between items-start mb-3">
                         <div>
@@ -387,8 +348,6 @@
                         <div class="bg-pink-500 h-1.5 rounded-full" style="width: 70%"></div>
                     </div>
                 </div>
-        
-                <!-- Baby Metrics (4 cartes) -->
                 <div class="grid grid-cols-2 gap-3 mb-6">
                     <div class="maman-metric-card">
                         <div class="w-10 h-10 rounded-xl bg-pink-100 flex items-center justify-center mb-2">
@@ -419,8 +378,6 @@
                         <p class="text-xl font-black text-slate-800">+250g</p>
                     </div>
                 </div>
-        
-                <!-- Section Forfaits -->
                 <div class="mb-6">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="font-bold text-slate-800 text-sm">Nos Forfaits</h4>
@@ -457,8 +414,6 @@
                         </div>
                     </div>
                 </div>
-        
-                <!-- Navigation rapide -->
                 <div class="grid grid-cols-4 gap-2 mt-4">
                     <button onclick="window.switchView('feed')" class="maman-nav-btn">
                         <i class="fa-regular fa-message text-pink-500 text-lg"></i>
@@ -482,6 +437,5 @@
 
     </div>
 
-  
 </body>
 </html>
