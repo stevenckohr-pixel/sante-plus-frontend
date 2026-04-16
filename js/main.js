@@ -1535,38 +1535,35 @@ function renderMobileHub() {
     const isCoordinateur = userRole === "COORDINATEUR";
     
     // ============================================================
-    // 🔥 COULEURS DYNAMIQUES SELON LE RÔLE
+    // 🔥 COULEURS DYNAMIQUES (juste milieu)
     // ============================================================
     
-    let primaryColor, primaryLight, goldColor, bannerIcon, bannerDesc, tileBgColor, tileIconColor, tileTextColor;
+    let primaryColor, primaryLight, bannerIcon, bannerDesc, tileBgColor, tileIconColor, tileTextColor;
     
     if (isCoordinateur) {
-        // ADMIN - OR BRILLANT
-        primaryColor = '#D4AF37';
-        primaryLight = '#FEF9E6';
-        goldColor = '#FFFFFF';
-        bannerIcon = 'fa-chart-pie';
-        bannerDesc = "Gestion complète de la plateforme";
-        tileBgColor = '#D4AF37';
-        tileIconColor = '#FFFFFF';
-        tileTextColor = '#0F172A';
-    } 
-    else if (isAidant) {
-        // AIDANT - OR DOUX
+        // ADMIN - OR MOYEN ÉQUILIBRÉ
         primaryColor = '#C9A84C';
         primaryLight = '#FEF9E6';
-        goldColor = '#FFFFFF';
-        bannerIcon = 'fa-user-nurse';
-        bannerDesc = "Gestion de vos interventions";
+        bannerIcon = 'fa-chart-pie';
+        bannerDesc = "Gestion complète de la plateforme";
         tileBgColor = '#C9A84C';
         tileIconColor = '#FFFFFF';
-        tileTextColor = '#0F172A';
+        tileTextColor = '#FFFFFF';
+    } 
+    else if (isAidant) {
+        // AIDANT - OR CHAUD ÉQUILIBRÉ
+        primaryColor = '#B8942E';
+        primaryLight = '#FEF9E6';
+        bannerIcon = 'fa-user-nurse';
+        bannerDesc = "Gestion de vos interventions";
+        tileBgColor = '#B8942E';
+        tileIconColor = '#FFFFFF';
+        tileTextColor = '#FFFFFF';
     }
     else if (isMaman) {
         // MAMAN - ROSE (inchangé)
         primaryColor = '#E11D48';
         primaryLight = '#FFF1F2';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-baby-carriage';
         bannerDesc = "Soutien et bien-être pour maman et bébé";
         tileBgColor = '#E11D48';
@@ -1577,7 +1574,6 @@ function renderMobileHub() {
         // SENIOR - VERT (inchangé)
         primaryColor = '#059669';
         primaryLight = '#ECFDF5';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-crown';
         bannerDesc = "Maintien à domicile et soins au quotidien";
         tileBgColor = '#059669';
@@ -1588,7 +1584,6 @@ function renderMobileHub() {
         // DÉFAUT
         primaryColor = '#059669';
         primaryLight = '#ECFDF5';
-        goldColor = '#FFFFFF';
         bannerIcon = 'fa-chart-pie';
         bannerDesc = "Gestion complète de la plateforme";
         tileBgColor = '#059669';
@@ -1596,7 +1591,7 @@ function renderMobileHub() {
         tileTextColor = '#FFFFFF';
     }
     
-    // Menu items
+    // Menu items (inchangé)
     const menuItems = [
         { id: isMaman ? 'dashboard-maman' : (isCoordinateur ? 'dashboard' : 'patients'), 
           label: isMaman ? 'Accueil' : (isCoordinateur ? 'Dashboard' : (isAidant ? 'Patients' : 'Mon suivi')), 
@@ -1619,20 +1614,20 @@ function renderMobileHub() {
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
     // ============================================================
-    // 🔥 GÉNÉRATION DU HTML AVEC COULEURS DYNAMIQUES
+    // 🔥 GÉNÉRATION DU HTML
     // ============================================================
     
     container.innerHTML = `
         <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 20px;">
             <!-- Bannière de bienvenue -->
-            <div style="background: ${primaryColor}; border-radius: 24px; padding: 24px; margin-bottom: 20px;">
+            <div style="background: ${tileBgColor}; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                             <div style="background: rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fa-solid ${bannerIcon}" style="color: white; font-size: 14px;"></i>
                             </div>
-                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.8);">BIENVENUE</span>
+                            <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.5px; color: rgba(255,255,255,0.9);">BIENVENUE</span>
                         </div>
                         <h2 style="font-size: 28px; font-weight: 800; color: white; margin-bottom: 4px;">${userName?.split(' ')[0] || 'Utilisateur'}</h2>
                         <p style="font-size: 12px; color: rgba(255,255,255,0.9);">${bannerDesc}</p>
@@ -1677,7 +1672,7 @@ function renderMobileHub() {
                         </div>
                         <div>
                             <p style="font-weight: 700; color: ${tileTextColor}; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
-                            <p style="font-size: 10px; color: ${isCoordinateur || isAidant ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255,255,255,0.7)'};">${item.desc}</p>
+                            <p style="font-size: 10px; color: rgba(255,255,255,0.85);">${item.desc}</p>
                         </div>
                         <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
                     </div>
@@ -1686,10 +1681,7 @@ function renderMobileHub() {
         </div>
     `;
     
-    // Initialiser les badges
-    initHomeBadges();
-    
-    // Fonctions internes
+    // Initialiser les badges (fonctions internes inchangées)
     function initHomeBadges() {
         refreshBadges();
         
@@ -1786,8 +1778,9 @@ function renderMobileHub() {
             console.error("❌ Erreur refreshBadges:", err);
         }
     }
+    
+    initHomeBadges();
 }
-
 
 // Fonction utilitaire
 function escapeHtml(str) {
