@@ -63,14 +63,15 @@ function playNotificationBeep() {
 }
 
 function scrollToBottom() {
-    setTimeout(() => {
-        const mainContent = document.querySelector('main');
-        if (mainContent) {
-            mainContent.scrollTo({ top: mainContent.scrollHeight, behavior: 'smooth' });
-        }
-    }, 100);
+    // Cibler le bon conteneur de messages
+    const messagesContainer = document.getElementById('care-feed-content');
+    if (messagesContainer) {
+        messagesContainer.scrollTo({
+            top: messagesContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
 }
-
 function cleanupRealtime() {
     if (window.Realtime) {
         window.Realtime.unsubscribe();
@@ -761,15 +762,17 @@ window.sendQuickMessage = async () => {
     // Ajouter au state
     AppState.messages.push(tempMessage);
     
-    // Afficher dans le DOM
-    if (activeTab === 'STORY') {
-        const container = document.getElementById('care-feed-content');
-        if (container) {
-            const tempHtml = renderStoryCard(tempMessage, false);
-            container.insertAdjacentHTML('beforeend', tempHtml);
-            scrollToBottom();
-        }
+// Après avoir ajouté le message temporaire
+if (activeTab === 'STORY') {
+    const container = document.getElementById('care-feed-content');
+    if (container) {
+        const tempHtml = renderStoryCard(tempMessage, false);
+        container.insertAdjacentHTML('beforeend', tempHtml);
+        // ✅ Scroll immédiat
+        setTimeout(() => scrollToBottom(), 50);
     }
+}
+
     
     // Indicateur d'envoi
     const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
