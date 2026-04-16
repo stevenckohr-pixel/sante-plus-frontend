@@ -348,7 +348,7 @@ async function openFormuleSelector() {
 /**
  * 📄 VUE : FICHE PATIENT (Aidant)
  */
-export async function renderPatientDetailsView(patientId) {
+ export async function renderPatientDetailsView(patientId) {
     const container = document.getElementById("view-container");
     
     if (!patientId) {
@@ -358,14 +358,20 @@ export async function renderPatientDetailsView(patientId) {
     }
     
     try {
-        // 🔥 Récupérer le patient depuis l'API
-        const p = await secureFetch(`/patients/${patientId}`);
+        let p = await secureFetch(`/patients/${patientId}`);
         
-        console.log("📋 Patient reçu:", p);
+        console.log("📋 Patient reçu (brut):", p);
+        
+        // ✅ CORRECTION : Si c'est un tableau, prendre le premier élément
+        if (Array.isArray(p) && p.length > 0) {
+            p = p[0];
+            console.log("📋 Patient après extraction:", p);
+        }
         
         // ✅ Vérifier que p est un objet valide
-        if (!p || typeof p !== 'object') {
-            throw new Error("Format de réponse invalide");
+        if (!p || typeof p !== 'object' || !p.id) {
+            console.error("❌ Patient invalide:", p);
+            throw new Error("Patient non trouvé ou format invalide");
         }
         
         const isMaman = p.categorie_service === 'MAMAN_BEBE';
@@ -418,7 +424,9 @@ export async function renderPatientDetailsView(patientId) {
 
         // Rafraîchir l'UI aidant
         setTimeout(() => {
-            Visites.refreshAidantUI(p.id);
+            if (typeof Visites !== 'undefined' && Visites.refreshAidantUI) {
+                Visites.refreshAidantUI(p.id);
+            }
         }, 100);
         
     } catch (err) {
