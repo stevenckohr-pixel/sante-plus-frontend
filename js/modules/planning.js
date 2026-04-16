@@ -5,6 +5,8 @@ import { CONFIG } from "../core/config.js";
 
 
 
+
+
 /**
  * 🏷️ Formater l'affichage du créneau selon le type d'assignation
  * @param {Object} item - L'assignation
@@ -82,7 +84,43 @@ function formatScheduleDisplay(item) {
 }
 
 
+// js/modules/planning.js - AJOUTER CETTE FONCTION AU DÉBUT (après formatScheduleDisplay)
 
+/**
+ * 🏷️ Obtenir le texte du statut avec la bonne couleur
+ */
+function getStatusInfo(statut, typeAssignation, isMaman) {
+    const statusMap = {
+        'Terminé': { icon: 'fa-circle-check', text: 'Terminé', color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        'Planifié': { icon: 'fa-calendar-check', text: 'Planifié', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50' },
+        'En cours': { icon: 'fa-spinner fa-pulse', text: 'En cours', color: 'text-blue-600', bg: 'bg-blue-50' },
+        'Annulé': { icon: 'fa-circle-xmark', text: 'Annulé', color: 'text-rose-600', bg: 'bg-rose-50' }
+    };
+    
+    // Pour les assignations permanentes, on peut personnaliser l'affichage
+    if (typeAssignation === 'permanente' && statut === 'Planifié') {
+        return {
+            icon: 'fa-infinity',
+            text: 'Actif',
+            color: isMaman ? 'text-pink-600' : 'text-emerald-600',
+            bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50'
+        };
+    }
+    
+    return statusMap[statut] || statusMap['Planifié'];
+}
+
+
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 export async function loadPlanning() {
     const listContainer = document.getElementById("planning-list");
@@ -201,30 +239,6 @@ export async function loadPlanning() {
 
 
 
-
-/**
- * 🏷️ Obtenir le texte du statut avec la bonne couleur
- */
-function getStatusInfo(statut, typeAssignation, isMaman) {
-    const statusMap = {
-        'Terminé': { icon: 'fa-circle-check', text: 'Terminé', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        'Planifié': { icon: 'fa-calendar-check', text: 'Planifié', color: isMaman ? 'text-pink-600' : 'text-emerald-600', bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50' },
-        'En cours': { icon: 'fa-spinner fa-pulse', text: 'En cours', color: 'text-blue-600', bg: 'bg-blue-50' },
-        'Annulé': { icon: 'fa-circle-xmark', text: 'Annulé', color: 'text-rose-600', bg: 'bg-rose-50' }
-    };
-    
-    // Pour les assignations permanentes, on peut personnaliser l'affichage
-    if (typeAssignation === 'permanente' && statut === 'Planifié') {
-        return {
-            icon: 'fa-infinity',
-            text: 'Actif',
-            color: isMaman ? 'text-pink-600' : 'text-emerald-600',
-            bg: isMaman ? 'bg-pink-50' : 'bg-emerald-50'
-        };
-    }
-    
-    return statusMap[statut] || statusMap['Planifié'];
-}
 
 /**
  * 🗓️ PAGE D'ASSIGNATION INDÉPENDANTE (Remplace la modale)
@@ -795,16 +809,7 @@ window.unassignAidant = async (planningId, patientName, aidantName) => {
     }
 };
 
-// Fonction escapeHtml si pas déjà présente
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+
 
 
 window.openMissionBriefing = openMissionBriefing;
