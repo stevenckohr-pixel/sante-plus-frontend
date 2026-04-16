@@ -2268,7 +2268,15 @@ async function performViewSwitch(viewName) {
     if (!container) return;
 
     const userRole = localStorage.getItem("user_role");
+    const isMaman = localStorage.getItem("user_is_maman") === "true";
+    const isFamily = userRole === "FAMILLE";
+    const paymentStatus = localStorage.getItem("payment_status");
 
+    // ============================================================
+    // 1. VÉRIFICATIONS D'ACCÈS
+    // ============================================================
+    
+    // Vues réservées au coordinateur
     const adminOnlyViews = ["dashboard", "aidants", "rh-dashboard", "admin"];
     if (adminOnlyViews.includes(viewName) && userRole !== "COORDINATEUR") {
         UI.error("Accès non autorisé");
@@ -2276,7 +2284,7 @@ async function performViewSwitch(viewName) {
         return;
     }
     
-    // 🔒 VUES RÉSERVÉES AUX AIDANTS ET COORDINATEURS
+    // Vues réservées aux aidants et coordinateurs
     const restrictedViews = ["planning", "start-visit", "end-visit"];
     if (restrictedViews.includes(viewName) && userRole !== "AIDANT" && userRole !== "COORDINATEUR") {
         UI.error("Accès non autorisé");
@@ -2284,14 +2292,9 @@ async function performViewSwitch(viewName) {
         return;
     }
 
-    
-    const paymentStatus = localStorage.getItem("payment_status");
-    const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const isFamily = userRole === "FAMILLE";
-
-    // Sécurité paiement : accès restreint si impayé
-    const restrictedViews = ["feed", "visits", "commandes"];
-    if (userRole === "FAMILLE" && paymentStatus === "En retard" && restrictedViews.includes(viewName)) {
+    // Sécurité paiement : accès restreint si impayé (pour famille uniquement)
+    const paymentRestrictedViews = ["feed", "visits", "commandes"];
+    if (userRole === "FAMILLE" && paymentStatus === "En retard" && paymentRestrictedViews.includes(viewName)) {
         UI.vibrate("error");
         Swal.fire({
             icon: "warning",
@@ -2304,7 +2307,9 @@ async function performViewSwitch(viewName) {
         return;
     }
 
-    // Mise à jour des onglets actifs
+    // ============================================================
+    // 2. MISE À JOUR DES ONGLETS ACTIFS
+    // ============================================================
     document.querySelectorAll(".nav-btn, .sidebar-link").forEach((btn) => {
         const isActive = btn.dataset.view === viewName;
         if (btn.classList.contains('sidebar-link')) {
@@ -2317,7 +2322,9 @@ async function performViewSwitch(viewName) {
         }
     });
 
-    // ✅ Titres dynamiques selon le profil
+    // ============================================================
+    // 3. TITRES DYNAMIQUES
+    // ============================================================
     let patientsTitle = "Gestion des Dossiers";
     let feedTitle = "Journal de Soins Live";
     let commandesTitle = "Commandes";
@@ -2365,25 +2372,13 @@ async function performViewSwitch(viewName) {
     localStorage.setItem("last_view", viewName);
     AppState.currentView = viewName;
 
-    try {
-        switch (viewName) {
-            case "dashboard":
-                if (userRole === "FAMILLE" && !isMaman) {
-                    // Senior dashboard
-                    const module = await import('./modules/dashboard.js');
-                    if (module.loadSeniorDashboard) await module.loadSeniorDashboard();
-                } else {
-                    // Coordinateur dashboard
-                    container.innerHTML = document.getElementById("template-dashboard").innerHTML;
-                    await Dashboard.loadAdminDashboard();
-                }
-                break;
-            case "map": 
-                await MapModule.initLiveMap(); 
-                break;
-            case "patients": 
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+    // ============================================================
+    // 4. TEMPLATES DE BASE
+    // ============================================================
+    const templates = {
+        dashboard: '<div class="animate-fadeIn"><div id="dashboard-content" class="space-y-6"></div></div>',
+        map: '<div class="animate-fadeIn h-full" id="map-container"><div id="map" class="h-full w-full rounded-2xl"></div></div>',
+        patients: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">${patientsTitle}</h3>
@@ -2392,57 +2387,21 @@ async function performViewSwitch(viewName) {
                             ${userRole === "COORDINATEUR" ? `<button onclick="window.openAddPatient()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-plus"></i></button>` : ""}
                         </div>
                         <div id="patients-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    </div>`;
-                await Patients.loadPatients();
-                refreshMicroInteractions();
-                break;
-            case "visits": 
-                container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-visits").innerHTML + `</div>`;
-                await Visites.loadVisits(); 
-                break;
-           case "feed":
-                    // Nettoyer l'ancienne souscription Realtime
-                    if (window.cleanupRealtime) window.cleanupRealtime();
-                    
-                    if (!AppState.currentPatient && userRole === "FAMILLE") {
-                        window.switchView("patients");
-                        return;
-                    }
-                    
-                    // 🔥 S'assurer que le patient est bien défini
-                    if (!AppState.currentPatient) {
-                        const patients = await secureFetch("/patients");
-                        if (patients && patients.length > 0) {
-                            AppState.currentPatient = patients[0].id;
-                            localStorage.setItem("current_patient_id", AppState.currentPatient);
-                        }
-                    }
-                    
-                    console.log("🔄 [switchView] Ouverture du feed pour patient:", AppState.currentPatient);
-                    
-                    await window.loadFeed();
-                    break;
-            case "billing": 
-                container.innerHTML = `<div class="animate-slideIn pb-32">` + document.getElementById("template-billing").innerHTML + `</div>`;
-                await Billing.loadBilling(); 
-                break;
-            case "aidants": 
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+                    </div>`,
+        visits: '<div class="animate-slideIn pb-32"><div id="visits-list" class="space-y-4"></div></div>',
+        feed: '<div class="animate-fadeIn h-full" id="feed-container"></div>',
+        billing: '<div class="animate-slideIn pb-32"><div id="billing-content"></div></div>',
+        commandes: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${commandesTitle}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${commandesDesc}</p>
                             </div>
-                            ${userRole === 'COORDINATEUR' ? `<button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center"><i class="fa-solid fa-user-plus text-lg"></i></button>` : ''}
+                            ${userRole === "FAMILLE" ? `<button onclick="window.openOrderModal()" class="w-12 h-12 bg-${commandesBtnColor} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center"><i class="fa-solid fa-plus text-xl"></i></button>` : ""}
                         </div>
-                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    </div>`;
-                await Aidants.loadAidants(); 
-                break;
-            case "planning":
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
+                        <div id="commandes-list" class="space-y-4"></div>
+                    </div>`,
+        planning: `<div class="animate-slideIn pb-32">
                         <div class="flex justify-between items-center mb-8">
                             <div>
                                 <h3 class="font-black text-2xl text-slate-800 tracking-tight">Agenda des Soins</h3>
@@ -2451,43 +2410,114 @@ async function performViewSwitch(viewName) {
                             ${userRole === "COORDINATEUR" ? `<button onclick="window.openAssignPage()" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl active:scale-95 transition-all"><i class="fa-solid fa-calendar-plus"></i></button>` : ""}
                         </div>
                         <div id="planning-list" class="space-y-4"></div>
-                    </div>`;
+                    </div>`,
+        home: '<div class="animate-fadeIn" id="home-content"></div>',
+        profile: '<div class="animate-fadeIn" id="profile-content"></div>',
+        notifications: '<div class="animate-fadeIn" id="notifications-content"></div>',
+        subscription: '<div class="animate-fadeIn" id="subscription-content"></div>',
+        education: '<div class="animate-fadeIn" id="education-content"></div>',
+        "dashboard-maman": '<div class="animate-fadeIn" id="maman-dashboard-content"></div>',
+        aidants: `<div class="animate-slideIn pb-32">
+                        <div class="flex justify-between items-center mb-8">
+                            <div>
+                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">Équipe & RH</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">Gestion des collaborateurs</p>
+                            </div>
+                            ${userRole === 'COORDINATEUR' ? `<button onclick="window.switchView('add-aidant')" class="w-12 h-12 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-green-600 transition-all active:scale-95 flex items-center justify-center"><i class="fa-solid fa-user-plus text-lg"></i></button>` : ''}
+                        </div>
+                        <div id="aidants-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                    </div>`,
+        "rh-dashboard": '<div class="animate-fadeIn" id="rh-content"></div>',
+        "add-patient": '<div class="animate-fadeIn" id="add-patient-content"></div>',
+        "link-family": '<div class="animate-fadeIn" id="link-family-content"></div>',
+        "add-aidant": '<div class="animate-fadeIn" id="add-aidant-content"></div>',
+        "end-visit": '<div class="animate-fadeIn" id="end-visit-content"></div>',
+        "start-visit": '<div class="animate-fadeIn" id="start-visit-content"></div>'
+    };
+
+    // Afficher le template immédiatement
+    container.innerHTML = templates[viewName] || `<div class="animate-fadeIn"><div id="${viewName}-content"></div></div>`;
+
+    // Animation d'entrée
+    container.style.opacity = "0";
+    container.style.transform = "translateY(8px)";
+    container.style.transition = "opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
+    setTimeout(() => {
+        container.style.opacity = "1";
+        container.style.transform = "translateY(0)";
+        updateActiveNavButtons(viewName);
+        updateBottomNav(viewName);
+        setTimeout(() => {
+            if (container) container.style.transition = "";
+        }, 150);
+    }, 10);
+
+    // ============================================================
+    // 5. CHARGEMENT DES DONNÉES PAR VUE
+    // ============================================================
+    try {
+        switch (viewName) {
+            case "dashboard":
+                if (userRole === "FAMILLE" && !isMaman) {
+                    const module = await import('./modules/dashboard.js');
+                    if (module.loadSeniorDashboard) await module.loadSeniorDashboard();
+                } else {
+                    container.innerHTML = document.getElementById("template-dashboard").innerHTML;
+                    await Dashboard.loadAdminDashboard();
+                }
+                break;
+            case "map":
+                await MapModule.initLiveMap();
+                break;
+            case "patients":
+                await Patients.loadPatients();
+                refreshMicroInteractions();
+                break;
+            case "visits":
+                await Visites.loadVisits();
+                break;
+            case "feed":
+                if (window.cleanupRealtime) window.cleanupRealtime();
+                if (!AppState.currentPatient && userRole === "FAMILLE") {
+                    window.switchView("patients");
+                    return;
+                }
+                if (!AppState.currentPatient) {
+                    const patients = await secureFetch("/patients");
+                    if (patients && patients.length > 0) {
+                        AppState.currentPatient = patients[0].id;
+                        localStorage.setItem("current_patient_id", AppState.currentPatient);
+                    }
+                }
+                console.log("🔄 [switchView] Ouverture du feed pour patient:", AppState.currentPatient);
+                await window.loadFeed();
+                break;
+            case "billing":
+                await Billing.loadBilling();
+                break;
+            case "aidants":
+                await Aidants.loadAidants();
+                break;
+            case "planning":
                 await Planning.loadPlanning();
                 break;
             case "commandes":
-                container.innerHTML = `
-                    <div class="animate-slideIn pb-32">
-                        <div class="flex justify-between items-center mb-8">
-                            <div>
-                                <h3 class="font-black text-2xl text-slate-800 tracking-tight">${commandesTitle}</h3>
-                                <p class="text-xs text-slate-400 font-bold uppercase mt-1">${commandesDesc}</p>
-                            </div>
-                            ${userRole === "FAMILLE" ? `
-                                <button onclick="window.openOrderModal()" 
-                                        class="w-12 h-12 bg-${commandesBtnColor} text-white rounded-2xl shadow-xl active:scale-95 transition-all flex items-center justify-center">
-                                    <i class="fa-solid fa-plus text-xl"></i>
-                                </button>
-                            ` : ""}
-                        </div>
-                        <div id="commandes-list" class="space-y-4"></div>
-                    </div>`;
-                await Commandes.loadCommandes(); 
+                await Commandes.loadCommandes();
                 break;
-            case "add-patient": 
-                await Patients.renderAddPatientView(); 
+            case "add-patient":
+                await Patients.renderAddPatientView();
                 break;
-            case "link-family": 
-                await Patients.renderLinkFamilyView(); 
+            case "link-family":
+                await Patients.renderLinkFamilyView();
                 break;
-            case "add-aidant": 
-                await Aidants.renderAddAidantView(); 
+            case "add-aidant":
+                await Aidants.renderAddAidantView();
                 break;
-            case "end-visit": 
-                await Visites.renderEndVisitView(); 
+            case "end-visit":
+                await Visites.renderEndVisitView();
                 break;
             case "start-visit":
                 if (!AppState.currentPatient) {
-                    // Récupérer le premier patient si aucun n'est sélectionné
                     const patients = await secureFetch("/patients");
                     if (patients && patients.length > 0) {
                         AppState.currentPatient = patients[0].id;
@@ -2501,10 +2531,8 @@ async function performViewSwitch(viewName) {
                 break;
             case "home":
                 if (isMaman && userRole === "FAMILLE") {
-                    // Charger le dashboard Maman comme page d'accueil
                     await Maman.loadMamanDashboard();
                 } else {
-                    // Dashboard classique pour les autres
                     renderMobileHub();
                 }
                 break;
@@ -2521,19 +2549,17 @@ async function performViewSwitch(viewName) {
                 await Notifications.renderNotificationsPage();
                 break;
             case "dashboard-maman":
-                await loadMamanDashboard();
+                await Maman.loadMamanDashboard();
                 break;
             case "maman-planning":
                 if (typeof loadMamanPlanning === 'function') {
                     await loadMamanPlanning();
                 } else {
-                    // Fallback si le module n'est pas chargé
                     const { loadMamanPlanning } = await import("./modules/maman.js");
                     await loadMamanPlanning();
                 }
                 break;
             case "education":
-                // 🔥 Si ce n'est pas une maman, rediriger vers l'accueil
                 if (!isMaman) {
                     UI.warning("Cette section est réservée aux mamans");
                     window.switchView("home");
@@ -2541,32 +2567,17 @@ async function performViewSwitch(viewName) {
                 }
                 await loadEducationPage();
                 break;
-                
         }
-        
-        // Animation d'entrée
-        container.style.opacity = "0";
-        container.style.transform = "translateY(8px)";
-        container.style.transition = "opacity 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1), transform 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1)";
-        setTimeout(() => {
-            container.style.opacity = "1";
-            container.style.transform = "translateY(0)";
-            updateActiveNavButtons(viewName);
-            updateBottomNav(viewName);  // ← ICI
-            setTimeout(() => {
-                if (container) container.style.transition = "";
-            }, 150);
-        }, 10);
 
-                    // Forcer la mise à jour de l'UI aidant si nécessaire
-            if (viewName === 'patients' && localStorage.getItem("user_role") === "AIDANT") {
-                const activePatientId = localStorage.getItem("active_patient_id");
-                if (activePatientId && typeof Visites.refreshAidantUI === 'function') {
-                    setTimeout(() => {
-                        Visites.refreshAidantUI(activePatientId);
-                    }, 100);
-                }
+        // Forcer la mise à jour de l'UI aidant si nécessaire
+        if (viewName === 'patients' && localStorage.getItem("user_role") === "AIDANT") {
+            const activePatientId = localStorage.getItem("active_patient_id");
+            if (activePatientId && typeof Visites.refreshAidantUI === 'function') {
+                setTimeout(() => {
+                    Visites.refreshAidantUI(activePatientId);
+                }, 100);
             }
+        }
 
     } catch (err) {
         console.error("DEBUG VIEW ERROR:", err);
