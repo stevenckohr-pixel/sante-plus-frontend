@@ -1534,27 +1534,66 @@ function renderMobileHub() {
     const isAidant = userRole === "AIDANT";
     const isCoordinateur = userRole === "COORDINATEUR";
     
-    // Couleurs dynamiques
-    const primaryColor = isMaman ? '#E11D48' : '#059669';
-    const primaryLight = isMaman ? '#FFF1F2' : '#ECFDF5';
-    const goldColor = '#FFD700';
+    // ============================================================
+    // 🔥 COULEURS DYNAMIQUES SELON LE RÔLE
+    // ============================================================
     
-    // Configuration de la bannière
-    let bannerIcon = 'fa-chart-pie';
-    let bannerDesc = "Gestion complète de la plateforme";
+    let primaryColor, primaryLight, goldColor, bannerIcon, bannerDesc, tileBgColor, tileIconColor, tileTextColor;
     
-    if (isMaman) {
-        bannerIcon = 'fa-baby-carriage';
-        bannerDesc = "Soutien et bien-être pour maman et bébé";
-    } else if (isSenior) {
-        bannerIcon = 'fa-crown';
-        bannerDesc = "Maintien à domicile et soins au quotidien";
-    } else if (isAidant) {
-        bannerIcon = 'fa-user-nurse';
-        bannerDesc = "Gestion de vos interventions";
-    } else if (isCoordinateur) {
+    if (isCoordinateur) {
+        // ADMIN - OR BRILLANT
+        primaryColor = '#D4AF37';
+        primaryLight = '#FEF9E6';
+        goldColor = '#FFFFFF';
         bannerIcon = 'fa-chart-pie';
         bannerDesc = "Gestion complète de la plateforme";
+        tileBgColor = '#D4AF37';
+        tileIconColor = '#FFFFFF';
+        tileTextColor = '#0F172A';
+    } 
+    else if (isAidant) {
+        // AIDANT - OR DOUX
+        primaryColor = '#C9A84C';
+        primaryLight = '#FEF9E6';
+        goldColor = '#FFFFFF';
+        bannerIcon = 'fa-user-nurse';
+        bannerDesc = "Gestion de vos interventions";
+        tileBgColor = '#C9A84C';
+        tileIconColor = '#FFFFFF';
+        tileTextColor = '#0F172A';
+    }
+    else if (isMaman) {
+        // MAMAN - ROSE (inchangé)
+        primaryColor = '#E11D48';
+        primaryLight = '#FFF1F2';
+        goldColor = '#FFFFFF';
+        bannerIcon = 'fa-baby-carriage';
+        bannerDesc = "Soutien et bien-être pour maman et bébé";
+        tileBgColor = '#E11D48';
+        tileIconColor = '#FFFFFF';
+        tileTextColor = '#FFFFFF';
+    }
+    else if (isSenior) {
+        // SENIOR - VERT (inchangé)
+        primaryColor = '#059669';
+        primaryLight = '#ECFDF5';
+        goldColor = '#FFFFFF';
+        bannerIcon = 'fa-crown';
+        bannerDesc = "Maintien à domicile et soins au quotidien";
+        tileBgColor = '#059669';
+        tileIconColor = '#FFFFFF';
+        tileTextColor = '#FFFFFF';
+    }
+    else {
+        // DÉFAUT
+        primaryColor = '#059669';
+        primaryLight = '#ECFDF5';
+        goldColor = '#FFFFFF';
+        bannerIcon = 'fa-chart-pie';
+        bannerDesc = "Gestion complète de la plateforme";
+        tileBgColor = '#059669';
+        tileIconColor = '#FFFFFF';
+        tileTextColor = '#FFFFFF';
     }
     
     // Menu items
@@ -1579,7 +1618,10 @@ function renderMobileHub() {
     // Filtrer selon le rôle
     const filteredMenu = menuItems.filter(item => item.roles.includes(userRole));
 
-    // Générer le HTML de l'accueil
+    // ============================================================
+    // 🔥 GÉNÉRATION DU HTML AVEC COULEURS DYNAMIQUES
+    // ============================================================
+    
     container.innerHTML = `
         <div class="animate-fadeIn" style="background: #F8FAFC; padding-bottom: 20px;">
             <!-- Bannière de bienvenue -->
@@ -1625,17 +1667,17 @@ function renderMobileHub() {
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;" id="menu-grid">
                 ${filteredMenu.map((item, index) => `
                     <div data-menu="${item.id}" onclick="window.switchView('${item.id}')" 
-                         style="background: ${primaryColor}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
+                         style="background: ${tileBgColor}; border-radius: 20px; padding: 16px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.1); animation: cardAppear 0.3s ease-out ${index * 0.03}s forwards; opacity: 0; position: relative;"
                          ontouchstart="this.style.transform='scale(0.97)'"
                          ontouchend="this.style.transform='scale(1)'"
                          onmousedown="this.style.transform='scale(0.97)'"
                          onmouseup="this.style.transform='scale(1)'">
                         <div style="background: rgba(255,255,255,0.15); width: 48px; height: 48px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;">
-                            <i class="fa-solid ${item.icon}" style="color: ${goldColor}; font-size: 22px;"></i>
+                            <i class="fa-solid ${item.icon}" style="color: ${tileIconColor}; font-size: 22px;"></i>
                         </div>
                         <div>
-                            <p style="font-weight: 700; color: white; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
-                            <p style="font-size: 10px; color: rgba(255,255,255,0.7);">${item.desc}</p>
+                            <p style="font-weight: 700; color: ${tileTextColor}; font-size: 14px; margin-bottom: 2px;">${item.label}</p>
+                            <p style="font-size: 10px; color: ${isCoordinateur || isAidant ? 'rgba(15, 23, 42, 0.7)' : 'rgba(255,255,255,0.7)'};">${item.desc}</p>
                         </div>
                         <span class="menu-badge" style="position: absolute; top: -6px; right: -6px; background: #EF4444; color: white; font-size: 10px; font-weight: 800; min-width: 22px; height: 22px; border-radius: 22px; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(239,68,68,0.4); border: 2px solid white;"></span>
                     </div>
