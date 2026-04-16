@@ -1926,9 +1926,18 @@ function renderLayout() {
                         <nav class="flex-1 overflow-y-auto" id="drawer-menu"></nav>
                         
                         <!-- Bouton déconnexion en bas -->
-                        <div class="shrink-0 p-4 border-t border-slate-100">
-                            <button onclick="window.logout()" class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase active:scale-98 transition-all">
-                                <i class="fa-solid fa-power-off mr-2"></i> Déconnexion
+                        <div class="shrink-0 p-4 border-t border-slate-100 space-y-2">
+                            <!-- 🔥 BOUTON INSTALLER L'APPLICATION (couleurs dynamiques) -->
+                            <button id="install-app-drawer" 
+                                    class="install-drawer-btn w-full py-3 rounded-xl text-[10px] font-black uppercase active:scale-98 transition-all flex items-center justify-center gap-2"
+                                    style="background: ${primaryLight}; color: ${primaryColor};">
+                                <i class="fa-solid fa-download"></i> Installer l'application
+                            </button>
+                            
+                            <!-- Bouton déconnexion -->
+                            <button onclick="window.logout()" 
+                                    class="w-full py-3 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black uppercase active:scale-98 transition-all flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-power-off"></i> Déconnexion
                             </button>
                         </div>
                     </div>
@@ -2118,7 +2127,7 @@ function renderLayout() {
     }
 
     // ============================================================
-    // INITIALISATION DU DRAWER (ouverture/fermeture)
+    // INITIALISATION DU DRAWER (menu latéral mobile)
     // ============================================================
     setTimeout(() => {
         const menuBtn = document.getElementById('menu-hamburger');
@@ -2126,7 +2135,7 @@ function renderLayout() {
         const overlay = document.getElementById('drawer-overlay');
         const closeBtn = document.getElementById('close-drawer');
         
-        // Fonction globale pour fermer le drawer
+        // Fonction pour fermer le drawer
         window.closeDrawerMobile = () => {
             if (drawer) {
                 drawer.classList.remove('show');
@@ -2147,7 +2156,29 @@ function renderLayout() {
             if (overlay) overlay.onclick = window.closeDrawerMobile;
             if (closeBtn) closeBtn.onclick = window.closeDrawerMobile;
         }
+        
+        // ✅ 🔥 AJOUTE LE CODE ICI (après l'initialisation du drawer)
+        const installBtn = document.getElementById('install-app-drawer');
+        if (installBtn) {
+            installBtn.onclick = () => {
+                if (window.deferredPrompt) {
+                    window.deferredPrompt.prompt();
+                    window.deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('✅ PWA installée');
+                            if (window.showToast) showToast("Application installée avec succès !", "success");
+                        } else {
+                            console.log('❌ Installation refusée');
+                        }
+                        window.deferredPrompt = null;
+                    });
+                } else {
+                    if (window.showToast) showToast("L'installation sera disponible dans quelques instants", "info");
+                }
+            };
+        }
     }, 100);
+    
 
     // Mettre à jour les couleurs du branding
     setTimeout(() => {
