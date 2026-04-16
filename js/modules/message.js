@@ -1640,6 +1640,20 @@ async function loadFeed() {
     try {
         data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, { noCache: true });
         console.log(`✅ ${data.length} messages chargés depuis le réseau`);
+        console.log("📦 [DEBUG] Messages bruts reçus:", data);
+        console.log("📦 [DEBUG] Nombre de messages:", data.length);
+        
+        // Afficher chaque message pour voir sa structure
+        data.forEach((msg, index) => {
+            console.log(`📦 Message ${index + 1}:`, {
+                id: msg.id,
+                type_media: msg.type_media,
+                is_photo: msg.is_photo,
+                content: msg.content?.substring(0, 100),
+                photo_url: msg.photo_url,
+                created_at: msg.created_at
+            });
+        });
         
         if (db && db.isReady) {
             await db.saveMessages(AppState.currentPatient, data);
