@@ -721,31 +721,36 @@ window.openAssignModal = async () => {
     
     window._assignModalData = { aidants, patients, selectedAidant, selectedPatient };
     
-    window.showAidantSelector = async () => {
-        const result = await openModernSelector(
-            aidants.map(a => ({ id: a.id, name: a.nom, extra: a.email })),
-            "Sélectionner un aidant",
-            "Rechercher un aidant..."
-        );
-        if (result) {
-            window._assignModalData.selectedAidant = result;
-            document.getElementById("selected-aidant-name").innerText = result.name;
-            document.getElementById("selected-aidant-email").innerText = result.extra || '';
-        }
-    };
-    
-    window.showPatientSelector = async () => {
-        const result = await openModernSelector(
-            patients.map(p => ({ id: p.id, name: p.nom_complet, extra: p.formule })),
-            "Sélectionner un patient",
-            "Rechercher un patient..."
-        );
-        if (result) {
-            window._assignModalData.selectedPatient = result;
-            document.getElementById("selected-patient-name").innerText = result.name;
-            document.getElementById("selected-patient-formule").innerText = result.extra || '';
-        }
-    };
+ 
+window.showAidantSelector = async () => {
+    const result = await openModernSelector(
+        window._assignModalData.aidants.map(a => ({ id: a.id, name: a.nom, extra: a.email })),
+        "Sélectionner un aidant",
+        "Rechercher un aidant..."
+    );
+    if (result) {
+        window._assignModalData.selectedAidant = result;
+        const nameEl = document.getElementById("selected-aidant-name");
+        const emailEl = document.getElementById("selected-aidant-email");
+        if (nameEl) nameEl.innerText = result.name;
+        if (emailEl) emailEl.innerText = result.extra || '';
+    }
+};
+
+window.showPatientSelector = async () => {
+    const result = await openModernSelector(
+        window._assignModalData.patients.map(p => ({ id: p.id, name: p.nom_complet, extra: p.formule })),
+        "Sélectionner un patient",
+        "Rechercher un patient..."
+    );
+    if (result) {
+        window._assignModalData.selectedPatient = result;
+        const nameEl = document.getElementById("selected-patient-name");
+        const formuleEl = document.getElementById("selected-patient-formule");
+        if (nameEl) nameEl.innerText = result.name;
+        if (formuleEl) formuleEl.innerText = result.extra || '';
+    }
+};
     
     const result = await Swal.fire({
         title: '<span class="text-base font-black text-slate-800">➕ Nouvelle assignation</span>',
