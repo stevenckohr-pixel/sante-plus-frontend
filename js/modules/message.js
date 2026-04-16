@@ -136,6 +136,7 @@ function renderStoryCard(msg, isReply = false) {
 
     const fileUrl = msg.photo_url || (isPhoto ? msg.content : null);
     const isImage = fileUrl && isImageUrl(fileUrl);
+    const isDocument = msg.type_media === 'DOCUMENT' && fileUrl && !isImage;   
     const currentUserId = localStorage.getItem("user_id");
     const currentUserName = localStorage.getItem("user_name");
 
