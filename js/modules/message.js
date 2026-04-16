@@ -278,8 +278,8 @@ function renderStoryCard(msg, isReply = false) {
                              onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
                     ` : renderDocumentCard(fileUrl, msg.titre_media)) : ''}
                     ${content ? `
-                        <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px;">
-                            <p class="text-white text-sm break-words">${escapeHtml(content)} ${humeurBadge}</p>
+                        <div class="chat-message-received" style="background: #F1F5F9; border-bottom-left-radius: 4px; padding: 10px 14px; min-height: auto; height: auto;">
+                            <p class="text-slate-700 text-sm break-words" style="margin: 0; line-height: 1.4;">${escapeHtml(content)} ${humeurBadge}</p>
                         </div>
                     ` : ''}
                     <div class="flex justify-end items-center gap-1 mt-0.5">
