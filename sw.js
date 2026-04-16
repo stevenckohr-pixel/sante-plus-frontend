@@ -21,7 +21,9 @@ const STATIC_URLS = [
   '/sante-plus-frontend/assets/images/logo-maman-text.png'
 ];
 
-// 🔥 FIREBASE (gardé)
+// ============================================================
+// 🔥 FIREBASE
+// ============================================================
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
 
@@ -35,7 +37,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// 🔥 FCM Background (amélioré)
+// 🔥 FCM Background (notifications en arrière-plan)
 messaging.onBackgroundMessage((payload) => {
   console.log("🔥 FCM Background:", payload);
 
@@ -57,8 +59,7 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(title, options);
 });
-  self.registration.showNotification(title, options);
-});
+
 // ============================================================
 // INSTALLATION
 // ============================================================
@@ -100,17 +101,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // ============================================================
   // 1. IGNORER LES REQUÊTES NON-GET
-  // ============================================================
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // ============================================================
   // 2. REQUÊTES API (Network first, fallback cache)
-  // ============================================================
   if (url.pathname.includes('/api/')) {
     event.respondWith(
       fetch(event.request, {
@@ -150,9 +147,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // ============================================================
   // 3. IMAGES (Cache first avec fallback)
-  // ============================================================
   if (event.request.destination === 'image') {
     event.respondWith(
       caches.match(event.request).then(cached => {
@@ -173,9 +168,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // ============================================================
   // 4. ASSETS STATIQUES (Cache first)
-  // ============================================================
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) {
@@ -203,7 +196,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ============================================================
-// 5. NOTIFICATION CLICK
+// NOTIFICATION CLICK
 // ============================================================
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
@@ -224,7 +217,7 @@ self.addEventListener("notificationclick", function (event) {
 });
 
 // ============================================================
-// 6. SYNC BACKGROUND (pour les requêtes en attente)
+// SYNC BACKGROUND (pour les requêtes en attente)
 // ============================================================
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-queued-requests') {
