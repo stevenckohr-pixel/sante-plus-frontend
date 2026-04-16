@@ -3042,3 +3042,246 @@ body, .maman-dashboard-container, .chat-whatsapp-messages {
 .fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular {
     font-family: "Font Awesome 6 Free" !important;
 }
+
+
+
+
+
+/* ============================================
+   THÈME COORDINATEUR (OR ÉLÉGANT)
+   ============================================ */
+
+body.coordinateur-mode {
+    --role-primary: #D4AF37;
+    --role-primary-dark: #B8942E;
+    --role-primary-light: #FEF9E6;
+    --role-secondary: #C9A84C;
+    --role-accent: #1E293B;
+    --role-text: #0F172A;
+    --role-bg-card: #FFFFFF;
+    --role-bg-page: #F8FAFC;
+    --role-border: #E2E8F0;
+}
+
+/* BOUTONS ADMIN - OR */
+body.coordinateur-mode .btn-primary,
+body.coordinateur-mode button[type="submit"],
+body.coordinateur-mode .bg-emerald-500,
+body.coordinateur-mode .bg-emerald-600,
+body.coordinateur-mode .next-btn,
+body.coordinateur-mode #btn-login,
+body.coordinateur-mode .chat-input-send {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3) !important;
+}
+
+body.coordinateur-mode .btn-primary:hover,
+body.coordinateur-mode button[type="submit"]:hover {
+    background: linear-gradient(135deg, #E5C65C 0%, #C9A84C 100%) !important;
+    transform: scale(1.02);
+}
+
+/* BOUTONS SECONDAIRES - GRIS */
+body.coordinateur-mode .btn-secondary {
+    background: #1E293B !important;
+    color: white !important;
+}
+
+/* CARTES AVEC BORDURE OR */
+body.coordinateur-mode .dashboard-card,
+body.coordinateur-mode .patient-card-modern,
+body.coordinateur-mode .bento-card {
+    border-left: 4px solid #D4AF37 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+body.coordinateur-mode .dashboard-card:hover,
+body.coordinateur-mode .patient-card-modern:hover {
+    border-left: 4px solid #E5C65C !important;
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.15) !important;
+}
+
+/* BADGES ADMIN */
+body.coordinateur-mode .badge-dynamic {
+    background: linear-gradient(135deg, #D4AF37 0%, #FEF9E6 100%);
+    color: #1E293B;
+    border: 1px solid #D4AF37;
+    font-weight: 800;
+}
+
+/* STATS - CHIFFRES EN OR */
+body.coordinateur-mode .dashboard-card-stat {
+    color: #D4AF37 !important;
+    text-shadow: 0 2px 4px rgba(212, 175, 55, 0.2);
+}
+
+/* SIDEBAR ADMIN */
+body.coordinateur-mode aside {
+    background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+}
+
+body.coordinateur-mode .sidebar-link.active {
+    background: linear-gradient(90deg, #D4AF37 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* HEADER ADMIN */
+body.coordinateur-mode header {
+    background: #FFFFFF !important;
+    border-bottom: 2px solid #D4AF37 !important;
+}
+
+/* ICÔNES ADMIN */
+body.coordinateur-mode i.fa-solid,
+body.coordinateur-mode i.fa-regular {
+    color: #D4AF37;
+}
+
+body.coordinateur-mode .sidebar-link i {
+    color: #94A3B8;
+}
+
+body.coordinateur-mode .sidebar-link.active i {
+    color: #0F172A !important;
+}
+
+/* MESSAGES CHAT - ADMIN */
+body.coordinateur-mode .chat-message-sent {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+    font-weight: 600;
+}
+
+body.coordinateur-mode .chat-message-received {
+    background: white !important;
+    border-left: 3px solid #D4AF37 !important;
+}
+
+/* ============================================
+   THÈME AIDANT (OR DOUX + GRIS CLAIR)
+   ============================================ */
+
+body.aidant-mode {
+    --role-primary: #C9A84C;
+    --role-primary-dark: #B8942E;
+    --role-primary-light: #FEF9E6;
+    --role-secondary: #D4AF37;
+    --role-accent: #A3C9A8;
+    --role-text: #334155;
+    --role-bg-card: #FFFFFF;
+    --role-bg-page: #F8F7F4;
+    --role-border: #E8E2D4;
+}
+
+/* BOUTONS AIDANT - OR DOUX */
+body.aidant-mode .btn-primary,
+body.aidant-mode button[type="submit"],
+body.aidant-mode .bg-emerald-500,
+body.aidant-mode .bg-emerald-600,
+body.aidant-mode .next-btn,
+body.aidant-mode #btn-login,
+body.aidant-mode .chat-input-send {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 10px rgba(201, 168, 76, 0.25) !important;
+}
+
+body.aidant-mode .btn-primary:hover,
+body.aidant-mode button[type="submit"]:hover {
+    background: #D4AF37 !important;
+    transform: scale(1.02);
+}
+
+/* BOUTONS SECONDAIRES AIDANT */
+body.aidant-mode .btn-secondary {
+    background: #334155 !important;
+    color: white !important;
+}
+
+/* CARTES AIDANT */
+body.aidant-mode .dashboard-card,
+body.aidant-mode .patient-card-modern,
+body.aidant-mode .bento-card {
+    border-top: 3px solid #C9A84C !important;
+    background: white !important;
+}
+
+/* BADGES AIDANT */
+body.aidant-mode .badge-dynamic {
+    background: #FEF9E6;
+    color: #C9A84C;
+    border: 1px solid #C9A84C;
+    font-weight: 800;
+}
+
+/* STATS AIDANT */
+body.aidant-mode .dashboard-card-stat {
+    color: #C9A84C !important;
+}
+
+/* HEADER AIDANT */
+body.aidant-mode header {
+    background: #FFFFFF !important;
+    border-bottom: 2px solid #C9A84C !important;
+}
+
+/* SIDEBAR AIDANT */
+body.aidant-mode .sidebar-link.active {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+/* ICÔNES AIDANT */
+body.aidant-mode i.fa-solid,
+body.aidant-mode i.fa-regular {
+    color: #C9A84C;
+}
+
+/* MESSAGES CHAT - AIDANT */
+body.aidant-mode .chat-message-sent {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .chat-message-received {
+    background: white !important;
+    border-left: 3px solid #C9A84C !important;
+}
+
+/* ============================================
+   ANIMATIONS ET EFFETS SPÉCIAUX OR
+   ============================================ */
+
+/* Effet de brillance sur l'or */
+@keyframes goldShine {
+    0% {
+        text-shadow: 0 0 2px rgba(212, 175, 55, 0.3);
+    }
+    50% {
+        text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+    }
+    100% {
+        text-shadow: 0 0 2px rgba(212, 175, 55, 0.3);
+    }
+}
+
+body.coordinateur-mode .dashboard-card-stat,
+body.aidant-mode .dashboard-card-stat {
+    animation: goldShine 2s ease-in-out infinite;
+}
+
+/* Hover sur les boutons or */
+body.coordinateur-mode .btn-primary,
+body.aidant-mode .btn-primary {
+    transition: all 0.3s ease;
+}
+
+body.coordinateur-mode .btn-primary:hover,
+body.aidant-mode .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    transform: translateY(-2px);
+}
