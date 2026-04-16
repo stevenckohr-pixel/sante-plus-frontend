@@ -431,109 +431,411 @@ export async function submitEndVisit() {
 /**
  * 📄 VUE : PAGE DE CLÔTURE DE VISITE (PLEIN ÉCRAN MOBILE)
  */
+// js/modules/visites.js - Remplacer renderEndVisitView()
+
 export async function renderEndVisitView() {
     const container = document.getElementById("view-container");
     
-    // Récupérer le patient (déjà fait dans le code existant)
-    const patient = await secureFetch(`/patients/${AppState.currentPatient}`);
+    // Récupérer le patient
+    let patient = null;
+    try {
+        const patients = await secureFetch("/patients");
+        if (Array.isArray(patients) && patients.length > 0) {
+            patient = patients[0];
+        } else if (patients?.data) {
+            patient = patients.data[0];
+        }
+        
+        if (!patient) {
+            container.innerHTML = `<div class="text-center py-20"><p class="text-red-500">Patient non trouvé</p></div>`;
+            return;
+        }
+    } catch (err) {
+        console.error("Erreur récupération patient:", err);
+        container.innerHTML = `<div class="text-center py-20"><p class="text-red-500">Erreur de chargement</p></div>`;
+        return;
+    }
     
-    // ✅ Utiliser directement la catégorie du patient
-    const isMaman = patient?.categorie_service === 'MAMAN_BEBE';
+    // 🔥 DÉTECTION DU TYPE DE DOSSIER
+    const isMaman = patient.categorie_service === 'MAMAN_BEBE' || 
+                    patient.formule === 'MATERNITE' ||
+                    localStorage.getItem("user_is_maman") === "true";
+    
     const themeColor = isMaman ? 'pink' : 'emerald';
+    const themeBgClass = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const themeBorderClass = isMaman ? 'border-pink-200' : 'border-emerald-200';
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-lg mx-auto pb-24">
             <!-- Header -->
-            <div class="flex items-center gap-4 mb-8">
-                <button onclick="window.switchView('visits')" class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 active:scale-95">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+            <div class="flex items-center gap-4 mb-6">
+                <button onclick="window.switchView('visits')" class="w-10 h-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 active:scale-95">
+                    <i class="fa-solid fa-arrow-left text-sm"></i>
                 </button>
                 <div>
-                    <h3 class="font-black text-2xl text-slate-800 tracking-tight">Rapport d'Intervention</h3>
-                    <p class="text-[10px] text-${themeColor}-600 font-black uppercase tracking-widest mt-1">
-                        <i class="fa-solid fa-circle-dot animate-pulse mr-1"></i> Tracking actif
+                    <h3 class="font-bold text-xl text-slate-800 tracking-tight">
+                        ${isMaman ? '👶 Bilan visite Maman & Bébé' : '📋 Rapport d\'Intervention'}
+                    </h3>
+                    <p class="text-[10px] font-black uppercase tracking-wider ${themeTextClass} mt-0.5">
+                        <i class="fa-solid fa-circle-dot animate-pulse mr-1"></i> 
+                        ${isMaman ? 'Suivi personnalisé post-partum' : 'Tracking actif'}
                     </p>
                 </div>
             </div>
 
-            <div class="bg-white rounded-[2.5rem] p-6 lg:p-8 shadow-sm border border-slate-100 space-y-8">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-6">
                 
-                <!-- 1. ACTIVITÉS -->
+                <!-- 📋 SECTION ACTIVITÉS (ADAPTÉE SELON LE TYPE) -->
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Tâches réalisées</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        ${getChecklistHTML(patient.categorie_service)} 
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1 mb-3 block">
+                        <i class="fa-regular fa-circle-check mr-1"></i> 
+                        ${isMaman ? 'Soins & accompagnement réalisés' : 'Tâches réalisées'}
+                    </label>
+                    <div class="grid grid-cols-1 gap-2">
+                        ${getChecklistHTML(isMaman)}
                     </div>
                 </div>
 
+                <!-- 🌸 SECTION BÉBÉ (UNIQUEMENT POUR LES DOSSIERS MAMAN) -->
                 ${isMaman ? `
-                <!-- 🌸 SECTION BÉBÉ (Uniquement pour les dossiers Maman) -->
-                <div class="border-t border-pink-100 pt-4">
-                    <label class="text-[10px] font-black text-pink-500 uppercase tracking-widest ml-2 mb-3 block flex items-center gap-2">
+                <div class="border-t ${themeBorderClass} pt-4">
+                    <label class="text-[10px] font-black ${themeTextClass} uppercase tracking-wider ml-1 mb-3 block flex items-center gap-2">
                         <i class="fa-solid fa-baby-carriage"></i> Métriques bébé
                     </label>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="text-[9px] font-medium text-slate-500 block mb-1">🍼 Dernière tétée</label>
-                            <input type="number" id="baby-feeding" step="0.5" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="heures (ex: 2.5)">
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">
+                                🍼 Dernière tétée
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="baby-feeding" step="0.5" class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="heures">
+                                <span class="text-xs text-slate-400">heures</span>
+                            </div>
+                            <p class="text-[7px] text-slate-400 mt-1">Depuis la dernière tétée</p>
                         </div>
                         <div>
-                            <label class="text-[9px] font-medium text-slate-500 block mb-1">😴 Sommeil</label>
-                            <input type="number" id="baby-sleep" step="0.5" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="heures (ex: 8)">
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">
+                                😴 Sommeil
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="baby-sleep" step="0.5" class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="heures">
+                                <span class="text-xs text-slate-400">heures</span>
+                            </div>
+                            <p class="text-[7px] text-slate-400 mt-1">Aujourd'hui</p>
                         </div>
                         <div>
-                            <label class="text-[9px] font-medium text-slate-500 block mb-1">🧷 Couches</label>
-                            <input type="number" id="baby-diapers" step="1" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="nombre (ex: 6)">
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">
+                                🧷 Couches
+                            </label>
+                            <input type="number" id="baby-diapers" step="1" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="nombre">
+                            <p class="text-[7px] text-slate-400 mt-1">Nombre de changes aujourd'hui</p>
                         </div>
                         <div>
-                            <label class="text-[9px] font-medium text-slate-500 block mb-1">⚖️ Poids</label>
-                            <input type="number" id="baby-weight" step="10" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="grammes (ex: 3500)">
+                            <label class="text-[9px] font-medium text-slate-500 block mb-1">
+                                ⚖️ Poids
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="baby-weight" step="10" class="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" placeholder="grammes">
+                                <span class="text-xs text-slate-400">grammes</span>
+                            </div>
+                            <p class="text-[7px] text-slate-400 mt-1">Dernière mesure</p>
                         </div>
                     </div>
-                    <p class="text-[8px] text-slate-400 mt-2 text-center">Ces données seront visibles dans le tableau de bord de la maman</p>
+                    <p class="text-[8px] text-slate-400 text-center mt-3 italic">
+                        Ces données alimenteront le tableau de bord de la maman
+                    </p>
                 </div>
                 ` : ''}
 
-                <!-- 2. HUMEUR -->
+                <!-- 💊 SECTION TRAITEMENTS (UNIQUEMENT POUR SENIOR) -->
+                ${!isMaman ? `
+                <div class="border-t border-slate-100 pt-4">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1 mb-3 block">
+                        <i class="fa-solid fa-pills mr-1"></i> Traitements & Médicaments
+                    </label>
+                    <textarea id="visit-traitements" rows="2" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm" 
+                              placeholder="Médicaments pris, posologies, rappels..."></textarea>
+                </div>
+                ` : ''}
+
+                <!-- 😊 HUMEUR DU PATIENT -->
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Humeur du patient</label>
-                    <select id="visit-humeur" class="app-input font-black text-slate-700 cursor-pointer">
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1 mb-3 block">
+                        <i class="fa-regular fa-face-smile mr-1"></i> 
+                        ${isMaman ? 'Humeur de la maman' : 'Humeur du patient'}
+                    </label>
+                    <select id="visit-humeur" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium">
                         <option value="Très Joyeux">😊 Très Joyeux / En forme</option>
                         <option value="Calme">😐 Calme / Stable</option>
-                        <option value="Fatigué">😴 Un peu fatigué</option>
+                        <option value="Fatigué">😴 Fatigué</option>
                         <option value="Triste">😔 Triste / Nostalgique</option>
                     </select>
                 </div>
 
-                <!-- 3. NOTES -->
+                <!-- 📝 NOTES / MESSAGE À LA FAMILLE -->
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 mb-3 block">Message à la famille</label>
-                    <textarea id="visit-notes" class="app-input h-28 !py-4" placeholder="Décrivez comment s'est passée la visite..."></textarea>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-wider ml-1 mb-3 block">
+                        <i class="fa-regular fa-message mr-1"></i> 
+                        ${isMaman ? 'Message pour la maman' : 'Message à la famille'}
+                    </label>
+                    <textarea id="visit-notes" rows="3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none" 
+                              placeholder="${isMaman ? 'État général, conseils, observations sur bébé...' : 'Déroulement de la visite, observations...'}"></textarea>
                 </div>
 
-                <!-- 4. PHOTO -->
+                <!-- 📸 PHOTO OBLIGATOIRE -->
                 <div>
-                    <label class="text-[10px] font-black text-${themeColor}-500 uppercase tracking-widest ml-2 mb-3 block">
-                        <i class="fa-solid fa-asterisk text-[8px] mr-1"></i> Preuve Photo requise
+                    <label class="text-[10px] font-black ${themeTextClass} uppercase tracking-wider ml-1 mb-3 block">
+                        <i class="fa-solid fa-camera mr-1"></i> Preuve photo requise
                     </label>
-                    <div class="relative w-full h-32 bg-slate-50 rounded-[1.5rem] border-2 border-dashed border-slate-200 hover:border-${themeColor}-500 hover:bg-${themeColor}-50 transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer">
-                        <input type="file" id="visit-photo" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="document.getElementById('photo-label').innerText = '📸 Photo capturée avec succès'">
-                        <i class="fa-solid fa-camera text-3xl text-slate-300 mb-2"></i>
-                        <p id="photo-label" class="text-xs font-black text-slate-500 uppercase tracking-widest">Prendre une photo</p>
+                    <div class="relative w-full h-32 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 hover:${themeBorderClass} hover:${themeBgClass} transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer">
+                        <input type="file" id="visit-photo" accept="image/*" capture="environment" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <i class="fa-solid fa-cloud-upload-alt text-3xl text-slate-300 mb-2"></i>
+                        <p id="photo-label" class="text-xs font-medium text-slate-500">Prendre ou choisir une photo</p>
+                        <p class="text-[8px] text-slate-400 mt-1">JPG, PNG - Max 5MB</p>
                     </div>
                 </div>
 
-                <div class="pt-6 border-t border-slate-50 mt-4">
-                    <button onclick="window.submitEndVisitWithBabyMetrics()" class="w-full bg-slate-900 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl hover:bg-${themeColor}-500 transition-all active:scale-95 flex items-center justify-center gap-3">
-                        Transmettre le rapport <i class="fa-solid fa-paper-plane"></i>
+                <!-- BOUTON DE VALIDATION -->
+                <div class="pt-4">
+                    <button onclick="window.submitEndVisitWithContext(${isMaman})" 
+                            class="w-full py-4 rounded-xl font-black uppercase tracking-wider text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                            style="background: ${isMaman ? '#E11D48' : '#0F172A'}; color: white;">
+                        <i class="fa-solid fa-paper-plane"></i> 
+                        ${isMaman ? 'Transmettre le bilan maman & bébé' : 'Transmettre le rapport'}
                     </button>
                 </div>
             </div>
         </div>
     `;
+
+    // Afficher le nom du fichier quand une photo est sélectionnée
+    const photoInput = document.getElementById('visit-photo');
+    const photoLabel = document.getElementById('photo-label');
+    if (photoInput && photoLabel) {
+        photoInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                photoLabel.innerHTML = `📸 ${e.target.files[0].name.substring(0, 30)}`;
+                photoLabel.classList.add('text-emerald-600', 'font-bold');
+            } else {
+                photoLabel.innerHTML = 'Prendre ou choisir une photo';
+                photoLabel.classList.remove('text-emerald-600', 'font-bold');
+            }
+        });
+    }
 }
 
+/**
+ * ✅ CHECKLIST ADAPTÉE SELON LE TYPE DE DOSSIER
+ */
+function getChecklistHTML(isMaman) {
+    if (isMaman) {
+        // 🌸 Tâches spécifiques Maman & Bébé
+        return `
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-pink-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-pink-500" value="Aide à l'allaitement"> 
+                <span class="text-sm font-medium text-slate-700">🍼 Aide à l'allaitement / Tétée</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-pink-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-pink-500" value="Soins du nourrisson (bain, change)"> 
+                <span class="text-sm font-medium text-slate-700">🛁 Soins du nourrisson (bain, change)</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-pink-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-pink-500" value="Surveillance poids / température"> 
+                <span class="text-sm font-medium text-slate-700">📊 Surveillance poids / température</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-pink-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-pink-500" value="Conseils post-partum"> 
+                <span class="text-sm font-medium text-slate-700">💬 Conseils post-partum</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-pink-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-pink-500" value="Aide ménagère légère"> 
+                <span class="text-sm font-medium text-slate-700">🧺 Aide ménagère légère</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-pink-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-pink-500" value="Soutien psychologique / écoute"> 
+                <span class="text-sm font-medium text-slate-700">🤝 Soutien psychologique / écoute</span>
+            </label>
+        `;
+    } else {
+        // 👴 Tâches spécifiques Senior
+        return `
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Aide à la mobilité / Promenade"> 
+                <span class="text-sm font-medium text-slate-700">🚶 Aide à la mobilité / Promenade</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Rappel des médicaments"> 
+                <span class="text-sm font-medium text-slate-700">💊 Rappel des médicaments</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Préparation des repas"> 
+                <span class="text-sm font-medium text-slate-700">🍲 Préparation des repas</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Courses / accompagnement RDV"> 
+                <span class="text-sm font-medium text-slate-700">🛒 Courses / accompagnement RDV</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Toilette / hygiène"> 
+                <span class="text-sm font-medium text-slate-700">🚿 Toilette / hygiène</span>
+            </label>
+            <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
+                <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="Présence rassurante / écoute"> 
+                <span class="text-sm font-medium text-slate-700">💬 Présence rassurante / écoute</span>
+            </label>
+        `;
+    }
+}
 
+/**
+ * 📤 SOUMISSION DU BILAN AVEC CONTEXTE (Maman ou Senior)
+ */
+window.submitEndVisitWithContext = async (isMaman) => {
+    const visiteId = localStorage.getItem("active_visit_id");
+    const photoInput = document.getElementById("visit-photo");
+    
+    if (!photoInput.files || !photoInput.files[0]) {
+        UI.vibrate('error');
+        return Swal.fire("Photo Manquante", "La photo est obligatoire pour clôturer l'intervention.", "warning");
+    }
+
+    // Récupérer les données communes
+    const notes = document.getElementById("visit-notes")?.value || "";
+    const humeur = document.getElementById("visit-humeur")?.value || "Calme";
+    const activites = JSON.stringify(Array.from(document.querySelectorAll('.task-check:checked')).map(el => el.value));
+    
+    // Récupérer les métriques bébé (si dossier Maman)
+    let babyFeeding, babySleep, babyDiapers, babyWeight;
+    if (isMaman) {
+        babyFeeding = document.getElementById("baby-feeding")?.value;
+        babySleep = document.getElementById("baby-sleep")?.value;
+        babyDiapers = document.getElementById("baby-diapers")?.value;
+        babyWeight = document.getElementById("baby-weight")?.value;
+    }
+    
+    // Récupérer les traitements (si dossier Senior)
+    const traitements = !isMaman ? document.getElementById("visit-traitements")?.value : null;
+
+    try {
+        Swal.fire({
+            title: '<i class="fa-solid fa-cloud-arrow-up fa-bounce text-blue-500 mb-4 text-4xl"></i><br><span class="text-xl font-black">Transmission...</span>',
+            html: '<p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Envoi du bilan en cours...</p>',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => Swal.showLoading(),
+        });
+
+        // 📍 Récupération GPS finale
+        let gpsEnd = "0,0";
+        try {
+            if (navigator.geolocation) {
+                const pos = await new Promise((res, rej) => {
+                    navigator.geolocation.getCurrentPosition(res, rej, { timeout: 5000 });
+                });
+                gpsEnd = `${pos.coords.latitude},${pos.coords.longitude}`;
+            }
+        } catch (e) {
+            console.warn("GPS final ignoré");
+        }
+
+        // Compression photo
+        let fileToUpload = photoInput.files[0];
+        if (fileToUpload.size > 2 * 1024 * 1024) {
+            fileToUpload = await compressImage(fileToUpload, 1024, 0.8);
+        }
+
+        // 1. Envoyer la visite
+        const fd = new FormData();
+        fd.append("visite_id", visiteId);
+        fd.append("notes", notes);
+        fd.append("humeur", humeur);
+        fd.append("activites_faites", activites);
+        fd.append("gps_end", gpsEnd);
+        fd.append("photo_visite", fileToUpload);
+
+        const response = await fetch(`${CONFIG.API_URL}/visites/end`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+            body: fd,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Erreur de transmission");
+        }
+
+        // 2. Envoyer les métriques bébé (si dossier Maman)
+        if (isMaman && (babyFeeding || babySleep || babyDiapers || babyWeight)) {
+            const patientId = localStorage.getItem("active_patient_id");
+            
+            const metrics = [];
+            if (babyFeeding && parseFloat(babyFeeding) > 0) {
+                metrics.push({ metric_type: 'feeding', value: parseFloat(babyFeeding) });
+            }
+            if (babySleep && parseFloat(babySleep) > 0) {
+                metrics.push({ metric_type: 'sleep', value: parseFloat(babySleep) });
+            }
+            if (babyDiapers && parseInt(babyDiapers) > 0) {
+                metrics.push({ metric_type: 'diapers', value: parseInt(babyDiapers) });
+            }
+            if (babyWeight && parseInt(babyWeight) > 0) {
+                metrics.push({ metric_type: 'weight', value: parseInt(babyWeight) });
+            }
+            
+            for (const metric of metrics) {
+                await secureFetch('/educational/baby-metric', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        patient_id: patientId,
+                        metric_type: metric.metric_type,
+                        value: metric.value,
+                        source: 'aidant_visite'
+                    })
+                });
+            }
+            console.log(`✅ ${metrics.length} métriques bébé enregistrées`);
+        }
+
+        // 3. Nettoyage
+        const watchId = localStorage.getItem("geo_watch_id");
+        if (watchId) {
+            navigator.geolocation.clearWatch(parseInt(watchId));
+            localStorage.removeItem("geo_watch_id");
+        }
+        localStorage.removeItem("active_visit_id");
+        localStorage.removeItem("active_patient_id");
+        
+        UI.vibrate("success");
+        
+        const successMessage = isMaman 
+            ? "Bilan maman & bébé transmis avec succès !"
+            : "Rapport d'intervention transmis avec succès !";
+        
+        await Swal.fire({
+            icon: "success",
+            title: '<span class="text-emerald-500 font-black">Mission Accomplie</span>',
+            html: `<div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center justify-center gap-2 mt-2">
+                    <i class="fa-solid fa-shield-check text-emerald-500"></i>
+                    <span class="text-[10px] font-black text-emerald-600 uppercase">${successMessage}</span>
+                   </div>`,
+            confirmButtonColor: "#0F172A",
+            confirmButtonText: "RETOUR",
+            customClass: { popup: 'rounded-3xl' }
+        });
+
+        // Rafraîchir les vues
+        if (isMaman && typeof window.loadMamanDashboard === 'function') {
+            await window.loadMamanDashboard();
+        }
+        window.switchView("visits");
+
+    } catch (err) {
+        UI.vibrate("error");
+        console.error("❌ Erreur:", err);
+        Swal.fire("Échec", err.message, "error");
+    }
+};
 
 
 /**
@@ -808,42 +1110,6 @@ export function refreshAidantUI(patientId) {
     
     tryRefresh();
 }
-//-----------------------------------------------------
-//-------------------------------------------------------------
-
-function getChecklistHTML(category) {
-    // 🍼 Tâches spécifiques pour les jeunes mamans
-    const tasksMaman = [
-        { label: 'Aide Organisation (Rangement)', icon: '🧺' },
-        { label: 'Assistance non-médicale Bébé', icon: '🍼' },
-        { label: 'Préparation repas simples', icon: '🍲' },
-        { label: 'Soutien moral et écoute', icon: '🗣️' }
-    ];
-
-    // 👴 Tâches spécifiques pour les Séniors / Post-Hôpital
-    const tasksSenior = [
-        { label: 'Rappel des médicaments', icon: '💊' }, 
-        { label: 'Aide à la mobilité / Promenade', icon: '🚶' },
-        { label: 'Assistance repas / courses', icon: '🛒' },
-        { label: 'Présence rassurante & Ecoute', icon: '🤝' }
-    ];
-
-    const tasks = category === 'MAMAN_BEBE' ? tasksMaman : tasksSenior;
-
-    return tasks.map(t => `
-        <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-[1.2rem] border border-slate-100 cursor-pointer hover:bg-emerald-50 transition-colors">
-            <input type="checkbox" class="task-check w-5 h-5 accent-emerald-500" value="${t.label}"> 
-            <span class="text-xs font-black text-slate-700 uppercase">${t.icon} ${t.label}</span>
-        </label>
-    `).join('');
-}
-
-
-
-
-/**
- * 📤 SOUMISSION DU BILAN ET DÉCOUPLAGE GPS
- */
 
 
 /**
