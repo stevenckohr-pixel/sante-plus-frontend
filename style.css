@@ -3445,3 +3445,120 @@ body.aidant-mode header {
 body.aidant-mode .section-title i {
     color: #C9A84C !important;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ============================================
+   PAGE D'ACCUEIL (HOME/HUB) - COORDINATEUR
+   ============================================ */
+
+/* Bannière de bienvenue sur la page d'accueil */
+body.coordinateur-mode .bg-gradient-to-r,
+body.coordinateur-mode [class*="bg-gradient-to-r"] {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
+
+/* Toute la section d'accueil qui pourrait avoir un fond vert */
+body.coordinateur-mode #home-content,
+body.coordinateur-mode .mobile-hub-container,
+body.coordinateur-mode .animate-fadeIn.pb-10,
+body.coordinateur-mode .flex.flex-col.h-full {
+    background: #F8FAFC !important;
+}
+
+/* Les cartes dans l'accueil */
+body.coordinateur-mode .bg-white.rounded-xl,
+body.coordinateur-mode .bg-white.rounded-2xl {
+    background: white !important;
+}
+
+/* Le fond vert clair des sections info rapide */
+body.coordinateur-mode .bg-emerald-50,
+body.coordinateur-mode .bg-green-50,
+body.coordinateur-mode [class*="bg-emerald-50"] {
+    background: #FEF9E6 !important;
+}
+
+/* La bannière d'information rapide (carte avec fond coloré) */
+body.coordinateur-mode .bg-emerald-100,
+body.coordinateur-mode .bg-green-100 {
+    background: #FEF9E6 !important;
+    border: 1px solid #D4AF37 !important;
+}
+
+/* Texte dans la bannière */
+body.coordinateur-mode .text-emerald-600,
+body.coordinateur-mode .text-emerald-700,
+body.coordinateur-mode .text-green-600 {
+    color: #D4AF37 !important;
+}
+
+/* Badge de statut dans l'accueil */
+body.coordinateur-mode .bg-emerald-100.text-emerald-700,
+body.coordinateur-mode .bg-green-100.text-green-700 {
+    background: #FEF9E6 !important;
+    color: #B8942E !important;
+}
+
+/* Boutons de navigation rapide dans l'accueil */
+body.coordinateur-mode .bg-emerald-50.text-emerald-700 {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+}
+
+body.coordinateur-mode .bg-emerald-50.text-emerald-700:hover {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+}
+
+
+
+
+
+
+
+/* ============================================
+   PAGE D'ACCUEIL (HOME/HUB) - AIDANT
+   ============================================ */
+
+body.aidant-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .bg-emerald-50,
+body.aidant-mode .bg-green-50 {
+    background: #FEF9E6 !important;
+}
+
+body.aidant-mode .text-emerald-600,
+body.aidant-mode .text-emerald-700 {
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .bg-emerald-100.text-emerald-700 {
+    background: #FEF9E6 !important;
+    color: #B8942E !important;
+}
+
+body.aidant-mode .bg-emerald-50.text-emerald-700 {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .bg-emerald-50.text-emerald-700:hover {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
