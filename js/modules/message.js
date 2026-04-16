@@ -63,15 +63,29 @@ function playNotificationBeep() {
 }
 
 function scrollToBottom() {
-    // Cibler le bon conteneur de messages
-    const messagesContainer = document.getElementById('care-feed-content');
+    // Essayer plusieurs sélecteurs pour trouver le bon conteneur
+    const messagesContainer = document.getElementById('care-feed-content') || 
+                              document.querySelector('.chat-messages') ||
+                              document.querySelector('.chat-whatsapp-messages');
+    
     if (messagesContainer) {
+        // Scroll fluide
         messagesContainer.scrollTo({
             top: messagesContainer.scrollHeight,
             behavior: 'smooth'
         });
+    } else {
+        // Fallback
+        const mainContent = document.querySelector('main');
+        if (mainContent) {
+            mainContent.scrollTo({
+                top: mainContent.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     }
 }
+
 function cleanupRealtime() {
     if (window.Realtime) {
         window.Realtime.unsubscribe();
