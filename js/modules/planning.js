@@ -664,6 +664,8 @@ window.submitAssignmentEnhanced = async () => {
 /**
  * 🔧 Gestionnaire des types d'assignation
  */
+// planning.js - Version corrigée de setupAssignTypeHandlers
+
 function setupAssignTypeHandlers() {
     const typePermanente = document.getElementById('type-permanente');
     const typeTemporelle = document.getElementById('type-temporelle');
@@ -674,16 +676,22 @@ function setupAssignTypeHandlers() {
     const assignTypeInput = document.getElementById('assign-type');
     
     const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const themeColor = isMaman ? 'pink' : 'emerald';
-    const activeBgClass = isMaman ? 'bg-pink-50 text-pink-600 border-pink-500' : 'bg-emerald-50 text-emerald-600 border-emerald-500';
-    const inactiveBgClass = 'bg-slate-50 text-slate-500 border-slate-200';
+    const activeBgClass = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
+    const activeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const activeBorderClass = isMaman ? 'border-pink-500' : 'border-emerald-500';
+    const inactiveBgClass = 'bg-slate-50';
+    const inactiveTextClass = 'text-slate-500';
+    const inactiveBorderClass = 'border-slate-200';
     
     const setActiveStyle = (activeBtn, inactiveBtns) => {
-        activeBtn.classList.remove('bg-slate-50', 'text-slate-500', 'border-slate-200');
-        activeBtn.classList.add(activeBgClass);
+        // Nettoyer les classes de l'élément actif
+        activeBtn.classList.remove(inactiveBgClass, inactiveTextClass, inactiveBorderClass);
+        activeBtn.classList.add(activeBgClass, activeTextClass, activeBorderClass);
+        
+        // Nettoyer les classes des éléments inactifs
         inactiveBtns.forEach(btn => {
-            btn.classList.remove(activeBgClass);
-            btn.classList.add(inactiveBgClass);
+            btn.classList.remove(activeBgClass, activeTextClass, activeBorderClass);
+            btn.classList.add(inactiveBgClass, inactiveTextClass, inactiveBorderClass);
         });
     };
     
@@ -709,7 +717,6 @@ function setupAssignTypeHandlers() {
         heureContainer.classList.remove('hidden');
     });
 }
-
 /**
  * 💡 TRANSITION INTELLIGENTE - Briefing
  */
