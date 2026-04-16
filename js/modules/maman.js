@@ -389,7 +389,7 @@ function drawDonutChart(canvasId, percentage, color1, color2, centerText = null)
     const centerY = height / 2;
     const radius = Math.min(width, height) / 2 - 5;
     
-    // Nettoyer
+    // 🔥 NETTOYAGE COMPLET
     ctx.clearRect(0, 0, width, height);
     
     // Cercle de fond
@@ -416,14 +416,8 @@ function drawDonutChart(canvasId, percentage, color1, color2, centerText = null)
     ctx.fillStyle = '#FFFFFF';
     ctx.fill();
     
-    // Texte au centre
-    if (centerText) {
-        ctx.font = `bold ${radius * 0.4}px system-ui`;
-        ctx.fillStyle = '#1E293B';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(centerText, centerX, centerY);
-    }
+    // 🔥 SUPPRIMER LE TEXTE ICI - on ne dessine plus dans le canvas
+    // Le texte sera géré par le HTML
 }
 
 // ============================================================
