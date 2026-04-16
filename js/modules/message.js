@@ -547,6 +547,7 @@ async function sendPhotoMessage() {
             formData.append('reply_to_id', currentReplyTo);
         }
         
+        // 🔥 AJOUTER caption si présent
         if (currentReplyToName) {
             formData.append('caption', "Réponse à " + currentReplyToName);
         }
@@ -567,13 +568,42 @@ async function sendPhotoMessage() {
             throw new Error(errorData.error || "Erreur " + response.status);
         }
         
+        const result = await response.json();
+        console.log("✅ Réponse serveur:", result);
+        
         photoInput.value = '';
         window.cancelReply();
         
-        Swal.close();  // ← Fermer le Swal avant le toast
+        Swal.close();
         UI.success("Photo envoyée !");
         
-        // ✅ NE PAS APPELER loadFeed() - le message arrivera via Realtime
+        // 🔥 NE PAS APPELER loadFeed() - le message arrivera via Realtime
+        // Mais on peut ajouter un message temporaire pour l'UI
+        if (result.photo_url) {
+            const tempMessage = {
+                id: 'temp_' + Date.now(),
+                patient_id: AppState.currentPatient,
+                sender_id: localStorage.getItem("user_id"),
+                sender_name: localStorage.getItem("user_name"),
+                sender_role: localStorage.getItem("user_role"),
+                content: result.photo_url,
+                photo_url: result.photo_url,
+                is_photo: true,
+                type_media: 'STORY',
+                created_at: new Date().toISOString(),
+                is_temp: true,
+                reactions: {}
+            };
+            
+            AppState.messages.push(tempMessage);
+            
+            if (activeTab === 'STORY') {
+                const container = document.getElementById('care-feed-content');
+                const tempHtml = renderStoryCard(tempMessage, false);
+                container.insertAdjacentHTML('beforeend', tempHtml);
+                scrollToBottom();
+            }
+        }
         
     } catch (err) {
         Swal.close();
@@ -582,7 +612,6 @@ async function sendPhotoMessage() {
         photoInput.value = '';
     }
 }
-
 // ============================================================
 // ENVOI DE DOCUMENT
 // ============================================================
