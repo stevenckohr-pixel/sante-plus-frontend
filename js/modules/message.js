@@ -557,12 +557,14 @@ async function sendPhotoMessage() {
         photoInput.value = '';
         window.cancelReply();
         
-        Swal.fire({ icon: "success", title: "Photo envoyée", timer: 1500, showConfirmButton: false });
-        await loadFeed();
+        Swal.close();  // ← Fermer le Swal avant le toast
+        UI.success("Photo envoyée !");
+        
+        // ✅ NE PAS APPELER loadFeed() - le message arrivera via Realtime
         
     } catch (err) {
-        console.error("❌ Erreur sendPhotoMessage:", err);
         Swal.close();
+        console.error("❌ Erreur sendPhotoMessage:", err);
         UI.error(err.message || "Erreur lors de l'envoi de la photo");
         photoInput.value = '';
     }
