@@ -731,7 +731,7 @@ window.sendQuickMessage = async () => {
     const content = input?.value?.trim();
     if (!content) return;
 
-    // Sauvegarder le contenu et réinitialiser l'input immédiatement
+    // Sauvegarder le contenu et réinitialiser l'input
     const messageContent = content;
     input.value = '';
     
@@ -771,10 +771,8 @@ window.sendQuickMessage = async () => {
         }
     }
     
-    // Référence à l'élément DOM
-    const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
-    
     // Ajouter un indicateur d'envoi
+    const tempMessageEl = document.querySelector(`[data-message-id="${tempId}"]`);
     if (tempMessageEl) {
         tempMessageEl.classList.add('opacity-50');
         const sendingIndicator = document.createElement('div');
@@ -811,24 +809,19 @@ window.sendQuickMessage = async () => {
             body: JSON.stringify(body) 
         });
         
-        // ✅ NE PAS SUPPRIMER LE MESSAGE TEMPORAIRE
-        // On attend que Realtime nous envoie le vrai message
-        
         // Timeout de sécurité (10 secondes)
         setTimeout(() => {
-            // Vérifier si le message temporaire existe encore
             const tempStillExists = document.querySelector(`[data-message-id="${tempId}"]`);
             if (tempStillExists) {
-                console.log("🔄 Timeout: rechargement forcé des messages");
+                console.log("🔄 Timeout: rechargement forcé");
                 loadFeed();
             }
         }, 10000);
         
     } catch (err) {
-        console.error("Erreur sendQuickMessage:", err);
-        UI.error("Erreur lors de l'envoi du message");
+        console.error("Erreur envoi:", err);
+        UI.error("Erreur lors de l'envoi");
         
-        // Marquer le message temporaire comme échoué
         if (tempMessageEl) {
             tempMessageEl.classList.remove('opacity-50');
             tempMessageEl.classList.add('border-rose-200', 'bg-rose-50');
@@ -839,7 +832,7 @@ window.sendQuickMessage = async () => {
                 indicator.classList.add('text-rose-500');
             }
             
-            // Ajouter un bouton réessayer
+            // Bouton réessayer
             const retryBtn = document.createElement('button');
             retryBtn.className = 'text-[8px] text-rose-500 mt-1 underline cursor-pointer hover:text-rose-600 transition';
             retryBtn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Réessayer';
@@ -859,14 +852,12 @@ window.sendQuickMessage = async () => {
                         })
                     });
                     
-                    if (tempMessageEl && tempMessageEl.remove) {
-                        tempMessageEl.remove();
-                    }
+                    if (tempMessageEl?.remove) tempMessageEl.remove();
                     const index = AppState.messages.findIndex(m => m.id === tempId);
                     if (index !== -1) AppState.messages.splice(index, 1);
                     
                     UI.success("Message envoyé !");
-                } catch (retryErr) {
+                } catch {
                     UI.error("Échec de l'envoi");
                 }
             };
@@ -1098,127 +1089,76 @@ function updatePatientBadges() {
 // ============================================================
 
 function initRealtimeForCurrentPatient() {
-    if (!AppState.currentPatient) return;
-    if (!window.Realtime) return;
+    if (!AppState.currentPatient || !window.Realtime) return;
 
     window.Realtime.unsubscribe();
     console.log("📡 Realtime initialisé pour:", AppState.currentPatient);
 
     window.Realtime.subscribe(AppState.currentPatient, async (event, newMessage) => {
-        console.log("📨 [REALTIME] Nouveau message reçu brute:", newMessage);
-        
-        if (!newMessage || typeof newMessage !== "object") {
-            console.warn("⚠️ Message invalide ignoré");
-            return;
-        }
+        if (!newMessage?.sender_id) return;
 
         const currentUserId = localStorage.getItem("user_id");
-        const isOwnMessage = newMessage.sender_id && String(newMessage.sender_id) === String(currentUserId);
+        const isOwnMessage = String(newMessage.sender_id) === String(currentUserId);
         
-        if (isOwnMessage) console.log("📨 Message envoyé par moi-même - ignoré pour le badge");
-        
-        // Vérifier si le message existe déjà
-        if ((AppState.messages || []).some(m => m.id === newMessage.id)) {
-            console.log("📨 Message déjà présent");
-            return;
-        }
+        // Éviter les doublons
+        if (AppState.messages.some(m => m.id === newMessage.id)) return;
 
         try {
             const data = await secureFetch(`/messages?message_id=${newMessage.id}`);
-            if (!data || !data[0]) {
-                console.warn("⚠️ Message enrichi introuvable");
-                return;
-            }
+            const fullMessage = data?.[0];
+            if (!fullMessage?.patient_id) return;
 
-            const fullMessage = data[0];
-            const patientId = fullMessage.patient_id;
-            if (!patientId) {
-                console.warn("⚠️ patient_id manquant");
-                return;
-            }
-
-            const isCurrentPatient = String(patientId) === String(AppState.currentPatient);
+            const isCurrentPatient = fullMessage.patient_id === AppState.currentPatient;
             const isInFeed = AppState.currentView === "feed";
             
-            // 🔥 RECHERCHER UN MESSAGE TEMPORAIRE CORRESPONDANT
-            const tempMessageIndex = AppState.messages.findIndex(m => 
-                m.is_temp === true && 
-                m.content === fullMessage.content &&
-                m.sender_id === fullMessage.sender_id
+            // 🔥 Remplacer le message temporaire
+            const tempIndex = AppState.messages.findIndex(m => 
+                m.is_temp && m.content === fullMessage.content && m.sender_id === fullMessage.sender_id
             );
             
-            // Si un message temporaire existe, le remplacer
-            if (tempMessageIndex !== -1) {
-                const tempId = AppState.messages[tempMessageIndex].id;
-                console.log(`🔄 Remplacement du message temporaire ${tempId} par ${fullMessage.id}`);
+            if (tempIndex !== -1) {
+                const tempId = AppState.messages[tempIndex].id;
+                AppState.messages[tempIndex] = fullMessage;
                 
-                // Remplacer dans le state
-                AppState.messages[tempMessageIndex] = fullMessage;
+                document.querySelector(`[data-message-id="${tempId}"]`)?.remove();
                 
-                // Supprimer l'élément DOM temporaire
-                const tempEl = document.querySelector(`[data-message-id="${tempId}"]`);
-                if (tempEl && tempEl.remove) {
-                    tempEl.remove();
-                }
-                
-                // Ajouter le vrai message au DOM
                 if (isCurrentPatient && isInFeed && !isOwnMessage) {
-                    window.appendMessagesToFeed([fullMessage]);
-                    if (isUserAtBottom) scrollToBottom();
+                    window.appendMessagesToFeed?.([fullMessage]);
+                    if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
                 }
                 
-                // Mettre à jour les badges
                 updatePatientBadges();
-                if (typeof window.refreshMenuBadges === 'function') {
-                    window.refreshMenuBadges();
-                }
-                
-                return; // Sortir, le traitement est terminé
+                window.refreshMenuBadges?.();
+                return;
             }
             
-            // 🔥 GESTION DES MESSAGES NORMAUX (non temporaires)
-            const shouldIncrementUnread = !isOwnMessage && (!isCurrentPatient || !isInFeed);
-            
-            if (shouldIncrementUnread) {
-                if (!AppState.unreadByPatient) AppState.unreadByPatient = {};
-                if (!AppState.unreadByPatient[patientId]) AppState.unreadByPatient[patientId] = 0;
-                AppState.unreadByPatient[patientId]++;
-                console.log(`🔴 [COMPTEUR] +1 pour patient ${patientId} → total: ${AppState.unreadByPatient[patientId]} non lus`);
+            // Gestion des non-lus
+            if (!isOwnMessage && (!isCurrentPatient || !isInFeed)) {
+                AppState.unreadByPatient = AppState.unreadByPatient || {};
+                AppState.unreadByPatient[fullMessage.patient_id] = (AppState.unreadByPatient[fullMessage.patient_id] || 0) + 1;
                 updatePatientBadges();
-                
-                if (typeof window.refreshMenuBadges === 'function') {
-                    window.refreshMenuBadges();
-                } else {
-                    if (AppState.currentView === 'home') renderMobileHub();
-                }
-            } else {
-                console.log("✅ Message NON compté comme non lu", {isOwnMessage, isCurrentPatient, isInFeed});
+                window.refreshMenuBadges?.();
             }
 
-            // Ajouter le message au state s'il n'existe pas
-            if (!(AppState.messages || []).some(m => m.id === fullMessage.id)) {
+            // Ajouter le message
+            if (!AppState.messages.some(m => m.id === fullMessage.id)) {
                 AppState.messages.push(fullMessage);
             }
 
-            // Afficher dans le feed si nécessaire
-            if (isCurrentPatient && isInFeed) {
-                if (!isOwnMessage) {
-                    console.log("📨 Affichage du message dans le feed");
-                    window.appendMessagesToFeed([fullMessage]);
-                }
-                if (isUserAtBottom && !isOwnMessage) scrollToBottom();
-            } else if (!isCurrentPatient && !isOwnMessage) {
-                console.log(`📨 Message pour un autre patient (${patientId}) - compteur mis à jour`);
+            // Afficher dans le feed
+            if (isCurrentPatient && isInFeed && !isOwnMessage) {
+                window.appendMessagesToFeed?.([fullMessage]);
+                if (isUserAtBottom) setTimeout(() => scrollToBottom(), 50);
             }
 
-            // Notification sonore et vibration
+            // Notifications
             if (!isOwnMessage) {
-                playNotificationBeep();
-                if (navigator.vibrate) navigator.vibrate(50);
+                try { playNotificationBeep(); } catch(e) {}
+                try { navigator.vibrate?.(50); } catch(e) {}
             }
 
         } catch (err) {
-            console.error("❌ Erreur traitement realtime:", err);
+            console.warn("⚠️ Erreur Realtime:", err.message);
         }
     });
 }
