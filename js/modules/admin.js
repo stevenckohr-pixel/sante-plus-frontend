@@ -2,6 +2,12 @@ import { secureFetch } from "../core/api.js";
 import { UI, openModernSelector } from "../core/utils.js";
 
 
+// ✅ Forcer l'export global immédiatement
+window.openAssignModal = null;
+window.openAssignModalWithAidant = null;
+window.openAssignModalWithPatient = null;
+
+
 // Variables globales pour le dashboard RH
 let rhData = null;
 let currentRHTab = 'aidants';
@@ -1055,11 +1061,22 @@ async function refreshPendingRegistrations() {
 
 
 
-// ✅ Exposer les fonctions globalement
-window.openAssignModalWithAidant = openAssignModalWithAidant;
-window.openAssignModalWithPatient = openAssignModalWithPatient;
-window.unassignPatient = unassignPatient;
-window.unassignPatientFromPatient = unassignPatientFromPatient;
-window.activateWithDefaultEmail = activateWithDefaultEmail;
-window.activateWithCustomEmail = activateWithCustomEmail;
-window.openAssignModal = openAssignModal;
+
+
+
+// js/modules/admin.js - À la fin du fichier, REMPLACER la section des exports
+
+// ✅ Exposer les fonctions globalement (APRÈS leur définition)
+// Attendre que le DOM soit chargé pour être sûr
+if (typeof window !== 'undefined') {
+    window.openAssignModal = openAssignModal;
+    window.openAssignModalWithAidant = openAssignModalWithAidant;
+    window.openAssignModalWithPatient = openAssignModalWithPatient;
+    window.unassignPatient = unassignPatient;
+    window.unassignPatientFromPatient = unassignPatientFromPatient;
+    window.activateWithDefaultEmail = activateWithDefaultEmail;
+    window.activateWithCustomEmail = activateWithCustomEmail;
+    
+    // Vérification
+    console.log("✅ Admin exports: openAssignModal =", typeof window.openAssignModal);
+}
