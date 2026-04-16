@@ -3495,3 +3495,41 @@ body.maman-mode input[type="checkbox"]:checked,
 body.maman-mode input[type="radio"]:checked {
     accent-color: #E11D48 !important;
 }
+
+
+
+
+
+
+/* Bouton installer dans le drawer */
+.install-drawer-btn {
+    transition: all 0.2s ease;
+}
+
+.install-drawer-btn:active {
+    transform: scale(0.98);
+}
+
+/* Pour le thème Maman */
+body.maman-mode .install-drawer-btn {
+    background: #FFF1F2 !important;
+    color: #E11D48 !important;
+}
+
+/* Pour le thème Senior */
+body.senior-mode .install-drawer-btn {
+    background: #ECFDF5 !important;
+    color: #059669 !important;
+}
+
+/* Pour le thème Coordinateur (or) */
+body.coordinateur-mode .install-drawer-btn {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+}
+
+/* Pour le thème Aidant */
+body.aidant-mode .install-drawer-btn {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
