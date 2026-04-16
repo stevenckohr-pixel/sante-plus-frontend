@@ -348,7 +348,7 @@ async function openFormuleSelector() {
 /**
  * 📄 VUE : FICHE PATIENT (Aidant)
  */
- export async function renderPatientDetailsView(patientId) {
+export async function renderPatientDetailsView(patientId) {
     const container = document.getElementById("view-container");
     
     if (!patientId) {
@@ -441,7 +441,6 @@ async function openFormuleSelector() {
         `;
     }
 }
-
 /**
  * 📄 VUE : LIAISON FAMILLE
  */
