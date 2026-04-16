@@ -1062,21 +1062,59 @@ async function refreshPendingRegistrations() {
 
 
 
+// ============================================
+// ✅ EXPOSITION GLOBALE UNIFIÉE (À LA FIN DU FICHIER)
+// ============================================
 
-
-// js/modules/admin.js - À la fin du fichier, REMPLACER la section des exports
-
-// ✅ Exposer les fonctions globalement (APRÈS leur définition)
-// Attendre que le DOM soit chargé pour être sûr
-if (typeof window !== 'undefined') {
-    window.openAssignModal = openAssignModal;
-    window.openAssignModalWithAidant = openAssignModalWithAidant;
-    window.openAssignModalWithPatient = openAssignModalWithPatient;
-    window.unassignPatient = unassignPatient;
-    window.unassignPatientFromPatient = unassignPatientFromPatient;
-    window.activateWithDefaultEmail = activateWithDefaultEmail;
-    window.activateWithCustomEmail = activateWithCustomEmail;
+// Fonction de vérification et d'export
+function exposeAdminFunctions() {
+    console.log("🔧 Exposition des fonctions admin...");
     
-    // Vérification
-    console.log("✅ Admin exports: openAssignModal =", typeof window.openAssignModal);
+    // Vérifier que openAssignModal existe dans le scope
+    if (typeof openAssignModal !== 'undefined') {
+        window.openAssignModal = openAssignModal;
+        console.log("✅ window.openAssignModal exposée");
+    } else {
+        console.error("❌ openAssignModal non trouvée dans le scope");
+    }
+    
+    if (typeof openAssignModalWithAidant !== 'undefined') {
+        window.openAssignModalWithAidant = openAssignModalWithAidant;
+    }
+    
+    if (typeof openAssignModalWithPatient !== 'undefined') {
+        window.openAssignModalWithPatient = openAssignModalWithPatient;
+    }
+    
+    if (typeof unassignPatient !== 'undefined') {
+        window.unassignPatient = unassignPatient;
+    }
+    
+    if (typeof unassignPatientFromPatient !== 'undefined') {
+        window.unassignPatientFromPatient = unassignPatientFromPatient;
+    }
+    
+    if (typeof activateWithDefaultEmail !== 'undefined') {
+        window.activateWithDefaultEmail = activateWithDefaultEmail;
+    }
+    
+    if (typeof activateWithCustomEmail !== 'undefined') {
+        window.activateWithCustomEmail = activateWithCustomEmail;
+    }
+    
+    // Vérification finale
+    console.log("📊 Vérification finale:");
+    console.log("  - openAssignModal:", typeof window.openAssignModal);
+    console.log("  - openAssignModalWithPatient:", typeof window.openAssignModalWithPatient);
 }
+
+// Exécuter l'exposition
+exposeAdminFunctions();
+
+// Backup: réexposer après un court délai (au cas où)
+setTimeout(() => {
+    if (typeof window.openAssignModal !== 'function') {
+        console.warn("⚠️ Réexposition des fonctions admin après délai");
+        exposeAdminFunctions();
+    }
+}, 100);
