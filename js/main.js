@@ -2157,26 +2157,38 @@ function renderLayout() {
             if (closeBtn) closeBtn.onclick = window.closeDrawerMobile;
         }
         
-        // ✅ 🔥 AJOUTE LE CODE ICI (après l'initialisation du drawer)
-        const installBtn = document.getElementById('install-app-drawer');
-        if (installBtn) {
-            installBtn.onclick = () => {
-                if (window.deferredPrompt) {
-                    window.deferredPrompt.prompt();
-                    window.deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('✅ PWA installée');
-                            if (window.showToast) showToast("Application installée avec succès !", "success");
-                        } else {
-                            console.log('❌ Installation refusée');
-                        }
-                        window.deferredPrompt = null;
-                    });
+const installBtn = document.getElementById('install-app-drawer');
+if (installBtn) {
+    // Vérifier si l'app est déjà installée
+    const isAppInstalled = () => {
+        return window.matchMedia('(display-mode: standalone)').matches || 
+               window.navigator.standalone === true;
+    };
+    
+    // Cacher le bouton si déjà installé
+    if (isAppInstalled()) {
+        installBtn.style.display = 'none';
+    }
+    
+    installBtn.onclick = () => {
+        if (window.deferredPrompt) {
+            window.deferredPrompt.prompt();
+            window.deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('✅ PWA installée');
+                    // Cacher le bouton après installation
+                    installBtn.style.display = 'none';
+                    if (window.showToast) showToast("Application installée avec succès !", "success");
                 } else {
-                    if (window.showToast) showToast("L'installation sera disponible dans quelques instants", "info");
+                    console.log('❌ Installation refusée');
                 }
-            };
+                window.deferredPrompt = null;
+            });
+        } else {
+            if (window.showToast) showToast("L'installation sera disponible dans quelques instants", "info");
         }
+    };
+}
     }, 100);
     
 
