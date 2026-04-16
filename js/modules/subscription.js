@@ -1,9 +1,25 @@
 import { secureFetch } from "../core/api.js";
 import { UI } from "../core/utils.js";
- 
 
-// Fonction pour charger FedaPay
-function loadFedaPay() {
+// ============================================================
+// FONCTIONS UTILITAIRES
+// ============================================================
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+// ============================================================
+// CHARGEMENT FEDAPAY
+// ============================================================
+
+function loadFedaPayScript() {
     return new Promise((resolve, reject) => {
         if (typeof FedaPay !== 'undefined') {
             console.log("✅ FedaPay déjà chargé");
@@ -24,9 +40,10 @@ function loadFedaPay() {
     });
 }
 
-/**
- * 📋 PAGE D'ABONNEMENT (Choix du pack)
- */
+// ============================================================
+// PAGE D'ABONNEMENT
+// ============================================================
+
 export async function renderSubscriptionPage() {
     const container = document.getElementById("view-container");
     const userRole = localStorage.getItem("user_role");
@@ -45,226 +62,8 @@ export async function renderSubscriptionPage() {
         }
     }
     
-    // Packs selon la catégorie (avec durées et réductions)
-    const packs = isMaman ? [
-        // Packs mensuels Maman
-        { 
-            id: 'MENSUEL_ESSENTIEL', 
-            name: 'Essentiel', 
-            desc: '2 visites / semaine', 
-            price: 50000,
-            priceDisplay: '50.000 CFA',
-            duration: 1,
-            durationText: '1 mois',
-            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'],
-            icon: 'fa-seedling',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            popular: false
-        },
-        { 
-            id: 'MENSUEL_CONFORT', 
-            name: 'Confort', 
-            desc: '3 à 4 visites / semaine', 
-            price: 85000,
-            priceDisplay: '85.000 CFA',
-            duration: 1,
-            durationText: '1 mois',
-            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'],
-            icon: 'fa-chart-line',
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            popular: true
-        },
-        { 
-            id: 'MENSUEL_SERENITE', 
-            name: 'Sérénité', 
-            desc: 'Présence quasi quotidienne', 
-            price: 150000,
-            priceDisplay: '150.000 CFA',
-            duration: 1,
-            durationText: '1 mois',
-            features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'],
-            icon: 'fa-crown',
-            color: 'text-gold-primary',
-            bg: 'bg-amber-50',
-            popular: false
-        },
-        // Packs trimestriels Maman (3 mois) - économie 5%
-        { 
-            id: 'TRIMESTRIEL_ESSENTIEL', 
-            name: 'Essentiel 3 mois', 
-            desc: '2 visites / semaine', 
-            price: 142500,
-            priceDisplay: '142.500 CFA',
-            originalPrice: 150000,
-            duration: 3,
-            durationText: '3 mois',
-            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 5%'],
-            icon: 'fa-calendar-alt',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            popular: false,
-            badge: '-5%'
-        },
-        { 
-            id: 'TRIMESTRIEL_CONFORT', 
-            name: 'Confort 3 mois', 
-            desc: '3 à 4 visites / semaine', 
-            price: 242250,
-            priceDisplay: '242.250 CFA',
-            originalPrice: 255000,
-            duration: 3,
-            durationText: '3 mois',
-            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 5%'],
-            icon: 'fa-calendar-alt',
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            popular: false,
-            badge: '-5%'
-        },
-        // Packs annuels Maman (12 mois) - économie 15%
-        { 
-            id: 'ANNUEL_ESSENTIEL', 
-            name: 'Essentiel 1 an', 
-            desc: '2 visites / semaine', 
-            price: 510000,
-            priceDisplay: '510.000 CFA',
-            originalPrice: 600000,
-            duration: 12,
-            durationText: '12 mois',
-            features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 15%', 'Paiement unique'],
-            icon: 'fa-calendar-year',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            popular: false,
-            badge: '-15%'
-        },
-        { 
-            id: 'ANNUEL_CONFORT', 
-            name: 'Confort 1 an', 
-            desc: '3 à 4 visites / semaine', 
-            price: 867000,
-            priceDisplay: '867.000 CFA',
-            originalPrice: 1020000,
-            duration: 12,
-            durationText: '12 mois',
-            features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'],
-            icon: 'fa-calendar-year',
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            popular: true,
-            badge: '-15%'
-        },
-        { 
-            id: 'MATERNITE', 
-            name: 'Spécial Sortie Maternité', 
-            desc: 'Suivi intensif sur 2 semaines', 
-            price: 70000,
-            priceDisplay: '70.000 CFA',
-            duration: 0.5,
-            durationText: '2 semaines',
-            features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'],
-            icon: 'fa-baby-carriage',
-            color: 'text-pink-600',
-            bg: 'bg-pink-50',
-            popular: false
-        }
-    ] : [
-        // Packs mensuels Sénior
-        { 
-            id: 'MENSUEL_PONCTUEL', 
-            name: 'Ponctuel', 
-            desc: 'Intervention à la demande', 
-            price: 10000,
-            priceDisplay: '10.000 CFA',
-            duration: 1,
-            durationText: '1 mois',
-            features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'],
-            icon: 'fa-clock',
-            color: 'text-slate-600',
-            bg: 'bg-slate-100',
-            popular: false
-        },
-        { 
-            id: 'MENSUEL_REGULIER', 
-            name: 'Régulier', 
-            desc: '2 à 3 visites / semaine', 
-            price: 60000,
-            priceDisplay: '60.000 CFA',
-            duration: 1,
-            durationText: '1 mois',
-            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'],
-            icon: 'fa-calendar-week',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            popular: true
-        },
-        { 
-            id: 'MENSUEL_COMPLET', 
-            name: 'Complet', 
-            desc: 'Présence soutenue', 
-            price: 150000,
-            priceDisplay: '150.000 CFA',
-            duration: 1,
-            durationText: '1 mois',
-            features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'],
-            icon: 'fa-star',
-            color: 'text-gold-primary',
-            bg: 'bg-amber-50',
-            popular: false
-        },
-        // Packs trimestriels Sénior (3 mois) - économie 5%
-        { 
-            id: 'TRIMESTRIEL_REGULIER', 
-            name: 'Régulier 3 mois', 
-            desc: '2 à 3 visites / semaine', 
-            price: 171000,
-            priceDisplay: '171.000 CFA',
-            originalPrice: 180000,
-            duration: 3,
-            durationText: '3 mois',
-            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé', 'Économie 5%'],
-            icon: 'fa-calendar-alt',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            popular: false,
-            badge: '-5%'
-        },
-        // Packs annuels Sénior (12 mois) - économie 15%
-        { 
-            id: 'ANNUEL_REGULIER', 
-            name: 'Régulier 1 an', 
-            desc: '2 à 3 visites / semaine', 
-            price: 612000,
-            priceDisplay: '612.000 CFA',
-            originalPrice: 720000,
-            duration: 12,
-            durationText: '12 mois',
-            features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'],
-            icon: 'fa-calendar-year',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            popular: true,
-            badge: '-15%'
-        },
-        { 
-            id: 'ANNUEL_COMPLET', 
-            name: 'Complet 1 an', 
-            desc: 'Présence soutenue', 
-            price: 1530000,
-            priceDisplay: '1.530.000 CFA',
-            originalPrice: 1800000,
-            duration: 12,
-            durationText: '12 mois',
-            features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel', 'Économie 15%', 'Paiement unique'],
-            icon: 'fa-calendar-year',
-            color: 'text-gold-primary',
-            bg: 'bg-amber-50',
-            popular: false,
-            badge: '-15%'
-        }
-    ];
+    // Définition des packs
+    const packs = getPacks(isMaman);
     
     container.innerHTML = `
         <div class="animate-fadeIn max-w-2xl mx-auto pb-32">
@@ -343,36 +142,47 @@ export async function renderSubscriptionPage() {
     `;
 }
 
-/**
- * 💳 SÉLECTION D'UN PACK ET PAIEMENT
- */
-/**
- * 💳 SÉLECTION D'UN PACK ET PAIEMENT
- */
+// ============================================================
+// DÉFINITION DES PACKS
+// ============================================================
+
+function getPacks(isMaman) {
+    if (isMaman) {
+        return [
+            // Packs mensuels
+            { id: 'MENSUEL_ESSENTIEL', name: 'Essentiel', desc: '2 visites / semaine', price: 50000, priceDisplay: '50.000 CFA', duration: 1, durationText: '1 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'], icon: 'fa-seedling', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false },
+            { id: 'MENSUEL_CONFORT', name: 'Confort', desc: '3 à 4 visites / semaine', price: 85000, priceDisplay: '85.000 CFA', duration: 1, durationText: '1 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'], icon: 'fa-chart-line', color: 'text-blue-600', bg: 'bg-blue-50', popular: true },
+            { id: 'MENSUEL_SERENITE', name: 'Sérénité', desc: 'Présence quasi quotidienne', price: 150000, priceDisplay: '150.000 CFA', duration: 1, durationText: '1 mois', features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'], icon: 'fa-crown', color: 'text-gold-primary', bg: 'bg-amber-50', popular: false },
+            // Packs trimestriels
+            { id: 'TRIMESTRIEL_ESSENTIEL', name: 'Essentiel 3 mois', desc: '2 visites / semaine', price: 142500, priceDisplay: '142.500 CFA', originalPrice: 150000, duration: 3, durationText: '3 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 5%'], icon: 'fa-calendar-alt', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false, badge: '-5%' },
+            { id: 'TRIMESTRIEL_CONFORT', name: 'Confort 3 mois', desc: '3 à 4 visites / semaine', price: 242250, priceDisplay: '242.250 CFA', originalPrice: 255000, duration: 3, durationText: '3 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 5%'], icon: 'fa-calendar-alt', color: 'text-blue-600', bg: 'bg-blue-50', popular: false, badge: '-5%' },
+            // Packs annuels
+            { id: 'ANNUEL_ESSENTIEL', name: 'Essentiel 1 an', desc: '2 visites / semaine', price: 510000, priceDisplay: '510.000 CFA', originalPrice: 600000, duration: 12, durationText: '12 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 15%', 'Paiement unique'], icon: 'fa-calendar-year', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false, badge: '-15%' },
+            { id: 'ANNUEL_CONFORT', name: 'Confort 1 an', desc: '3 à 4 visites / semaine', price: 867000, priceDisplay: '867.000 CFA', originalPrice: 1020000, duration: 12, durationText: '12 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'], icon: 'fa-calendar-year', color: 'text-blue-600', bg: 'bg-blue-50', popular: true, badge: '-15%' },
+            // Pack spécial
+            { id: 'MATERNITE', name: 'Spécial Sortie Maternité', desc: 'Suivi intensif sur 2 semaines', price: 70000, priceDisplay: '70.000 CFA', duration: 0.5, durationText: '2 semaines', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'], icon: 'fa-baby-carriage', color: 'text-pink-600', bg: 'bg-pink-50', popular: false }
+        ];
+    } else {
+        return [
+            { id: 'MENSUEL_PONCTUEL', name: 'Ponctuel', desc: 'Intervention à la demande', price: 10000, priceDisplay: '10.000 CFA', duration: 1, durationText: '1 mois', features: ['Intervention à la demande', 'Accompagnement RDV', 'Flexibilité totale'], icon: 'fa-clock', color: 'text-slate-600', bg: 'bg-slate-100', popular: false },
+            { id: 'MENSUEL_REGULIER', name: 'Régulier', desc: '2 à 3 visites / semaine', price: 60000, priceDisplay: '60.000 CFA', duration: 1, durationText: '1 mois', features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé'], icon: 'fa-calendar-week', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: true },
+            { id: 'MENSUEL_COMPLET', name: 'Complet', desc: 'Présence soutenue', price: 150000, priceDisplay: '150.000 CFA', duration: 1, durationText: '1 mois', features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel'], icon: 'fa-star', color: 'text-gold-primary', bg: 'bg-amber-50', popular: false },
+            { id: 'TRIMESTRIEL_REGULIER', name: 'Régulier 3 mois', desc: '2 à 3 visites / semaine', price: 171000, priceDisplay: '171.000 CFA', originalPrice: 180000, duration: 3, durationText: '3 mois', features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé', 'Économie 5%'], icon: 'fa-calendar-alt', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false, badge: '-5%' },
+            { id: 'ANNUEL_REGULIER', name: 'Régulier 1 an', desc: '2 à 3 visites / semaine', price: 612000, priceDisplay: '612.000 CFA', originalPrice: 720000, duration: 12, durationText: '12 mois', features: ['2-3 visites par semaine', 'Suivi médical', 'Lien famille', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'], icon: 'fa-calendar-year', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: true, badge: '-15%' },
+            { id: 'ANNUEL_COMPLET', name: 'Complet 1 an', desc: 'Présence soutenue', price: 1530000, priceDisplay: '1.530.000 CFA', originalPrice: 1800000, duration: 12, durationText: '12 mois', features: ['5-6 visites par semaine', 'Présence renforcée', 'Veille sanitaire', 'Rapport en temps réel', 'Économie 15%', 'Paiement unique'], icon: 'fa-calendar-year', color: 'text-gold-primary', bg: 'bg-amber-50', popular: false, badge: '-15%' }
+        ];
+    }
+}
+
+// ============================================================
+// SÉLECTION D'UN PACK
+// ============================================================
+
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
-    // Trouver le pack sélectionné pour avoir ses infos
     const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const packs = isMaman ? [
-        { id: 'MENSUEL_ESSENTIEL', name: 'Essentiel', price: 50000, duration: 1 },
-        { id: 'MENSUEL_CONFORT', name: 'Confort', price: 85000, duration: 1 },
-        { id: 'MENSUEL_SERENITE', name: 'Sérénité', price: 150000, duration: 1 },
-        { id: 'TRIMESTRIEL_ESSENTIEL', name: 'Essentiel 3 mois', price: 142500, duration: 3 },
-        { id: 'TRIMESTRIEL_CONFORT', name: 'Confort 3 mois', price: 242250, duration: 3 },
-        { id: 'ANNUEL_ESSENTIEL', name: 'Essentiel 1 an', price: 510000, duration: 12 },
-        { id: 'ANNUEL_CONFORT', name: 'Confort 1 an', price: 867000, duration: 12 },
-        { id: 'MATERNITE', name: 'Spécial Maternité', price: 70000, duration: 0.5 }
-    ] : [
-        { id: 'MENSUEL_PONCTUEL', name: 'Ponctuel', price: 10000, duration: 1 },
-        { id: 'MENSUEL_REGULIER', name: 'Régulier', price: 60000, duration: 1 },
-        { id: 'MENSUEL_COMPLET', name: 'Complet', price: 150000, duration: 1 },
-        { id: 'TRIMESTRIEL_REGULIER', name: 'Régulier 3 mois', price: 171000, duration: 3 },
-        { id: 'ANNUEL_REGULIER', name: 'Régulier 1 an', price: 612000, duration: 12 },
-        { id: 'ANNUEL_COMPLET', name: 'Complet 1 an', price: 1530000, duration: 12 }
-    ];
-    
+    const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
     
-    // Demander confirmation avant paiement
     const result = await Swal.fire({
         title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
         html: `
@@ -403,42 +213,11 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     }
 };
 
-// ✅ Fonction pour charger FedaPay dynamiquement
-function loadFedaPayScript() {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.fedapay.com/checkout.js?v=1.1.7';
-        script.onload = () => {
-            console.log("✅ FedaPay chargé avec succès");
-            resolve();
-        };
-        script.onerror = () => {
-            reject(new Error("Impossible de charger FedaPay"));
-        };
-        document.head.appendChild(script);
-    });
-}
-/**
- * 🔧 Échapper les caractères HTML
- */
-function escapeHtml(str) {
-    if (!str) return '';
-    return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+// ============================================================
+// INITIATION PAIEMENT FEDAPAY
+// ============================================================
 
-/**
- * 💳 INITIER UN PAIEMENT FEDAPAY
- */
-/**
- * 💳 INITIER UN PAIEMENT FEDAPAY
- */
 window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
-    // Récupérer le patient depuis l'API si AppState.currentPatient est null
     let patientId = AppState.currentPatient;
     
     if (!patientId) {
@@ -479,8 +258,6 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
         });
         
         Swal.close();
-        
-        // Rediriger vers FedaPay
         window.location.href = response.payment_url;
         
     } catch (err) {
