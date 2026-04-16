@@ -254,42 +254,43 @@ function renderStoryCard(msg, isReply = false) {
     const isTemp = msg.is_temp === true;
     const tempClass = isTemp ? 'opacity-70' : '';
 
-    // ============================================================
-    // MESSAGE ENVOYÉ (À DROITE - VERT/ROSE)
-    // ============================================================
-    if (isOwnMessage) {
-        let statusIcon = '';
-        if (!isTemp) {
-            if (msg.read) {
-                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
+ 
+        // ============================================================
+        // MESSAGE ENVOYÉ (À DROITE - VERT/ROSE)
+        // ============================================================
+        if (isOwnMessage) {
+            let statusIcon = '';
+            if (!isTemp) {
+                if (msg.read) {
+                    statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
+                } else {
+                    statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
+                }
             } else {
-                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
+                statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
             }
-        } else {
-            statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
-        }
-        
-        return `
-            <div class="flex justify-end mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
-                <div class="max-w-[75%] sm:max-w-[65%]">
-                    ${fileUrl ? (isImage ? `
-                        <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
-                             onclick="window.open('${fileUrl}')" loading="lazy"
-                             onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
-                    ` : renderDocumentCard(fileUrl, msg.titre_media)) : ''}
-                    ${content ? `
-                        <div class="chat-message-received" style="background: #F1F5F9; border-bottom-left-radius: 4px; padding: 10px 14px; min-height: auto; height: auto;">
-                            <p class="text-slate-700 text-sm break-words" style="margin: 0; line-height: 1.4;">${escapeHtml(content)} ${humeurBadge}</p>
+            
+            return `
+                <div class="flex justify-end mb-1 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
+                    <div class="max-w-[75%] sm:max-w-[65%]">
+                        ${fileUrl ? (isImage ? `
+                            <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
+                                 onclick="window.open('${fileUrl}')" loading="lazy"
+                                 onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
+                        ` : renderDocumentCard(fileUrl, msg.titre_media)) : ''}
+                        ${content ? `
+                            <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
+                                <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                            </div>
+                        ` : ''}
+                        <div class="flex justify-end items-center gap-1 mt-0.5">
+                            <span class="text-[9px] text-slate-400">${timeStr}</span>
+                            <span class="message-status">${statusIcon}</span>
                         </div>
-                    ` : ''}
-                    <div class="flex justify-end items-center gap-1 mt-0.5">
-                        <span class="text-[9px] text-slate-400">${timeStr}</span>
-                        <span class="message-status">${statusIcon}</span>
                     </div>
                 </div>
-            </div>
-        `;
-    }
+            `;
+        }
 
     // ============================================================
     // MESSAGE REÇU (À GAUCHE - BLANC)
