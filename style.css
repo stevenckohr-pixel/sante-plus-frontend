@@ -3044,10 +3044,135 @@ body, .maman-dashboard-container, .chat-whatsapp-messages {
 }
 
 
+/* ============================================
+   THÈME AIDANT (OR DOUX)
+   ============================================ */
+
+body.aidant-mode {
+    --role-primary: #C9A84C;
+    --role-primary-dark: #B8942E;
+    --role-primary-light: #FEF9E6;
+}
+
+/* 1. BOUTONS */
+body.aidant-mode .btn-primary,
+body.aidant-mode button[type="submit"],
+body.aidant-mode #btn-login,
+body.aidant-mode .chat-input-send,
+body.aidant-mode .bg-emerald-500,
+body.aidant-mode .bg-emerald-600 {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .btn-primary:hover {
+    background: #D4AF37 !important;
+}
+
+body.aidant-mode .fab-button {
+    background: #C9A84C !important;
+    box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3) !important;
+}
+
+/* 2. FONDS */
+body.aidant-mode .bg-emerald-50,
+body.aidant-mode .bg-green-50 {
+    background: #FEF9E6 !important;
+}
+
+body.aidant-mode .bg-gradient-to-r {
+    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode #notification-badge,
+body.aidant-mode .menu-badge {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+/* 3. TEXTES */
+body.aidant-mode .text-emerald-600,
+body.aidant-mode .dashboard-card-stat {
+    color: #C9A84C !important;
+}
+
+body.aidant-mode a:not(.no-style) {
+    color: #C9A84C !important;
+}
+
+/* 4. BORDURES */
+body.aidant-mode .border-emerald-500 {
+    border-color: #C9A84C !important;
+}
+
+body.aidant-mode input:focus {
+    border-color: #C9A84C !important;
+    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15) !important;
+}
+
+/* 5. SIDEBAR & NAVIGATION */
+body.aidant-mode .sidebar-link.active {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .nav-btn.active {
+    color: #C9A84C !important;
+}
+
+/* 6. CARTES & TUILES */
+body.aidant-mode .menu-tile i {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+}
+
+body.aidant-mode .badge-dynamic {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+    border: 1px solid #C9A84C !important;
+}
+
+/* 7. CHAT */
+body.aidant-mode .chat-message-sent {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+body.aidant-mode .chat-message-received {
+    border-left: 3px solid #C9A84C !important;
+}
+
+/* 8. FORMULAIRES */
+body.aidant-mode input[type="checkbox"]:checked {
+    accent-color: #C9A84C !important;
+}
+
+/* 9. PROGRESS BARS */
+body.aidant-mode .progress-bar-fill {
+    background: #C9A84C !important;
+}
+
+/* 10. HEADER */
+body.aidant-mode header {
+    border-bottom: 2px solid #C9A84C !important;
+}
+
+/* 11. SECTION TITLES */
+body.aidant-mode .section-title i {
+    color: #C9A84C !important;
+}
+
+
+
+
+
+
+
 
 
 /* ============================================
-   THÈME COORDINATEUR (OR - REMPLACEMENT COMPLET DU VERT)
+   THÈME COORDINATEUR (OR COMPLET)
    ============================================ */
 
 body.coordinateur-mode {
@@ -3055,43 +3180,59 @@ body.coordinateur-mode {
     --role-primary-dark: #B8942E;
     --role-primary-light: #FEF9E6;
     --role-secondary: #C9A84C;
-    --role-accent: #1E293B;
-    --role-text: #0F172A;
-    --role-bg-card: #FFFFFF;
-    --role-bg-page: #F8FAFC;
-    --role-border: #E2E8F0;
 }
 
 /* ============================================
-   1. BOUTONS (remplacement du vert)
+   1. BOUTONS
    ============================================ */
 
 body.coordinateur-mode .btn-primary,
 body.coordinateur-mode button[type="submit"],
+body.coordinateur-mode #btn-login,
+body.coordinateur-mode .next-btn,
+body.coordinateur-mode .chat-input-send,
+body.coordinateur-mode #send-btn,
 body.coordinateur-mode .bg-emerald-500,
 body.coordinateur-mode .bg-emerald-600,
+body.coordinateur-mode .bg-slate-800,
 body.coordinateur-mode .bg-slate-900,
-body.coordinateur-mode .next-btn,
-body.coordinateur-mode #btn-login,
-body.coordinateur-mode .chat-input-send,
 body.coordinateur-mode .w-full.bg-slate-900 {
     background: #D4AF37 !important;
     color: #0F172A !important;
+    font-weight: 700 !important;
+    border: none !important;
 }
 
 body.coordinateur-mode .btn-primary:hover,
-body.coordinateur-mode button[type="submit"]:hover {
+body.coordinateur-mode button[type="submit"]:hover,
+body.coordinateur-mode .chat-input-send:hover {
+    background: #C9A84C !important;
+    transform: scale(1.02);
+}
+
+body.coordinateur-mode .btn-primary:active,
+body.coordinateur-mode button[type="submit"]:active {
+    transform: scale(0.98);
+}
+
+/* Bouton flottant FAB */
+body.coordinateur-mode .fab-button {
+    background: #D4AF37 !important;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
+}
+
+body.coordinateur-mode .fab-button:active {
     background: #B8942E !important;
 }
 
 /* ============================================
-   2. FONDS COLORÉS (vert clair → beige/or clair)
+   2. FONDS COLORÉS
    ============================================ */
 
 body.coordinateur-mode .bg-emerald-50,
 body.coordinateur-mode .bg-green-50,
 body.coordinateur-mode .bg-emerald-100,
-body.coordinateur-mode [class*="bg-emerald-"] {
+body.coordinateur-mode [class*="bg-emerald-"]:not(.bg-emerald-500):not(.bg-emerald-600) {
     background: #FEF9E6 !important;
 }
 
@@ -3100,8 +3241,24 @@ body.coordinateur-mode .bg-gradient-to-r {
     color: #0F172A !important;
 }
 
+/* Badges de notification */
+body.coordinateur-mode #notification-badge,
+body.coordinateur-mode .menu-badge,
+body.coordinateur-mode .patient-badge {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4) !important;
+}
+
+/* Indicateur de chargement */
+body.coordinateur-mode .spinner-primary,
+body.coordinateur-mode .loader-color {
+    border-top-color: #D4AF37 !important;
+    border-right-color: #FEF9E6 !important;
+}
+
 /* ============================================
-   3. TEXTES COLORÉS (vert → or)
+   3. TEXTES
    ============================================ */
 
 body.coordinateur-mode .text-emerald-600,
@@ -3116,17 +3273,26 @@ body.coordinateur-mode .text-green-700 {
     color: #B8942E !important;
 }
 
-/* ============================================
-   4. STATISTIQUES (chiffres importants)
-   ============================================ */
-
+/* Statistiques */
 body.coordinateur-mode .dashboard-card-stat,
-body.coordinateur-mode .stat-number {
+body.coordinateur-mode .stat-number,
+body.coordinateur-mode .text-2xl.font-black.text-emerald-600 {
+    color: #D4AF37 !important;
+    font-weight: 800 !important;
+}
+
+/* Liens */
+body.coordinateur-mode a:not(.no-style),
+body.coordinateur-mode .text-link {
     color: #D4AF37 !important;
 }
 
+body.coordinateur-mode a:hover {
+    color: #C9A84C !important;
+}
+
 /* ============================================
-   5. BORDURES (vert → or)
+   4. BORDURES
    ============================================ */
 
 body.coordinateur-mode .border-emerald-500,
@@ -3136,8 +3302,23 @@ body.coordinateur-mode [class*="border-emerald-"] {
     border-color: #D4AF37 !important;
 }
 
+body.coordinateur-mode input:focus,
+body.coordinateur-mode textarea:focus,
+body.coordinateur-mode select:focus {
+    border-color: #D4AF37 !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
+    outline: none;
+}
+
+/* Tags actifs */
+body.coordinateur-mode .tag-active {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+    border-color: #D4AF37 !important;
+}
+
 /* ============================================
-   6. SIDEBAR - ACTIF
+   5. SIDEBAR & NAVIGATION
    ============================================ */
 
 body.coordinateur-mode .sidebar-link.active {
@@ -3149,22 +3330,33 @@ body.coordinateur-mode .sidebar-link.active i {
     color: #0F172A !important;
 }
 
+body.coordinateur-mode .tab-active,
+body.coordinateur-mode .nav-btn.active {
+    color: #D4AF37 !important;
+    border-bottom-color: #D4AF37 !important;
+}
+
+body.coordinateur-mode .nav-btn.active i {
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)) !important;
+}
+
 /* ============================================
-   7. TUILES DE L'ACCUEIL
+   6. CARTES & TUILES
    ============================================ */
 
+/* Icônes des tuiles */
 body.coordinateur-mode .menu-tile i {
+    background: #FEF9E6 !important;
     color: #D4AF37 !important;
 }
 
 body.coordinateur-mode .menu-tile:hover {
     border-color: #D4AF37 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.12) !important;
 }
 
-/* ============================================
-   8. BADGES
-   ============================================ */
-
+/* Badges dynamiques */
 body.coordinateur-mode .badge-dynamic,
 body.coordinateur-mode .badge-primary,
 body.coordinateur-mode .badge-success {
@@ -3173,8 +3365,15 @@ body.coordinateur-mode .badge-success {
     border: 1px solid #D4AF37 !important;
 }
 
+/* Status pill */
+body.coordinateur-mode .status-pill {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+    border: 1px solid #D4AF37 !important;
+}
+
 /* ============================================
-   9. CHAT - MESSAGES ENVOYÉS
+   7. CHAT & MESSAGES
    ============================================ */
 
 body.coordinateur-mode .chat-message-sent {
@@ -3186,16 +3385,16 @@ body.coordinateur-mode .chat-message-received {
     border-left: 3px solid #D4AF37 !important;
 }
 
-/* ============================================
-   10. PROGRESS BAR
-   ============================================ */
+body.coordinateur-mode .typing-indicator {
+    border-left: 3px solid #D4AF37 !important;
+}
 
-body.coordinateur-mode .progress-bar-fill {
+body.coordinateur-mode .typing-dot {
     background: #D4AF37 !important;
 }
 
 /* ============================================
-   11. CHECKBOX, RADIO
+   8. FORMULAIRES
    ============================================ */
 
 body.coordinateur-mode input[type="checkbox"]:checked,
@@ -3203,20 +3402,34 @@ body.coordinateur-mode input[type="radio"]:checked {
     accent-color: #D4AF37 !important;
 }
 
+body.coordinateur-mode .peer-checked {
+    background-color: #D4AF37 !important;
+}
+
 /* ============================================
-   12. NAVIGATION ACTIVE (bottom bar)
+   9. PROGRESS BARS
    ============================================ */
 
-body.coordinateur-mode .nav-btn.active {
-    color: #D4AF37 !important;
-}
-
-body.coordinateur-mode .nav-btn.active i {
-    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)) !important;
+body.coordinateur-mode .progress-bar-fill {
+    background: linear-gradient(90deg, #D4AF37 0%, #E5C65C 100%) !important;
 }
 
 /* ============================================
-   13. HEADER - BORDURE
+   10. PAGINATION & FILTRES
+   ============================================ */
+
+body.coordinateur-mode .pagination .active {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+}
+
+body.coordinateur-mode .filter-chip.active {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+}
+
+/* ============================================
+   11. HEADER
    ============================================ */
 
 body.coordinateur-mode header {
@@ -3224,214 +3437,7 @@ body.coordinateur-mode header {
 }
 
 /* ============================================
-   14. SECTION TITLES
-   ============================================ */
-
-body.coordinateur-mode .section-title i,
-body.coordinateur-mode .section-title span {
-    color: #D4AF37 !important;
-}
-
-
-
-
-
-
-
-/* ============================================
-   THÈME AIDANT (OR DOUX)
-   ============================================ */
-
-body.aidant-mode {
-    --role-primary: #C9A84C;
-    --role-primary-dark: #B8942E;
-    --role-primary-light: #FEF9E6;
-    --role-secondary: #D4AF37;
-    --role-accent: #334155;
-    --role-text: #1E293B;
-    --role-bg-card: #FFFFFF;
-    --role-bg-page: #F8F7F4;
-    --role-border: #E8E2D4;
-}
-
-/* Boutons */
-body.aidant-mode .btn-primary,
-body.aidant-mode button[type="submit"],
-body.aidant-mode .bg-emerald-500,
-body.aidant-mode .bg-emerald-600 {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-/* Fonds clairs */
-body.aidant-mode .bg-emerald-50,
-body.aidant-mode .bg-green-50 {
-    background: #FEF9E6 !important;
-}
-
-/* Textes */
-body.aidant-mode .text-emerald-600,
-body.aidant-mode .text-emerald-500 {
-    color: #C9A84C !important;
-}
-
-/* Statistiques */
-body.aidant-mode .dashboard-card-stat {
-    color: #C9A84C !important;
-}
-
-/* Bordures */
-body.aidant-mode .border-emerald-500 {
-    border-color: #C9A84C !important;
-}
-
-/* Sidebar actif */
-body.aidant-mode .sidebar-link.active {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-/* Tuiles */
-body.aidant-mode .menu-tile i {
-    color: #C9A84C !important;
-}
-
-/* Badges */
-body.aidant-mode .badge-dynamic {
-    background: #FEF9E6 !important;
-    color: #C9A84C !important;
-    border: 1px solid #C9A84C !important;
-}
-
-/* Chat */
-body.aidant-mode .chat-message-sent {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-/* Navigation active */
-body.aidant-mode .nav-btn.active {
-    color: #C9A84C !important;
-}
-
-/* Header */
-body.aidant-mode header {
-    border-bottom: 2px solid #C9A84C !important;
-}
-
-/* Checkbox */
-body.aidant-mode input[type="checkbox"]:checked {
-    accent-color: #C9A84C !important;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ============================================
-   TUILES DE L'ACCUEIL (MENU PRINCIPAL) - COORDINATEUR
-   ============================================ */
-
-/* Fonds des tuiles - remplacer le vert par l'or */
-body.coordinateur-mode .menu-tile {
-    background: white !important;
-    border: 1px solid #E2E8F0 !important;
-    transition: all 0.2s ease;
-}
-
-/* Icônes des tuiles - couleur or */
-body.coordinateur-mode .menu-tile i {
-    background: #FEF9E6 !important;
-    color: #D4AF37 !important;
-}
-
-/* Texte des tuiles */
-body.coordinateur-mode .menu-tile .font-black {
-    color: #1E293B !important;
-}
-
-body.coordinateur-mode .menu-tile .text-slate-400 {
-    color: #64748B !important;
-}
-
-/* Effet au survol */
-body.coordinateur-mode .menu-tile:hover {
-    border-color: #D4AF37 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.12) !important;
-}
-
-/* ============================================
-   GRILLE DES TUILES (HOME/HUB) - COORDINATEUR
-   ============================================ */
-
-body.coordinateur-mode #menu-grid .menu-tile,
-body.coordinateur-mode .menu-grid .menu-tile {
-    background: white !important;
-    border: 1px solid #E2E8F0 !important;
-}
-
-body.coordinateur-mode #menu-grid .menu-tile i,
-body.coordinateur-mode .menu-grid .menu-tile i {
-    background: #FEF9E6 !important;
-    color: #D4AF37 !important;
-}
-
-/* ============================================
-   CARTES PATIENTS ET AUTRES CARTES
-   ============================================ */
-
-body.coordinateur-mode .patient-card-modern,
-body.coordinateur-mode .bg-white.rounded-xl,
-body.coordinateur-mode .bg-white.rounded-2xl,
-body.coordinateur-mode .dashboard-card,
-body.coordinateur-mode .bento-card {
-    background: white !important;
-    border: 1px solid #E2E8F0 !important;
-}
-
-/* Éléments avec fond vert clair qui doivent devenir beige */
-body.coordinateur-mode .bg-emerald-50,
-body.coordinateur-mode .bg-green-50,
-body.coordinateur-mode .bg-emerald-100 {
-    background: #FEF9E6 !important;
-}
-
-/* ============================================
-   BOUTONS FLOTTANTS (FAB)
-   ============================================ */
-
-body.coordinateur-mode .fab-button {
-    background: #D4AF37 !important;
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
-}
-
-body.coordinateur-mode .fab-button:active {
-    background: #B8942E !important;
-}
-
-/* ============================================
-   BANNIÈRE DE BIENVENUE (ACCUEIL MOBILE)
-   ============================================ */
-
-body.coordinateur-mode .bg-gradient-to-r {
-    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
-    color: #0F172A !important;
-}
-
-/* ============================================
-   SECTION TITRES
+   12. SECTION TITLES
    ============================================ */
 
 body.coordinateur-mode .section-title i,
@@ -3440,14 +3446,11 @@ body.coordinateur-mode .section-title span {
 }
 
 /* ============================================
-   BADGE DE NOTIFICATION
+   13. FOCUS OUTLINE
    ============================================ */
 
-body.coordinateur-mode #notification-badge,
-body.coordinateur-mode .menu-badge,
-body.coordinateur-mode .patient-badge {
-    background: #D4AF37 !important;
-    color: #0F172A !important;
+body.coordinateur-mode *:focus-visible {
+    outline-color: #D4AF37 !important;
 }
 
 
@@ -3463,45 +3466,4 @@ body.coordinateur-mode .patient-badge {
 
 
 
-/* ============================================
-   TUILES DE L'ACCUEIL - AIDANT
-   ============================================ */
 
-body.aidant-mode .menu-tile {
-    background: white !important;
-    border: 1px solid #E8E2D4 !important;
-}
-
-body.aidant-mode .menu-tile i {
-    background: #FEF9E6 !important;
-    color: #C9A84C !important;
-}
-
-body.aidant-mode .menu-tile:hover {
-    border-color: #C9A84C !important;
-}
-
-body.aidant-mode .bg-emerald-50,
-body.aidant-mode .bg-green-50 {
-    background: #FEF9E6 !important;
-}
-
-body.aidant-mode .fab-button {
-    background: #C9A84C !important;
-}
-
-body.aidant-mode .bg-gradient-to-r {
-    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .section-title i,
-body.aidant-mode .section-title span {
-    color: #C9A84C !important;
-}
-
-body.aidant-mode #notification-badge,
-body.aidant-mode .menu-badge {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
