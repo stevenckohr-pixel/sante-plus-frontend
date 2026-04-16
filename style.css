@@ -2945,3 +2945,51 @@ body:has(.chat-whatsapp-container) header {
     padding: 4px 10px !important;
     min-height: 28px !important;
 }
+
+
+/* STYLES PRIORITAIRES POUR LE CHAT */
+.chat-message-sent {
+    background: var(--role-primary) !important;
+    color: white !important;
+    border-radius: 18px !important;
+    border-bottom-right-radius: 4px !important;
+    padding: 6px 12px !important;
+    display: inline-block !important;
+    max-width: 75% !important;
+    word-break: break-word !important;
+}
+
+.chat-message-sent span {
+    color: white !important;
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+    display: inline !important;
+}
+
+.chat-message-received {
+    background: white !important;
+    color: #1E293B !important;
+    border-radius: 18px !important;
+    border-bottom-left-radius: 4px !important;
+    padding: 6px 12px !important;
+    display: inline-block !important;
+    max-width: 75% !important;
+    word-break: break-word !important;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05) !important;
+}
+
+.chat-message-received span {
+    color: #1E293B !important;
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+    display: inline !important;
+}
+
+/* Alignement des messages */
+.flex.justify-end {
+    justify-content: flex-end !important;
+}
+
+.flex.items-start {
+    justify-content: flex-start !important;
+}
