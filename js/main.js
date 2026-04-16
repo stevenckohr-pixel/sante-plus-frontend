@@ -2259,6 +2259,8 @@ window.switchView = async function(viewName) {
         window.switchView(next);
     }
 };
+
+
 // ============================================================
 // CHARGEMENT D'UNE VUE SPÉCIFIQUE
 // ============================================================
@@ -2285,8 +2287,8 @@ async function performViewSwitch(viewName) {
     }
     
     // Vues réservées aux aidants et coordinateurs
-    const restrictedViews = ["planning", "start-visit", "end-visit"];
-    if (restrictedViews.includes(viewName) && userRole !== "AIDANT" && userRole !== "COORDINATEUR") {
+    const aidantRestrictedViews = ["planning", "start-visit", "end-visit"];
+    if (aidantRestrictedViews.includes(viewName) && userRole !== "AIDANT" && userRole !== "COORDINATEUR") {
         UI.error("Accès non autorisé");
         window.switchView("home");
         return;
