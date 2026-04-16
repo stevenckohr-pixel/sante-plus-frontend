@@ -2846,3 +2846,58 @@ body:has(.chat-whatsapp-container) header {
     content: "" !important;
     margin: 4px 0 !important;
 }
+
+
+/* ============================================
+   CORRECTION DÉFINITIVE DES BULLES DE MESSAGE
+   ============================================ */
+
+/* Reset complet pour les messages */
+.chat-message-sent,
+.chat-message-received {
+    display: inline-block !important;
+    padding: 8px 14px !important;
+    border-radius: 18px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    min-height: 36px !important;
+    height: auto !important;
+    max-width: 75% !important;
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
+}
+
+/* Forcer les paragraphes à bien s'afficher */
+.chat-message-sent p,
+.chat-message-received p {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    display: block !important;
+}
+
+/* Supprimer les espaces supplémentaires */
+.chat-message-sent br,
+.chat-message-received br {
+    display: none;
+}
+
+/* Alignement vertical correct */
+.message-item {
+    display: flex !important;
+    margin-bottom: 6px !important;
+}
+
+.message.sent {
+    justify-content: flex-end !important;
+}
+
+.message.received {
+    justify-content: flex-start !important;
+}
+
+/* Container des messages */
+.chat-whatsapp-messages {
+    padding: 12px 16px !important;
+}
