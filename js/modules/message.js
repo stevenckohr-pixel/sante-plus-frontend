@@ -126,15 +126,20 @@ function isImageUrl(url) {
 // RENDU DES CARTES
 // ============================================================
 
+// js/modules/message.js - Améliorer renderDocCard()
+
 function renderDocCard(msg) {
     let iconClass = 'fa-file-pdf';
     let iconColor = 'text-red-500';
     let bgColor = 'bg-red-50';
     let fileType = 'PDF';
     
-    const filename = msg.titre_media || msg.content?.split('/').pop() || 'Document';
+    // Récupérer l'URL du document (content contient l'URL)
+    const docUrl = msg.content || msg.photo_url;
+    const filename = msg.titre_media || docUrl?.split('/').pop() || 'Document';
     const extension = filename.split('.').pop()?.toLowerCase();
     
+    // Déterminer le type de fichier
     if (extension === 'pdf') {
         iconClass = 'fa-file-pdf';
         iconColor = 'text-red-500';
@@ -158,32 +163,36 @@ function renderDocCard(msg) {
     }
     
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension);
-    const previewHtml = isImage ? `
-        <div class="mt-3">
-            <img src="${msg.content}" class="w-full max-h-48 object-cover rounded-xl cursor-pointer border border-slate-200" onclick="window.open('${msg.content}')">
-        </div>
-    ` : '';
+    const currentUserId = localStorage.getItem("user_id");
+    const isOwnMessage = msg.sender_id === currentUserId;
+    
+    // Style selon que c'est l'utilisateur ou non
+    const containerClass = isOwnMessage ? 'flex justify-end mb-2' : 'flex justify-start mb-2';
+    const bubbleClass = isOwnMessage ? 'chat-message-sent' : 'chat-message-received';
+    const bubbleStyle = isOwnMessage ? `background: var(--role-primary); border-bottom-right-radius: 4px;` : `background: white; border-bottom-left-radius: 4px;`;
+    
+    const timeStr = msg.created_at ? new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 'Maintenant';
     
     return `
-        <div class="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200 mb-3 document-card">
-            <div class="p-4">
-                <div class="flex items-start gap-3">
-                    <div class="w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center shrink-0">
-                        <i class="fa-solid ${iconClass} ${iconColor} text-xl"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center flex-wrap gap-2 mb-1">
-                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${bgColor} ${iconColor} uppercase">${fileType}</span>
-                            <span class="text-[9px] text-slate-400">${UI.formatDate(msg.created_at)}</span>
+        <div class="${containerClass} animate-fadeIn" data-message-id="${msg.id}">
+            <div class="max-w-[75%]">
+                <div class="${bubbleClass}" style="${bubbleStyle} padding: 8px 12px;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl ${bgColor} flex items-center justify-center">
+                            <i class="fa-solid ${iconClass} ${iconColor} text-lg"></i>
                         </div>
-                        <h4 class="font-bold text-slate-800 text-sm truncate" title="${escapeHtml(filename)}">${escapeHtml(filename.length > 40 ? filename.substring(0, 40) + '...' : filename)}</h4>
-                        <p class="text-[10px] text-slate-400 mt-1">Envoyé par ${escapeHtml(msg.sender_name || 'Système')}</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-semibold truncate" style="${isOwnMessage ? 'color: white;' : 'color: #1E293B;'}">${escapeHtml(filename.length > 30 ? filename.substring(0, 30) + '...' : filename)}</p>
+                            <p class="text-[9px]" style="${isOwnMessage ? 'color: rgba(255,255,255,0.7);' : 'color: #94A3B8;'}">${fileType} • Cliquer pour ouvrir</p>
+                        </div>
+                        <a href="${docUrl}" target="_blank" class="w-8 h-8 rounded-lg ${isOwnMessage ? 'bg-white/20 hover:bg-white/30' : 'bg-slate-100 hover:bg-slate-200'} flex items-center justify-center transition">
+                            <i class="fa-solid fa-download text-xs" style="${isOwnMessage ? 'color: white;' : 'color: #64748B;'}"></i>
+                        </a>
                     </div>
-                    <button onclick="window.open('${msg.content}')" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-all active:scale-95 shrink-0" title="Télécharger">
-                        <i class="fa-solid fa-download text-sm"></i>
-                    </button>
                 </div>
-                ${previewHtml}
+                <div class="flex ${isOwnMessage ? 'justify-end' : 'justify-start'} items-center gap-1 mt-0.5">
+                    <span class="text-[9px] text-slate-400">${timeStr}</span>
+                </div>
             </div>
         </div>
     `;
@@ -1173,8 +1182,7 @@ if (window.Realtime && window.Realtime.subscribeToTyping) {
 // CHARGEMENT DU FEED
 // ============================================================
 
-// js/modules/message.js - Version complète du chat (type WhatsApp)
-
+ 
 async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
