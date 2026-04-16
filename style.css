@@ -2786,3 +2786,63 @@ body:has(.chat-whatsapp-container) aside,
 body:has(.chat-whatsapp-container) header {
     display: none !important;
 }
+
+
+/* ============================================
+   CORRECTION DES BULLES DE MESSAGE - TEXTE NON COUPÉ
+   ============================================ */
+
+/* Messages envoyés (à droite) */
+.chat-message-sent,
+.chat-message-received {
+    padding: 10px 14px !important;
+    border-radius: 18px !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    min-height: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+}
+
+/* Texte dans les bulles */
+.chat-message-sent p,
+.chat-message-received p {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    color: inherit !important;
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important;
+}
+
+/* Conteneur des messages */
+.chat-whatsapp-messages {
+    padding: 16px !important;
+    gap: 6px !important;
+}
+
+/* Chaque ligne de message */
+.message-item {
+    max-width: 85% !important;
+    margin-bottom: 4px !important;
+}
+
+/* Messages courts comme "cc" */
+.chat-message-sent:has(p:only-child:empty),
+.chat-message-sent:has(p:only-child:contains('cc')),
+.chat-message-sent:has(p:only-child:contains('ok')) {
+    min-width: 50px !important;
+    width: auto !important;
+    display: inline-block !important;
+}
+
+/* Forcer les messages à avoir une hauteur adaptée au contenu */
+.chat-message-sent br,
+.chat-message-received br {
+    display: block !important;
+    content: "" !important;
+    margin: 4px 0 !important;
+}
