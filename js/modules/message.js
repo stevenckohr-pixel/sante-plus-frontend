@@ -340,6 +340,7 @@ function renderStoryCard(msg, isReply = false) {
 }
 
 
+
 // js/modules/message.js - Modifier renderFeed()
 
 function renderFeed() {
@@ -364,15 +365,15 @@ function renderFeed() {
         inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
     }
 
-    // 🔥 CORRECTION : Filtrer correctement
+    // 🔥 CORRECTION : Filtrer selon l'onglet
     let filtered = (AppState.messages || []).filter(m => {
         if (activeTab === 'DOCUMENT') {
-            // Dans l'onglet DOCUMENTS : afficher les DOCUMENT
+            // Dans l'onglet DOCUMENTS : afficher uniquement les DOCUMENT
             return m.type_media === 'DOCUMENT';
         } else {
-            // Dans l'onglet STORY : afficher les messages texte ET les photos
-            // Les photos ont is_photo = true ou type_media = 'STORY'
-            return m.type_media !== 'DOCUMENT';
+            // Dans l'onglet STORY : afficher TOUS les messages (STORY + DOCUMENT + photos)
+            // On inclut tout sauf ce qui est explicitement filtré
+            return true;  // ← Afficher tous les messages
         }
     });
     
@@ -387,7 +388,7 @@ function renderFeed() {
         content.innerHTML = `
             <div class="text-center py-20 opacity-50">
                 <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
-                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message dans cette section</p>
+                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message</p>
             </div>`;
     } else if (filtered.length === 0 && activeTab === 'DOCUMENT') {
         content.innerHTML = `
