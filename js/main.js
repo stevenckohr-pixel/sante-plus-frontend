@@ -768,11 +768,6 @@ function setThemeColor(color) {
 }
 
 
-function updateThemeColor() {
-    const isMaman = localStorage.getItem('user_is_maman') === 'true';
-    const color = isMaman ? '#DB2777' : '#0F172A';
-    setThemeColor(color);
-}
 
 
 
