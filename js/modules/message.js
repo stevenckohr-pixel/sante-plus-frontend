@@ -329,10 +329,6 @@ function renderStoryCard(msg, isReply = false) {
     `;
 }
 
-
-
-// js/modules/message.js - Modifier renderFeed()
-
 function renderFeed() {
     const content = document.getElementById('care-feed-content');
     const inputArea = document.getElementById('input-area');
@@ -355,37 +351,33 @@ function renderFeed() {
         inputArea.style.display = activeTab === 'STORY' ? 'block' : 'none';
     }
 
-    // 🔥 CORRECTION : Filtrer selon l'onglet
+    // Filtrer selon l'onglet sélectionné
     let filtered = (AppState.messages || []).filter(m => {
         if (activeTab === 'DOCUMENT') {
-            // Dans l'onglet DOCUMENTS : afficher uniquement les DOCUMENT
             return m.type_media === 'DOCUMENT';
-        } else {
-            // Dans l'onglet STORY : afficher TOUS les messages (STORY + DOCUMENT + photos)
-            // On inclut tout sauf ce qui est explicitement filtré
-            return true;  // ← Afficher tous les messages
         }
+        // STORY : afficher tous les messages (textes, images, documents)
+        return true;
     });
     
-    if (activeTab === 'STORY') {
-        const sortedMessages = [...filtered].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-        content.innerHTML = sortedMessages.map(msg => renderStoryCard(msg, false)).join('');
-    } else {
-        content.innerHTML = filtered.map(msg => renderDocCard(msg)).join('');
-    }
+    const sortedMessages = [...filtered].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    
+    // Utiliser renderStoryCard pour tous les messages (y compris les documents)
+    content.innerHTML = sortedMessages.map(msg => renderStoryCard(msg, false)).join('');
 
-    if (filtered.length === 0 && activeTab === 'STORY') {
+    if (sortedMessages.length === 0) {
+        const emptyMessage = activeTab === 'DOCUMENT' 
+            ? 'Aucun document'
+            : 'Aucun message';
         content.innerHTML = `
-            <div class="text-center py-20 opacity-50">
-                <i class="fa-solid fa-feather-pointed text-4xl mb-4 text-slate-300"></i>
-                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun message</p>
-            </div>`;
-    } else if (filtered.length === 0 && activeTab === 'DOCUMENT') {
-        content.innerHTML = `
-            <div class="text-center py-20 opacity-50">
-                <i class="fa-solid fa-file-pdf text-4xl mb-4 text-slate-300"></i>
-                <p class="font-black uppercase text-[10px] tracking-wider text-slate-400">Aucun document</p>
-            </div>`;
+            <div class="flex flex-col items-center justify-center h-full py-20">
+                <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                    <i class="fa-regular fa-comment-dots text-2xl text-slate-400"></i>
+                </div>
+                <p class="text-sm font-bold text-slate-500">${emptyMessage}</p>
+                <p class="text-[10px] text-slate-400 mt-1">Soyez le premier à envoyer un message</p>
+            </div>
+        `;
     }
 
     setTimeout(() => {
