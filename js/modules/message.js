@@ -1165,17 +1165,20 @@ if (window.Realtime && window.Realtime.subscribeToTyping) {
 // CHARGEMENT DU FEED
 // ============================================================
 
+// js/modules/message.js - Version complète du chat (type WhatsApp)
+
 async function loadFeed() {
     const container = document.getElementById('view-container');
     if (!container) return;
 
-    // 🔥 RÉINITIALISATION COMPLÈTE POUR LE NOUVEAU PATIENT
+    // 🔥 RÉINITIALISATION COMPLÈTE
     AppState.messages = [];
     
     if (window.cleanupRealtime) {
         window.cleanupRealtime();
     }
 
+    // Supprimer toutes les marges/paddings
     container.style.padding = '0';
     container.style.margin = '0';
     container.style.overflow = 'hidden';
@@ -1185,86 +1188,381 @@ async function loadFeed() {
     }
 
     const isMaman = localStorage.getItem('user_is_maman') === "true";
-    const themeBgClass = isMaman ? 'bg-pink-500' : 'bg-emerald-500';
-    const themeTextClass = isMaman ? 'text-pink-600' : 'text-emerald-600';
+    const primaryColor = isMaman ? '#E11D48' : '#059669';
     
-    // 🔥 RÉCUPÉRER LES INFOS DU PATIENT COURANT
+    // Récupérer les infos du patient
     let patientInfo = null;
     try {
         let patients = await secureFetch("/patients", { noCache: true });
-        
-        // ✅ S'assurer que patients est un tableau
         if (!Array.isArray(patients)) {
-            console.warn("⚠️ La réponse patients n'est pas un tableau, conversion");
             patients = patients?.data || patients?.results || [];
         }
-        
         patientInfo = patients.find(p => p.id === AppState.currentPatient);
-        
         if (!patientInfo && patients.length > 0) {
             patientInfo = patients[0];
             AppState.currentPatient = patientInfo.id;
             localStorage.setItem("current_patient_id", patientInfo.id);
         }
-        
-        console.log("🔄 [FEED] Patient chargé:", patientInfo?.nom_complet, "ID:", AppState.currentPatient);
-        
     } catch(e) {
         console.error("Erreur chargement patient:", e);
         patientInfo = null;
     }
 
+    // ============================================================
+    // HTML DU CHAT - STYLE WHATSAPP
+    // ============================================================
     container.innerHTML = `
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="chat-header-back" onclick="window.switchView('patients')">
+        <div class="chat-whatsapp-container">
+            <!-- HEADER FIXE -->
+            <div class="chat-whatsapp-header">
+                <div class="chat-whatsapp-back" onclick="window.switchView('patients')">
                     <i class="fa-solid fa-arrow-left"></i>
                 </div>
-                <div class="chat-header-avatar">
+                <div class="chat-whatsapp-avatar">
                     ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
                 </div>
-                <div class="chat-header-info">
-                    <div class="chat-header-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
-                    <div class="chat-header-status" id="chat-status">
+                <div class="chat-whatsapp-info">
+                    <div class="chat-whatsapp-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
+                    <div class="chat-whatsapp-status" id="chat-status">
                         <span class="online-dot"></span> En ligne
                     </div>
                 </div>
-                <div class="chat-header-actions">
+                <div class="chat-whatsapp-actions">
                     <button id="attach-doc-btn" title="Pièce jointe">
                         <i class="fa-solid fa-paperclip"></i>
                     </button>
                 </div>
             </div>
-            <div id="care-feed-content" class="chat-messages">
+
+            <!-- ZONE DES MESSAGES (SCROLLABLE) -->
+            <div id="care-feed-content" class="chat-whatsapp-messages">
                 <div class="flex justify-center py-10">
                     <div class="relative w-8 h-8">
                         <div class="absolute inset-0 border-3 border-slate-100 border-t-emerald-500 rounded-full animate-spin"></div>
                     </div>
                 </div>
             </div>
-            <div id="typing-indicator" class="typing-indicator hidden" style="margin: 0 16px 8px 16px;">
+
+            <!-- INDICATEUR DE TYPING -->
+            <div id="typing-indicator" class="chat-whatsapp-typing hidden">
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
                 <div class="typing-dot"></div>
                 <span class="typing-text">quelqu'un écrit...</span>
             </div>
-            <div class="chat-input-area">
-                <button class="chat-input-attach" id="attach-photo-btn" title="Photo">
+
+            <!-- BARRE DE SAISIE FIXE EN BAS -->
+            <div class="chat-whatsapp-input">
+                <button class="chat-whatsapp-attach" id="attach-photo-btn" title="Photo">
                     <i class="fa-solid fa-camera"></i>
                 </button>
-                <div class="chat-input-wrapper">
-                    <input type="text" id="quick-msg" class="chat-input" placeholder="Message" autocomplete="off">
-                    <button class="chat-input-send" id="send-btn">
+                <div class="chat-whatsapp-input-wrapper">
+                    <input type="text" id="quick-msg" class="chat-whatsapp-input-field" placeholder="Message" autocomplete="off">
+                    <button class="chat-whatsapp-send" id="send-btn">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
+
+            <!-- INPUTS CACHÉS -->
             <input type="file" id="photo-input" accept="image/*" class="hidden">
             <input type="file" id="document-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="hidden">
         </div>
     `;
 
-    // Brancher les événements
+    // ============================================================
+    // STYLES CSS DYNAMIQUES (WHATSAPP STYLE)
+    // ============================================================
+    const styleId = 'chat-whatsapp-styles';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            /* CONTENEUR PRINCIPAL - PLEIN ÉCRAN */
+            .chat-whatsapp-container {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                display: flex;
+                flex-direction: column;
+                background: #efeae2;
+                z-index: 1000;
+            }
+            
+            /* HEADER WHATSAPP */
+            .chat-whatsapp-header {
+                background: #202c33;
+                color: white;
+                padding: 12px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-shrink: 0;
+                z-index: 10;
+            }
+            
+            .chat-whatsapp-back {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .chat-whatsapp-back:hover { background: rgba(255,255,255,0.1); }
+            .chat-whatsapp-back:active { transform: scale(0.95); }
+            
+            .chat-whatsapp-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, ${primaryColor}, ${isMaman ? '#BE123C' : '#047857'});
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 18px;
+                color: white;
+                flex-shrink: 0;
+            }
+            
+            .chat-whatsapp-info {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .chat-whatsapp-name {
+                font-weight: 600;
+                font-size: 16px;
+                line-height: 1.2;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            
+            .chat-whatsapp-status {
+                font-size: 12px;
+                opacity: 0.8;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            
+            .online-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #25D366;
+            }
+            
+            .chat-whatsapp-actions {
+                display: flex;
+                gap: 8px;
+            }
+            .chat-whatsapp-actions button {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: transparent;
+                border: none;
+                color: white;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .chat-whatsapp-actions button:hover { background: rgba(255,255,255,0.1); }
+            .chat-whatsapp-actions button:active { transform: scale(0.95); }
+            
+            /* ZONE DES MESSAGES */
+            .chat-whatsapp-messages {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+                scroll-behavior: smooth;
+                background: #efeae2;
+            }
+            
+            .chat-whatsapp-messages::-webkit-scrollbar {
+                width: 6px;
+            }
+            .chat-whatsapp-messages::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .chat-whatsapp-messages::-webkit-scrollbar-thumb {
+                background: rgba(0,0,0,0.2);
+                border-radius: 3px;
+            }
+            
+            /* INDICATEUR DE TYPING */
+            .chat-whatsapp-typing {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 8px 12px;
+                background: white;
+                border-radius: 18px;
+                border-bottom-left-radius: 4px;
+                width: fit-content;
+                margin: 0 16px 8px 16px;
+                flex-shrink: 0;
+            }
+            .chat-whatsapp-typing.hidden {
+                display: none;
+            }
+            .typing-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #8696a0;
+                animation: typingBounce 1.4s infinite ease-in-out;
+            }
+            .typing-dot:nth-child(1) { animation-delay: 0s; }
+            .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+            
+            @keyframes typingBounce {
+                0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+                30% { transform: translateY(-6px); opacity: 1; }
+            }
+            
+            .typing-text {
+                font-size: 12px;
+                color: #667781;
+            }
+            
+            /* BARRE DE SAISIE FIXE */
+            .chat-whatsapp-input {
+                background: #202c33;
+                padding: 10px 16px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-shrink: 0;
+            }
+            
+            .chat-whatsapp-attach {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                color: #aebac1;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            .chat-whatsapp-attach:hover { background: rgba(255,255,255,0.1); }
+            .chat-whatsapp-attach:active { transform: scale(0.95); }
+            
+            .chat-whatsapp-input-wrapper {
+                flex: 1;
+                background: #2a3942;
+                border-radius: 24px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 4px 12px;
+            }
+            
+            .chat-whatsapp-input-field {
+                flex: 1;
+                background: transparent;
+                border: none;
+                outline: none;
+                color: #e9edef;
+                font-size: 15px;
+                padding: 10px 0;
+            }
+            .chat-whatsapp-input-field::placeholder {
+                color: #8696a0;
+            }
+            
+            .chat-whatsapp-send {
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                background: #25D366;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+            .chat-whatsapp-send:active {
+                transform: scale(0.92);
+            }
+            
+            /* STYLES DES MESSAGES */
+            .chat-message-sent {
+                background: ${primaryColor};
+                color: white;
+                border-radius: 18px;
+                border-bottom-right-radius: 4px;
+                padding: 10px 14px;
+                max-width: 75%;
+                word-wrap: break-word;
+            }
+            
+            .chat-message-received {
+                background: white;
+                color: #1E293B;
+                border-radius: 18px;
+                border-bottom-left-radius: 4px;
+                padding: 10px 14px;
+                max-width: 75%;
+                word-wrap: break-word;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            }
+            
+            /* ANIMATION DES MESSAGES */
+            @keyframes messageSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .message-item {
+                animation: messageSlideIn 0.2s ease-out;
+            }
+            
+            /* MESSAGE AVEC PHOTO */
+            .message-image {
+                max-width: 250px;
+                max-height: 250px;
+                border-radius: 12px;
+                cursor: pointer;
+                margin-bottom: 4px;
+            }
+            
+            /* THREAD DE RÉPONSES */
+            .reply-thread {
+                margin-left: 1rem;
+                padding-left: 0.75rem;
+                border-left: 3px solid #fbbf24;
+                margin-top: 0.5rem;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // ============================================================
+    // BRANCHER LES ÉVÉNEMENTS
+    // ============================================================
     const photoBtn = document.getElementById('attach-photo-btn');
     const photoInput = document.getElementById('photo-input');
     const sendBtn = document.getElementById('send-btn');
@@ -1316,17 +1614,15 @@ async function loadFeed() {
     cleanupRealtime();
 
     // ============================================================
-    // 🚀 CHARGEMENT AVEC CACHE INDEXEDDB
+    // CHARGEMENT DES MESSAGES
     // ============================================================
     let data = null;
     let fromCache = false;
     
     try {
-        // Tentative de chargement depuis le réseau
         data = await secureFetch(`/messages?patient_id=${AppState.currentPatient}`, { noCache: true });
         console.log(`✅ ${data.length} messages chargés depuis le réseau`);
         
-        // Sauvegarder en IndexedDB pour l'offline
         if (db && db.isReady) {
             await db.saveMessages(AppState.currentPatient, data);
             console.log("💾 Messages sauvegardés en IndexedDB");
@@ -1335,7 +1631,6 @@ async function loadFeed() {
     } catch (networkError) {
         console.warn("⚠️ Erreur réseau, tentative de chargement depuis IndexedDB:", networkError.message);
         
-        // Fallback: charger depuis IndexedDB
         if (db && db.isReady) {
             const cachedMessages = await db.getMessages(AppState.currentPatient);
             if (cachedMessages && cachedMessages.length > 0) {
@@ -1343,7 +1638,6 @@ async function loadFeed() {
                 fromCache = true;
                 console.log(`📦 ${data.length} messages chargés depuis IndexedDB (mode offline)`);
                 
-                // Afficher un toast informatif
                 if (window.showToast) {
                     window.showToast("Mode hors-ligne - Affichage des messages en cache", "info", 3000);
                 }
@@ -1356,11 +1650,10 @@ async function loadFeed() {
     }
     
     if (!data || data.length === 0) {
-        // Aucun message, afficher un message vide
         const contentDiv = document.getElementById('care-feed-content');
         if (contentDiv) {
             contentDiv.innerHTML = `
-                <div class="flex justify-center py-20">
+                <div class="flex justify-center items-center h-full py-20">
                     <div class="text-center">
                         <i class="fa-regular fa-comment-dots text-4xl text-slate-300 mb-3"></i>
                         <p class="text-sm font-bold text-slate-400">Aucun message</p>
@@ -1373,18 +1666,15 @@ async function loadFeed() {
     }
     
     try {
-        // 🔥 S'assurer que chaque message a un sender_id correct
         const currentUserId = localStorage.getItem("user_id");
         AppState.messages = data.map(msg => ({
             ...msg,
             sender_id: msg.sender_id || (msg.sender ? msg.sender.id : null)
         }));
         
-        // Trier par date croissante (plus ancien en haut)
         AppState.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         
         AppState.unreadByPatient = {};
-        
         data.forEach(msg => {
             const patientId = msg.patient_id;
             if (msg.sender_id !== currentUserId && !msg.read) {
@@ -1405,7 +1695,6 @@ async function loadFeed() {
         initRealtimeForCurrentPatient();
         renderFeed();
 
-        // Ne marquer comme lu que si on est en ligne (pas depuis le cache)
         if (!fromCache) {
             const now = new Date().toISOString();
             localStorage.setItem(`last_read_${AppState.currentPatient}`, now);
@@ -1452,7 +1741,7 @@ async function loadFeed() {
         const contentDiv = document.getElementById('care-feed-content');
         if (contentDiv) {
             contentDiv.innerHTML = `
-                <div class="flex justify-center py-20">
+                <div class="flex justify-center items-center h-full py-20">
                     <div class="text-center">
                         <i class="fa-solid fa-circle-exclamation text-rose-400 text-3xl mb-3"></i>
                         <p class="text-sm font-bold text-rose-500">Erreur de chargement</p>
