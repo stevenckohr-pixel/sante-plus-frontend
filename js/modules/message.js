@@ -141,7 +141,7 @@ function renderStoryCard(msg, isReply = false) {
 
     // ✅ DÉCLARATION UNIQUE AU DÉBUT (pour toute la fonction)
     const isPhotoMessage = msg.is_photo === true || (fileUrl && isImage);
-    const hasTextContent = content && content.trim() !== '' && !isPhotoMessage;
+    const hasTextContent = content && content.trim() !== '' && !isPhotoMessage && !isDocument;
 
     // 🔥 DÉTECTION ROBUSTE DU MESSAGE PROPRE
     let isOwnMessage = false;
@@ -199,39 +199,42 @@ function renderStoryCard(msg, isReply = false) {
     // ============================================================
     // MESSAGE ENVOYÉ (À DROITE - VERT/ROSE)
     // ============================================================
-    if (isOwnMessage) {
-        let statusIcon = '';
-        if (!isTemp) {
-            if (msg.read) {
-                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
-            } else {
-                statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
-            }
-        } else {
-            statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
-        }
-        
-        return `
-            <div class="flex justify-end mb-1 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
-                <div class="max-w-[75%] sm:max-w-[65%]">
-                    ${fileUrl && isImage ? `
-                        <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
-                             onclick="window.open('${fileUrl}')" loading="lazy"
-                             onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
-                    ` : (fileUrl && !isImage ? renderDocumentCard(fileUrl, msg.titre_media) : '')}
-                    ${hasTextContent ? `
-                        <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
-                            <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                if (isOwnMessage) {
+                let statusIcon = '';
+                if (!isTemp) {
+                    if (msg.read) {
+                        statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#53bdeb]"></i>';
+                    } else {
+                        statusIcon = '<i class="fa-solid fa-check-double text-[10px] text-[#8696a0]"></i>';
+                    }
+                } else {
+                    statusIcon = '<i class="fa-solid fa-spinner fa-spin text-[10px] text-[#8696a0]"></i>';
+                }
+                
+                return `
+                    <div class="flex justify-end mb-1 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
+                        <div class="max-w-[75%] sm:max-w-[65%]">
+                            ${fileUrl && isImage ? `
+                                <img src="${fileUrl}" class="rounded-2xl max-w-[200px] max-h-48 object-cover cursor-pointer mb-1" 
+                                     onclick="window.open('${fileUrl}')" loading="lazy"
+                                     onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=Image+non+chargée'">
+                            ` : ''}
+                            ${fileUrl && isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
+                            ${hasTextContent ? `
+                                <div class="chat-message-sent" style="background: var(--role-primary); border-bottom-right-radius: 4px; padding: 6px 12px;">
+                                    <span style="color: white; font-size: 13px; line-height: 1.3; display: inline-block;">${escapeHtml(content)} ${humeurBadge}</span>
+                                </div>
+                            ` : ''}
+                            <div class="flex justify-end items-center gap-1 mt-0.5">
+                                <span class="text-[9px] text-slate-400">${timeStr}</span>
+                                <span class="message-status">${statusIcon}</span>
+                            </div>
                         </div>
-                    ` : ''}
-                    <div class="flex justify-end items-center gap-1 mt-0.5">
-                        <span class="text-[9px] text-slate-400">${timeStr}</span>
-                        <span class="message-status">${statusIcon}</span>
                     </div>
-                </div>
-            </div>
-        `;
-    }
+                `;
+            }
+        
+
 
     // ============================================================
     // MESSAGE REÇU (À GAUCHE - BLANC)
@@ -264,7 +267,7 @@ function renderStoryCard(msg, isReply = false) {
         roleInitial = msg.sender_name?.charAt(0).toUpperCase() || 'C';
     }
 
-    return `
+      return `
         <div class="flex items-start gap-2 mb-2 ${isReply ? 'ml-8' : ''} ${tempClass} animate-fadeIn" data-message-id="${msg.id}">
             <div class="w-8 h-8 rounded-full ${avatarBg} flex items-center justify-center flex-shrink-0">
                 ${msg.sender_photo ? 
@@ -289,7 +292,8 @@ function renderStoryCard(msg, isReply = false) {
                             <i class="fa-regular fa-image text-white text-[8px]"></i>
                         </div>
                     </div>
-                ` : (fileUrl && !isImage ? renderDocumentCard(fileUrl, msg.titre_media) : '')}
+                ` : ''}
+                ${fileUrl && isDocument ? renderDocumentCard(fileUrl, msg.titre_media) : ''}
                 
                 ${hasTextContent ? `
                     <div class="chat-message-received" style="background: white; border-bottom-left-radius: 4px; padding: 6px 12px;">
@@ -307,12 +311,6 @@ function renderStoryCard(msg, isReply = false) {
                             class="text-[9px] text-slate-400 hover:text-amber-500 transition">
                         <i class="fa-regular fa-face-smile"></i>
                     </button>
-                    ${isAidant && msg.id && !msg.is_temp ? `
-                        <button onclick="window.reportIssue('${msg.id}')" 
-                                class="text-[9px] text-slate-400 hover:text-rose-500 transition">
-                            <i class="fa-regular fa-flag"></i>
-                        </button>
-                    ` : ''}
                 </div>
                 
                 ${Object.keys(msg.reactions || {}).length > 0 ? `
@@ -324,14 +322,6 @@ function renderStoryCard(msg, isReply = false) {
                                 <span class="text-[9px] font-medium text-slate-500">${count}</span>
                             </button>
                         `).join('')}
-                    </div>
-                ` : ''}
-                
-                ${fileUrl && isImage && isAidant && !msg.is_temp ? `
-                    <div class="mt-0.5">
-                        <span class="text-[7px] text-slate-400">
-                            <i class="fa-regular fa-camera"></i> Photo
-                        </span>
                     </div>
                 ` : ''}
             </div>
