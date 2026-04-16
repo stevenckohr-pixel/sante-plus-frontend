@@ -3045,64 +3045,48 @@ body, .maman-dashboard-container, .chat-whatsapp-messages {
 
 
 
+
+
+
+
+
+
+
+
+
 /* ============================================
-   THÈME COORDINATEUR (OR COMPLET)
+   THÈME COORDINATEUR (OR EN PREMIER PLAN)
    ============================================ */
 
 body.coordinateur-mode {
     --role-primary: #D4AF37;
     --role-primary-dark: #B8942E;
     --role-primary-light: #FEF9E6;
-    --role-secondary: #C9A84C;
 }
 
 /* ============================================
-   1. BOUTONS
+   1. PAGE D'ACCUEIL - BANNIÈRE & FONDS
    ============================================ */
 
-body.coordinateur-mode .btn-primary,
-body.coordinateur-mode button[type="submit"],
-body.coordinateur-mode #btn-login,
-body.coordinateur-mode .next-btn,
-body.coordinateur-mode .chat-input-send,
-body.coordinateur-mode #send-btn,
-body.coordinateur-mode .bg-emerald-500,
-body.coordinateur-mode .bg-emerald-600,
-body.coordinateur-mode .bg-slate-800,
-body.coordinateur-mode .bg-slate-900,
-body.coordinateur-mode .w-full.bg-slate-900 {
-    background: #D4AF37 !important;
+/* Bannière de bienvenue (tout en haut) */
+body.coordinateur-mode .bg-gradient-to-r,
+body.coordinateur-mode [class*="bg-gradient-to-r"] {
+    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
     color: #0F172A !important;
-    font-weight: 700 !important;
-    border: none !important;
 }
 
-body.coordinateur-mode .btn-primary:hover,
-body.coordinateur-mode button[type="submit"]:hover,
-body.coordinateur-mode .chat-input-send:hover {
-    background: #C9A84C !important;
-    transform: scale(1.02);
+/* Fonds des blocs / cartes / bentos */
+body.coordinateur-mode .bg-white,
+body.coordinateur-mode .bg-white.rounded-xl,
+body.coordinateur-mode .bg-white.rounded-2xl,
+body.coordinateur-mode .dashboard-card,
+body.coordinateur-mode .bento-card,
+body.coordinateur-mode .patient-card-modern,
+body.coordinateur-mode .menu-tile {
+    background: white !important;
 }
 
-body.coordinateur-mode .btn-primary:active,
-body.coordinateur-mode button[type="submit"]:active {
-    transform: scale(0.98);
-}
-
-/* Bouton flottant FAB */
-body.coordinateur-mode .fab-button {
-    background: #D4AF37 !important;
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
-}
-
-body.coordinateur-mode .fab-button:active {
-    background: #B8942E !important;
-}
-
-/* ============================================
-   2. FONDS COLORÉS
-   ============================================ */
-
+/* Fonds verts clairs → beige */
 body.coordinateur-mode .bg-emerald-50,
 body.coordinateur-mode .bg-green-50,
 body.coordinateur-mode .bg-emerald-100,
@@ -3110,145 +3094,53 @@ body.coordinateur-mode [class*="bg-emerald-"]:not(.bg-emerald-500):not(.bg-emera
     background: #FEF9E6 !important;
 }
 
-body.coordinateur-mode .bg-gradient-to-r {
-    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
-    color: #0F172A !important;
+/* ============================================
+   2. BLOC D'INFORMATION RAPIDE (carte info)
+   ============================================ */
+
+body.coordinateur-mode .bg-emerald-50.p-4.rounded-xl,
+body.coordinateur-mode .bg-slate-50.p-4.rounded-xl {
+    background: #FEF9E6 !important;
+    border: 1px solid #D4AF37 !important;
 }
 
-/* Badges de notification */
-body.coordinateur-mode #notification-badge,
-body.coordinateur-mode .menu-badge,
-body.coordinateur-mode .patient-badge {
-    background: #D4AF37 !important;
-    color: #0F172A !important;
-    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4) !important;
-}
-
-/* Indicateur de chargement */
-body.coordinateur-mode .spinner-primary,
-body.coordinateur-mode .loader-color {
-    border-top-color: #D4AF37 !important;
-    border-right-color: #FEF9E6 !important;
+body.coordinateur-mode .text-emerald-600,
+body.coordinateur-mode .text-emerald-700,
+body.coordinateur-mode .text-green-600 {
+    color: #D4AF37 !important;
 }
 
 /* ============================================
-   3. TEXTES
+   3. DASHBOARD - CARTES STATS
    ============================================ */
 
-body.coordinateur-mode .text-emerald-600,
-body.coordinateur-mode .text-emerald-500,
-body.coordinateur-mode .text-green-600,
-body.coordinateur-mode .text-green-500 {
-    color: #D4AF37 !important;
+body.coordinateur-mode .dashboard-card {
+    border-top: 3px solid #D4AF37 !important;
 }
 
-body.coordinateur-mode .text-emerald-700,
-body.coordinateur-mode .text-green-700 {
-    color: #B8942E !important;
-}
-
-/* Statistiques */
-body.coordinateur-mode .dashboard-card-stat,
-body.coordinateur-mode .stat-number,
-body.coordinateur-mode .text-2xl.font-black.text-emerald-600 {
+body.coordinateur-mode .dashboard-card-stat {
     color: #D4AF37 !important;
+    font-size: 28px !important;
     font-weight: 800 !important;
 }
 
-/* Liens */
-body.coordinateur-mode a:not(.no-style),
-body.coordinateur-mode .text-link {
-    color: #D4AF37 !important;
-}
-
-body.coordinateur-mode a:hover {
-    color: #C9A84C !important;
-}
-
-/* ============================================
-   4. BORDURES
-   ============================================ */
-
-body.coordinateur-mode .border-emerald-500,
-body.coordinateur-mode .border-emerald-200,
-body.coordinateur-mode .border-green-500,
-body.coordinateur-mode [class*="border-emerald-"] {
-    border-color: #D4AF37 !important;
-}
-
-body.coordinateur-mode input:focus,
-body.coordinateur-mode textarea:focus,
-body.coordinateur-mode select:focus {
-    border-color: #D4AF37 !important;
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
-    outline: none;
-}
-
-/* Tags actifs */
-body.coordinateur-mode .tag-active {
-    background: #D4AF37 !important;
-    color: #0F172A !important;
-    border-color: #D4AF37 !important;
-}
-
-/* ============================================
-   5. SIDEBAR & NAVIGATION
-   ============================================ */
-
-body.coordinateur-mode .sidebar-link.active {
-    background: #D4AF37 !important;
-    color: #0F172A !important;
-}
-
-body.coordinateur-mode .sidebar-link.active i {
-    color: #0F172A !important;
-}
-
-body.coordinateur-mode .tab-active,
-body.coordinateur-mode .nav-btn.active {
-    color: #D4AF37 !important;
-    border-bottom-color: #D4AF37 !important;
-}
-
-body.coordinateur-mode .nav-btn.active i {
-    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.3)) !important;
-}
-
-/* ============================================
-   6. CARTES & TUILES
-   ============================================ */
-
-/* Icônes des tuiles */
-body.coordinateur-mode .menu-tile i {
+body.coordinateur-mode .dashboard-card-icon {
     background: #FEF9E6 !important;
-    color: #D4AF37 !important;
 }
 
-body.coordinateur-mode .menu-tile:hover {
-    border-color: #D4AF37 !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.12) !important;
-}
-
-/* Badges dynamiques */
-body.coordinateur-mode .badge-dynamic,
-body.coordinateur-mode .badge-primary,
-body.coordinateur-mode .badge-success {
-    background: #FEF9E6 !important;
+body.coordinateur-mode .dashboard-card-icon i {
     color: #D4AF37 !important;
-    border: 1px solid #D4AF37 !important;
-}
-
-/* Status pill */
-body.coordinateur-mode .status-pill {
-    background: #FEF9E6 !important;
-    color: #D4AF37 !important;
-    border: 1px solid #D4AF37 !important;
 }
 
 /* ============================================
-   7. CHAT & MESSAGES
+   4. JOURNAL (FEED) - CARTES DE MESSAGES
    ============================================ */
+
+body.coordinateur-mode .message-card,
+body.coordinateur-mode .bg-white.rounded-2xl.p-5 {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+}
 
 body.coordinateur-mode .chat-message-sent {
     background: #D4AF37 !important;
@@ -3259,76 +3151,120 @@ body.coordinateur-mode .chat-message-received {
     border-left: 3px solid #D4AF37 !important;
 }
 
-body.coordinateur-mode .typing-indicator {
-    border-left: 3px solid #D4AF37 !important;
+/* ============================================
+   5. VISITES - CARTES
+   ============================================ */
+
+body.coordinateur-mode .visit-card,
+body.coordinateur-mode .bg-white.rounded-2xl {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
 }
 
-body.coordinateur-mode .typing-dot {
-    background: #D4AF37 !important;
+body.coordinateur-mode .status-pill.validated {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+    border: 1px solid #D4AF37 !important;
 }
 
 /* ============================================
-   8. FORMULAIRES
+   6. COMMANDES - CARTES
    ============================================ */
 
-body.coordinateur-mode input[type="checkbox"]:checked,
-body.coordinateur-mode input[type="radio"]:checked {
-    accent-color: #D4AF37 !important;
-}
-
-body.coordinateur-mode .peer-checked {
-    background-color: #D4AF37 !important;
+body.coordinateur-mode .commande-card,
+body.coordinateur-mode .bg-white.rounded-2xl {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
 }
 
 /* ============================================
-   9. PROGRESS BARS
+   7. PLANNING - CARTES
    ============================================ */
 
-body.coordinateur-mode .progress-bar-fill {
-    background: linear-gradient(90deg, #D4AF37 0%, #E5C65C 100%) !important;
+body.coordinateur-mode .planning-card,
+body.coordinateur-mode .bg-white.rounded-xl {
+    background: white !important;
+    border-left: 4px solid #D4AF37 !important;
 }
 
 /* ============================================
-   10. PAGINATION & FILTRES
+   8. BENTOS (grille d'accueil)
    ============================================ */
 
-body.coordinateur-mode .pagination .active {
+body.coordinateur-mode .bento-card {
+    background: white !important;
+    border: 1px solid #E2E8F0 !important;
+    border-top: 3px solid #D4AF37 !important;
+}
+
+body.coordinateur-mode .bento-card i {
+    color: #D4AF37 !important;
+}
+
+body.coordinateur-mode .bento-card:hover {
+    border-top: 3px solid #E5C65C !important;
+    box-shadow: 0 8px 20px rgba(212, 175, 55, 0.12) !important;
+}
+
+/* ============================================
+   9. BOUTONS PRINCIPAUX
+   ============================================ */
+
+body.coordinateur-mode .btn-primary,
+body.coordinateur-mode button[type="submit"],
+body.coordinateur-mode .next-btn,
+body.coordinateur-mode #btn-login,
+body.coordinateur-mode .chat-input-send {
     background: #D4AF37 !important;
     color: #0F172A !important;
 }
 
-body.coordinateur-mode .filter-chip.active {
+body.coordinateur-mode .btn-primary:hover {
+    background: #C9A84C !important;
+}
+
+/* ============================================
+   10. SIDEBAR & NAVIGATION
+   ============================================ */
+
+body.coordinateur-mode .sidebar-link.active {
     background: #D4AF37 !important;
     color: #0F172A !important;
 }
 
-/* ============================================
-   11. HEADER
-   ============================================ */
-
-body.coordinateur-mode header {
-    border-bottom: 2px solid #D4AF37 !important;
-}
-
-/* ============================================
-   12. SECTION TITLES
-   ============================================ */
-
-body.coordinateur-mode .section-title i,
-body.coordinateur-mode .section-title span {
+body.coordinateur-mode .nav-btn.active {
     color: #D4AF37 !important;
 }
 
 /* ============================================
-   13. FOCUS OUTLINE
+   11. BADGES & TAGS
    ============================================ */
 
-body.coordinateur-mode *:focus-visible {
-    outline-color: #D4AF37 !important;
+body.coordinateur-mode .badge-dynamic,
+body.coordinateur-mode .badge-primary,
+body.coordinateur-mode .status-pill {
+    background: #FEF9E6 !important;
+    color: #D4AF37 !important;
+    border: 1px solid #D4AF37 !important;
 }
 
+body.coordinateur-mode #notification-badge,
+body.coordinateur-mode .menu-badge {
+    background: #D4AF37 !important;
+    color: #0F172A !important;
+}
+
+
+
+
+
+
+
+
+
+
 /* ============================================
-   THÈME AIDANT (OR DOUX)
+   THÈME AIDANT (OR DOUX EN PREMIER PLAN)
    ============================================ */
 
 body.aidant-mode {
@@ -3337,86 +3273,36 @@ body.aidant-mode {
     --role-primary-light: #FEF9E6;
 }
 
-/* 1. BOUTONS */
-body.aidant-mode .btn-primary,
-body.aidant-mode button[type="submit"],
-body.aidant-mode #btn-login,
-body.aidant-mode .chat-input-send,
-body.aidant-mode .bg-emerald-500,
-body.aidant-mode .bg-emerald-600 {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .btn-primary:hover {
-    background: #D4AF37 !important;
-}
-
-body.aidant-mode .fab-button {
-    background: #C9A84C !important;
-    box-shadow: 0 6px 20px rgba(201, 168, 76, 0.3) !important;
-}
-
-/* 2. FONDS */
-body.aidant-mode .bg-emerald-50,
-body.aidant-mode .bg-green-50 {
-    background: #FEF9E6 !important;
-}
-
+/* Bannière */
 body.aidant-mode .bg-gradient-to-r {
     background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
     color: #0F172A !important;
 }
 
-body.aidant-mode #notification-badge,
-body.aidant-mode .menu-badge {
-    background: #C9A84C !important;
-    color: #0F172A !important;
+/* Fonds verts clairs */
+body.aidant-mode .bg-emerald-50,
+body.aidant-mode .bg-green-50 {
+    background: #FEF9E6 !important;
 }
 
-/* 3. TEXTES */
-body.aidant-mode .text-emerald-600,
+/* Cartes stats */
+body.aidant-mode .dashboard-card {
+    border-top: 3px solid #C9A84C !important;
+}
+
 body.aidant-mode .dashboard-card-stat {
     color: #C9A84C !important;
 }
 
-body.aidant-mode a:not(.no-style) {
-    color: #C9A84C !important;
-}
-
-/* 4. BORDURES */
-body.aidant-mode .border-emerald-500 {
-    border-color: #C9A84C !important;
-}
-
-body.aidant-mode input:focus {
-    border-color: #C9A84C !important;
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15) !important;
-}
-
-/* 5. SIDEBAR & NAVIGATION */
-body.aidant-mode .sidebar-link.active {
-    background: #C9A84C !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .nav-btn.active {
-    color: #C9A84C !important;
-}
-
-/* 6. CARTES & TUILES */
-body.aidant-mode .menu-tile i {
+body.aidant-mode .dashboard-card-icon {
     background: #FEF9E6 !important;
+}
+
+body.aidant-mode .dashboard-card-icon i {
     color: #C9A84C !important;
 }
 
-body.aidant-mode .badge-dynamic {
-    background: #FEF9E6 !important;
-    color: #C9A84C !important;
-    border: 1px solid #C9A84C !important;
-}
-
-/* 7. CHAT */
+/* Chat */
 body.aidant-mode .chat-message-sent {
     background: #C9A84C !important;
     color: #0F172A !important;
@@ -3426,139 +3312,32 @@ body.aidant-mode .chat-message-received {
     border-left: 3px solid #C9A84C !important;
 }
 
-/* 8. FORMULAIRES */
-body.aidant-mode input[type="checkbox"]:checked {
-    accent-color: #C9A84C !important;
-}
-
-/* 9. PROGRESS BARS */
-body.aidant-mode .progress-bar-fill {
-    background: #C9A84C !important;
-}
-
-/* 10. HEADER */
-body.aidant-mode header {
-    border-bottom: 2px solid #C9A84C !important;
-}
-
-/* 11. SECTION TITLES */
-body.aidant-mode .section-title i {
-    color: #C9A84C !important;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* ============================================
-   PAGE D'ACCUEIL (HOME/HUB) - COORDINATEUR
-   ============================================ */
-
-/* Bannière de bienvenue sur la page d'accueil */
-body.coordinateur-mode .bg-gradient-to-r,
-body.coordinateur-mode [class*="bg-gradient-to-r"] {
-    background: linear-gradient(135deg, #D4AF37 0%, #B8942E 100%) !important;
-    color: #0F172A !important;
-}
-
-/* Toute la section d'accueil qui pourrait avoir un fond vert */
-body.coordinateur-mode #home-content,
-body.coordinateur-mode .mobile-hub-container,
-body.coordinateur-mode .animate-fadeIn.pb-10,
-body.coordinateur-mode .flex.flex-col.h-full {
-    background: #F8FAFC !important;
-}
-
-/* Les cartes dans l'accueil */
-body.coordinateur-mode .bg-white.rounded-xl,
-body.coordinateur-mode .bg-white.rounded-2xl {
-    background: white !important;
-}
-
-/* Le fond vert clair des sections info rapide */
-body.coordinateur-mode .bg-emerald-50,
-body.coordinateur-mode .bg-green-50,
-body.coordinateur-mode [class*="bg-emerald-50"] {
-    background: #FEF9E6 !important;
-}
-
-/* La bannière d'information rapide (carte avec fond coloré) */
-body.coordinateur-mode .bg-emerald-100,
-body.coordinateur-mode .bg-green-100 {
-    background: #FEF9E6 !important;
-    border: 1px solid #D4AF37 !important;
-}
-
-/* Texte dans la bannière */
-body.coordinateur-mode .text-emerald-600,
-body.coordinateur-mode .text-emerald-700,
-body.coordinateur-mode .text-green-600 {
-    color: #D4AF37 !important;
-}
-
-/* Badge de statut dans l'accueil */
-body.coordinateur-mode .bg-emerald-100.text-emerald-700,
-body.coordinateur-mode .bg-green-100.text-green-700 {
-    background: #FEF9E6 !important;
-    color: #B8942E !important;
-}
-
-/* Boutons de navigation rapide dans l'accueil */
-body.coordinateur-mode .bg-emerald-50.text-emerald-700 {
-    background: #FEF9E6 !important;
-    color: #D4AF37 !important;
-}
-
-body.coordinateur-mode .bg-emerald-50.text-emerald-700:hover {
-    background: #D4AF37 !important;
-    color: #0F172A !important;
-}
-
-
-
-
-
-
-
-/* ============================================
-   PAGE D'ACCUEIL (HOME/HUB) - AIDANT
-   ============================================ */
-
-body.aidant-mode .bg-gradient-to-r {
-    background: linear-gradient(135deg, #C9A84C 0%, #B8942E 100%) !important;
-    color: #0F172A !important;
-}
-
-body.aidant-mode .bg-emerald-50,
-body.aidant-mode .bg-green-50 {
-    background: #FEF9E6 !important;
-}
-
-body.aidant-mode .text-emerald-600,
-body.aidant-mode .text-emerald-700 {
-    color: #C9A84C !important;
-}
-
-body.aidant-mode .bg-emerald-100.text-emerald-700 {
-    background: #FEF9E6 !important;
-    color: #B8942E !important;
-}
-
-body.aidant-mode .bg-emerald-50.text-emerald-700 {
-    background: #FEF9E6 !important;
-    color: #C9A84C !important;
-}
-
-body.aidant-mode .bg-emerald-50.text-emerald-700:hover {
+/* Boutons */
+body.aidant-mode .btn-primary,
+body.aidant-mode button[type="submit"] {
     background: #C9A84C !important;
     color: #0F172A !important;
+}
+
+/* Badges */
+body.aidant-mode .badge-dynamic {
+    background: #FEF9E6 !important;
+    color: #C9A84C !important;
+    border: 1px solid #C9A84C !important;
+}
+
+/* Sidebar */
+body.aidant-mode .sidebar-link.active {
+    background: #C9A84C !important;
+    color: #0F172A !important;
+}
+
+/* Navigation */
+body.aidant-mode .nav-btn.active {
+    color: #C9A84C !important;
+}
+
+/* Planning */
+body.aidant-mode .planning-card {
+    border-left: 4px solid #C9A84C !important;
 }
