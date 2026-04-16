@@ -52,6 +52,26 @@
     <!-- ============================================ -->
     <script type="module" src="js/main.js"></script>
 
+        <script>
+        (function() {
+            // Appliquer le thème avant tout rendu visible
+            const token = localStorage.getItem("token");
+            const userRole = localStorage.getItem("user_role");
+            const isMaman = localStorage.getItem("user_is_maman") === "true";
+            
+            if (token && userRole) {
+                if (userRole === "COORDINATEUR") {
+                    document.body.classList.add('coordinateur-mode');
+                } else if (userRole === "AIDANT") {
+                    document.body.classList.add('aidant-mode');
+                } else if (userRole === "FAMILLE" && isMaman) {
+                    document.body.classList.add('maman-mode');
+                } else if (userRole === "FAMILLE") {
+                    document.body.classList.add('senior-mode');
+                }
+            }
+        })();
+
     <script>
     setTimeout(function() {
         if (!document.querySelector('link[href*="fontawesome"]')) {
