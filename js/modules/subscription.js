@@ -399,3 +399,5 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
         }
     });
 };
+}  
+} 
