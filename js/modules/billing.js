@@ -1,4 +1,4 @@
-import { secureFetch, clearApiCache } from "../core/api.js";
+ import { secureFetch, clearApiCache } from "../core/api.js";
 import { CONFIG } from "../core/config.js";
 import { UI } from "../core/utils.js";
 
@@ -15,46 +15,21 @@ export async function loadBilling() {
   try {
     let abonnements = await secureFetch("/billing");
     
-    // ✅ Sécurisation : s'assurer que c'est un tableau
+    // Sécurisation : s'assurer que c'est un tableau
     if (!Array.isArray(abonnements)) {
       abonnements = abonnements?.data || [];
     }
 
     console.log("✅ Données reçues Billing:", abonnements);
 
-    // ✅ VÉRIFICATION SI PAS DE FACTURES (PLACÉE ICI, AVANT TOUT TRAITEMENT)
+    // PAS DE FACTURES
     if (!abonnements || abonnements.length === 0) {
-      table.innerHTML = `
-        <tr>
-          <td colspan="5" class="p-10 text-center">
-            <div class="flex flex-col items-center gap-4">
-              <i class="fa-solid fa-receipt text-4xl text-slate-300"></i>
-              <p class="text-slate-400 italic text-sm">Aucune facture disponible pour le moment</p>
-              <p class="text-[10px] text-slate-300">Les factures apparaîtront après validation des paiements</p>
-              ${userRole === "FAMILLE" ? `
-                <button onclick="window.switchView('subscription')" 
-                        class="mt-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg hover:bg-emerald-700 transition-all">
-                  🎁 Souscrire un abonnement
-                </button>
-              ` : ''}
-              ${userRole === "COORDINATEUR" ? `
-                <p class="text-xs text-slate-400 mt-2">Les factures sont créées automatiquement le 1er du mois.</p>
-              ` : ''}
-            </div>
-          </td>
-        </tr>
-      `;
-      
-      kpiContainer.innerHTML = `
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 text-center col-span-2">
-          <p class="text-slate-400 text-sm">Aucune donnée de facturation</p>
-        </div>
-      `;
-      
-      return; // ✅ SORTIE IMMÉDIATE
+      table.innerHTML = renderEmptyState(userRole);
+      kpiContainer.innerHTML = renderEmptyKpis();
+      return;
     }
 
-    // ✅ SI ON ARRIVE ICI, C'EST QU'IL Y A DES FACTURES
+    // IL Y A DES FACTURES
     // Mise à jour du statut de paiement
     const hasDebt = abonnements.some((abo) => 
       abo.statut === "En retard" || abo.statut === "Expiré"
@@ -73,7 +48,8 @@ export async function loadBilling() {
       }
     }
 
-    let totalDue = 0, totalPaid = 0, totalLate = 0;
+    let totalPaid = 0;
+    let totalLate = 0;
     table.innerHTML = "";
 
     abonnements.forEach((abo) => {
@@ -82,7 +58,6 @@ export async function loadBilling() {
       const expirationInfo = abo.date_fin_abonnement ? 
         `<div class="text-[8px] text-slate-400 mt-1">Valable jusqu'au ${new Date(abo.date_fin_abonnement).toLocaleDateString('fr-FR')}</div>` : '';
 
-      totalDue += abo.montant_du || 0;
       totalPaid += abo.montant_paye || 0;
       if (abo.statut === "En retard" || abo.statut === "Expiré") {
         totalLate += (abo.montant_du - (abo.montant_paye || 0));
@@ -109,19 +84,8 @@ export async function loadBilling() {
     console.error("❌ Erreur loadBilling:", err.message);
     UI.error("Erreur de chargement de la facturation");
     
-    // ✅ AFFICHER UN MESSAGE D'ERREUR DANS LA PAGE
-    table.innerHTML = `
-      <tr>
-        <td colspan="5" class="p-10 text-center">
-          <div class="flex flex-col items-center gap-4">
-            <i class="fa-solid fa-circle-exclamation text-4xl text-rose-400"></i>
-            <p class="text-rose-500 text-sm">Erreur de chargement des factures</p>
-            <button onclick="window.loadBilling()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-[10px]">Réessayer</button>
-          </div>
-        </td>
-      </tr>
-    `;
-    throw err;
+    table.innerHTML = renderErrorState();
+    kpiContainer.innerHTML = renderEmptyKpis();
   }
 }
 
@@ -135,7 +99,8 @@ function renderEmptyState(userRole) {
       <td colspan="5" class="p-10 text-center">
         <div class="flex flex-col items-center gap-4">
           <i class="fa-solid fa-receipt text-4xl text-slate-300"></i>
-          <p class="text-slate-400 italic text-sm">Aucune facture pour le moment</p>
+          <p class="text-slate-400 italic text-sm">Aucune facture disponible pour le moment</p>
+          <p class="text-[10px] text-slate-300">Les factures apparaîtront après validation des paiements</p>
           ${userRole === "FAMILLE" ? `
             <button onclick="window.switchView('subscription')" 
                     class="mt-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg hover:bg-emerald-700 transition-all">
@@ -143,8 +108,30 @@ function renderEmptyState(userRole) {
             </button>
           ` : ''}
           ${userRole === "COORDINATEUR" ? `
-            <p class="text-xs text-slate-400 mt-2">Aucune facture générée. Les factures sont créées automatiquement le 1er du mois.</p>
+            <p class="text-xs text-slate-400 mt-2">Les factures sont créées automatiquement le 1er du mois.</p>
           ` : ''}
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function renderEmptyKpis() {
+  return `
+    <div class="bg-white p-5 rounded-2xl border border-slate-100 text-center col-span-2">
+      <p class="text-slate-400 text-sm">Aucune donnée de facturation</p>
+    </div>
+  `;
+}
+
+function renderErrorState() {
+  return `
+    <tr>
+      <td colspan="5" class="p-10 text-center">
+        <div class="flex flex-col items-center gap-4">
+          <i class="fa-solid fa-circle-exclamation text-4xl text-rose-400"></i>
+          <p class="text-rose-500 text-sm">Erreur de chargement des factures</p>
+          <button onclick="window.loadBilling()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-[10px]">Réessayer</button>
         </div>
       </td>
     </tr>
@@ -179,7 +166,7 @@ function getActionButton(abo, userRole) {
               Payer Mobile
             </button>`;
   }
-  return '';
+  return '<span class="text-slate-300 text-[9px]">—</span>';
 }
 
 function renderKpis(totalPaid, totalLate) {
@@ -208,43 +195,42 @@ function renderKpis(totalPaid, totalLate) {
 // ============================================================
 // PAIEMENT FEDAPAY
 // ============================================================
-// js/modules/billing.js - Remplacer window.payWithFeda
 
 window.payWithFeda = async (abonnementId, montant) => {
-    // 🔥 Afficher le message "Disponible prochainement"
-    Swal.fire({
-        title: '<i class="fa-solid fa-credit-card text-3xl text-emerald-500 mb-3"></i><br><span class="text-xl font-black">Paiement en ligne</span>',
-        html: `
-            <div class="text-center">
-                <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
-                    <i class="fa-solid fa-tools text-2xl text-amber-500 mb-2"></i>
-                    <p class="text-sm font-bold text-amber-700">Fonctionnalité à venir</p>
-                    <p class="text-xs text-amber-600 mt-1">Le paiement en ligne sera bientôt disponible</p>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                    <span class="text-[10px] font-black text-slate-400 uppercase">Montant à payer :</span>
-                    <span class="text-lg font-black text-slate-800">${UI.formatMoney(montant)}</span>
-                </div>
-                <div class="mt-4 flex justify-center gap-3 text-slate-400">
-                    <i class="fa-brands fa-cc-visa text-2xl"></i>
-                    <i class="fa-brands fa-cc-mastercard text-2xl"></i>
-                    <i class="fa-solid fa-mobile-alt text-2xl"></i>
-                </div>
-                <div class="mt-4 p-3 bg-emerald-50 rounded-xl">
-                    <p class="text-[9px] text-emerald-600 font-medium">💡 Paiement possible par :</p>
-                    <p class="text-[8px] text-emerald-500 mt-1">Mobile Money • Carte bancaire • Virement</p>
-                </div>
-            </div>
-        `,
-        confirmButtonText: "OK, j'ai compris",
-        confirmButtonColor: "#10B981",
-        showCancelButton: false,
-        customClass: {
-            popup: 'rounded-2xl p-6',
-            confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
-        }
-    });
+  Swal.fire({
+    title: '<i class="fa-solid fa-credit-card text-3xl text-emerald-500 mb-3"></i><br><span class="text-xl font-black">Paiement en ligne</span>',
+    html: `
+      <div class="text-center">
+        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
+          <i class="fa-solid fa-tools text-2xl text-amber-500 mb-2"></i>
+          <p class="text-sm font-bold text-amber-700">Fonctionnalité à venir</p>
+          <p class="text-xs text-amber-600 mt-1">Le paiement en ligne sera bientôt disponible</p>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+          <span class="text-[10px] font-black text-slate-400 uppercase">Montant à payer :</span>
+          <span class="text-lg font-black text-slate-800">${UI.formatMoney(montant)}</span>
+        </div>
+        <div class="mt-4 flex justify-center gap-3 text-slate-400">
+          <i class="fa-brands fa-cc-visa text-2xl"></i>
+          <i class="fa-brands fa-cc-mastercard text-2xl"></i>
+          <i class="fa-solid fa-mobile-alt text-2xl"></i>
+        </div>
+        <div class="mt-4 p-3 bg-emerald-50 rounded-xl">
+          <p class="text-[9px] text-emerald-600 font-medium">💡 Paiement possible par :</p>
+          <p class="text-[8px] text-emerald-500 mt-1">Mobile Money • Carte bancaire • Virement</p>
+        </div>
+      </div>
+    `,
+    confirmButtonText: "OK, j'ai compris",
+    confirmButtonColor: "#10B981",
+    showCancelButton: false,
+    customClass: {
+      popup: 'rounded-2xl p-6',
+      confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
+    }
+  });
 };
+
 // ============================================================
 // VALIDATION MANUELLE (Coordinateur)
 // ============================================================
@@ -277,8 +263,6 @@ window.markAsPaid = async (id, montant) => {
     });
     
     UI.success("Paiement validé");
-    
-    // Forcer le vidage du cache et recharger
     clearApiCache();
     await loadBilling();
     
