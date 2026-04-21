@@ -3684,3 +3684,98 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
 .animate-pulse-soft {
     animation: pulse-soft 1.5s ease-in-out infinite;
 }
+
+
+
+
+
+
+
+
+
+/* Fallback pour les icônes cassées - remplacement par des équivalents solides */
+.fa-folder-open:before,
+.fa-folder:before {
+    content: "\f07b" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-file-alt:before,
+.fa-file-lines:before {
+    content: "\f15c" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+.fa-chart-line:before {
+    content: "\f201" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-calendar-check:before {
+    content: "\f274" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-box:before {
+    content: "\f466" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-receipt:before {
+    content: "\f543" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+.fa-ticket:before {
+    content: "\f3ff" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-user-circle:before {
+    content: "\f2bd" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+.fa-chart-pie:before {
+    content: "\f200" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-users:before {
+    content: "\f0c0" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-location-dot:before {
+    content: "\f3c5" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+.fa-newspaper:before {
+    content: "\f1ea" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+.fa-calendar-days:before {
+    content: "\f073" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+.fa-user-nurse:before {
+    content: "\f82f" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
