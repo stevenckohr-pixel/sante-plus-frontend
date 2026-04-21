@@ -3857,3 +3857,116 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     font-weight: 900 !important;
     display: inline-block !important;
 }
+
+
+
+
+
+
+
+/* CORRECTION DÉFINITIVE POUR TOUTES LES ICÔNES MANQUANTES */
+
+/* Icône Facture dans le menu */
+.fa-receipt:before {
+    content: "\f543" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+/* Icône Dossier / Badge Confort */
+.fa-chart-line:before {
+    content: "\f201" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Badge Essentiel / Régulier */
+.fa-seedling:before {
+    content: "\f4d8" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Badge Sérénité / Premium */
+.fa-crown:before {
+    content: "\f521" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Abonnement */
+.fa-ticket:before {
+    content: "\f3ff" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Journal / Feed */
+.fa-newspaper:before {
+    content: "\f1ea" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+/* Icône Visites */
+.fa-calendar-check:before {
+    content: "\f274" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Commandes */
+.fa-box:before {
+    content: "\f466" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Planning */
+.fa-calendar-days:before {
+    content: "\f073" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+/* Icône Localisation */
+.fa-location-dot:before {
+    content: "\f3c5" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Profil */
+.fa-user-circle:before {
+    content: "\f2bd" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+/* Icône Dashboard */
+.fa-chart-pie:before {
+    content: "\f200" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Aidants */
+.fa-user-nurse:before {
+    content: "\f82f" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône RH */
+.fa-users:before {
+    content: "\f0c0" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* Icône Dossier (dans la liste des patients) */
+.fa-folder-open:before {
+    content: "\f07c" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
