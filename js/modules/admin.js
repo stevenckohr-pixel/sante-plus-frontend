@@ -228,6 +228,9 @@ export async function renderRHDashboard() {
                     <h3 class="font-black text-2xl text-slate-900 tracking-tight">👥 Gestion de l'équipe</h3>
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Aidants • Patients • Assignations</p>
                 </div>
+                <button id="new-assign-btn" class="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">
+                    <i class="fa-solid fa-plus text-xs"></i> Nouvelle assignation
+                </button>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
