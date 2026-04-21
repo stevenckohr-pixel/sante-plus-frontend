@@ -1498,8 +1498,8 @@ if (authLogo) {
             <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
                 <div class="shrink-0 text-center pt-8 pb-4">
 <div class="flex justify-center mb-4">
-    <div class="px-4 py-1 rounded-xl border-2 border-emerald-500 bg-white">
-        <img id="auth-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-28 h-28 object-contain">
+    <div class="px-1 py-1 rounded-xl border-2 border-emerald-500 bg-white">
+        <img id="auth-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-35 h-35 object-contain">
     </div>
 </div>
                     <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
