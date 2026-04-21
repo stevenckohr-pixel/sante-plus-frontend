@@ -674,13 +674,18 @@ async function refreshPendingRegistrations() {
 }
 
 
-// admin.js - Remplacer ces deux fonctions
 
 window.openAssignModalWithAidant = (aidantId) => {
-    console.log("🔵 openAssignModalWithAidant", aidantId);
-    localStorage.setItem("pre_selected_aidant", aidantId);
-    // Appel direct de la fonction d'assignation (sans passer par window)
-    openAssignModalFunction();
+    console.log("🔵 Assignation directe avec aidant:", aidantId);
+    
+    // ✅ Aller DIRECTEMENT à la page d'assignation sans recharger la RH
+    if (typeof window.openAssignPage === 'function') {
+        window.openAssignPage(null, aidantId);
+    } else {
+        import('./planning.js').then(module => {
+            module.openAssignPage(null, aidantId);
+        });
+    }
 };
 
 window.openAssignModalWithPatient = (patientId, patientNom) => {
