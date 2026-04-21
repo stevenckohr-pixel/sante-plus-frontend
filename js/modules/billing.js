@@ -160,10 +160,10 @@ function getActionButton(abo, userRole) {
                    class="bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase">
               Valider Cash
             </button>`;
-  } else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
-    return `<button onclick="window.payWithFeda('${abo.id}', ${abo.montant_du})" 
+} else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
+    return `<button onclick="window.payWithKikiapay('${abo.id}', ${abo.montant_du}, '${escapeHtml(abo.patient?.nom_complet || 'Patient')}')" 
                    class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase shadow-lg">
-              Payer Mobile
+              💳 Payer Mobile
             </button>`;
   }
   return '<span class="text-slate-300 text-[9px]">—</span>';
@@ -196,39 +196,63 @@ function renderKpis(totalPaid, totalLate) {
 // PAIEMENT FEDAPAY
 // ============================================================
 
-window.payWithFeda = async (abonnementId, montant) => {
-  Swal.fire({
-    title: '<i class="fa-solid fa-credit-card text-3xl text-emerald-500 mb-3"></i><br><span class="text-xl font-black">Paiement en ligne</span>',
-    html: `
-      <div class="text-center">
-        <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 mb-4">
-          <i class="fa-solid fa-tools text-2xl text-amber-500 mb-2"></i>
-          <p class="text-sm font-bold text-amber-700">Fonctionnalité à venir</p>
-          <p class="text-xs text-amber-600 mt-1">Le paiement en ligne sera bientôt disponible</p>
-        </div>
-        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-          <span class="text-[10px] font-black text-slate-400 uppercase">Montant à payer :</span>
-          <span class="text-lg font-black text-slate-800">${UI.formatMoney(montant)}</span>
-        </div>
-        <div class="mt-4 flex justify-center gap-3 text-slate-400">
-          <i class="fa-brands fa-cc-visa text-2xl"></i>
-          <i class="fa-brands fa-cc-mastercard text-2xl"></i>
-          <i class="fa-solid fa-mobile-alt text-2xl"></i>
-        </div>
-        <div class="mt-4 p-3 bg-emerald-50 rounded-xl">
-          <p class="text-[9px] text-emerald-600 font-medium">💡 Paiement possible par :</p>
-          <p class="text-[8px] text-emerald-500 mt-1">Mobile Money • Carte bancaire • Virement</p>
-        </div>
-      </div>
-    `,
-    confirmButtonText: "OK, j'ai compris",
-    confirmButtonColor: "#10B981",
-    showCancelButton: false,
-    customClass: {
-      popup: 'rounded-2xl p-6',
-      confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider'
-    }
-  });
+window.payWithKikiapay = async (abonnementId, montant, patientNom) => {
+    // Initialiser Kikiapay en mode sandbox
+    const kkp = new Kikiapay();
+    kkp.init({
+        sandbox: true,  // Mode test
+        api_key: "b2854970ebcc11efb68863f84d1e6b32",   
+        amount: montant,
+        currency: "XOF",
+        first_name: patientNom?.split(' ')[0] || "Client",
+        last_name: patientNom?.split(' ')[1] || "SPS",
+        email: localStorage.getItem("user_email"),
+        phone: "",
+        description: `Paiement abonnement Santé Plus - ${montant} FCFA`,
+        callback: async (response) => {
+            console.log("💰 Réponse Kikiapay:", response);
+            
+            if (response.status === "SUCCESS") {
+                // Paiement réussi
+                Swal.fire({
+                    icon: "success",
+                    title: "✅ Paiement réussi !",
+                    text: `Transaction: ${response.transaction_id}`,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                
+                // Sauvegarder le paiement dans le backend
+                try {
+                    await secureFetch("/billing/pay", {
+                        method: "POST",
+                        body: JSON.stringify({ 
+                            abonnement_id: abonnementId, 
+                            montant: montant,
+                            transaction_id: response.transaction_id,
+                            mode_paiement: "KIKIAPAY"
+                        })
+                    });
+                    
+                    clearApiCache();
+                    await loadBilling();
+                    
+                } catch (err) {
+                    console.error("Erreur sauvegarde:", err);
+                }
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Paiement échoué",
+                    text: response.message || "Veuillez réessayer",
+                    confirmButtonText: "OK"
+                });
+            }
+        }
+    });
+    
+    // Ouvrir le widget de paiement
+    kkp.pay();
 };
 
 // ============================================================
