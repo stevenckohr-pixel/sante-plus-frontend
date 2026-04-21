@@ -3702,3 +3702,51 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     font-family: 'Font Awesome 6 Free' !important;
     font-weight: 900 !important;
 }
+
+
+/* CORRECTION FORCÉE FONT AWESOME */
+.fa,
+.fas,
+.far,
+.fal,
+.fad,
+.fab,
+.fa-solid,
+.fa-regular,
+.fa-brands,
+.fa-chart-line,
+.fa-seedling,
+.fa-crown,
+.fa-chart-simple,
+.fa-arrow-trend-up {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+}
+
+.fa-regular,
+.far {
+    font-weight: 400 !important;
+}
+
+.fa-brands,
+.fab {
+    font-family: "Font Awesome 6 Brands" !important;
+    font-weight: 400 !important;
+}
+
+/* Forcer l'affichage des icônes spécifiques */
+.fa-chart-line:before {
+    content: "\f201" !important;
+}
+
+.fa-seedling:before {
+    content: "\f4d8" !important;
+}
+
+.fa-crown:before {
+    content: "\f521" !important;
+}
