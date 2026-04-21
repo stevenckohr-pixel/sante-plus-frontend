@@ -149,17 +149,13 @@ export async function renderSubscriptionPage() {
 function getPacks(isMaman) {
     if (isMaman) {
         return [
-            // Packs mensuels
-            { id: 'MENSUEL_ESSENTIEL', name: 'Essentiel', desc: '2 visites / semaine', price: 50000, priceDisplay: '1000 CFA', duration: 1, durationText: '1 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'], icon: 'fa-seedling', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false },
-            { id: 'MENSUEL_CONFORT', name: 'Confort', desc: '3 à 4 visites / semaine', price: 85000, priceDisplay: '2000 CFA', duration: 1, durationText: '1 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'], icon: 'fa-chart-line', color: 'text-blue-600', bg: 'bg-blue-50', popular: true },
+            { id: 'MENSUEL_ESSENTIEL', name: 'Essentiel', desc: '2 visites / semaine', price: 50000, priceDisplay: '50.000 CFA', duration: 1, durationText: '1 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire'], icon: 'fa-seedling', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false },
+            { id: 'MENSUEL_CONFORT', name: 'Confort', desc: '3 à 4 visites / semaine', price: 85000, priceDisplay: '85.000 CFA', duration: 1, durationText: '1 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé'], icon: 'fa-chart-line', color: 'text-blue-600', bg: 'bg-blue-50', popular: true },
             { id: 'MENSUEL_SERENITE', name: 'Sérénité', desc: 'Présence quasi quotidienne', price: 150000, priceDisplay: '150.000 CFA', duration: 1, durationText: '1 mois', features: ['6-7 visites par semaine', 'Accompagnement complet', 'Urgence 24/7', 'Rapport en temps réel'], icon: 'fa-crown', color: 'text-gold-primary', bg: 'bg-amber-50', popular: false },
-            // Packs trimestriels
             { id: 'TRIMESTRIEL_ESSENTIEL', name: 'Essentiel 3 mois', desc: '2 visites / semaine', price: 142500, priceDisplay: '142.500 CFA', originalPrice: 150000, duration: 3, durationText: '3 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 5%'], icon: 'fa-calendar-alt', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false, badge: '-5%' },
             { id: 'TRIMESTRIEL_CONFORT', name: 'Confort 3 mois', desc: '3 à 4 visites / semaine', price: 242250, priceDisplay: '242.250 CFA', originalPrice: 255000, duration: 3, durationText: '3 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 5%'], icon: 'fa-calendar-alt', color: 'text-blue-600', bg: 'bg-blue-50', popular: false, badge: '-5%' },
-            // Packs annuels
             { id: 'ANNUEL_ESSENTIEL', name: 'Essentiel 1 an', desc: '2 visites / semaine', price: 510000, priceDisplay: '510.000 CFA', originalPrice: 600000, duration: 12, durationText: '12 mois', features: ['2 visites par semaine', 'Suivi de base', 'Rapport hebdomadaire', 'Économie 15%', 'Paiement unique'], icon: 'fa-calendar-year', color: 'text-emerald-600', bg: 'bg-emerald-50', popular: false, badge: '-15%' },
             { id: 'ANNUEL_CONFORT', name: 'Confort 1 an', desc: '3 à 4 visites / semaine', price: 867000, priceDisplay: '867.000 CFA', originalPrice: 1020000, duration: 12, durationText: '12 mois', features: ['3-4 visites par semaine', 'Aide à la toilette', 'Préparation repas', 'Rapport détaillé', 'Économie 15%', 'Paiement unique'], icon: 'fa-calendar-year', color: 'text-blue-600', bg: 'bg-blue-50', popular: true, badge: '-15%' },
-            // Pack spécial
             { id: 'MATERNITE', name: 'Spécial Sortie Maternité', desc: 'Suivi intensif sur 2 semaines', price: 70000, priceDisplay: '70.000 CFA', duration: 0.5, durationText: '2 semaines', features: ['Visite quotidienne', 'Aide bébé', 'Conseils allaitement', 'Suivi personnalisé'], icon: 'fa-baby-carriage', color: 'text-pink-600', bg: 'bg-pink-50', popular: false }
         ];
     } else {
@@ -183,7 +179,6 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
     
-    // Récupérer le patient ID
     let patientId = AppState.currentPatient;
     if (!patientId) {
         try {
@@ -227,113 +222,102 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         customClass: { popup: 'rounded-2xl p-6' }
     });
     
-   if (result.isConfirmed) {
-    Swal.fire({
-        title: "Préparation du paiement...",
-        didOpen: () => Swal.showLoading(),
-        allowOutsideClick: false
-    });
-    
-    try {
-        // 1. CRÉER LA FACTURE DANS TON BACKEND
-        const facture = await secureFetch("/billing/generate", {
-            method: "POST",
-            body: JSON.stringify({
-                patient_id: patientId,
-                montant: price,
-                pack: packId
-            })
+    if (result.isConfirmed) {
+        Swal.fire({
+            title: "Préparation du paiement...",
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
         });
         
-        console.log("✅ Facture créée:", facture);
-        
-        // 2. APPEL DIRECT À FEDAPAY (SANS PASSER PAR LE BACKEND)
-        const fedapayResponse = await fetch("https://api.fedapay.com/v1/transactions", {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer sk_live_CF78l8rSKrWs8nVwqSxkvbZP",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                amount: price,
-                currency: "XOF",
-                description: `Pack ${selectedPack?.name} - ${durationMonths} mois`,
-                customer: {
-                    email: localStorage.getItem("user_email"),
-                    firstname: selectedPack?.name?.split(' ')[0] || "Client",
-                    lastname: "SPS"
-                },
-                callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`,
-                cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`,
-                metadata: {
-                    facture_id: facture.id,
+        try {
+            const facture = await secureFetch("/billing/generate", {
+                method: "POST",
+                body: JSON.stringify({
                     patient_id: patientId,
-                    pack_name: selectedPack?.name
-                }
-            })
-        });
-        
-        Swal.close();
-        
-        const paymentData = await fedapayResponse.json();
-        
-        if (paymentData.payment_url) {
-            // Ouvrir la fenêtre de paiement FedaPay
-            window.open(paymentData.payment_url, '_blank');
-            
-            Swal.fire({
-                icon: "info",
-                title: "Paiement initié",
-                html: `
-                    <div class="text-center">
-                        <p>Une fenêtre de paiement s'est ouverte.</p>
-                        <p class="text-xs text-slate-500 mt-2">Après le paiement, votre abonnement sera activé automatiquement.</p>
-                    </div>
-                `,
-                confirmButtonText: "OK",
-                confirmButtonColor: "#10B981"
+                    montant: price,
+                    pack: packId
+                })
             });
             
-            // Vérifier le statut du paiement toutes les 5 secondes
-            let checkCount = 0;
-            const checkInterval = setInterval(async () => {
-                checkCount++;
-                const factureCheck = await secureFetch(`/billing/${facture.id}`);
-                if (factureCheck.statut === "Payé") {
-                    clearInterval(checkInterval);
-                    Swal.fire({
-                        icon: "success",
-                        title: "✅ Abonnement activé !",
-                        text: "Votre paiement a été confirmé.",
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    window.switchView("billing");
-                } else if (checkCount > 24) { // 2 minutes max
-                    clearInterval(checkInterval);
-                }
-            }, 5000);
+            console.log("✅ Facture créée:", facture);
             
-        } else {
-            throw new Error("URL de paiement non reçue");
+            const fedapayResponse = await fetch("https://api.fedapay.com/v1/transactions", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer sk_live_CF78l8rSKrWs8nVwqSxkvbZP",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    amount: price,
+                    currency: "XOF",
+                    description: `Pack ${selectedPack?.name} - ${durationMonths} mois`,
+                    customer: {
+                        email: localStorage.getItem("user_email"),
+                        firstname: selectedPack?.name?.split(' ')[0] || "Client",
+                        lastname: "SPS"
+                    },
+                    callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`,
+                    cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`,
+                    metadata: {
+                        facture_id: facture.id,
+                        patient_id: patientId,
+                        pack_name: selectedPack?.name
+                    }
+                })
+            });
+            
+            Swal.close();
+            
+            const paymentData = await fedapayResponse.json();
+            
+            if (paymentData.payment_url) {
+                window.open(paymentData.payment_url, '_blank');
+                
+                Swal.fire({
+                    icon: "info",
+                    title: "Paiement initié",
+                    html: `<div class="text-center"><p>Une fenêtre de paiement s'est ouverte.</p><p class="text-xs text-slate-500 mt-2">Après le paiement, votre abonnement sera activé automatiquement.</p></div>`,
+                    confirmButtonText: "OK",
+                    confirmButtonColor: "#10B981"
+                });
+                
+                let checkCount = 0;
+                const checkInterval = setInterval(async () => {
+                    checkCount++;
+                    const factureCheck = await secureFetch(`/billing/${facture.id}`);
+                    if (factureCheck.statut === "Payé") {
+                        clearInterval(checkInterval);
+                        Swal.fire({
+                            icon: "success",
+                            title: "✅ Abonnement activé !",
+                            text: "Votre paiement a été confirmé.",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        window.switchView("billing");
+                    } else if (checkCount > 24) {
+                        clearInterval(checkInterval);
+                    }
+                }, 5000);
+            } else {
+                throw new Error("URL de paiement non reçue");
+            }
+        } catch (err) {
+            Swal.close();
+            console.error("Erreur:", err);
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: err.message || "Impossible d'initier le paiement",
+                confirmButtonText: "OK"
+            });
         }
-        
-    } catch (err) {
-        Swal.close();
-        console.error("Erreur:", err);
-        Swal.fire({
-            icon: "error",
-            title: "Erreur",
-            text: err.message || "Impossible d'initier le paiement",
-            confirmButtonText: "OK"
-        });
     }
-}
-// ============================================================
-// INITIATION PAIEMENT FEDAPAY
-// ============================================================
+};
 
-// js/modules/subscription.js - Remplacer window.initiateFedaPayPayment
+// ============================================================
+// INITIATION PAIEMENT FEDAPAY (fallback)
+// ============================================================
 
 window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
     let patientId = AppState.currentPatient;
@@ -357,10 +341,8 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
     }
     
     const isMaman = localStorage.getItem("user_is_maman") === "true";
-    const themeColor = isMaman ? 'pink' : 'emerald';
     const primaryColor = isMaman ? '#E11D48' : '#059669';
     
-    // 🔥 Afficher le message "Disponible prochainement"
     Swal.fire({
         title: '<i class="fa-solid fa-credit-card text-3xl mb-3" style="color: ' + primaryColor + '"></i><br><span class="text-xl font-black">💳 Paiement sécurisé</span>',
         html: `
@@ -399,5 +381,3 @@ window.initiateFedaPayPayment = async (packId, durationMonths, price) => {
         }
     });
 };
-}  
-} 
