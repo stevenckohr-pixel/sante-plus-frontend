@@ -173,6 +173,9 @@ function getPacks(isMaman) {
 // ============================================================
 // SÉLECTION D'UN PACK
 // ============================================================
+
+
+
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const packs = getPacks(isMaman);
@@ -216,7 +219,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         
         Swal.close();
         
-        // 2. Ouvrir le checkout FedaPay
+        // 2. Confirmation avant paiement
         const result = await Swal.fire({
             title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
             html: `
@@ -239,12 +242,24 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         
         if (!result.isConfirmed) return;
         
-        // 3. Initialiser FedaPay Checkout
+        // 3. Vérifier que FedaPay est chargé
+        if (typeof FedaPay === 'undefined') {
+            console.error("❌ FedaPay non chargé");
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Service de paiement non disponible. Veuillez réessayer.",
+                confirmButtonText: "OK"
+            });
+            return;
+        }
+        
+        // 4. Ouvrir le checkout FedaPay
         const userEmail = localStorage.getItem("user_email");
         const userName = localStorage.getItem("user_name") || "Client";
         
-        FedaPay.init({
-            public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',  // Ta clé publique
+        const checkout = FedaPay.init({
+            public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
             transaction: {
                 amount: price,
                 description: `Pack ${selectedPack?.name} - ${durationMonths} mois`
@@ -253,45 +268,66 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 email: userEmail,
                 firstname: userName.split(' ')[0] || 'Client',
                 lastname: userName.split(' ')[1] || 'SPS'
-            },
-            onComplete: async (response) => {
-                console.log("✅ Paiement réussi:", response);
-                
-                // 4. Valider le paiement dans le backend
-                if (response.status === 'success' || response.transaction?.status === 'approved') {
-                    Swal.fire({
-                        title: "Validation...",
-                        didOpen: () => Swal.showLoading(),
-                        allowOutsideClick: false
-                    });
-                    
-                    await secureFetch("/billing/pay", {
-                        method: "POST",
-                        body: JSON.stringify({
-                            abonnement_id: facture.id,
-                            montant: price,
-                            transaction_id: response.transaction?.id || response.id,
-                            mode_paiement: "FEDAPAY"
-                        })
-                    });
-                    
-                    Swal.fire({
-                        icon: "success",
-                        title: "✅ Abonnement activé !",
-                        text: "Votre paiement a été confirmé.",
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                    window.switchView("billing");
-                } else {
-                    throw new Error("Paiement non confirmé");
-                }
-            },
-            onClose: () => {
-                console.log("Fenêtre fermée");
             }
         });
+        
+        // 5. Gérer l'événement de succès
+        checkout.on('success', async (response) => {
+            console.log("✅ Paiement réussi:", response);
+            
+            Swal.fire({
+                title: "Validation...",
+                didOpen: () => Swal.showLoading(),
+                allowOutsideClick: false
+            });
+            
+            try {
+                await secureFetch("/billing/pay", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        abonnement_id: facture.id,
+                        montant: price,
+                        transaction_id: response.transaction?.id || response.id,
+                        mode_paiement: "FEDAPAY"
+                    })
+                });
+                
+                Swal.fire({
+                    icon: "success",
+                    title: "✅ Abonnement activé !",
+                    text: "Votre paiement a été confirmé.",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                window.switchView("billing");
+            } catch (err) {
+                console.error(err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: "Paiement reçu mais erreur d'activation. Contactez le support.",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+        
+        checkout.on('close', () => {
+            console.log("Fenêtre fermée par l'utilisateur");
+        });
+        
+        checkout.on('error', (error) => {
+            console.error("Erreur FedaPay:", error);
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: error.message || "Une erreur est survenue",
+                confirmButtonText: "OK"
+            });
+        });
+        
+        // Ouvrir le widget
+        checkout.open();
         
     } catch (err) {
         Swal.close();
@@ -304,6 +340,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
     }
 };
+            
 // ============================================================
 // INITIATION PAIEMENT FEDAPAY (fallback)
 // ============================================================
