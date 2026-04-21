@@ -254,11 +254,14 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             return;
         }
         
-        // 4. Ouvrir le checkout FedaPay
+        // 4. Ouvrir le checkout FedaPay avec callback via l'URL
         const userEmail = localStorage.getItem("user_email");
         const userName = localStorage.getItem("user_name") || "Client";
         
-        const checkout = FedaPay.init({
+        // Utiliser un callback_url pour la redirection
+        const callbackUrl = `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`;
+        
+        FedaPay.init({
             public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
             transaction: {
                 amount: price,
@@ -268,66 +271,14 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 email: userEmail,
                 firstname: userName.split(' ')[0] || 'Client',
                 lastname: userName.split(' ')[1] || 'SPS'
-            }
-        });
-        
-        // 5. Gérer l'événement de succès
-        checkout.on('success', async (response) => {
-            console.log("✅ Paiement réussi:", response);
-            
-            Swal.fire({
-                title: "Validation...",
-                didOpen: () => Swal.showLoading(),
-                allowOutsideClick: false
-            });
-            
-            try {
-                await secureFetch("/billing/pay", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        abonnement_id: facture.id,
-                        montant: price,
-                        transaction_id: response.transaction?.id || response.id,
-                        mode_paiement: "FEDAPAY"
-                    })
-                });
-                
-                Swal.fire({
-                    icon: "success",
-                    title: "✅ Abonnement activé !",
-                    text: "Votre paiement a été confirmé.",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
+            },
+            callback_url: callbackUrl,
+            onComplete: (response) => {
+                console.log("Paiement terminé:", response);
+                // Recharger la page pour vérifier le statut
                 window.switchView("billing");
-            } catch (err) {
-                console.error(err);
-                Swal.fire({
-                    icon: "error",
-                    title: "Erreur",
-                    text: "Paiement reçu mais erreur d'activation. Contactez le support.",
-                    confirmButtonText: "OK"
-                });
             }
         });
-        
-        checkout.on('close', () => {
-            console.log("Fenêtre fermée par l'utilisateur");
-        });
-        
-        checkout.on('error', (error) => {
-            console.error("Erreur FedaPay:", error);
-            Swal.fire({
-                icon: "error",
-                title: "Erreur",
-                text: error.message || "Une erreur est survenue",
-                confirmButtonText: "OK"
-            });
-        });
-        
-        // Ouvrir le widget
-        checkout.open();
         
     } catch (err) {
         Swal.close();
