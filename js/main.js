@@ -1497,9 +1497,16 @@ if (authLogo) {
             <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-blue-100 rounded-full filter blur-[100px] opacity-40 animate-blob animation-delay-4000 pointer-events-none z-0"></div>
             <div class="auth-card relative w-full max-w-md bg-white/90 backdrop-blur-3xl rounded-[3rem] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.1)] border border-white z-10 flex flex-col h-[600px] max-h-[85dvh]">
                 <div class="shrink-0 text-center pt-8 pb-4">
-                    <div class="flex justify-center mb-3">
-                        <img src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-20 h-20 object-contain">
-                    </div>
+                        <div class="flex justify-center mb-6">
+                            <div class="relative">
+                                <!-- Cercle de fond avec dégradé et ombre -->
+                                <div class="absolute inset-0 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 opacity-20 blur-xl scale-150"></div>
+                                <!-- Logo avec fond blanc et ombre portée -->
+                                <div class="relative w-32 h-32 rounded-full bg-white shadow-2xl flex items-center justify-center border-4 border-emerald-100">
+                                    <img id="auth-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-20 h-20 object-contain">
+                                </div>
+                            </div>
+                        </div>
                     <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
                   </div>
                 <div id="auth-tabs" class="shrink-0 px-8 mb-4 animate-fadeIn" style="display: ${mode !== 'otp' ? 'block' : 'none'}">
