@@ -1828,11 +1828,11 @@ function renderLayout() {
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
             <!-- Sidebar Desktop -->
             <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-               <div class="flex items-center justify-center mb-14 px-2 sidebar-logo-frame">
-                        <div class="w-auto h-auto">
-                            <img id="sidebar-logo-img" class="object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
+                    <div class="flex items-center justify-center mb-14 px-2">
+                        <div class="w-32 h-32">
+                            <img id="sidebar-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
                         </div>
-                </div>
+                    </div>
                 <nav class="flex-1 space-y-3" id="nav-desktop">
                     ${getNavLinks(userRole, 'desktop')}
                 </nav>
@@ -1862,11 +1862,11 @@ function renderLayout() {
                     </button>
                     
                     <!-- Logo mobile -->
-                    <div class="lg:hidden flex items-center justify-center header-logo-frame">
-                        <div class="w-auto h-auto">
-                            <img id="header-logo-img" class="object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
+                        <div class="lg:hidden flex items-center justify-center">
+                            <div class="w-12 h-12">
+                                <img id="header-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
+                            </div>
                         </div>
-                    </div>
                     
                     <!-- Titre desktop -->
                     <div class="hidden lg:block">
@@ -1893,8 +1893,8 @@ function renderLayout() {
                         <!-- En-tête du drawer -->
                         <div class="p-4 border-b border-slate-100 flex justify-between items-center shrink-0">
                             <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
-                                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-10 h-10 object-contain">
+                                <div class="w-14 h-14 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
+                                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-12 h-12 object-contain">
                                 </div>
                                 <div>
                                     <p class="font-bold text-slate-800">${userName?.split(' ')[0] || 'Utilisateur'}</p>
