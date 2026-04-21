@@ -3970,3 +3970,33 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     font-family: "Font Awesome 6 Free" !important;
     font-weight: 400 !important;
 }
+
+
+
+/* 1. Icône de la tuile FACTURE dans la page d'accueil (bento) */
+.fa-receipt:before {
+    content: "\f543" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+}
+
+/* 2. Icône du badge CONFORT dans les dossiers patients */
+.fa-chart-line:before {
+    content: "\f201" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* 2b. Icône du badge ESSENTIEL / REGULIER */
+.fa-seedling:before {
+    content: "\f4d8" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
+
+/* 2c. Icône du badge SERENITE / PREMIUM */
+.fa-crown:before {
+    content: "\f521" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+}
