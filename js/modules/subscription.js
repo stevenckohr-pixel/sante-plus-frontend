@@ -227,8 +227,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         customClass: { popup: 'rounded-2xl p-6' }
     });
     
-    if (!result.isConfirmed) return;
-    
+   if (result.isConfirmed) {
     Swal.fire({
         title: "Préparation du paiement...",
         didOpen: () => Swal.showLoading(),
@@ -236,7 +235,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     });
     
     try {
-        // 1. CRÉER LA FACTURE
+        // 1. CRÉER LA FACTURE DANS TON BACKEND
         const facture = await secureFetch("/billing/generate", {
             method: "POST",
             body: JSON.stringify({
@@ -248,22 +247,39 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         
         console.log("✅ Facture créée:", facture);
         
-        // 2. INITIER LE PAIEMENT FEDAPAY
-        const payment = await secureFetch("/billing/initiate-payment", {
+        // 2. APPEL DIRECT À FEDAPAY (SANS PASSER PAR LE BACKEND)
+        const fedapayResponse = await fetch("https://api.fedapay.com/v1/transactions", {
             method: "POST",
+            headers: {
+                "Authorization": "Bearer sk_live_CF78l8rSKrWs8nVwqSxkvbZP",
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-                pack_id: packId,
-                duration_months: durationMonths,
-                patient_id: patientId,
-                amount: price
+                amount: price,
+                currency: "XOF",
+                description: `Pack ${selectedPack?.name} - ${durationMonths} mois`,
+                customer: {
+                    email: localStorage.getItem("user_email"),
+                    firstname: selectedPack?.name?.split(' ')[0] || "Client",
+                    lastname: "SPS"
+                },
+                callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`,
+                cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`,
+                metadata: {
+                    facture_id: facture.id,
+                    patient_id: patientId,
+                    pack_name: selectedPack?.name
+                }
             })
         });
         
         Swal.close();
         
-        if (payment.payment_url) {
+        const paymentData = await fedapayResponse.json();
+        
+        if (paymentData.payment_url) {
             // Ouvrir la fenêtre de paiement FedaPay
-            window.open(payment.payment_url, '_blank');
+            window.open(paymentData.payment_url, '_blank');
             
             Swal.fire({
                 icon: "info",
@@ -271,17 +287,33 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 html: `
                     <div class="text-center">
                         <p>Une fenêtre de paiement s'est ouverte.</p>
-                        <p class="text-xs text-slate-500 mt-2">Après le paiement, votre abonnement sera automatiquement activé.</p>
+                        <p class="text-xs text-slate-500 mt-2">Après le paiement, votre abonnement sera activé automatiquement.</p>
                     </div>
                 `,
                 confirmButtonText: "OK",
                 confirmButtonColor: "#10B981"
             });
             
-            // Rafraîchir la page après 10 secondes
-            setTimeout(() => {
-                window.switchView("billing");
-            }, 10000);
+            // Vérifier le statut du paiement toutes les 5 secondes
+            let checkCount = 0;
+            const checkInterval = setInterval(async () => {
+                checkCount++;
+                const factureCheck = await secureFetch(`/billing/${facture.id}`);
+                if (factureCheck.statut === "Payé") {
+                    clearInterval(checkInterval);
+                    Swal.fire({
+                        icon: "success",
+                        title: "✅ Abonnement activé !",
+                        text: "Votre paiement a été confirmé.",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    window.switchView("billing");
+                } else if (checkCount > 24) { // 2 minutes max
+                    clearInterval(checkInterval);
+                }
+            }, 5000);
+            
         } else {
             throw new Error("URL de paiement non reçue");
         }
@@ -296,8 +328,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             confirmButtonText: "OK"
         });
     }
-};
-
+}
 // ============================================================
 // INITIATION PAIEMENT FEDAPAY
 // ============================================================
