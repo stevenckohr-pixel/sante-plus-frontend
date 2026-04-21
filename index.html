@@ -12,11 +12,7 @@
     <meta name="apple-mobile-web-app-title" content="SPS Elite">
 
     <!-- Font Awesome (chargement prioritaire) -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
 
     <!-- Emoji Mart CSS et JS -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
@@ -29,6 +25,11 @@
     <link rel="icon" id="favicon" href="/sante-plus-frontend/assets/images/logo-general-icon.png">
     <link rel="apple-touch-icon" id="apple-touch-icon" href="/sante-plus-frontend/assets/images/logo-general-icon.png">
     <meta name="theme-color" id="theme-color" content="#0F172A">    
+
+    <!-- Font Awesome - Version unique et fiable -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.7.2/css/all.css">
+    <link rel="preload" as="style" href="https://use.fontawesome.com/releases/v6.7.2/css/all.css">
+    <noscript><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.7.2/css/all.css"></noscript>
     
     <!-- Modules -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -47,17 +48,7 @@
     <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
 
 
-    <script>
-    // Forcer le rechargement de Font Awesome si nécessaire
-    window.addEventListener('load', function() {
-        if (typeof FontAwesome === 'undefined') {
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
-            document.head.appendChild(link);
-        }
-    });
-</script>
+
 
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden h-screen w-full" style="font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;">
