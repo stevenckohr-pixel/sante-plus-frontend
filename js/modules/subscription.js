@@ -173,12 +173,12 @@ function getPacks(isMaman) {
 // ============================================================
 // SÉLECTION D'UN PACK
 // ============================================================
-
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
     
+    // Récupérer le patient ID
     let patientId = AppState.currentPatient;
     if (!patientId) {
         try {
@@ -197,124 +197,113 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         }
     }
     
-    const result = await Swal.fire({
-        title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
-        html: `
-            <div class="text-center">
-                <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-credit-card text-emerald-500 text-3xl"></i>
-                </div>
-                <p class="text-sm font-bold text-slate-800 mb-2">${selectedPack?.name}</p>
-                <p class="text-xs text-slate-500">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
-                <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
-                <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par FedaPay</p>
-                    <p class="text-[10px] text-slate-500 mt-1">📱 Mobile Money • 💳 Carte bancaire</p>
-                </div>
-            </div>
-        `,
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonText: '💳 Payer maintenant',
-        cancelButtonText: 'Annuler',
-        confirmButtonColor: '#10B981',
-        cancelButtonColor: '#94A3B8',
-        customClass: { popup: 'rounded-2xl p-6' }
+    // 1. Créer la facture
+    Swal.fire({
+        title: "Préparation...",
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
     });
     
-    if (result.isConfirmed) {
-        Swal.fire({
-            title: "Préparation du paiement...",
-            didOpen: () => Swal.showLoading(),
-            allowOutsideClick: false
+    try {
+        const facture = await secureFetch("/billing/generate", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: patientId,
+                montant: price,
+                pack: packId
+            })
         });
         
-        try {
-            const facture = await secureFetch("/billing/generate", {
-                method: "POST",
-                body: JSON.stringify({
-                    patient_id: patientId,
-                    montant: price,
-                    pack: packId
-                })
-            });
-            
-            console.log("✅ Facture créée:", facture);
-            
-            const fedapayResponse = await fetch("https://api.fedapay.com/v1/transactions", {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer sk_live_CF78l8rSKrWs8nVwqSxkvbZP",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    amount: price,
-                    currency: "XOF",
-                    description: `Pack ${selectedPack?.name} - ${durationMonths} mois`,
-                    customer: {
-                        email: localStorage.getItem("user_email"),
-                        firstname: selectedPack?.name?.split(' ')[0] || "Client",
-                        lastname: "SPS"
-                    },
-                    callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`,
-                    cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`,
-                    metadata: {
-                        facture_id: facture.id,
-                        patient_id: patientId,
-                        pack_name: selectedPack?.name
-                    }
-                })
-            });
-            
-            Swal.close();
-            
-            const paymentData = await fedapayResponse.json();
-            
-            if (paymentData.payment_url) {
-                window.open(paymentData.payment_url, '_blank');
+        Swal.close();
+        
+        // 2. Ouvrir le checkout FedaPay
+        const result = await Swal.fire({
+            title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
+            html: `
+                <div class="text-center">
+                    <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-credit-card text-emerald-500 text-3xl"></i>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 mb-2">${selectedPack?.name}</p>
+                    <p class="text-xs text-slate-500">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
+                    <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '💳 Payer maintenant',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#10B981',
+            cancelButtonColor: '#94A3B8',
+            customClass: { popup: 'rounded-2xl p-6' }
+        });
+        
+        if (!result.isConfirmed) return;
+        
+        // 3. Initialiser FedaPay Checkout
+        const userEmail = localStorage.getItem("user_email");
+        const userName = localStorage.getItem("user_name") || "Client";
+        
+        FedaPay.init({
+            public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',  // Ta clé publique
+            transaction: {
+                amount: price,
+                description: `Pack ${selectedPack?.name} - ${durationMonths} mois`
+            },
+            customer: {
+                email: userEmail,
+                firstname: userName.split(' ')[0] || 'Client',
+                lastname: userName.split(' ')[1] || 'SPS'
+            },
+            onComplete: async (response) => {
+                console.log("✅ Paiement réussi:", response);
                 
-                Swal.fire({
-                    icon: "info",
-                    title: "Paiement initié",
-                    html: `<div class="text-center"><p>Une fenêtre de paiement s'est ouverte.</p><p class="text-xs text-slate-500 mt-2">Après le paiement, votre abonnement sera activé automatiquement.</p></div>`,
-                    confirmButtonText: "OK",
-                    confirmButtonColor: "#10B981"
-                });
-                
-                let checkCount = 0;
-                const checkInterval = setInterval(async () => {
-                    checkCount++;
-                    const factureCheck = await secureFetch(`/billing/${facture.id}`);
-                    if (factureCheck.statut === "Payé") {
-                        clearInterval(checkInterval);
-                        Swal.fire({
-                            icon: "success",
-                            title: "✅ Abonnement activé !",
-                            text: "Votre paiement a été confirmé.",
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                        window.switchView("billing");
-                    } else if (checkCount > 24) {
-                        clearInterval(checkInterval);
-                    }
-                }, 5000);
-            } else {
-                throw new Error("URL de paiement non reçue");
+                // 4. Valider le paiement dans le backend
+                if (response.status === 'success' || response.transaction?.status === 'approved') {
+                    Swal.fire({
+                        title: "Validation...",
+                        didOpen: () => Swal.showLoading(),
+                        allowOutsideClick: false
+                    });
+                    
+                    await secureFetch("/billing/pay", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            abonnement_id: facture.id,
+                            montant: price,
+                            transaction_id: response.transaction?.id || response.id,
+                            mode_paiement: "FEDAPAY"
+                        })
+                    });
+                    
+                    Swal.fire({
+                        icon: "success",
+                        title: "✅ Abonnement activé !",
+                        text: "Votre paiement a été confirmé.",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    window.switchView("billing");
+                } else {
+                    throw new Error("Paiement non confirmé");
+                }
+            },
+            onClose: () => {
+                console.log("Fenêtre fermée");
             }
-        } catch (err) {
-            Swal.close();
-            console.error("Erreur:", err);
-            Swal.fire({
-                icon: "error",
-                title: "Erreur",
-                text: err.message || "Impossible d'initier le paiement",
-                confirmButtonText: "OK"
-            });
-        }
+        });
+        
+    } catch (err) {
+        Swal.close();
+        console.error("Erreur:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: err.message || "Impossible d'initier le paiement",
+            confirmButtonText: "OK"
+        });
     }
 };
-
 // ============================================================
 // INITIATION PAIEMENT FEDAPAY (fallback)
 // ============================================================
