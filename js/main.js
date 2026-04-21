@@ -1390,7 +1390,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     const iconColor = isMamanFlow ? 'text-pink-500' : 'text-emerald-500';
 
     let dynamicContent = "";
-    let stepTitle = mode === 'login' ? "Espace Sécurisé" : 
+    let stepTitle = mode === 'login' ? "" : 
                 (mode === 'otp' ? "Sécurité Avancée" : 
                 (currentStep === 0 ? "Bienvenue" : `Étape ${currentStep} / 6`));
 
