@@ -213,7 +213,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 <p class="text-xs text-slate-500">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
                 <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé</p>
+                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par FedaPay</p>
                     <p class="text-[10px] text-slate-500 mt-1">📱 Mobile Money • 💳 Carte bancaire</p>
                 </div>
             </div>
@@ -227,80 +227,74 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         customClass: { popup: 'rounded-2xl p-6' }
     });
     
-    if (result.isConfirmed) {
-        Swal.fire({
-            title: "Création de la facture...",
-            didOpen: () => Swal.showLoading(),
-            allowOutsideClick: false
+    if (!result.isConfirmed) return;
+    
+    Swal.fire({
+        title: "Préparation du paiement...",
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+    });
+    
+    try {
+        // 1. CRÉER LA FACTURE
+        const facture = await secureFetch("/billing/generate", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: patientId,
+                montant: price,
+                pack: packId
+            })
         });
         
-        try {
-            // 1. CRÉER LA FACTURE D'ABORD
-            const facture = await secureFetch("/billing/generate", {
-                method: "POST",
-                body: JSON.stringify({
-                    patient_id: patientId,
-                    montant: price,
-                    pack: packId
-                })
-            });
+        console.log("✅ Facture créée:", facture);
+        
+        // 2. INITIER LE PAIEMENT FEDAPAY
+        const payment = await secureFetch("/billing/initiate-payment", {
+            method: "POST",
+            body: JSON.stringify({
+                pack_id: packId,
+                duration_months: durationMonths,
+                patient_id: patientId,
+                amount: price
+            })
+        });
+        
+        Swal.close();
+        
+        if (payment.payment_url) {
+            // Ouvrir la fenêtre de paiement FedaPay
+            window.open(payment.payment_url, '_blank');
             
-            console.log("✅ Facture créée:", facture);
-            
-            Swal.close();
-            
-            // 2. MODE TEST - Paiement simulé (sans FedaPay)
-            const confirmPayment = await Swal.fire({
-                title: "🧪 Mode Test",
-                text: `Confirmer le paiement de ${price.toLocaleString()} CFA pour ${selectedPack?.name} ?`,
-                icon: "question",
-                showCancelButton: true,
-                confirmButtonText: "✅ Confirmer le paiement",
-                cancelButtonText: "Annuler",
+            Swal.fire({
+                icon: "info",
+                title: "Paiement initié",
+                html: `
+                    <div class="text-center">
+                        <p>Une fenêtre de paiement s'est ouverte.</p>
+                        <p class="text-xs text-slate-500 mt-2">Après le paiement, votre abonnement sera automatiquement activé.</p>
+                    </div>
+                `,
+                confirmButtonText: "OK",
                 confirmButtonColor: "#10B981"
             });
             
-            if (confirmPayment.isConfirmed) {
-                Swal.fire({
-                    title: "Traitement...",
-                    didOpen: () => Swal.showLoading(),
-                    allowOutsideClick: false
-                });
-                
-                // Valider le paiement
-                await secureFetch("/billing/family-pay", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        abonnement_id: facture.id,
-                        montant: price,
-                        mode_paiement: "TEST"
-                    })
-                });
-                
-                Swal.fire({
-                    icon: "success",
-                    title: "✅ Abonnement activé !",
-                    text: "Votre abonnement a été activé avec succès.",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-                
-                // Recharger la page de facturation
-                setTimeout(() => {
-                    window.switchView("billing");
-                }, 2000);
-            }
-            
-        } catch (err) {
-            Swal.close();
-            console.error("Erreur:", err);
-            Swal.fire({
-                icon: "error",
-                title: "Erreur",
-                text: err.message || "Impossible de créer la facture",
-                confirmButtonText: "OK"
-            });
+            // Rafraîchir la page après 10 secondes
+            setTimeout(() => {
+                window.switchView("billing");
+            }, 10000);
+        } else {
+            throw new Error("URL de paiement non reçue");
         }
+        
+    } catch (err) {
+        Swal.close();
+        console.error("Erreur:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: err.message || "Impossible d'initier le paiement",
+            confirmButtonText: "OK"
+        });
     }
 };
 
