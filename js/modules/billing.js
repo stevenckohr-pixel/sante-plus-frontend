@@ -22,35 +22,39 @@ export async function loadBilling() {
 
     console.log("✅ Données reçues Billing:", abonnements);
 
+    // ✅ VÉRIFICATION SI PAS DE FACTURES (PLACÉE ICI, AVANT TOUT TRAITEMENT)
     if (!abonnements || abonnements.length === 0) {
-    const table = document.getElementById("billing-table");
-    const kpiContainer = document.getElementById("billing-kpis");
-    
-    if (table) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="5" class="p-10 text-center">
-                    <div class="flex flex-col items-center gap-4">
-                        <i class="fa-solid fa-receipt text-4xl text-slate-300"></i>
-                        <p class="text-slate-400 italic text-sm">Aucune facture disponible pour le moment</p>
-                        <p class="text-[10px] text-slate-300">Les factures apparaîtront après validation des paiements</p>
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
-    
-    if (kpiContainer) {
-        kpiContainer.innerHTML = `
-            <div class="bg-white p-5 rounded-2xl border border-slate-100 text-center col-span-2">
-                <p class="text-slate-400 text-sm">Aucune donnée de facturation</p>
+      table.innerHTML = `
+        <tr>
+          <td colspan="5" class="p-10 text-center">
+            <div class="flex flex-col items-center gap-4">
+              <i class="fa-solid fa-receipt text-4xl text-slate-300"></i>
+              <p class="text-slate-400 italic text-sm">Aucune facture disponible pour le moment</p>
+              <p class="text-[10px] text-slate-300">Les factures apparaîtront après validation des paiements</p>
+              ${userRole === "FAMILLE" ? `
+                <button onclick="window.switchView('subscription')" 
+                        class="mt-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase shadow-lg hover:bg-emerald-700 transition-all">
+                  🎁 Souscrire un abonnement
+                </button>
+              ` : ''}
+              ${userRole === "COORDINATEUR" ? `
+                <p class="text-xs text-slate-400 mt-2">Les factures sont créées automatiquement le 1er du mois.</p>
+              ` : ''}
             </div>
-        `;
+          </td>
+        </tr>
+      `;
+      
+      kpiContainer.innerHTML = `
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 text-center col-span-2">
+          <p class="text-slate-400 text-sm">Aucune donnée de facturation</p>
+        </div>
+      `;
+      
+      return; // ✅ SORTIE IMMÉDIATE
     }
-    
-    return; // Sortir de la fonction
-}
 
+    // ✅ SI ON ARRIVE ICI, C'EST QU'IL Y A DES FACTURES
     // Mise à jour du statut de paiement
     const hasDebt = abonnements.some((abo) => 
       abo.statut === "En retard" || abo.statut === "Expiré"
@@ -72,42 +76,51 @@ export async function loadBilling() {
     let totalDue = 0, totalPaid = 0, totalLate = 0;
     table.innerHTML = "";
 
-    if (abonnements.length === 0) {
-      table.innerHTML = renderEmptyState(userRole);
-    } else {
-      abonnements.forEach((abo) => {
-        const statusBadge = getStatusBadge(abo.statut);
-        const actionButton = getActionButton(abo, userRole);
-        const expirationInfo = abo.date_fin_abonnement ? 
-          `<div class="text-[8px] text-slate-400 mt-1">Valable jusqu'au ${new Date(abo.date_fin_abonnement).toLocaleDateString('fr-FR')}</div>` : '';
+    abonnements.forEach((abo) => {
+      const statusBadge = getStatusBadge(abo.statut);
+      const actionButton = getActionButton(abo, userRole);
+      const expirationInfo = abo.date_fin_abonnement ? 
+        `<div class="text-[8px] text-slate-400 mt-1">Valable jusqu'au ${new Date(abo.date_fin_abonnement).toLocaleDateString('fr-FR')}</div>` : '';
 
-        totalDue += abo.montant_du || 0;
-        totalPaid += abo.montant_paye || 0;
-        if (abo.statut === "En retard" || abo.statut === "Expiré") {
-          totalLate += (abo.montant_du - (abo.montant_paye || 0));
-        }
+      totalDue += abo.montant_du || 0;
+      totalPaid += abo.montant_paye || 0;
+      if (abo.statut === "En retard" || abo.statut === "Expiré") {
+        totalLate += (abo.montant_du - (abo.montant_paye || 0));
+      }
 
-        table.innerHTML += `
-          <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-            <td class="p-4">
-              <p class="font-black text-slate-800 text-xs uppercase">${escapeHtml(abo.patient?.nom_complet || 'Inconnu')}</p>
-              <p class="text-[9px] text-slate-400 font-bold">${escapeHtml(abo.patient?.formule || '-')}</p>
-              ${expirationInfo}
-            </td>
-            <td class="p-4 text-[11px] font-bold text-slate-500">${abo.mois_annee}</td>
-            <td class="p-4 text-right font-black text-slate-900 text-xs">${UI.formatMoney(abo.montant_du)}</td>
-            <td class="p-4 text-center">${statusBadge}</td>
-            <td class="p-4 text-center">${actionButton}</td>
-          </tr>
-        `;
-      });
-    }
+      table.innerHTML += `
+        <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+          <td class="p-4">
+            <p class="font-black text-slate-800 text-xs uppercase">${escapeHtml(abo.patient?.nom_complet || 'Inconnu')}</p>
+            <p class="text-[9px] text-slate-400 font-bold">${escapeHtml(abo.patient?.formule || '-')}</p>
+            ${expirationInfo}
+          </td>
+          <td class="p-4 text-[11px] font-bold text-slate-500">${abo.mois_annee}</td>
+          <td class="p-4 text-right font-black text-slate-900 text-xs">${UI.formatMoney(abo.montant_du)}</td>
+          <td class="p-4 text-center">${statusBadge}</td>
+          <td class="p-4 text-center">${actionButton}</td>
+        </tr>
+      `;
+    });
 
     kpiContainer.innerHTML = renderKpis(totalPaid, totalLate);
 
   } catch (err) {
     console.error("❌ Erreur loadBilling:", err.message);
     UI.error("Erreur de chargement de la facturation");
+    
+    // ✅ AFFICHER UN MESSAGE D'ERREUR DANS LA PAGE
+    table.innerHTML = `
+      <tr>
+        <td colspan="5" class="p-10 text-center">
+          <div class="flex flex-col items-center gap-4">
+            <i class="fa-solid fa-circle-exclamation text-4xl text-rose-400"></i>
+            <p class="text-rose-500 text-sm">Erreur de chargement des factures</p>
+            <button onclick="window.loadBilling()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-[10px]">Réessayer</button>
+          </div>
+        </td>
+      </tr>
+    `;
     throw err;
   }
 }
