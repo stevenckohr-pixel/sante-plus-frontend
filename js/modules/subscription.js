@@ -213,7 +213,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 <p class="text-xs text-slate-500">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
                 <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par Kikiapay</p>
+                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par FedaPay</p>
                     <p class="text-[10px] text-slate-500 mt-1">📱 Mobile Money • 💳 Carte bancaire</p>
                 </div>
             </div>
@@ -228,19 +228,32 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     });
     
     if (result.isConfirmed) {
-        // Créer d'abord une facture
         try {
-            const facture = await secureFetch("/billing/generate", {
+            // Initier le paiement FedaPay
+            const response = await secureFetch("/billing/initiate-payment", {
                 method: "POST",
                 body: JSON.stringify({
+                    pack_id: packId,
+                    duration_months: durationMonths,
                     patient_id: patientId,
-                    montant: price,
-                    pack: packId
+                    amount: price
                 })
             });
             
-            // Payer avec Kikiapay
-            await window.payWithKikiapay(facture.id, price, selectedPack?.name);
+            if (response.payment_url) {
+                // Ouvrir la fenêtre de paiement FedaPay
+                window.open(response.payment_url, '_blank');
+                
+                Swal.fire({
+                    icon: "info",
+                    title: "Paiement initié",
+                    text: "Une fenêtre de paiement s'est ouverte. Complétez le paiement pour activer votre abonnement.",
+                    confirmButtonText: "OK",
+                    confirmButtonColor: "#10B981"
+                });
+            } else {
+                throw new Error("URL de paiement non reçue");
+            }
             
         } catch (err) {
             console.error("Erreur:", err);
