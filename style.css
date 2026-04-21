@@ -3533,3 +3533,13 @@ body.aidant-mode .install-drawer-btn {
     background: #FEF9E6 !important;
     color: #C9A84C !important;
 }
+
+
+
+/* Fallback pour icônes Font Awesome */
+i:not([class*="fa-"]) {
+    visibility: visible !important;
+}
+.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", sans-serif !important;
+}
