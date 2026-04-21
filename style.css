@@ -3617,3 +3617,70 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
         max-height: 60px;
     }
 }
+
+
+/* Logos responsives - les cadres s'adaptent */
+#sidebar-logo-img,
+#header-logo-img,
+#loader-logo-img {
+    width: 100%;
+    height: 100%;
+    max-width: 60px;
+    max-height: 60px;
+    object-fit: contain;
+}
+
+/* Cadres qui s'adaptent aux logos */
+.sidebar-logo-frame,
+.header-logo-frame,
+.drawer-logo-frame {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 60px;
+    height: auto;
+    min-height: 60px;
+    padding: 8px;
+    background: transparent;
+    border-radius: 16px;
+}
+
+/* Mobile : logos plus petits mais lisibles */
+@media (max-width: 768px) {
+    #sidebar-logo-img,
+    #header-logo-img {
+        max-width: 45px;
+        max-height: 45px;
+    }
+    
+    .sidebar-logo-frame,
+    .header-logo-frame {
+        min-width: 45px;
+        min-height: 45px;
+        padding: 6px;
+    }
+    
+    #loader-logo-img {
+        max-width: 55px;
+        max-height: 55px;
+    }
+}
+
+
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+    animation: spin-slow 1s linear infinite;
+}
+
+@keyframes pulse-soft {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.92); opacity: 0.8; }
+}
+.animate-pulse-soft {
+    animation: pulse-soft 1.5s ease-in-out infinite;
+}
