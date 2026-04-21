@@ -183,18 +183,37 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
     
+    // Récupérer le patient ID
+    let patientId = AppState.currentPatient;
+    if (!patientId) {
+        try {
+            const patients = await secureFetch("/patients");
+            if (patients && patients.length > 0) {
+                patientId = patients[0].id;
+                AppState.currentPatient = patientId;
+                localStorage.setItem("current_patient_id", patientId);
+            } else {
+                UI.error("Aucun patient trouvé");
+                return;
+            }
+        } catch (err) {
+            UI.error("Impossible de récupérer le patient");
+            return;
+        }
+    }
+    
     const result = await Swal.fire({
         title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
         html: `
             <div class="text-center">
-                <div class="w-16 h-16 mx-auto bg-pink-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fa-solid fa-credit-card text-pink-500 text-3xl"></i>
+                <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-credit-card text-emerald-500 text-3xl"></i>
                 </div>
                 <p class="text-sm font-bold text-slate-800 mb-2">${selectedPack?.name}</p>
-                <p class="text-xs text-slate-500">Montant: <span class="font-bold text-pink-600">${price.toLocaleString()} CFA</span></p>
+                <p class="text-xs text-slate-500">Montant: <span class="font-bold text-emerald-600">${price.toLocaleString()} CFA</span></p>
                 <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
                 <div class="mt-4 p-3 bg-slate-50 rounded-xl">
-                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par FedaPay</p>
+                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par Kikiapay</p>
                     <p class="text-[10px] text-slate-500 mt-1">📱 Mobile Money • 💳 Carte bancaire</p>
                 </div>
             </div>
@@ -203,13 +222,35 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         showCancelButton: true,
         confirmButtonText: '💳 Payer maintenant',
         cancelButtonText: 'Annuler',
-        confirmButtonColor: '#E11D48',
+        confirmButtonColor: '#10B981',
         cancelButtonColor: '#94A3B8',
         customClass: { popup: 'rounded-2xl p-6' }
     });
     
     if (result.isConfirmed) {
-        await window.initiateFedaPayPayment(packId, durationMonths, price);
+        // Créer d'abord une facture
+        try {
+            const facture = await secureFetch("/billing/generate", {
+                method: "POST",
+                body: JSON.stringify({
+                    patient_id: patientId,
+                    montant: price,
+                    pack: packId
+                })
+            });
+            
+            // Payer avec Kikiapay
+            await window.payWithKikiapay(facture.id, price, selectedPack?.name);
+            
+        } catch (err) {
+            console.error("Erreur:", err);
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: err.message || "Impossible d'initier le paiement",
+                confirmButtonText: "OK"
+            });
+        }
     }
 };
 
