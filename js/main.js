@@ -1613,7 +1613,7 @@ function renderMobileHub() {
         { id: 'visits', label: 'Visites', desc: 'Historique', icon: 'fa-calendar-check', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'feed', label: 'Journal', desc: 'Photos et messages', icon: 'fa-newspaper', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
         { id: 'commandes', label: isMaman ? 'Commandes bébé' : 'Commandes', desc: 'Produits et livraisons', icon: 'fa-box', roles: ['COORDINATEUR', 'FAMILLE', 'AIDANT'] },
-        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-receipt', roles: ['COORDINATEUR', 'FAMILLE'] },
+        { id: 'billing', label: 'Factures', desc: 'Paiements', icon: 'fa-file-invoice-dollar', roles: ['COORDINATEUR', 'FAMILLE'] },
         { id: 'subscription', label: 'Abonnement', desc: 'Formules', icon: 'fa-ticket', roles: ['FAMILLE'] },
         { id: 'planning', label: 'Planning', desc: 'Agenda des soins', icon: 'fa-calendar-days', roles: ['COORDINATEUR', 'AIDANT'] },
         { id: 'aidants', label: 'Équipe', desc: 'Gestion des aidants', icon: 'fa-user-nurse', roles: ['COORDINATEUR'] },
