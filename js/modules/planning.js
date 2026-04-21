@@ -244,6 +244,12 @@ export async function loadPlanning() {
  * 🗓️ PAGE D'ASSIGNATION INDÉPENDANTE (Remplace la modale)
  */
 export async function openAssignPage(patientId = null, aidantId = null) {
+
+    // 🔥 Vider le cache pour éviter le flash
+    if (typeof clearApiCache === 'function') {
+        clearApiCache();
+    }
+    
     Swal.fire({ 
         title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500"></i>',
         showConfirmButton: false,
@@ -849,3 +855,4 @@ window.startPlannedVisit = startPlannedVisit;
 window.submitAssignmentEnhanced = submitAssignmentEnhanced;
 window.toggleAidantDropdown = toggleAidantDropdown;
 window.togglePatientDropdown = togglePatientDropdown;
+window.openAssignPage = openAssignPage;  
