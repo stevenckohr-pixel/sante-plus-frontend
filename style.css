@@ -3590,3 +3590,30 @@ i, .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands {
 body:not(.fontawesome-loaded) i[class*="fa-"] {
     visibility: hidden;
 }
+
+
+/* Agrandissement des logos */
+#sidebar-logo-img,
+#header-logo-img,
+#loader-logo-img,
+.drawer-logo-img {
+    width: auto !important;
+    height: auto !important;
+    max-width: 80px;
+    max-height: 80px;
+}
+
+/* Pour mobile */
+@media (max-width: 768px) {
+    #sidebar-logo-img,
+    #header-logo-img,
+    .drawer-logo-img {
+        max-width: 50px;
+        max-height: 50px;
+    }
+    
+    #loader-logo-img {
+        max-width: 60px;
+        max-height: 60px;
+    }
+}
