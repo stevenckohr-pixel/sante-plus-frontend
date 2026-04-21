@@ -16,37 +16,9 @@
     <link rel="preload" as="font" href="/sante-plus-frontend/assets/fontawesome/webfonts/fa-solid-900.woff2" type="font/woff2" crossorigin>
     <link rel="preload" as="font" href="/sante-plus-frontend/assets/fontawesome/webfonts/fa-regular-400.woff2" type="font/woff2" crossorigin>
     <link rel="preload" as="font" href="/sante-plus-frontend/assets/fontawesome/webfonts/fa-brands-400.woff2" type="font/woff2" crossorigin>
-    <script>
-    window.addEventListener('load', function() {
-        console.log('Font Awesome chargé ?', document.querySelector('link[href*="fontawesome"]'));
-        });
-    </script>
 
-    <script>
-    // Détecter quand Font Awesome est chargé
-    var checkFontAwesome = setInterval(function() {
-        var testIcon = document.createElement('i');
-        testIcon.className = 'fa-solid fa-check';
-        testIcon.style.position = 'absolute';
-        testIcon.style.visibility = 'hidden';
-        document.body.appendChild(testIcon);
-        
-        var after = window.getComputedStyle(testIcon, ':before').getPropertyValue('content');
-        document.body.removeChild(testIcon);
-        
-        if (after && after !== 'none') {
-            clearInterval(checkFontAwesome);
-            document.body.classList.add('fontawesome-loaded');
-            console.log('✅ Font Awesome chargé');
-        }
-    }, 100);
-    
-    // Timeout après 3 secondes
-    setTimeout(function() {
-        clearInterval(checkFontAwesome);
-        document.body.classList.add('fontawesome-loaded');
-    }, 3000);
-</script>
+
+
 
 
     <!-- Emoji Mart CSS et JS -->
