@@ -127,12 +127,15 @@
     <!-- ============================================ -->
     <!-- LOADER INITIAL -->
     <!-- ============================================ -->
-        <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
-            <div class="relative">
-                <!-- Cercle supprimé, seulement le logo -->
-                <img id="loader-logo-img" class="w-32 h-32 object-contain animate-pulse-soft" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+    <div id="initial-loader" class="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center transition-all duration-500">
+            <div class="relative flex items-center justify-center">
+                <!-- Cercle extérieur qui tourne -->
+                <div class="absolute w-32 h-32 rounded-full border-4 border-slate-100 border-t-emerald-500 border-r-emerald-300 animate-spin-slow"></div>
+                <!-- Logo au centre -->
+                <div class="relative z-10">
+                    <img id="loader-logo-img" class="w-20 h-20 object-contain animate-pulse-soft" src="/sante-plus-frontend/assets/images/logo-general-icon.png">
+                </div>
             </div>
-            <!-- Texte supprimé -->
         </div>
 
     <style>
