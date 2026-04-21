@@ -268,7 +268,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 });
                 
                 // Valider le paiement
-                await secureFetch("/billing/pay", {
+                await secureFetch("/billing/family-pay", {
                     method: "POST",
                     body: JSON.stringify({
                         abonnement_id: facture.id,
