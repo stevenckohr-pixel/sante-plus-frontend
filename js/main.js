@@ -1392,7 +1392,7 @@ function renderAuthView(mode = 'login', stepSource = 1) {
     let dynamicContent = "";
     let stepTitle = mode === 'login' ? "" : 
                 (mode === 'otp' ? "Sécurité Avancée" : 
-                (currentStep === 0 ? "Bienvenue" : `Étape ${currentStep} / 6`));
+                (currentStep === 0 ? "" : `Étape ${currentStep} / 6`));
 
     const authLogo = document.getElementById('auth-logo-img');
 if (authLogo) {
