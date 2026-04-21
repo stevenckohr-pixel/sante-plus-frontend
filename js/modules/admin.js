@@ -948,9 +948,42 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
 
 
 // Expositions globales
-window.openAssignModal = openAssignModalFunction;
-window.openAssignModalWithAidant = openAssignModalWithAidant;
-window.openAssignModalWithPatient = openAssignModalWithPatient;
+// Rediriger vers la page d'assignation du planning
+window.openAssignModal = () => {
+    console.log("🔵 Nouvelle assignation (vide)");
+    if (typeof window.openAssignPage === 'function') {
+        window.openAssignPage(null, null);
+    } else {
+        console.error("❌ window.openAssignPage non trouvée");
+        import('./planning.js').then(module => {
+            module.openAssignPage(null, null);
+        });
+    }
+};
+
+window.openAssignModalWithAidant = (aidantId) => {
+    console.log("🔵 Assignation avec aidant pré-sélectionné:", aidantId);
+    if (typeof window.openAssignPage === 'function') {
+        window.openAssignPage(null, aidantId);
+    } else {
+        import('./planning.js').then(module => {
+            module.openAssignPage(null, aidantId);
+        });
+    }
+};
+
+window.openAssignModalWithPatient = (patientId, patientNom) => {
+    console.log("🔵 Assignation avec patient pré-sélectionné:", patientId, patientNom);
+    if (typeof window.openAssignPage === 'function') {
+        window.openAssignPage(patientId, null);
+    } else {
+        import('./planning.js').then(module => {
+            module.openAssignPage(patientId, null);
+        });
+    }
+};
+
+
 window.unassignPatient = unassignPatient;
 window.unassignPatientFromPatient = unassignPatientFromPatient;
 window.activateWithDefaultEmail = activateWithDefaultEmail;
