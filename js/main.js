@@ -1832,13 +1832,6 @@ function renderLayout() {
                     <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
                         <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
                     </div>
-                    <div>
-                        <div class="brand-container">
-                            <span id="sidebar-sante" class="brand-sante-sidebar font-black">Santé</span>
-                            <span class="brand-plus-sidebar font-black">Plus</span>
-                            <span id="sidebar-service" class="brand-service-sidebar font-black"> Service</span>
-                        </div>
-                    </div>
                 </div>
                 <nav class="flex-1 space-y-3" id="nav-desktop">
                     ${getNavLinks(userRole, 'desktop')}
@@ -1873,21 +1866,10 @@ function renderLayout() {
                         <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
                             <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
                         </div>
-                        <div class="flex items-baseline gap-0">
-                            <span id="header-sante" class="mobile-brand-sante text-sm font-black">Santé</span>
-                            <span id="header-plus" class="mobile-brand-plus text-sm font-black" style="color: #D4AF37;">Plus</span>
-                            <span id="header-service" class="mobile-brand-service text-sm font-black" style="color: #64748B;"> ${isMaman ? 'Maman & Bébé' : 'Service'}</span>
-                        </div>
                     </div>
                     
                     <!-- Titre desktop -->
                     <div class="hidden lg:block">
-                        <div class="brand-container">
-                            <span id="header-sante" class="brand-sante-md font-black">Santé</span>
-                            <span class="brand-plus-md font-black">Plus</span>
-                            <span id="header-service" class="brand-service-md font-black"> Service</span>
-                        </div>
-                        <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Partenaire de confiance</p>
                     </div>
                     
                     <!-- Actions droite -->
