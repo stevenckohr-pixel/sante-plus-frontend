@@ -3685,3 +3685,20 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     font-family: "Font Awesome 6 Free" !important;
     font-weight: 900 !important;
 }
+
+
+
+/* Forcer le chargement des polices pour les icônes solides */
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    font-style: normal;
+    font-weight: 900;
+    src: url('/sante-plus-frontend/assets/fontawesome/webfonts/fa-solid-900.woff2') format('woff2');
+    font-display: block;
+}
+
+/* S'assurer que les icônes solides utilisent la bonne police */
+.fa-solid, .fas, .fa-chart-line, .fa-seedling, .fa-crown {
+    font-family: 'Font Awesome 6 Free' !important;
+    font-weight: 900 !important;
+}
