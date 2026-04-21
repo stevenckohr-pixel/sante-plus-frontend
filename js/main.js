@@ -2567,6 +2567,13 @@ async function performViewSwitch(viewName) {
                 await window.loadFeed();
                 break;
             case "billing":
+                // Utiliser le template HTML existant
+                const billingTemplate = document.getElementById("template-billing");
+                if (billingTemplate) {
+                    container.innerHTML = billingTemplate.innerHTML;
+                } else {
+                    container.innerHTML = '<div class="animate-slideIn pb-32"><div id="billing-content"></div></div>';
+                }
                 await Billing.loadBilling();
                 break;
             case "aidants":
