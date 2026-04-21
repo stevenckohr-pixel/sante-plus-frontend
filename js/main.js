@@ -1869,7 +1869,7 @@ function renderLayout() {
                     
                     <!-- Logo mobile -->
                         <div class="lg:hidden flex items-center justify-center">
-                            <div class="w-12 h-12">
+                            <div class="w-16 h-16">
                                 <img id="header-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
                             </div>
                         </div>
