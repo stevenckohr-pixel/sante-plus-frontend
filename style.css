@@ -3536,10 +3536,45 @@ body.aidant-mode .install-drawer-btn {
 
 
 
-/* Fallback pour icônes Font Awesome */
-i:not([class*="fa-"]) {
-    visibility: visible !important;
+
+
+
+
+
+
+/* Correction Font Awesome local */
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    font-style: normal;
+    font-weight: 900;
+    src: url('/sante-plus-frontend/assets/fontawesome/webfonts/fa-solid-900.woff2') format('woff2');
 }
-.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands {
-    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", sans-serif !important;
+
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/sante-plus-frontend/assets/fontawesome/webfonts/fa-regular-400.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Font Awesome 6 Brands';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/sante-plus-frontend/assets/fontawesome/webfonts/fa-brands-400.woff2') format('woff2');
+}
+
+.fa, .fas, .fa-solid {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+}
+
+.far, .fa-regular {
+    font-family: "Font Awesome 6 Free";
+    font-weight: 400;
+}
+
+.fab, .fa-brands {
+    font-family: "Font Awesome 6 Brands";
+    font-weight: 400;
 }
