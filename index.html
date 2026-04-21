@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -45,6 +45,20 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.fedapay.com/checkout.js?v=1.1.7"></script>
+
+
+    <script>
+    // Forcer le rechargement de Font Awesome si nécessaire
+    window.addEventListener('load', function() {
+        if (typeof FontAwesome === 'undefined') {
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
+            document.head.appendChild(link);
+        }
+    });
+</script>
+
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden h-screen w-full" style="font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;">
     
