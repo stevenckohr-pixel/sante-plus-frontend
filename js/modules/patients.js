@@ -113,9 +113,9 @@ export function renderPatients() {
                 <!-- Footer avec infos supplémentaires -->
                 <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                     <div class="flex items-center gap-2">
-                        <span class="badge-dynamic">
-                            <i class="fa-regular fa-receipt"></i> ${p.formule || 'Standard'}
-                        </span>
+                    <span class="badge-dynamic">
+                        📊 ${p.formule || 'Standard'}
+                    </span>
                         ${hasGps ? `
                             <span class="badge-dynamic" style="background: #ECFDF5; color: #059669;">
                                 <i class="fa-solid fa-location-dot"></i> Géolocalisé
@@ -238,7 +238,7 @@ export async function renderAddPatientView() {
                         <div id="formule-selector-trigger" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between cursor-pointer">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                                    <i class="fa-solid fa-box text-emerald-600 text-base"></i>
+                                    <i class="fa-solid fa-tag text-emerald-600 text-base"></i>
                                 </div>
                                 <div>
                                     <p id="selected-formule-name" class="font-bold text-slate-800 text-sm">Choisir une formule</p>
@@ -307,7 +307,7 @@ async function submitAddPatient() {
 
 const FORMULES = [
     { id: "Basic", name: "Formule Basic", desc: "1 visite par semaine", price: "50.000 CFA", icon: "fa-seedling", color: "text-emerald-600" },
-    { id: "Standard", name: "Formule Standard", desc: "3 visites par semaine", price: "75.000 CFA", icon: "fa-chart-simple", color: "text-blue-600" },
+    { id: "Standard", name: "Formule Standard", desc: "3 visites par semaine", price: "75.000 CFA", icon: "fa-chart-line", color: "text-blue-600" },
     { id: "Premium", name: "Formule Premium", desc: "7 jours sur 7", price: "100.000 CFA", icon: "fa-crown", color: "text-gold-primary" }
 ];
 
