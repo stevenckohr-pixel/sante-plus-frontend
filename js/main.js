@@ -1830,7 +1830,7 @@ function renderLayout() {
             <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
                 <div class="flex items-center gap-4 mb-14 px-2">
                     <div class="w-12 h-12 ${isMaman ? 'bg-pink-500' : 'bg-gradient-to-tr from-green-500 to-emerald-400'} rounded-2xl flex items-center justify-center shadow-lg ${isMaman ? 'shadow-pink-500/20' : 'shadow-green-500/20'}">
-                        <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
+                        <img id="sidebar-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-14 h-14 object-contain">
                     </div>
                 </div>
                 <nav class="flex-1 space-y-3" id="nav-desktop">
@@ -1864,7 +1864,7 @@ function renderLayout() {
                     <!-- Logo mobile -->
                     <div class="lg:hidden flex items-center gap-2">
                         <div class="w-8 h-8 ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} rounded-lg flex items-center justify-center shadow-md">
-                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-5 h-5 object-contain">
+                            <img id="header-logo-img" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-8 h-8 object-contain">
                         </div>
                     </div>
                     
@@ -1894,7 +1894,7 @@ function renderLayout() {
                         <div class="p-4 border-b border-slate-100 flex justify-between items-center shrink-0">
                             <div class="flex items-center gap-2">
                                 <div class="w-10 h-10 rounded-xl ${isMaman ? 'bg-pink-100' : 'bg-emerald-100'} flex items-center justify-center">
-                                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-6 h-6 object-contain">
+                                    <img src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}" class="w-10 h-10 object-contain">
                                 </div>
                                 <div>
                                     <p class="font-bold text-slate-800">${userName?.split(' ')[0] || 'Utilisateur'}</p>
