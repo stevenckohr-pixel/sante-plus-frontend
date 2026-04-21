@@ -948,41 +948,45 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
 
 
 // Expositions globales
-// Rediriger vers la page d'assignation du planning
-window.openAssignModal = () => {
-    console.log("🔵 Nouvelle assignation (vide)");
-    if (typeof window.openAssignPage === 'function') {
-        window.openAssignPage(null, null);
-    } else {
-        console.error("❌ window.openAssignPage non trouvée");
-        import('./planning.js').then(module => {
-            module.openAssignPage(null, null);
-        });
-    }
-};
+// Attendre que le DOM soit chargé pour exposer les fonctions
+setTimeout(() => {
+    window.openAssignModal = () => {
+        console.log("🔵 Nouvelle assignation (vide)");
+        if (typeof window.openAssignPage === 'function') {
+            window.openAssignPage(null, null);
+        } else {
+            console.error("❌ window.openAssignPage non trouvée, chargement...");
+            import('./planning.js').then(module => {
+                window.openAssignPage = module.openAssignPage;
+                window.openAssignPage(null, null);
+            });
+        }
+    };
 
-window.openAssignModalWithAidant = (aidantId) => {
-    console.log("🔵 Assignation avec aidant pré-sélectionné:", aidantId);
-    if (typeof window.openAssignPage === 'function') {
-        window.openAssignPage(null, aidantId);
-    } else {
-        import('./planning.js').then(module => {
-            module.openAssignPage(null, aidantId);
-        });
-    }
-};
+    window.openAssignModalWithAidant = (aidantId) => {
+        console.log("🔵 Assignation avec aidant:", aidantId);
+        if (typeof window.openAssignPage === 'function') {
+            window.openAssignPage(null, aidantId);
+        } else {
+            import('./planning.js').then(module => {
+                window.openAssignPage = module.openAssignPage;
+                window.openAssignPage(null, aidantId);
+            });
+        }
+    };
 
-window.openAssignModalWithPatient = (patientId, patientNom) => {
-    console.log("🔵 Assignation avec patient pré-sélectionné:", patientId, patientNom);
-    if (typeof window.openAssignPage === 'function') {
-        window.openAssignPage(patientId, null);
-    } else {
-        import('./planning.js').then(module => {
-            module.openAssignPage(patientId, null);
-        });
-    }
-};
-
+    window.openAssignModalWithPatient = (patientId, patientNom) => {
+        console.log("🔵 Assignation avec patient:", patientId, patientNom);
+        if (typeof window.openAssignPage === 'function') {
+            window.openAssignPage(patientId, null);
+        } else {
+            import('./planning.js').then(module => {
+                window.openAssignPage = module.openAssignPage;
+                window.openAssignPage(patientId, null);
+            });
+        }
+    };
+}, 500);
 
 window.unassignPatient = unassignPatient;
 window.unassignPatientFromPatient = unassignPatientFromPatient;
