@@ -3578,3 +3578,15 @@ body.aidant-mode .install-drawer-btn {
     font-family: "Font Awesome 6 Brands";
     font-weight: 400;
 }
+
+
+/* Forcer l'affichage des icônes immédiatement */
+i, .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands {
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Éviter le flash d'icônes cassées */
+body:not(.fontawesome-loaded) i[class*="fa-"] {
+    visibility: hidden;
+}
