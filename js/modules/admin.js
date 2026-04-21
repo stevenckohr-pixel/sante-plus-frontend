@@ -228,9 +228,9 @@ export async function renderRHDashboard() {
                     <h3 class="font-black text-2xl text-slate-900 tracking-tight">👥 Gestion de l'équipe</h3>
                     <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Aidants • Patients • Assignations</p>
                 </div>
-            <button id="new-assign-btn" onclick="window.openAssignPageEmpty()" class="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">
-                <i class="fa-solid fa-plus text-xs"></i> Nouvelle assignation
-            </button>
+                <button id="new-assign-btn" class="flex items-center justify-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">
+                    <i class="fa-solid fa-plus text-xs"></i> Nouvelle assignation
+                </button>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
@@ -545,14 +545,29 @@ function renderPatientsList() {
 
 
 window.redirectToAssignPageWithPatient = (patientId, patientNom) => {
-    console.log("🔵 Assignation avec patient pré-sélectionné:", patientNom);
+    console.log("🔵 Redirection vers page d'assignation pour:", patientNom);
     
-    // Stocker uniquement le patient (supprimer tout ancien aidant pré-sélectionné)
+    // Stocker l'ID du patient pré-sélectionné
     localStorage.setItem("pre_selected_patient", patientId);
-    localStorage.removeItem("pre_selected_aidant");
+    localStorage.setItem("pre_selected_patient_name", patientNom);
     
-    // Ouvrir directement la modale d'assignation
-    openAssignModalFunction();
+    // Rediriger vers la page d'assignation
+    window.switchView('rh-dashboard');
+    
+    // Attendre que la vue soit chargée puis ouvrir la modale d'assignation
+    setTimeout(() => {
+        if (typeof window.openAssignPage === 'function') {
+            window.openAssignPage();
+        } else {
+            console.error("❌ openAssignPage non trouvée, import depuis planning");
+            // Fallback: importer dynamiquement
+            import('./planning.js').then(module => {
+                if (module.openAssignPage) {
+                    module.openAssignPage();
+                }
+            });
+        }
+    }, 300);
 };
 // ============================================================
 // ASSIGNATIONS
@@ -659,18 +674,19 @@ async function refreshPendingRegistrations() {
 }
 
 
+// admin.js - Remplacer ces deux fonctions
 
 window.openAssignModalWithAidant = (aidantId) => {
     console.log("🔵 openAssignModalWithAidant", aidantId);
     localStorage.setItem("pre_selected_aidant", aidantId);
-    localStorage.removeItem("pre_selected_patient");  // ← Nettoyer le patient
+    // Appel direct de la fonction d'assignation (sans passer par window)
     openAssignModalFunction();
 };
 
 window.openAssignModalWithPatient = (patientId, patientNom) => {
     console.log("🔵 openAssignModalWithPatient", patientId, patientNom);
     localStorage.setItem("pre_selected_patient", patientId);
-    localStorage.removeItem("pre_selected_aidant");  // ← Nettoyer l'aidant
+    // Appel direct de la fonction d'assignation (sans passer par window)
     openAssignModalFunction();
 };
 
@@ -930,13 +946,6 @@ window.activateWithCustomEmail = async (id, email, nom, role) => {
     }
 };
 
-
-// Nouvelle assignation - PAGE VIDE (rien de pré-sélectionné)
-window.openAssignPageEmpty = async () => {
-    localStorage.removeItem("pre_selected_aidant");
-    localStorage.removeItem("pre_selected_patient");
-    await openAssignModalFunction();
-};
 
 // Expositions globales
 window.openAssignModal = openAssignModalFunction;
