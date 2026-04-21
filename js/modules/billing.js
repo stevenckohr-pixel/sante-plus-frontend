@@ -1,4 +1,4 @@
- import { secureFetch, clearApiCache } from "../core/api.js";
+import { secureFetch, clearApiCache } from "../core/api.js";
 import { CONFIG } from "../core/config.js";
 import { UI } from "../core/utils.js";
 
@@ -160,7 +160,7 @@ function getActionButton(abo, userRole) {
                    class="bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase">
               Valider Cash
             </button>`;
-} else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
+  } else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
     return `<button onclick="window.payWithKikiapay('${abo.id}', ${abo.montant_du}, '${escapeHtml(abo.patient?.nom_complet || 'Patient')}')" 
                    class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase shadow-lg">
               💳 Payer Mobile
@@ -193,66 +193,126 @@ function renderKpis(totalPaid, totalLate) {
 }
 
 // ============================================================
-// PAIEMENT FEDAPAY
+// PAIEMENT KIKIAPAY
 // ============================================================
 
 window.payWithKikiapay = async (abonnementId, montant, patientNom) => {
-    // Initialiser Kikiapay en mode sandbox
-    const kkp = new Kikiapay();
-    kkp.init({
-        sandbox: true,  // Mode test
-        api_key: "b2854970ebcc11efb68863f84d1e6b32",   
-        amount: montant,
-        currency: "XOF",
-        first_name: patientNom?.split(' ')[0] || "Client",
-        last_name: patientNom?.split(' ')[1] || "SPS",
-        email: localStorage.getItem("user_email"),
-        phone: "",
-        description: `Paiement abonnement Santé Plus - ${montant} FCFA`,
-        callback: async (response) => {
-            console.log("💰 Réponse Kikiapay:", response);
-            
-            if (response.status === "SUCCESS") {
-                // Paiement réussi
-                Swal.fire({
-                    icon: "success",
-                    title: "✅ Paiement réussi !",
-                    text: `Transaction: ${response.transaction_id}`,
-                    timer: 3000,
-                    showConfirmButton: false
-                });
+    // Vérifier que le SDK est chargé
+    if (typeof Kikiapay === 'undefined') {
+        console.error("❌ Kikiapay SDK non chargé");
+        Swal.fire({
+            icon: "error",
+            title: "Service indisponible",
+            text: "Le service de paiement n'est pas disponible. Veuillez réessayer plus tard.",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#0F172A"
+        });
+        return;
+    }
+
+    // Afficher le loader
+    Swal.fire({
+        title: "Préparation du paiement...",
+        text: "Veuillez patienter",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+
+    try {
+        // Initialiser Kikiapay en mode sandbox
+        const kkp = new Kikiapay();
+        
+        kkp.init({
+            sandbox: true,  // Mode test (mettre false en production)
+            api_key: "b2854970ebcc11efb68863f84d1e6b32", // Ta clé API
+            amount: montant,
+            currency: "XOF",
+            first_name: patientNom?.split(' ')[0] || "Client",
+            last_name: patientNom?.split(' ')[1] || "SPS",
+            email: localStorage.getItem("user_email") || "client@sps.bj",
+            phone: localStorage.getItem("user_phone") || "",
+            description: `Paiement abonnement Santé Plus - ${montant} FCFA`,
+            callback: async (response) => {
+                console.log("💰 Réponse Kikiapay:", response);
                 
-                // Sauvegarder le paiement dans le backend
-                try {
-                    await secureFetch("/billing/pay", {
-                        method: "POST",
-                        body: JSON.stringify({ 
-                            abonnement_id: abonnementId, 
-                            montant: montant,
-                            transaction_id: response.transaction_id,
-                            mode_paiement: "KIKIAPAY"
-                        })
+                Swal.close();
+                
+                if (response.status === "SUCCESS" || response.status === "success") {
+                    // Paiement réussi
+                    Swal.fire({
+                        icon: "success",
+                        title: "✅ Paiement réussi !",
+                        text: `Transaction: ${response.transaction_id || response.id || 'OK'}`,
+                        timer: 3000,
+                        showConfirmButton: false
                     });
                     
-                    clearApiCache();
-                    await loadBilling();
-                    
-                } catch (err) {
-                    console.error("Erreur sauvegarde:", err);
+                    // Sauvegarder le paiement dans le backend
+                    try {
+                        await secureFetch("/billing/pay", {
+                            method: "POST",
+                            body: JSON.stringify({ 
+                                abonnement_id: abonnementId, 
+                                montant: montant,
+                                transaction_id: response.transaction_id || response.id,
+                                mode_paiement: "KIKIAPAY"
+                            })
+                        });
+                        
+                        clearApiCache();
+                        await loadBilling();
+                        
+                    } catch (err) {
+                        console.error("Erreur sauvegarde:", err);
+                        Swal.fire({
+                            icon: "warning",
+                            title: "Paiement effectué",
+                            text: "Votre paiement a été reçu. La facture sera mise à jour automatiquement.",
+                            confirmButtonText: "OK",
+                            confirmButtonColor: "#10B981"
+                        });
+                    }
+                } else if (response.status === "PENDING" || response.status === "pending") {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Paiement en attente",
+                        text: "Votre transaction est en cours de traitement.",
+                        confirmButtonText: "OK",
+                        confirmButtonColor: "#0F172A"
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Paiement échoué",
+                        text: response.message || "Veuillez réessayer",
+                        confirmButtonText: "OK",
+                        confirmButtonColor: "#F43F5E"
+                    });
                 }
-            } else {
-                Swal.fire({
-                    icon: "error",
-                    title: "Paiement échoué",
-                    text: response.message || "Veuillez réessayer",
-                    confirmButtonText: "OK"
-                });
+            },
+            onClose: () => {
+                console.log("🔒 Fenêtre de paiement fermée");
+                Swal.close();
             }
-        }
-    });
-    
-    // Ouvrir le widget de paiement
-    kkp.pay();
+        });
+        
+        // Fermer le loader avant d'ouvrir le widget
+        Swal.close();
+        
+        // Ouvrir le widget de paiement
+        kkp.pay();
+        
+    } catch (err) {
+        Swal.close();
+        console.error("❌ Erreur Kikiapay:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: err.message || "Impossible d'initialiser le paiement",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#F43F5E"
+        });
+    }
 };
 
 // ============================================================
