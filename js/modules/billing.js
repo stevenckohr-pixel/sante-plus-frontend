@@ -22,6 +22,35 @@ export async function loadBilling() {
 
     console.log("✅ Données reçues Billing:", abonnements);
 
+    if (!abonnements || abonnements.length === 0) {
+    const table = document.getElementById("billing-table");
+    const kpiContainer = document.getElementById("billing-kpis");
+    
+    if (table) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="5" class="p-10 text-center">
+                    <div class="flex flex-col items-center gap-4">
+                        <i class="fa-solid fa-receipt text-4xl text-slate-300"></i>
+                        <p class="text-slate-400 italic text-sm">Aucune facture disponible pour le moment</p>
+                        <p class="text-[10px] text-slate-300">Les factures apparaîtront après validation des paiements</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+    
+    if (kpiContainer) {
+        kpiContainer.innerHTML = `
+            <div class="bg-white p-5 rounded-2xl border border-slate-100 text-center col-span-2">
+                <p class="text-slate-400 text-sm">Aucune donnée de facturation</p>
+            </div>
+        `;
+    }
+    
+    return; // Sortir de la fonction
+}
+
     // Mise à jour du statut de paiement
     const hasDebt = abonnements.some((abo) => 
       abo.statut === "En retard" || abo.statut === "Expiré"
