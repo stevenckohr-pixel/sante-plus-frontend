@@ -243,8 +243,7 @@ export async function loadPlanning() {
 /**
  * 🗓️ PAGE D'ASSIGNATION INDÉPENDANTE (Remplace la modale)
  */
-export async function openAssignPage() {
-    // Afficher un loader temporaire
+export async function openAssignPage(patientId = null, aidantId = null) {
     Swal.fire({ 
         title: '<i class="fa-solid fa-circle-notch fa-spin text-emerald-500"></i>',
         showConfirmButton: false,
@@ -253,16 +252,16 @@ export async function openAssignPage() {
     });
     
     try {
-        // ✅ Correction : secureFetch retourne déjà les données
         const aidants = await secureFetch("/assignments/available-aidants");
         const patients = await secureFetch("/assignments/unassigned-patients");
         
         Swal.close();
         
-        // Sauvegarder les données globalement
+        // Stocker les données et les pré-sélections
         window._assignData = { aidants, patients };
+        window._preSelectedPatientId = patientId;
+        window._preSelectedAidantId = aidantId;
         
-        // Naviguer vers la page d'assignation
         await renderAssignPage();
         
     } catch (err) {
@@ -270,6 +269,8 @@ export async function openAssignPage() {
         UI.error(err.message);
     }
 }
+
+
 
 /**
  * 🎨 RENDU DE LA PAGE D'ASSIGNATION
@@ -351,6 +352,28 @@ window.togglePatientDropdown = () => {
 async function renderAssignPage() {
     const container = document.getElementById("view-container");
     const { aidants, patients } = window._assignData || { aidants: [], patients: [] };
+    
+    // 🔥 NOUVEAU : Récupérer les pré-sélections
+    const preSelectedPatientId = window._preSelectedPatientId;
+    const preSelectedAidantId = window._preSelectedAidantId;
+    
+    // 🔥 NOUVEAU : Trouver les éléments pré-sélectionnés
+    let selectedAidant = null;
+    let selectedPatient = null;
+    
+    if (preSelectedAidantId && aidants.length) {
+        selectedAidant = aidants.find(a => a.id === preSelectedAidantId);
+    }
+    
+    if (preSelectedPatientId && patients.length) {
+        selectedPatient = patients.find(p => p.id === preSelectedPatientId);
+    }
+    
+    // 🔥 NOUVEAU : Nettoyer les variables temporaires
+    delete window._preSelectedPatientId;
+    delete window._preSelectedAidantId;
+    
+
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const themeColor = isMaman ? 'pink' : 'emerald';
     const themeBgClass = isMaman ? 'bg-pink-50' : 'bg-emerald-50';
@@ -388,8 +411,8 @@ async function renderAssignPage() {
                                     <i class="fa-solid fa-user-nurse ${themeTextClass} text-base"></i>
                                 </div>
                                 <div>
-                                    <p id="selected-aidant-name" class="font-semibold text-slate-800 text-sm">Choisir un aidant</p>
-                                    <p id="selected-aidant-email" class="text-[10px] text-slate-400">Sélectionnez dans la liste</p>
+                                    <p id="selected-aidant-name" class="font-semibold text-slate-800 text-sm">${selectedAidant ? selectedAidant.nom : 'Choisir un aidant'}</p>
+                                    <p id="selected-aidant-email" class="text-[10px] text-slate-400">${selectedAidant ? (selectedAidant.email || 'Email non renseigné') : 'Sélectionnez dans la liste'}</p>
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="aidant-chevron"></i>
@@ -441,8 +464,9 @@ async function renderAssignPage() {
                                     <i class="fa-solid fa-user text-blue-500 text-base"></i>
                                 </div>
                                 <div>
-                                    <p id="selected-patient-name" class="font-semibold text-slate-800 text-sm">Choisir un patient</p>
-                                    <p id="selected-patient-formule" class="text-[10px] text-slate-400">Sélectionnez dans la liste</p>
+                                        <p id="selected-patient-name" class="font-semibold text-slate-800 text-sm">${selectedPatient ? selectedPatient.nom_complet : 'Choisir un patient'}</p>
+                                        <p id="selected-patient-formule" class="text-[10px] text-slate-400">${selectedPatient ? (selectedPatient.formule || 'Standard') : 'Sélectionnez dans la liste'}</p>
+                                
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform" id="patient-chevron"></i>
