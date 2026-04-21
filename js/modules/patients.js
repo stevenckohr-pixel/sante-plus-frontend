@@ -114,7 +114,11 @@ export function renderPatients() {
                 <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                     <div class="flex items-center gap-2">
                     <span class="badge-dynamic">
-                        📊 ${p.formule || 'Standard'}
+                        ${p.formule === 'Basic' || p.formule === 'Essentiel' ? '<i class="fa-solid fa-leaf mr-1"></i>' : 
+                          p.formule === 'Standard' || p.formule === 'Confort' ? '<i class="fa-solid fa-chart-line mr-1"></i>' :
+                          p.formule === 'Premium' || p.formule === 'Sérénité' ? '<i class="fa-solid fa-crown mr-1"></i>' :
+                          '<i class="fa-solid fa-tag mr-1"></i>'}
+                        ${p.formule || 'Standard'}
                     </span>
                         ${hasGps ? `
                             <span class="badge-dynamic" style="background: #ECFDF5; color: #059669;">
