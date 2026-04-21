@@ -230,15 +230,13 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     if (result.isConfirmed) {
         try {
             // Initier le paiement FedaPay
-            const response = await secureFetch("/billing/initiate-payment", {
-                method: "POST",
-                body: JSON.stringify({
-                    pack_id: packId,
-                    duration_months: durationMonths,
-                    patient_id: patientId,
-                    amount: price
-                })
-            });
+                    const response = await secureFetch("/billing/test-payment", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            abonnement_id: facture.id,
+                            montant: price
+                        })
+                    });
             
             if (response.payment_url) {
                 // Ouvrir la fenêtre de paiement FedaPay
