@@ -3750,3 +3750,110 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
 .fa-crown:before {
     content: "\f521" !important;
 }
+
+
+/* SOLUTION DÉFINITIVE POUR LES ICÔNES CASSÉES */
+.fa-chart-line:before {
+    content: "\f201" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-seedling:before {
+    content: "\f4d8" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-crown:before {
+    content: "\f521" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-chart-simple:before {
+    content: "\f201" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-arrow-trend-up:before {
+    content: "\f201" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-box:before {
+    content: "\f466" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-calendar-check:before {
+    content: "\f274" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-newspaper:before {
+    content: "\f1ea" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+    display: inline-block !important;
+}
+
+.fa-location-dot:before {
+    content: "\f3c5" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-receipt:before {
+    content: "\f543" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+    display: inline-block !important;
+}
+
+.fa-ticket:before {
+    content: "\f3ff" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-user-circle:before {
+    content: "\f2bd" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 400 !important;
+    display: inline-block !important;
+}
+
+.fa-user-nurse:before {
+    content: "\f82f" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-chart-pie:before {
+    content: "\f200" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
+
+.fa-users:before {
+    content: "\f0c0" !important;
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    display: inline-block !important;
+}
