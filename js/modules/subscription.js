@@ -148,7 +148,8 @@ function getPacks(isMaman) {
 // ============================================================
 // SÉLECTION D'UN PACK
 // ============================================================
- window.selectSubscriptionPack = async (packId, price, durationMonths) => {
+
+window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
@@ -232,7 +233,7 @@ function getPacks(isMaman) {
         tempBtn.style.display = 'none';
         document.body.appendChild(tempBtn);
         
-        // Initialiser FedaPay - le widget s'ouvre automatiquement
+        // Initialiser FedaPay en mode popup
         FedaPay.init('#temp-pay-btn', {
             public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
             transaction: {
@@ -244,15 +245,11 @@ function getPacks(isMaman) {
                 firstname: firstName,
                 lastname: lastName
             },
-            onComplete: async (response) => {
-                console.log("FedaPay onComplete:", response);
+            onComplete: async (reason, transaction) => {
+                console.log("FedaPay fermé:", reason, transaction);
                 
-                // Vérifier si le paiement est réussi
-                const isSuccess = response?.status === 'success' || 
-                                 response?.transaction?.status === 'approved' ||
-                                 response?.status === 'approved';
-                
-                if (isSuccess) {
+                // Vérifier si le paiement est complet
+                if (reason === 'CHECKOUT COMPLETE' || reason === FedaPay.CHECKOUT_COMPLETED) {
                     Swal.fire({
                         title: "Validation du paiement...",
                         didOpen: () => Swal.showLoading(),
@@ -260,14 +257,13 @@ function getPacks(isMaman) {
                     });
                     
                     try {
-                        const transactionId = response?.transaction?.id || response?.id;
-                        
+                        // Valider directement le paiement dans le backend
                         const result = await secureFetch("/billing/pay", {
                             method: "POST",
                             body: JSON.stringify({
                                 abonnement_id: facture.id,
                                 montant: price,
-                                transaction_id: transactionId,
+                                transaction_id: transaction.id,
                                 mode_paiement: "FEDAPAY"
                             })
                         });
@@ -294,7 +290,6 @@ function getPacks(isMaman) {
                         });
                     }
                 } else {
-                    console.log("Paiement non approuvé - Response:", response);
                     Swal.fire({
                         icon: "info",
                         title: "Paiement annulé",
@@ -303,11 +298,13 @@ function getPacks(isMaman) {
                     });
                 }
                 
+                // Nettoyer
                 tempBtn.remove();
             }
         });
         
-        // Pas besoin de .open() - le widget s'ouvre automatiquement
+        // Déclencher l'ouverture du popup
+        document.getElementById('temp-pay-btn').click();
         
     } catch (err) {
         Swal.close();
@@ -320,6 +317,8 @@ function getPacks(isMaman) {
         });
     }
 };
+
+
 
 window.retryPayment = async (abonnementId, montant, patientNom, packId, durationMonths) => {
     // Récupérer le patient ID
