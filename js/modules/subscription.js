@@ -352,84 +352,132 @@ window.retryPayment = async (abonnementId, montant, patientNom, packId, duration
         }
     }
     
-    // Utiliser la même logique que selectSubscriptionPack
-    const userEmail = localStorage.getItem("user_email");
-    const userName = localStorage.getItem("user_name") || "Client";
-    const firstName = userName.split(' ')[0];
-    const lastName = userName.split(' ')[1] || "SPS";
+    // Confirmation avant paiement
+    const confirm = await Swal.fire({
+        title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
+        html: `
+            <div class="text-center">
+                <div class="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-credit-card text-emerald-500 text-3xl"></i>
+                </div>
+                <p class="text-sm font-bold text-slate-800 mb-2">${packId?.replace(/_/g, ' ') || 'Abonnement'}</p>
+                <p class="text-xs text-slate-500">Montant: <span class="font-bold text-emerald-600">${montant.toLocaleString()} CFA</span></p>
+                <p class="text-xs text-slate-500 mt-1">Durée: ${durationMonths === 0.5 ? '2 semaines' : durationMonths + ' mois'}</p>
+                <div class="mt-4 p-3 bg-slate-50 rounded-xl">
+                    <p class="text-[10px] text-slate-500">🔒 Paiement sécurisé par FedaPay</p>
+                    <p class="text-[10px] text-slate-500 mt-1">📱 Mobile Money • 💳 Carte bancaire</p>
+                </div>
+            </div>
+        `,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: '💳 Payer maintenant',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#10B981',
+        cancelButtonColor: '#94A3B8',
+        customClass: { popup: 'rounded-2xl p-6' }
+    });
+    
+    if (!confirm.isConfirmed) return;
     
     Swal.fire({
-        title: "Préparation du paiement...",
+        title: "Préparation...",
         didOpen: () => Swal.showLoading(),
         allowOutsideClick: false
     });
     
     try {
-        const response = await fetch('https://fedapay-backend.vercel.app/api/payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                amount: montant,
-                description: `Pack ${packId} - ${durationMonths} mois`,
-                customer_email: userEmail,
-                customer_firstname: firstName,
-                customer_lastname: lastName,
-                callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${abonnementId}&montant=${montant}`,
-                cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`
-            })
-        });
-        
-        const data = await response.json();
         Swal.close();
         
-        if (data.payment_url) {
-            // Créer une modale avec iframe
-            const modalId = 'fedapay-modal-' + Date.now();
-            const modalHtml = `
-                <div id="${modalId}" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center;">
-                    <div style="background:white; border-radius:20px; width:95%; max-width:500px; height:85%; overflow:hidden; display:flex; flex-direction:column;">
-                        <div style="padding:12px 16px; text-align:right; border-bottom:1px solid #e2e8f0;">
-                            <button id="close-${modalId}" style="background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">&times;</button>
-                        </div>
-                        <iframe src="${data.payment_url}" style="width:100%; height:100%; border:none;"></iframe>
-                    </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            document.getElementById(`close-${modalId}`).onclick = () => {
-                document.getElementById(modalId).remove();
-            };
-            
-            // Vérifier périodiquement le statut
-            let checkCount = 0;
-            const checkInterval = setInterval(async () => {
-                checkCount++;
-                try {
-                    const factureCheck = await secureFetch(`/billing/${abonnementId}`);
-                    if (factureCheck.statut === "Payé") {
-                        clearInterval(checkInterval);
-                        document.getElementById(modalId)?.remove();
+        // Préparer les données pour FedaPay
+        const userEmail = localStorage.getItem("user_email");
+        const userName = localStorage.getItem("user_name") || "Client";
+        const firstName = userName.split(' ')[0];
+        const lastName = userName.split(' ')[1] || "SPS";
+        
+        // Créer un bouton temporaire pour FedaPay
+        const tempBtn = document.createElement('button');
+        tempBtn.id = 'temp-pay-btn-retry';
+        tempBtn.style.display = 'none';
+        document.body.appendChild(tempBtn);
+        
+        // Initialiser FedaPay en mode popup (sans iframe)
+        FedaPay.init('#temp-pay-btn-retry', {
+            public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
+            transaction: {
+                amount: montant,
+                description: `Pack ${packId?.replace(/_/g, ' ') || 'Abonnement'} - ${durationMonths} mois`
+            },
+            customer: {
+                email: userEmail,
+                firstname: firstName,
+                lastname: lastName
+            },
+            onComplete: async (response) => {
+                console.log("FedaPay fermé - Réponse:", response);
+                
+                const transaction = response.transaction || response;
+                const isApproved = transaction && transaction.status === 'approved';
+                
+                if (isApproved) {
+                    Swal.fire({
+                        title: "Validation...",
+                        didOpen: () => Swal.showLoading(),
+                        allowOutsideClick: false
+                    });
+                    
+                    try {
+                        await secureFetch("/billing/pay", {
+                            method: "POST",
+                            body: JSON.stringify({
+                                abonnement_id: abonnementId,
+                                montant: montant,
+                                transaction_id: transaction.id,
+                                mode_paiement: "FEDAPAY"
+                            })
+                        });
+                        
                         Swal.fire({
                             icon: "success",
                             title: "✅ Paiement confirmé !",
                             timer: 2000,
                             showConfirmButton: false
                         });
+                        
                         window.switchView("billing");
-                    } else if (checkCount > 24) {
-                        clearInterval(checkInterval);
+                        
+                    } catch (err) {
+                        console.error(err);
+                        Swal.fire({
+                            icon: "error",
+                            title: "Erreur",
+                            text: err.message,
+                            confirmButtonText: "OK"
+                        });
                     }
-                } catch (e) {}
-            }, 5000);
-        }
+                } else {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Paiement annulé",
+                        text: "Vous pouvez réessayer quand vous voulez.",
+                        confirmButtonText: "OK"
+                    });
+                }
+                
+                tempBtn.remove();
+            }
+        });
+        
+        // Déclencher l'ouverture du popup
+        document.getElementById('temp-pay-btn-retry').click();
+        
     } catch (err) {
         Swal.close();
-        console.error(err);
+        console.error("Erreur:", err);
         Swal.fire({
             icon: "error",
             title: "Erreur",
-            text: err.message,
+            text: err.message || "Impossible d'initier le paiement",
             confirmButtonText: "OK"
         });
     }
