@@ -160,12 +160,15 @@ function getActionButton(abo, userRole) {
                    class="bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase">
               Valider Cash
             </button>`;
-  } else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
-    return `<button onclick="window.payWithKikiapay('${abo.id}', ${abo.montant_du}, '${escapeHtml(abo.patient?.nom_complet || 'Patient')}')" 
+
+
+} else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
+    return `<button onclick="window.retryPayment('${abo.id}', ${abo.montant_du}, '${escapeHtml(abo.patient?.nom_complet || 'Patient')}', '${abo.type_pack || ''}', ${abo.duree_mois || 1})" 
                    class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase shadow-lg">
               💳 Payer Mobile
             </button>`;
-  }
+}
+    
   return '<span class="text-slate-300 text-[9px]">—</span>';
 }
 
