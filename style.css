@@ -4008,3 +4008,35 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     outline: none !important;
     box-shadow: none !important;
 }
+
+
+
+/* Onboarding - Couleurs du thème */
+.onboarding-dot.active {
+    background: var(--role-primary, #10B981) !important;
+    width: 24px !important;
+}
+
+.onboarding-dot {
+    background: #E2E8F0 !important;
+    transition: all 0.3s ease;
+}
+
+/* Bouton de l'onboarding */
+.onboarding-next-btn {
+    background: var(--role-primary, #10B981) !important;
+    color: white !important;
+}
+
+.onboarding-next-btn:hover {
+    background: var(--role-primary-dark, #047857) !important;
+    transform: scale(1.02);
+}
+
+.onboarding-skip-btn {
+    color: var(--role-primary, #10B981) !important;
+}
+
+.onboarding-skip-btn:hover {
+    color: var(--role-primary-dark, #047857) !important;
+}
