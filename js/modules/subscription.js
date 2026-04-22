@@ -232,8 +232,8 @@ function getPacks(isMaman) {
         tempBtn.style.display = 'none';
         document.body.appendChild(tempBtn);
         
-        // Initialiser FedaPay en mode popup avec onComplete
-        const widget = FedaPay.init('#temp-pay-btn', {
+        // Initialiser FedaPay - le widget s'ouvre automatiquement
+        FedaPay.init('#temp-pay-btn', {
             public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
             transaction: {
                 amount: price,
@@ -247,16 +247,12 @@ function getPacks(isMaman) {
             onComplete: async (response) => {
                 console.log("FedaPay onComplete:", response);
                 
-                // Vérifier le statut de la transaction
-                let transactionStatus = response?.transaction?.status;
-                let isApproved = transactionStatus === 'approved';
+                // Vérifier si le paiement est réussi
+                const isSuccess = response?.status === 'success' || 
+                                 response?.transaction?.status === 'approved' ||
+                                 response?.status === 'approved';
                 
-                // Si le statut est dans la réponse directe
-                if (response?.status === 'approved' || response?.status === 'success') {
-                    isApproved = true;
-                }
-                
-                if (isApproved) {
+                if (isSuccess) {
                     Swal.fire({
                         title: "Validation du paiement...",
                         didOpen: () => Swal.showLoading(),
@@ -264,12 +260,14 @@ function getPacks(isMaman) {
                     });
                     
                     try {
+                        const transactionId = response?.transaction?.id || response?.id;
+                        
                         const result = await secureFetch("/billing/pay", {
                             method: "POST",
                             body: JSON.stringify({
                                 abonnement_id: facture.id,
                                 montant: price,
-                                transaction_id: response?.transaction?.id || response?.id,
+                                transaction_id: transactionId,
                                 mode_paiement: "FEDAPAY"
                             })
                         });
@@ -296,7 +294,7 @@ function getPacks(isMaman) {
                         });
                     }
                 } else {
-                    console.log("Paiement non approuvé - Status:", transactionStatus);
+                    console.log("Paiement non approuvé - Response:", response);
                     Swal.fire({
                         icon: "info",
                         title: "Paiement annulé",
@@ -309,8 +307,7 @@ function getPacks(isMaman) {
             }
         });
         
-        // Déclencher l'ouverture du popup
-        widget.open();
+        // Pas besoin de .open() - le widget s'ouvre automatiquement
         
     } catch (err) {
         Swal.close();
