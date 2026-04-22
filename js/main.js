@@ -1849,30 +1849,35 @@ function renderLayout() {
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
             <!-- Sidebar Desktop -->
-            <aside class="hidden lg:flex flex-col w-80 bg-[#0F172A] text-white p-8 shadow-[10px_0_40px_rgba(0,0,0,0.04)] z-50">
-                    <div class="flex items-center justify-center mb-14 px-2">
-                        <div class="w-32 h-32">
+                 <aside class="hidden lg:flex flex-col w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl">
+                    <!-- Logo -->
+                    <div class="flex justify-center py-6 border-b border-white/10">
+                        <div class="w-16 h-16">
                             <img id="sidebar-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
                         </div>
                     </div>
-                <nav class="flex-1 space-y-3" id="nav-desktop">
-                    ${getNavLinks(userRole, 'desktop')}
-                </nav>
-                <div class="mt-auto p-5 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-md">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-xs border border-white/20 overflow-hidden">
-                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<span>${userName ? userName.charAt(0).toUpperCase() : 'S'}</span>`}
+                    
+                    <!-- Navigation -->
+                    <nav class="flex-1 py-6 px-4 space-y-1" id="nav-desktop">
+                        ${getNavLinks(userRole, 'desktop')}
+                    </nav>
+                    
+                    <!-- Profil & Déconnexion -->
+                    <div class="p-4 border-t border-white/10 mt-auto">
+                        <div class="flex items-center gap-3 mb-4 p-2 rounded-xl bg-white/5">
+                            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-sm border border-white/20 overflow-hidden">
+                                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-regular fa-user text-white"></i>`}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold truncate">${userName?.split(' ')[0] || 'Utilisateur'}</p>
+                                <p class="text-[9px] text-slate-400 uppercase tracking-wider">${userRole}</p>
+                            </div>
                         </div>
-                        <div class="overflow-hidden">
-                            <p class="text-xs font-black truncate">${userName || 'Utilisateur'}</p>
-                            <p class="text-[9px] text-slate-500 uppercase font-black tracking-widest">${userRole}</p>
-                        </div>
+                        <button onclick="window.logout()" class="w-full py-2.5 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-power-off text-xs"></i> Déconnexion
+                        </button>
                     </div>
-                    <button onclick="window.logout()" class="w-full py-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-power-off"></i> Fermer la session
-                    </button>
-                </div>
-            </aside>
+                </aside>
 
             <!-- Contenu principal -->
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
@@ -2277,14 +2282,15 @@ function getNavLinks(role, mode) {
                 <span class="text-[8px] font-black uppercase tracking-tighter">${tab.label}</span>
             </button>
         `).join('');
-    } else {
-        return tabs.map(tab => `
-            <button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" class="sidebar-link w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-slate-400 transition-all text-sm mb-1">
-                <i class="fa-solid ${tab.icon} text-lg"></i>
-                <span>${tab.label}</span>
-            </button>
-        `).join('');
-    }
+           } else {
+            return tabs.map(tab => `
+                <button onclick="window.switchView('${tab.id}')" data-view="${tab.id}" 
+                        class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all text-sm">
+                    <i class="fa-solid ${tab.icon} text-base w-5"></i>
+                    <span>${tab.label}</span>
+                </button>
+            `).join('');
+        }
 }
 
 // ============================================================
