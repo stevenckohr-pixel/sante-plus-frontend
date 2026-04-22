@@ -148,7 +148,6 @@ function getPacks(isMaman) {
 // ============================================================
 // SÉLECTION D'UN PACK
 // ============================================================
-
 window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const packs = getPacks(isMaman);
@@ -234,7 +233,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         document.body.appendChild(tempBtn);
         
         // Initialiser FedaPay en mode popup
-        FedaPay.init('#temp-pay-btn', {
+        const checkout = FedaPay.init('#temp-pay-btn', {
             public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
             transaction: {
                 amount: price,
@@ -244,67 +243,68 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 email: userEmail,
                 firstname: firstName,
                 lastname: lastName
-            },
-          onComplete: async (reason, transaction) => {
-    console.log("FedaPay fermé:", reason, transaction);
-    
-    // Vérifier si le paiement est complet (quel que soit le format)
-    if (reason === 'CHECKOUT COMPLETE' || reason === 'COMPLETE' || (transaction && transaction.status === 'approved')) {
-        Swal.fire({
-            title: "Validation du paiement...",
-            didOpen: () => Swal.showLoading(),
-            allowOutsideClick: false
+            }
         });
         
-        try {
-            // Valider directement le paiement dans le backend
-            const result = await secureFetch("/billing/pay", {
-                method: "POST",
-                body: JSON.stringify({
-                    abonnement_id: facture.id,
-                    montant: price,
-                    transaction_id: transaction.id,
-                    mode_paiement: "FEDAPAY"
-                })
-            });
+        // Gérer l'événement de complétion
+        checkout.on('complete', async (response) => {
+            console.log("FedaPay complete event:", response);
             
-            console.log("✅ Validation backend:", result);
+            // Vérifier si la transaction est approuvée
+            if (response.transaction && response.transaction.status === 'approved') {
+                Swal.fire({
+                    title: "Validation du paiement...",
+                    didOpen: () => Swal.showLoading(),
+                    allowOutsideClick: false
+                });
+                
+                try {
+                    const result = await secureFetch("/billing/pay", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            abonnement_id: facture.id,
+                            montant: price,
+                            transaction_id: response.transaction.id,
+                            mode_paiement: "FEDAPAY"
+                        })
+                    });
+                    
+                    console.log("✅ Validation backend:", result);
+                    
+                    Swal.fire({
+                        icon: "success",
+                        title: "✅ Abonnement activé !",
+                        text: "Votre paiement a été confirmé.",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    window.switchView("billing");
+                    
+                } catch (err) {
+                    console.error("❌ Erreur validation:", err);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Paiement reçu mais erreur d'activation. Contactez le support.",
+                        confirmButtonText: "OK"
+                    });
+                }
+            } else {
+                console.log("Paiement non approuvé:", response);
+                Swal.fire({
+                    icon: "info",
+                    title: "Paiement annulé",
+                    text: "Vous pouvez réessayer quand vous voulez.",
+                    confirmButtonText: "OK"
+                });
+            }
             
-            Swal.fire({
-                icon: "success",
-                title: "✅ Abonnement activé !",
-                text: "Votre paiement a été confirmé.",
-                timer: 2000,
-                showConfirmButton: false
-            });
-            
-            window.switchView("billing");
-            
-        } catch (err) {
-            console.error("❌ Erreur validation:", err);
-            Swal.fire({
-                icon: "error",
-                title: "Erreur",
-                text: "Paiement reçu mais erreur d'activation. Contactez le support.",
-                confirmButtonText: "OK"
-            });
-        }
-    } else {
-        Swal.fire({
-            icon: "info",
-            title: "Paiement annulé",
-            text: "Vous pouvez réessayer quand vous voulez.",
-            confirmButtonText: "OK"
-        });
-    }
-    
-    // Nettoyer
-    tempBtn.remove();
-}
+            tempBtn.remove();
         });
         
         // Déclencher l'ouverture du popup
-        document.getElementById('temp-pay-btn').click();
+        checkout.open();
         
     } catch (err) {
         Swal.close();
@@ -317,7 +317,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
     }
 };
-
+ 
 
 window.retryPayment = async (abonnementId, montant, patientNom, packId, durationMonths) => {
     // Récupérer le patient ID
