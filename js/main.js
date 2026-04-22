@@ -227,11 +227,11 @@ const ONBOARDING_STEPS_SENIOR = [
         accent: "border-emerald-600"
     },
     {
-        title: "🏆 Prêt à commencer ?",
-        desc: "Accédez dès maintenant à votre espace de suivi et restez connecté à vos proches en toute sérénité.",
+        title: "Santé Plus Services",
+        desc: "Votre partenaire de confiance pour le bien-être à domicile",
         image: "/sante-plus-frontend/assets/images/logo-general-text.png",
         accent: "border-emerald-500",
-        isLogo: true  // ← Flag pour savoir que c'est une image de logo
+        isFinal: true
     }
 ];
 
@@ -274,11 +274,11 @@ const ONBOARDING_STEPS_BABY = [
         accent: "border-rose-600"
     },
     {
-        title: "🌸 Prête à commencer ?",
-        desc: "Accédez dès maintenant à votre espace de suivi et profitez d'un accompagnement personnalisé pour vous et bébé.",
+        title: "Santé Plus Maman & Bébé",
+        desc: "Accompagnement personnalisé pour vous et votre bébé",
         image: "/sante-plus-frontend/assets/images/logo-maman-text.png",
         accent: "border-rose-500",
-        isLogo: true  // ← Flag pour savoir que c'est une image de logo
+        isFinal: true
     }
 ];
 
@@ -2836,23 +2836,29 @@ function renderOnboarding() {
     app.innerHTML = `
         <div class="absolute inset-0 z-[10000] animate-fadeIn font-sans bg-white flex flex-col">
 
-            <div class="onboarding-image-container animate-fadeIn ${step.isLogo ? 'flex items-center justify-center bg-white' : ''}" style="${step.isLogo ? 'background: white;' : ''}">
-                ${step.isLogo ? 
-                    `<img src="${step.image}" class="w-48 h-48 object-contain" style="max-width: 200px; max-height: 200px;">` :
+            <div class="onboarding-image-container ${step.isFinal ? 'flex flex-col items-center justify-center bg-white' : ''}" style="${step.isFinal ? 'min-height: 50vh; background: white;' : ''}">
+                ${step.isFinal ? 
+                    `<img src="${step.image}" class="w-64 h-auto object-contain mb-6" style="max-width: 80%;">
+                     <h2 class="text-2xl font-black text-slate-800 text-center">${step.title}</h2>
+                     <p class="text-sm text-slate-500 text-center mt-2 max-w-xs">${step.desc}</p>` :
                     `<img src="${step.image}" class="onboarding-img shadow-2xl">
                      <div class="onboarding-image-blur"></div>`
                 }
-                ${!isLast && !step.isLogo ? `<button onclick="window.finishOnboarding()" class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/30 z-50">Ignorer</button>` : ''}
+                ${!isLast && !step.isFinal ? `<button onclick="window.finishOnboarding()" class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/30 z-50">Ignorer</button>` : ''}
             </div>
             
-            <div class="flex-1 flex flex-col items-center text-center px-10 pb-10">
-                <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4 leading-tight">${step.title}</h2>
-                <p class="text-slate-400 text-sm leading-relaxed mb-auto">${step.desc}</p>
+            <div class="flex-1 flex flex-col items-center text-center px-10 pb-10 ${step.isFinal ? 'justify-center' : ''}">
+                ${!step.isFinal ? `
+                    <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4 leading-tight">${step.title}</h2>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-auto">${step.desc}</p>
+                ` : ''}
+                
                 <div class="flex gap-2 mb-8">
                     ${ONBOARDING_STEPS.map((_, i) => `<div class="onboarding-dot ${i === onboardingStep ? 'active' : ''}"></div>`).join('')}
                 </div>
-                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 active:scale-95 transition-all">
-                    ${isLast ? 'Commencer l\'aventure' : 'Continuer'}
+                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" 
+                        class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 active:scale-95 transition-all">
+                    ${isLast ? 'Démarrer' : 'Continuer'}
                 </button>
             </div>
         </div>
