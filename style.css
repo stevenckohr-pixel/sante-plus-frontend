@@ -4040,3 +4040,28 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
 .onboarding-skip-btn:hover {
     color: var(--role-primary-dark, #047857) !important;
 }
+
+
+/* Chat desktop - dans la zone de contenu */
+@media (min-width: 1024px) {
+    .chat-whatsapp-container {
+        position: relative !important;
+        height: calc(100vh - 120px) !important;
+        border-radius: 1rem !important;
+        overflow: hidden !important;
+    }
+    
+    /* Supprimer le fixed sur desktop */
+    body:has(.chat-whatsapp-container) main,
+    body:has(.chat-whatsapp-container) #main-content,
+    body:has(.chat-whatsapp-container) .main-wrapper {
+        overflow: visible !important;
+        height: auto !important;
+    }
+    
+    body:has(.chat-whatsapp-container) #view-container {
+        position: relative !important;
+        padding: 0 !important;
+        height: auto !important;
+    }
+}
