@@ -311,7 +311,7 @@ window.viewInvoice = async (abonnementId) => {
     try {
         const invoice = await secureFetch(`/billing/invoice/${abonnementId}`);
         
-        Swal.fire({
+        const result = await Swal.fire({
             title: '<span class="text-xl font-black">📄 FACTURE</span>',
             html: `
                 <div class="text-left space-y-3">
@@ -334,10 +334,6 @@ window.viewInvoice = async (abonnementId) => {
                         <p class="font-bold text-slate-800">${invoice.type_pack?.replace(/_/g, ' ') || 'Standard'}</p>
                     </div>
                     <div>
-                        <p class="text-[10px] text-slate-400">PÉRIODE</p>
-                        <p class="font-bold text-slate-700">${invoice.mois}</p>
-                    </div>
-                    <div>
                         <p class="text-[10px] text-slate-400">MONTANT</p>
                         <p class="text-2xl font-black text-emerald-600">${invoice.montant.toLocaleString()} CFA</p>
                     </div>
@@ -349,10 +345,17 @@ window.viewInvoice = async (abonnementId) => {
                     ` : ''}
                 </div>
             `,
-            confirmButtonText: "Fermer",
-            confirmButtonColor: "#0F172A",
-            customClass: { popup: 'rounded-2xl p-6', confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider' }
+            showCancelButton: true,
+            confirmButtonText: "📥 Télécharger PDF",
+            cancelButtonText: "Fermer",
+            confirmButtonColor: "#10B981",
+            cancelButtonColor: "#94A3B8",
+            customClass: { popup: 'rounded-2xl p-6', confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black', cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black' }
         });
+        
+        if (result.isConfirmed) {
+            window.downloadInvoicePDF(abonnementId);
+        }
         
     } catch (err) {
         console.error("❌ Erreur chargement facture:", err);
@@ -364,6 +367,271 @@ window.viewInvoice = async (abonnementId) => {
         });
     }
 };
+
+
+// ============================================================
+// 📄 TÉLÉCHARGER LA FACTURE EN PDF
+// ============================================================
+
+window.downloadInvoicePDF = async (abonnementId) => {
+    try {
+        Swal.fire({
+            title: "Génération du PDF...",
+            didOpen: () => Swal.showLoading(),
+            allowOutsideClick: false
+        });
+        
+        // Récupérer les données de la facture
+        const invoice = await secureFetch(`/billing/invoice-data/${abonnementId}`);
+        
+        // Créer le HTML de la facture
+        const isMaman = localStorage.getItem("user_is_maman") === "true";
+        const logoSrc = isMaman ? '/sante-plus-frontend/assets/images/logo-maman-text.png' : '/sante-plus-frontend/assets/images/logo-general-text.png';
+        
+        const invoiceHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Facture ${invoice.numero}</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body {
+                        font-family: 'Helvetica Neue', Arial, sans-serif;
+                        background: white;
+                        padding: 40px;
+                        font-size: 14px;
+                        color: #1e293b;
+                    }
+                    .invoice-container {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        background: white;
+                    }
+                    .header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 40px;
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid ${isMaman ? '#DB2777' : '#10B981'};
+                    }
+                    .logo {
+                        max-width: 150px;
+                        max-height: 60px;
+                    }
+                    .company-info {
+                        text-align: right;
+                        font-size: 12px;
+                        color: #64748b;
+                    }
+                    .title {
+                        text-align: center;
+                        margin: 30px 0;
+                    }
+                    .title h1 {
+                        font-size: 28px;
+                        color: ${isMaman ? '#DB2777' : '#10B981'};
+                        letter-spacing: 2px;
+                    }
+                    .info-section {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 30px;
+                        padding: 20px;
+                        background: #f8fafc;
+                        border-radius: 12px;
+                    }
+                    .info-box {
+                        flex: 1;
+                    }
+                    .info-box p {
+                        margin: 5px 0;
+                    }
+                    .info-label {
+                        font-size: 11px;
+                        font-weight: bold;
+                        color: #94a3b8;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                    }
+                    th, td {
+                        padding: 12px;
+                        text-align: left;
+                        border-bottom: 1px solid #e2e8f0;
+                    }
+                    th {
+                        background: #f8fafc;
+                        font-weight: bold;
+                        font-size: 12px;
+                        color: #475569;
+                        text-transform: uppercase;
+                    }
+                    .total-row {
+                        background: #f8fafc;
+                        font-weight: bold;
+                    }
+                    .amount {
+                        text-align: right;
+                        font-weight: bold;
+                        font-size: 18px;
+                        color: ${isMaman ? '#DB2777' : '#10B981'};
+                    }
+                    .status-badge {
+                        display: inline-block;
+                        padding: 4px 12px;
+                        border-radius: 20px;
+                        font-size: 11px;
+                        font-weight: bold;
+                        background: ${invoice.statut === 'Payé' ? '#dcfce7' : '#fef3c7'};
+                        color: ${invoice.statut === 'Payé' ? '#166534' : '#b45309'};
+                    }
+                    .footer {
+                        margin-top: 40px;
+                        padding-top: 20px;
+                        text-align: center;
+                        font-size: 11px;
+                        color: #94a3b8;
+                        border-top: 1px solid #e2e8f0;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="invoice-container" id="invoice-content">
+                    <div class="header">
+                        <img src="${logoSrc}" class="logo" alt="Logo">
+                        <div class="company-info">
+                            <strong>${invoice.company.name}</strong><br>
+                            ${invoice.company.address}<br>
+                            ${invoice.company.phone}<br>
+                            ${invoice.company.email}
+                        </div>
+                    </div>
+                    
+                    <div class="title">
+                        <h1>FACTURE</h1>
+                    </div>
+                    
+                    <div class="info-section">
+                        <div class="info-box">
+                            <p class="info-label">FACTURE N°</p>
+                            <p><strong>${invoice.numero}</strong></p>
+                            <p class="info-label" style="margin-top: 10px;">DATE</p>
+                            <p>${invoice.dateFormatted}</p>
+                        </div>
+                        <div class="info-box">
+                            <p class="info-label">CLIENT</p>
+                            <p><strong>${invoice.famille_nom || invoice.patient_nom}</strong></p>
+                            <p>${invoice.patient_adresse}</p>
+                            <p>${invoice.patient_telephone}</p>
+                            <p>${invoice.famille_email || ''}</p>
+                        </div>
+                        <div class="info-box">
+                            <p class="info-label">STATUT</p>
+                            <p><span class="status-badge">${invoice.statut}</span></p>
+                            ${invoice.date_fin ? `<p class="info-label" style="margin-top: 10px;">VALIDITÉ</p><p>Jusqu'au ${invoice.date_fin}</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Désignation</th>
+                                <th>Période</th>
+                                <th class="amount">Montant</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Forfait ${invoice.type_pack}</td>
+                                <td>${invoice.mois}</td>
+                                <td class="amount">${invoice.montant.toLocaleString()} CFA</td>
+                            </tr>
+                            ${invoice.montantPaye > 0 && invoice.montantPaye !== invoice.montant ? `
+                            <tr>
+                                <td colspan="2">Montant payé</td>
+                                <td class="amount">${invoice.montantPaye.toLocaleString()} CFA</td>
+                            </tr>
+                            ` : ''}
+                            <tr class="total-row">
+                                <td colspan="2"><strong>TOTAL</strong></td>
+                                <td class="amount"><strong>${invoice.montant.toLocaleString()} CFA</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="footer">
+                        <p>Santé Plus Services - Votre partenaire de confiance pour le bien-être à domicile</p>
+                        <p>Merci de votre confiance</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+        
+        Swal.close();
+        
+        // Afficher un aperçu avant téléchargement
+        const confirm = await Swal.fire({
+            title: "Aperçu de la facture",
+            html: `
+                <div style="max-height: 400px; overflow: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                    <iframe srcdoc="${encodeURIComponent(invoiceHtml)}" style="width: 100%; height: 500px; border: none;"></iframe>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: "📥 Télécharger PDF",
+            cancelButtonText: "Fermer",
+            confirmButtonColor: "#10B981",
+            customClass: { popup: 'rounded-2xl p-6', confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black', cancelButton: 'rounded-xl px-6 py-3 text-[10px] font-black' }
+        });
+        
+        if (confirm.isConfirmed) {
+            // Générer le PDF
+            const element = document.createElement('div');
+            element.innerHTML = invoiceHtml;
+            document.body.appendChild(element);
+            
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `facture_${invoice.numero}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, letterRendering: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save();
+            setTimeout(() => element.remove(), 1000);
+            
+            Swal.fire({
+                icon: "success",
+                title: "PDF généré !",
+                text: "La facture a été téléchargée.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+        
+    } catch (err) {
+        console.error("❌ Erreur génération PDF:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: err.message || "Impossible de générer la facture",
+            confirmButtonText: "OK"
+        });
+    }
+};
+
 
 // ============================================================
 // UTILITAIRE
