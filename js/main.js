@@ -229,7 +229,7 @@ const ONBOARDING_STEPS_SENIOR = [
     {
         title: "🏆 Prêt à commencer ?",
         desc: "Accédez dès maintenant à votre espace de suivi et restez connecté à vos proches en toute sérénité.",
-        image: "/sante-plus-frontend/assets/images/onboarding/senior-logo.png",
+        image: "/sante-plus-frontend/assets/images/logo-general-text.png",
         accent: "border-emerald-500",
         isLogo: true  // ← Flag pour savoir que c'est une image de logo
     }
@@ -276,7 +276,7 @@ const ONBOARDING_STEPS_BABY = [
     {
         title: "🌸 Prête à commencer ?",
         desc: "Accédez dès maintenant à votre espace de suivi et profitez d'un accompagnement personnalisé pour vous et bébé.",
-        image: "/sante-plus-frontend/assets/images/onboarding/maman-logo.png",
+        image: "/sante-plus-frontend/assets/images/logo-maman-text.png",
         accent: "border-rose-500",
         isLogo: true  // ← Flag pour savoir que c'est une image de logo
     }
