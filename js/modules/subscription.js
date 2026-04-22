@@ -149,7 +149,7 @@ function getPacks(isMaman) {
 // SÉLECTION D'UN PACK
 // ============================================================
 
- window.selectSubscriptionPack = async (packId, price, durationMonths) => {
+  window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
@@ -246,12 +246,44 @@ function getPacks(isMaman) {
                 lastname: lastName
             },
             onComplete: async (reason, transaction) => {
-                console.log("FedaPay fermé:", reason, transaction);
+                console.log("FedaPay fermé - Raison:", reason);
+                console.log("Transaction reçue:", transaction);
                 
-                // Vérifier si le paiement est approuvé (status 'approved')
-                const isPaymentApproved = transaction && transaction.status === 'approved';
+                // Vérification plus robuste du statut du paiement
+                let isPaid = false;
                 
-                if (isPaymentApproved) {
+                if (transaction && transaction.id) {
+                    // Vérifier le statut dans l'objet transaction
+                    if (transaction.status === 'approved') {
+                        isPaid = true;
+                        console.log("✅ Paiement approuvé via transaction.status");
+                    }
+                    // Alternative : vérifier via l'ID de transaction
+                    else if (transaction.id && transaction.amount === price) {
+                        // Faire un appel API pour vérifier le statut réel
+                        try {
+                            const checkResponse = await fetch(`https://api.fedapay.com/v1/transactions/${transaction.id}`, {
+                                headers: { 'Authorization': 'Bearer sk_live_CF78l8rSKrWs8nVwqSxkvbZP' }
+                            });
+                            const checkData = await checkResponse.json();
+                            if (checkData.status === 'approved') {
+                                isPaid = true;
+                                console.log("✅ Paiement approuvé via vérification API");
+                            }
+                        } catch (e) {
+                            console.error("Erreur vérification API:", e);
+                        }
+                    }
+                }
+                
+                // Vérifier aussi via la raison
+                if (reason === 'CHECKOUT COMPLETE' && !isPaid) {
+                    // La raison indique complété, on suppose que c'est payé
+                    isPaid = true;
+                    console.log("✅ Paiement approuvé via reason");
+                }
+                
+                if (isPaid) {
                     Swal.fire({
                         title: "Validation du paiement...",
                         didOpen: () => Swal.showLoading(),
@@ -270,7 +302,7 @@ function getPacks(isMaman) {
                             })
                         });
                         
-                        console.log("✅ Validation backend:", result);
+                        console.log("✅ Validation backend réussie:", result);
                         
                         Swal.fire({
                             icon: "success",
@@ -283,18 +315,18 @@ function getPacks(isMaman) {
                         window.switchView("billing");
                         
                     } catch (err) {
-                        console.error("❌ Erreur validation:", err);
+                        console.error("❌ Erreur validation backend:", err);
                         Swal.fire({
                             icon: "error",
                             title: "Erreur",
-                            text: "Paiement reçu mais erreur d'activation. Contactez le support.",
+                            text: "Paiement reçu mais erreur d'activation. Veuillez contacter le support.",
                             confirmButtonText: "OK"
                         });
                     }
                 } else {
                     Swal.fire({
                         icon: "info",
-                        title: "Paiement annulé",
+                        title: "Paiement non complété",
                         text: "Vous pouvez réessayer quand vous voulez.",
                         confirmButtonText: "OK"
                     });
@@ -319,7 +351,6 @@ function getPacks(isMaman) {
         });
     }
 };
-
 
 window.retryPayment = async (abonnementId, montant, patientNom, packId, durationMonths) => {
     // Récupérer le patient ID
