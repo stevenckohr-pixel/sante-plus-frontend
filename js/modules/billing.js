@@ -386,7 +386,7 @@ window.downloadInvoicePDF = async (abonnementId) => {
         
         // Créer le HTML de la facture
         const isMaman = localStorage.getItem("user_is_maman") === "true";
-        const logoSrc = isMaman ? '/sante-plus-frontend/assets/images/logo-maman-text.png' : '/sante-plus-frontend/assets/images/logo-general-text.png';
+        const logoSrc = isMaman      ? 'https://stevenckohr-pixel.github.io/sante-plus-frontend/assets/images/logo-maman-text.png'     : 'https://stevenckohr-pixel.github.io/sante-plus-frontend/assets/images/logo-general-text.png';
         
         const invoiceHtml = `
             <!DOCTYPE html>
