@@ -154,23 +154,6 @@ function getStatusBadge(statut) {
   }
 }
 
-function getActionButton(abo, userRole) {
-  if (userRole === "COORDINATEUR" && abo.statut !== "Payé") {
-    return `<button onclick="window.markAsPaid('${abo.id}', ${abo.montant_du})" 
-                   class="bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase">
-              Valider Cash
-            </button>`;
-
-
-} else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
-    return `<button onclick="window.retryPayment('${abo.id}', ${abo.montant_du}, '${escapeHtml(abo.patient?.nom_complet || 'Patient')}', '${abo.type_pack || ''}', ${abo.duree_mois || 1})" 
-                   class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase shadow-lg">
-              💳 Payer Mobile
-            </button>`;
-}
-    
-  return '<span class="text-slate-300 text-[9px]">—</span>';
-}
 
 function renderKpis(totalPaid, totalLate) {
   return `
@@ -292,6 +275,94 @@ window.markAsPaid = async (id, montant) => {
       customClass: { popup: 'rounded-2xl' }
     });
   }
+};
+
+
+function getActionButton(abo, userRole) {
+  if (userRole === "COORDINATEUR" && abo.statut !== "Payé") {
+    return `<button onclick="window.markAsPaid('${abo.id}', ${abo.montant_du})" 
+                   class="bg-slate-900 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase">
+              Valider Cash
+            </button>`;
+  } else if (userRole === "FAMILLE" && abo.statut !== "Payé") {
+    return `<button onclick="window.retryPayment('${abo.id}', ${abo.montant_du}, '${escapeHtml(abo.patient?.nom_complet || 'Patient')}', '${abo.type_pack || ''}', ${abo.duree_mois || 1})" 
+                   class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold text-[9px] uppercase shadow-lg">
+              💳 Payer Mobile
+            </button>`;
+  } else if (abo.statut === "Payé") {
+    return `<button onclick="window.viewInvoice('${abo.id}')" 
+                   class="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg font-bold text-[9px]">
+              📄 Voir facture
+            </button>`;
+  }
+  return '<span class="text-slate-300 text-[9px]">—</span>';
+}
+
+
+
+
+
+
+// ============================================================
+// 📄 VOIR LE DÉTAIL D'UNE FACTURE
+// ============================================================
+
+window.viewInvoice = async (abonnementId) => {
+    try {
+        const invoice = await secureFetch(`/billing/invoice/${abonnementId}`);
+        
+        Swal.fire({
+            title: '<span class="text-xl font-black">📄 FACTURE</span>',
+            html: `
+                <div class="text-left space-y-3">
+                    <div class="border-b pb-2">
+                        <p class="text-[10px] text-slate-400">N° FACTURE</p>
+                        <p class="font-black text-slate-800">${invoice.numero}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <p class="text-[10px] text-slate-400">DATE</p>
+                            <p class="font-bold text-slate-700">${invoice.date}</p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-slate-400">STATUT</p>
+                            <p class="font-bold ${invoice.statut === 'Payé' ? 'text-emerald-600' : 'text-amber-600'}">${invoice.statut}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400">FORFAIT</p>
+                        <p class="font-bold text-slate-800">${invoice.type_pack?.replace(/_/g, ' ') || 'Standard'}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400">PÉRIODE</p>
+                        <p class="font-bold text-slate-700">${invoice.mois}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-slate-400">MONTANT</p>
+                        <p class="text-2xl font-black text-emerald-600">${invoice.montant.toLocaleString()} CFA</p>
+                    </div>
+                    ${invoice.date_fin ? `
+                    <div class="bg-slate-50 p-2 rounded-lg">
+                        <p class="text-[9px] text-slate-400">VALIDITÉ JUSQU'AU</p>
+                        <p class="font-bold text-slate-700">${invoice.date_fin}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `,
+            confirmButtonText: "Fermer",
+            confirmButtonColor: "#0F172A",
+            customClass: { popup: 'rounded-2xl p-6', confirmButton: 'rounded-xl px-6 py-3 text-[10px] font-black uppercase tracking-wider' }
+        });
+        
+    } catch (err) {
+        console.error("❌ Erreur chargement facture:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: "Impossible de charger la facture",
+            confirmButtonText: "OK"
+        });
+    }
 };
 
 // ============================================================
