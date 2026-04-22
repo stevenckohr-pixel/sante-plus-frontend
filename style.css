@@ -4135,3 +4135,44 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
         display: none !important;
     }
 }
+
+
+/* Supprimer les paddings du parent quand le chat est ouvert sur mobile */
+@media (max-width: 1023px) {
+    /* Cibler le conteneur principal */
+    body:has(.chat-desktop-container) main,
+    body:has(.chat-desktop-container) #main-content,
+    body:has(.chat-desktop-container) .main-wrapper,
+    body:has(.chat-desktop-container) #view-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        width: 100vw !important;
+    }
+    
+    /* S'assurer que le chat prend tout l'écran */
+    .chat-desktop-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        z-index: 10000 !important;
+        margin: 0 !important;
+    }
+    
+    /* Cacher header et sidebar */
+    body:has(.chat-desktop-container) aside,
+    body:has(.chat-desktop-container) header {
+        display: none !important;
+    }
+}
