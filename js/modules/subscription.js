@@ -245,12 +245,20 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
                 lastname: lastName
             },
 
-            onComplete: async (reason, transaction) => {
-    console.log("FedaPay fermé - Raison:", reason);
-    console.log("Transaction reçue:", transaction);
+onComplete: async (response) => {
+    console.log("FedaPay fermé - Réponse complète:", response);
+    
+    // La transaction est dans response, pas dans un deuxième paramètre
+    const transaction = response.transaction || response;
+    const reason = response.reason || response;
+    
+    console.log("Transaction status:", transaction?.status);
+    console.log("Reason:", reason);
     
     // Vérifier si le paiement est approuvé
-    if (transaction && transaction.status === 'approved') {
+    const isApproved = transaction && transaction.status === 'approved';
+    
+    if (isApproved) {
         Swal.fire({
             title: "Validation du paiement...",
             didOpen: () => Swal.showLoading(),
