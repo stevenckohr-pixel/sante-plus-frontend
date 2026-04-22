@@ -4102,3 +4102,36 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     box-shadow: none !important;
     border: none !important;
 }
+
+
+
+/* Par défaut (desktop) - chat dans la zone de contenu */
+.chat-desktop-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    background: #efeae2;
+    border-radius: 1rem;
+    overflow: hidden;
+}
+
+/* Sur mobile (< 1024px) - chat plein écran */
+@media (max-width: 1023px) {
+    .chat-desktop-container {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+        z-index: 10000 !important;
+    }
+    
+    /* Cacher la sidebar et le header sur mobile quand le chat est ouvert */
+    body:has(.chat-desktop-container) aside,
+    body:has(.chat-desktop-container) header {
+        display: none !important;
+    }
+}
