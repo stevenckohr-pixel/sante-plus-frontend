@@ -173,7 +173,7 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         }
     }
     
-    // Confirmation avant de créer la facture
+    // Confirmation avant paiement
     const confirm = await Swal.fire({
         title: '<span class="text-xl font-black">💳 Paiement sécurisé</span>',
         html: `
@@ -227,73 +227,62 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         const firstName = userName.split(' ')[0];
         const lastName = userName.split(' ')[1] || "SPS";
         
-        // Créer un formulaire invisible pour FedaPay Checkout
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'https://checkout.fedapay.com/pay';
-        form.target = '_blank';
-        form.style.display = 'none';
-        
-        const fields = {
-            public_key: 'pk_live_tGAFMjEYOV37KoKgDSZGtktR',
-            amount: price,
-            currency: 'XOF',
-            description: `Pack ${selectedPack?.name} - ${durationMonths} mois`,
-            customer_email: userEmail,
-            customer_firstname: firstName,
-            customer_lastname: lastName,
-            callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`,
-            cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`
-        };
-        
-        for (const [key, value] of Object.entries(fields)) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        }
-        
-        document.body.appendChild(form);
-        
-        // Afficher un message d'information
-        Swal.fire({
-            icon: "info",
-            title: "Redirection vers la page de paiement...",
-            text: "Une nouvelle fenêtre va s'ouvrir pour finaliser votre paiement.",
-            timer: 2000,
-            showConfirmButton: false
+        // Appel au backend Vercel
+        const response = await fetch('https://fedapay-backend.vercel.app/api/payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: price,
+                description: `Pack ${selectedPack?.name} - ${durationMonths} mois`,
+                customer_email: userEmail,
+                customer_firstname: firstName,
+                customer_lastname: lastName,
+                callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${facture.id}&montant=${price}`,
+                cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`
+            })
         });
         
-        // Soumettre le formulaire
-        setTimeout(() => {
-            form.submit();
-            setTimeout(() => form.remove(), 5000);
-        }, 500);
+        const data = await response.json();
         
-        // Vérifier périodiquement si la facture est payée
-        let checkCount = 0;
-        const checkInterval = setInterval(async () => {
-            checkCount++;
-            try {
-                const factureCheck = await secureFetch(`/billing/${facture.id}`);
-                if (factureCheck.statut === "Payé") {
-                    clearInterval(checkInterval);
-                    Swal.fire({
-                        icon: "success",
-                        title: "✅ Abonnement activé !",
-                        text: "Votre paiement a été confirmé.",
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    window.switchView("billing");
-                } else if (checkCount > 24) { // 2 minutes max
-                    clearInterval(checkInterval);
+        if (data.payment_url) {
+            // Ouvrir la fenêtre de paiement FedaPay
+            window.open(data.payment_url, '_blank');
+            
+            Swal.fire({
+                icon: "info",
+                title: "Paiement initié",
+                text: "Une fenêtre de paiement s'est ouverte. Complétez le paiement pour activer votre abonnement.",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#10B981"
+            });
+            
+            // Vérifier périodiquement le statut de la facture
+            let checkCount = 0;
+            const checkInterval = setInterval(async () => {
+                checkCount++;
+                try {
+                    const factureCheck = await secureFetch(`/billing/${facture.id}`);
+                    if (factureCheck.statut === "Payé") {
+                        clearInterval(checkInterval);
+                        Swal.fire({
+                            icon: "success",
+                            title: "✅ Abonnement activé !",
+                            text: "Votre paiement a été confirmé.",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        window.switchView("billing");
+                    } else if (checkCount > 24) {
+                        clearInterval(checkInterval);
+                    }
+                } catch (e) {
+                    console.error("Erreur vérification:", e);
                 }
-            } catch (e) {
-                console.error("Erreur vérification:", e);
-            }
-        }, 5000);
+            }, 5000);
+            
+        } else {
+            throw new Error(data.error || "URL de paiement non reçue");
+        }
         
     } catch (err) {
         Swal.close();
