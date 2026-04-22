@@ -4000,3 +4000,11 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
     font-family: "Font Awesome 6 Free" !important;
     font-weight: 900 !important;
 }
+
+
+/* Supprimer les bordures noires sur les images de login */
+#auth-logo-img {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
