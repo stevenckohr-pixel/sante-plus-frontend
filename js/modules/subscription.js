@@ -303,6 +303,111 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     }
 };
 
+
+
+window.retryPayment = async (abonnementId, montant, patientNom, packId, durationMonths) => {
+    // Récupérer le patient ID
+    let patientId = AppState.currentPatient;
+    if (!patientId) {
+        try {
+            const patients = await secureFetch("/patients");
+            if (patients && patients.length > 0) {
+                patientId = patients[0].id;
+                AppState.currentPatient = patientId;
+                localStorage.setItem("current_patient_id", patientId);
+            } else {
+                UI.error("Aucun patient trouvé");
+                return;
+            }
+        } catch (err) {
+            UI.error("Impossible de récupérer le patient");
+            return;
+        }
+    }
+    
+    // Utiliser la même logique que selectSubscriptionPack
+    const userEmail = localStorage.getItem("user_email");
+    const userName = localStorage.getItem("user_name") || "Client";
+    const firstName = userName.split(' ')[0];
+    const lastName = userName.split(' ')[1] || "SPS";
+    
+    Swal.fire({
+        title: "Préparation du paiement...",
+        didOpen: () => Swal.showLoading(),
+        allowOutsideClick: false
+    });
+    
+    try {
+        const response = await fetch('https://fedapay-backend.vercel.app/api/payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: montant,
+                description: `Pack ${packId} - ${durationMonths} mois`,
+                customer_email: userEmail,
+                customer_firstname: firstName,
+                customer_lastname: lastName,
+                callback_url: `${window.location.origin}/sante-plus-frontend/#billing?status=success&facture_id=${abonnementId}&montant=${montant}`,
+                cancel_url: `${window.location.origin}/sante-plus-frontend/#billing?status=cancel`
+            })
+        });
+        
+        const data = await response.json();
+        Swal.close();
+        
+        if (data.payment_url) {
+            // Créer une modale avec iframe
+            const modalId = 'fedapay-modal-' + Date.now();
+            const modalHtml = `
+                <div id="${modalId}" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:10000; display:flex; align-items:center; justify-content:center;">
+                    <div style="background:white; border-radius:20px; width:95%; max-width:500px; height:85%; overflow:hidden; display:flex; flex-direction:column;">
+                        <div style="padding:12px 16px; text-align:right; border-bottom:1px solid #e2e8f0;">
+                            <button id="close-${modalId}" style="background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">&times;</button>
+                        </div>
+                        <iframe src="${data.payment_url}" style="width:100%; height:100%; border:none;"></iframe>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            document.getElementById(`close-${modalId}`).onclick = () => {
+                document.getElementById(modalId).remove();
+            };
+            
+            // Vérifier périodiquement le statut
+            let checkCount = 0;
+            const checkInterval = setInterval(async () => {
+                checkCount++;
+                try {
+                    const factureCheck = await secureFetch(`/billing/${abonnementId}`);
+                    if (factureCheck.statut === "Payé") {
+                        clearInterval(checkInterval);
+                        document.getElementById(modalId)?.remove();
+                        Swal.fire({
+                            icon: "success",
+                            title: "✅ Paiement confirmé !",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        window.switchView("billing");
+                    } else if (checkCount > 24) {
+                        clearInterval(checkInterval);
+                    }
+                } catch (e) {}
+            }, 5000);
+        }
+    } catch (err) {
+        Swal.close();
+        console.error(err);
+        Swal.fire({
+            icon: "error",
+            title: "Erreur",
+            text: err.message,
+            confirmButtonText: "OK"
+        });
+    }
+};
+                                      
 // ============================================================
 // INITIATION PAIEMENT FEDAPAY (fallback - non utilisé)
 // ============================================================
