@@ -4091,3 +4091,14 @@ body:not(.fontawesome-loaded) i[class*="fa-"] {
         z-index: 1000 !important;
     }
 }
+
+
+
+/* Supprimer le focus rectangle sur la barre de saisie du chat */
+.chat-whatsapp-input-field:focus,
+.chat-whatsapp-input-field:focus-visible,
+.chat-whatsapp-input-field:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
