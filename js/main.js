@@ -1848,36 +1848,37 @@ function renderLayout() {
 
     document.getElementById("app").innerHTML = `
         <div class="flex h-screen w-full bg-[#F8FAFC] overflow-hidden font-sans select-none">
-           <!-- Sidebar Desktop -->
-<aside class="hidden lg:flex flex-col w-72 bg-white shadow-xl border-r border-slate-100">
-    <!-- Logo avec fond blanc -->
-    <div class="flex justify-center py-8 border-b border-slate-100 bg-white">
-        <div class="w-28 h-28 bg-white rounded-2xl shadow-md flex items-center justify-center p-3">
-            <img id="sidebar-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
-        </div>
-    </div>
-    
-    <!-- Navigation (déjà filtrée par rôle via getNavLinks) -->
-    <nav class="flex-1 py-6 px-4 space-y-1 overflow-y-auto" id="nav-desktop">
-        ${getNavLinks(userRole, 'desktop')}
-    </nav>
-    
-    <!-- Profil & Déconnexion -->
-    <div class="p-4 border-t border-slate-100 mt-auto bg-slate-50">
-        <div class="flex items-center gap-3 mb-4 p-2 rounded-xl">
-            <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-sm overflow-hidden">
-                ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-regular fa-user text-slate-500"></i>`}
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-slate-800 truncate">${userName?.split(' ')[0] || 'Utilisateur'}</p>
-                <p class="text-[9px] text-slate-400 uppercase tracking-wider">${userRole}</p>
-            </div>
-        </div>
-        <button onclick="window.logout()" class="w-full py-2.5 bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2">
-            <i class="fa-solid fa-power-off text-xs"></i> Déconnexion
-        </button>
-    </div>
-</aside>
+            <!-- Sidebar Desktop -->
+            <aside class="hidden lg:flex flex-col w-72 bg-gradient-to-b from-slate-900 to-slate-800 text-white shadow-xl">
+                
+                <!-- Logo avec fond blanc (carte) -->
+                <div class="flex justify-center py-8">
+                    <div class="w-28 h-28 bg-white rounded-2xl shadow-lg flex items-center justify-center p-3">
+                        <img id="sidebar-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
+                    </div>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="flex-1 py-4 px-4 space-y-1 overflow-y-auto" id="nav-desktop">
+                    ${getNavLinks(userRole, 'desktop')}
+                </nav>
+                
+                <!-- Profil & Déconnexion -->
+                <div class="p-4 border-t border-white/10 mt-auto">
+                    <div class="flex items-center gap-3 mb-4 p-2 rounded-xl bg-white/5">
+                        <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-black text-sm overflow-hidden">
+                            ${userPhoto ? `<img src="${userPhoto}" class="w-full h-full object-cover">` : `<i class="fa-regular fa-user text-white"></i>`}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold truncate">${userName?.split(' ')[0] || 'Utilisateur'}</p>
+                            <p class="text-[9px] text-slate-400 uppercase tracking-wider">${userRole}</p>
+                        </div>
+                    </div>
+                    <button onclick="window.logout()" class="w-full py-2.5 bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-power-off text-xs"></i> Déconnexion
+                    </button>
+                </div>
+            </aside>
 
             <!-- Contenu principal -->
             <div class="flex-1 flex flex-col min-w-0 h-[100dvh] relative overflow-hidden">
