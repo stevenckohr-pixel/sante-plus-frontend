@@ -149,7 +149,7 @@ function getPacks(isMaman) {
 // SÉLECTION D'UN PACK
 // ============================================================
 
-window.selectSubscriptionPack = async (packId, price, durationMonths) => {
+ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
     const isMaman = localStorage.getItem("user_is_maman") === "true";
     const packs = getPacks(isMaman);
     const selectedPack = packs.find(p => p.id === packId);
@@ -248,8 +248,10 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
             onComplete: async (reason, transaction) => {
                 console.log("FedaPay fermé:", reason, transaction);
                 
-                // Vérifier si le paiement est complet
-                if (reason === 'CHECKOUT COMPLETE' || reason === FedaPay.CHECKOUT_COMPLETED) {
+                // Vérifier si le paiement est approuvé (status 'approved')
+                const isPaymentApproved = transaction && transaction.status === 'approved';
+                
+                if (isPaymentApproved) {
                     Swal.fire({
                         title: "Validation du paiement...",
                         didOpen: () => Swal.showLoading(),
@@ -317,7 +319,6 @@ window.selectSubscriptionPack = async (packId, price, durationMonths) => {
         });
     }
 };
-
 
 
 window.retryPayment = async (abonnementId, montant, patientNom, packId, durationMonths) => {
