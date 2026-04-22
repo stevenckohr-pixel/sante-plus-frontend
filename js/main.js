@@ -2263,7 +2263,7 @@ function getNavLinks(role, mode) {
     else if (isFamily && !isMaman) {
         // 👴 SENIOR
         tabs = [
-            { id: 'dashboard', icon: 'fa-chart-line', label: 'Tableau de bord' },
+            { id: 'home', icon: 'fa-home', label: 'Accueil' },
             { id: 'feed', icon: 'fa-newspaper', label: 'Journal de soins' },
             { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },
             { id: 'commandes', icon: 'fa-box', label: 'Commandes' },
