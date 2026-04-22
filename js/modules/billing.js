@@ -369,9 +369,7 @@ window.viewInvoice = async (abonnementId) => {
 };
 
 
-// ============================================================
-// 📄 TÉLÉCHARGER LA FACTURE EN PDF
-// ============================================================
+
 
 
 // ============================================================
@@ -496,7 +494,7 @@ window.downloadInvoicePDF = async (abonnementId) => {
             <div class="company-info">
                 <strong>Santé Plus Services</strong><br>
                 Cotonou, Bénin<br>
-                +229 01 23 45 67<br>
+                +229 01 54 97 89 99 <br>
                 contact@santeplus.bj
             </div>
         </div>
