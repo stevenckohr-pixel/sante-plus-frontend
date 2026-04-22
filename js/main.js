@@ -1983,7 +1983,7 @@ function renderLayout() {
         }
         if (userRole === 'FAMILLE') {
             serviceItems.push(
-                { id: 'billing', icon: 'fa-receipt', label: 'Factures', roles: ['FAMILLE'] },
+                { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures', roles: ['FAMILLE'] },
                 { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement', roles: ['FAMILLE'] }
             );
             if (isMaman) {
@@ -2234,7 +2234,7 @@ function getNavLinks(role, mode) {
             { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },  
             { id: 'commandes', icon: 'fa-box', label: 'Commandes bébé' },
             { id: 'education', icon: 'fa-graduation-cap', label: 'Éducation' },
-            { id: 'billing', icon: 'fa-receipt', label: 'Factures' },
+            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures' },
             { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
         ];
     }
@@ -2245,7 +2245,7 @@ function getNavLinks(role, mode) {
             { id: 'feed', icon: 'fa-newspaper', label: 'Journal de soins' },
             { id: 'visits', icon: 'fa-calendar-check', label: 'Visites' },
             { id: 'commandes', icon: 'fa-box', label: 'Commandes' },
-            { id: 'billing', icon: 'fa-receipt', label: 'Factures' },
+            { id: 'billing', icon: 'fa-file-invoice-dollar', label: 'Factures' },
             { id: 'subscription', icon: 'fa-ticket', label: 'Abonnement' },
             { id: 'profile', icon: 'fa-user-circle', label: 'Profil' }
         ];
