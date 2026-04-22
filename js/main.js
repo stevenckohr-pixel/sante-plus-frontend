@@ -1853,7 +1853,7 @@ function renderLayout() {
                 
                 <!-- Logo avec fond blanc (carte) -->
                 <div class="flex justify-center py-8">
-                    <div class="w-28 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center p-3">
+                    <div class="w-28 h-18 bg-white rounded-2xl shadow-lg flex items-center justify-center p-3">
                         <img id="sidebar-logo-img" class="w-full h-full object-contain" src="${isMaman ? CONFIG.LOGO_MAMAN_ICON : CONFIG.LOGO_GENERAL_ICON}">
                     </div>
                 </div>
