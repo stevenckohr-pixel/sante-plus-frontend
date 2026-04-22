@@ -1499,7 +1499,7 @@ if (authLogo) {
                     <div class="shrink-0 text-center pb-4">
             <div class="flex justify-center mb-4">
                 <div class="bg-white">
-                    <img id="auth-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-34 h-32 object-contain">
+                    <img id="auth-logo-img" src="/sante-plus-frontend/assets/images/logo-general-icon.png" class="w-35 h-31 object-contain">
                 </div>
             </div>
                     <p id="auth-step-title" class="text-slate-400 text-[8px] font-black uppercase tracking-[0.3em] mt-1.5">${stepTitle}</p>
