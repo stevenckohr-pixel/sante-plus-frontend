@@ -1245,28 +1245,28 @@ async function loadFeed() {
     // HTML DU CHAT - STYLE WHATSAPP
     // ============================================================
 
-        container.innerHTML = `
-            <div class="chat-whatsapp-container">
-                <!-- HEADER FIXE -->
-                <div class="chat-whatsapp-header">
-                    <div class="chat-whatsapp-back" onclick="window.switchView('patients')">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </div>
-                    <div class="chat-whatsapp-avatar">
-                        ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
-                    </div>
-                    <div class="chat-whatsapp-info">
-                        <div class="chat-whatsapp-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
-                        <div class="chat-whatsapp-status" id="chat-status">
-                            <span class="online-dot"></span> En ligne
-                        </div>
-                    </div>
-                    <div class="chat-whatsapp-actions">
-                        <button id="attach-doc-btn" title="Pièce jointe">
-                            <i class="fa-solid fa-paperclip"></i>
-                        </button>
-                    </div>
+container.innerHTML = `
+    <div class="chat-desktop-container">
+        <!-- HEADER FIXE -->
+        <div class="chat-whatsapp-header">
+            <div class="chat-whatsapp-back" onclick="window.switchView('patients')">
+                <i class="fa-solid fa-arrow-left"></i>
+            </div>
+            <div class="chat-whatsapp-avatar">
+                ${patientInfo?.nom_complet?.charAt(0).toUpperCase() || '?'}
+            </div>
+            <div class="chat-whatsapp-info">
+                <div class="chat-whatsapp-name">${escapeHtml(patientInfo?.nom_complet || 'Patient')}</div>
+                <div class="chat-whatsapp-status" id="chat-status">
+                    <span class="online-dot"></span> En ligne
                 </div>
+            </div>
+            <div class="chat-whatsapp-actions">
+                <button id="attach-doc-btn" title="Pièce jointe">
+                    <i class="fa-solid fa-paperclip"></i>
+                </button>
+            </div>
+        </div>
         
                 <!-- 🔥 NOUVEAU : SÉLECTEUR DE PORTÉE DES MESSAGES -->
                 <div class="chat-visibility-bar">
