@@ -2842,8 +2842,15 @@ function renderOnboarding() {
                     `<img src="${step.image}" class="onboarding-img shadow-2xl">
                      <div class="onboarding-image-blur"></div>`
                 }
-                ${!isLast && !step.isLogo ? `<button onclick="window.finishOnboarding()" class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-white tracking-widest border border-white/30 z-50">Ignorer</button>` : ''}
-            </div>
+
+                    ${!isLast && !step.isFinal ? `
+                        <button onclick="window.finishOnboarding()" 
+                                class="absolute top-10 right-6 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/30 z-50"
+                                style="color: ${isMaman ? '#E11D48' : '#059669'}">
+                            Ignorer
+                        </button>
+                    ` : ''}
+                </div>
             
             <div class="flex-1 flex flex-col items-center text-center px-10 pb-10">
                 <h2 class="text-3xl font-[900] text-slate-900 tracking-tight mb-4 leading-tight">${step.title}</h2>
@@ -2851,8 +2858,10 @@ function renderOnboarding() {
                 <div class="flex gap-2 mb-8">
                     ${ONBOARDING_STEPS.map((_, i) => `<div class="onboarding-dot ${i === onboardingStep ? 'active' : ''}"></div>`).join('')}
                 </div>
-                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" class="w-full py-5 bg-slate-900 text-white rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 active:scale-95 transition-all">
-                    ${isLast ? 'Commencer l\'aventure' : 'Continuer'}
+                <button onclick="${isLast ? 'window.finishOnboarding()' : 'window.nextOnboarding()'}" 
+                        class="w-full py-5 rounded-3xl font-black text-[12px] uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all"
+                        style="background: ${isMaman ? '#E11D48' : '#059669'}; color: white;">
+                    ${isLast ? 'Go SantéPlus' : 'Continuer'}
                 </button>
             </div>
         </div>
