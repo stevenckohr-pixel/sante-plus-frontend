@@ -373,8 +373,9 @@ window.viewInvoice = async (abonnementId) => {
 // 📄 TÉLÉCHARGER LA FACTURE EN PDF
 // ============================================================
 
+
 // ============================================================
-// 📄 TÉLÉCHARGER LA FACTURE EN PDF (via impression)
+// 📄 TÉLÉCHARGER LA FACTURE EN PDF (reste dans l'app)
 // ============================================================
 
 window.downloadInvoicePDF = async (abonnementId) => {
@@ -424,24 +425,10 @@ window.downloadInvoicePDF = async (abonnementId) => {
             padding-bottom: 20px;
             border-bottom: 2px solid ${themeColor};
         }
-        .logo {
-            max-width: 150px;
-            max-height: 60px;
-        }
-        .company-info {
-            text-align: right;
-            font-size: 12px;
-            color: #64748b;
-        }
-        .title {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .title h1 {
-            font-size: 28px;
-            color: ${themeColor};
-            letter-spacing: 2px;
-        }
+        .logo { max-width: 150px; max-height: 60px; }
+        .company-info { text-align: right; font-size: 12px; color: #64748b; }
+        .title { text-align: center; margin: 30px 0; }
+        .title h1 { font-size: 28px; color: ${themeColor}; letter-spacing: 2px; }
         .info-section {
             display: flex;
             justify-content: space-between;
@@ -476,10 +463,7 @@ window.downloadInvoicePDF = async (abonnementId) => {
             color: #475569;
             text-transform: uppercase;
         }
-        .total-row {
-            background: #f8fafc;
-            font-weight: bold;
-        }
+        .total-row { background: #f8fafc; font-weight: bold; }
         .amount {
             text-align: right;
             font-weight: bold;
@@ -503,14 +487,10 @@ window.downloadInvoicePDF = async (abonnementId) => {
             color: #94a3b8;
             border-top: 1px solid #e2e8f0;
         }
-        @media print {
-            body { padding: 0; }
-            .no-print { display: none; }
-        }
     </style>
 </head>
 <body>
-    <div class="invoice-container">
+    <div class="invoice-container" id="invoice-to-print">
         <div class="header">
             <img src="${logoSrc}" class="logo" alt="Logo">
             <div class="company-info">
@@ -572,28 +552,52 @@ window.downloadInvoicePDF = async (abonnementId) => {
             <p>Merci de votre confiance</p>
         </div>
     </div>
-    
-    <div class="no-print" style="text-align: center; margin-top: 20px; padding: 20px;">
-        <button onclick="window.print()" style="background: ${themeColor}; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">🖨️ Imprimer / Enregistrer en PDF</button>
-    </div>
 </body>
 </html>
         `;
         
-        Swal.close();
+        // Créer un élément temporaire invisible
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '-9999px';
+        tempDiv.innerHTML = invoiceHtml;
+        document.body.appendChild(tempDiv);
         
-        // Ouvrir une nouvelle fenêtre avec la facture
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(invoiceHtml);
-        printWindow.document.close();
-        
-        // Afficher un message
-        Swal.fire({
-            icon: "success",
-            title: "Facture prête",
-            text: "Une nouvelle fenêtre s'est ouverte. Utilisez 'Imprimer' puis 'Enregistrer en PDF'.",
-            confirmButtonText: "OK"
-        });
+        // Attendre que tout soit chargé
+        setTimeout(() => {
+            const element = tempDiv.querySelector('#invoice-to-print');
+            
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `facture_${invoice.numero}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, letterRendering: true, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                document.body.removeChild(tempDiv);
+                Swal.close();
+                Swal.fire({
+                    icon: "success",
+                    title: "PDF généré !",
+                    text: "La facture a été téléchargée.",
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }).catch((err) => {
+                document.body.removeChild(tempDiv);
+                Swal.close();
+                console.error(err);
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: "Impossible de générer le PDF",
+                    confirmButtonText: "OK"
+                });
+            });
+        }, 500);
         
     } catch (err) {
         Swal.close();
